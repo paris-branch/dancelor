@@ -5,6 +5,7 @@ open Html
 
 val make :
   label: string ->
+  ?make_header: (int -> Html_types.div_content_fun elt) ->
   ?more_actions: Html_types.div_content_fun elt list S.t ->
   ('value, 'state) Component.s ->
   'state list ->
@@ -16,6 +17,7 @@ val make :
 
 val make_non_empty :
   label: string ->
+  ?make_header: (int -> Html_types.div_content_fun elt) ->
   ?more_actions: Html_types.div_content_fun elt list S.t ->
   ('value, 'state) Component.s ->
   'state list ->
@@ -27,6 +29,7 @@ val make_non_empty :
 
 val prepare :
   label: string ->
+  ?make_header: (int -> Html_types.div_content_fun elt) ->
   ?more_actions: Html_types.div_content_fun elt list S.t ->
   ('value, 'state) Component.s ->
   ('value list, 'state list) Component.s
@@ -35,6 +38,7 @@ val prepare :
 
 val prepare_non_empty :
   label: string ->
+  ?make_header: (int -> Html_types.div_content_fun elt) ->
   ?more_actions: Html_types.div_content_fun elt list S.t ->
   ('value, 'state) Component.s ->
   ('value NEList.t, 'state list) Component.s

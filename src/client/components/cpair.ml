@@ -122,8 +122,8 @@ let prepare_wrap (type value1)(type state1)(type value2)(type state2)(type value
 
   let inner_html p =
     div [
-      C1.inner_html (c1 p);
-      C2.inner_html (c2 p);
+      div [C1.inner_html (c1 p)] ~a: [a_class ["mb-1"]];
+      div [C2.inner_html (c2 p)];
     ]
 
   let actions _ = S.const []

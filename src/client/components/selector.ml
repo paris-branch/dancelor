@@ -68,12 +68,6 @@ let prepare_gen (type model)(type model_validated)
             ~tooltip: "Clear the selection. It cannot be recovered."
             ~onclick: (fun _ -> s.set None; lwt_unit)
             ();
-          Utils.Button.make
-            ~classes: ["btn-info"]
-            ~icon: "pencil-square"
-            ~tooltip: ("Edit the selected " ^ model_name ^ ".")
-            ~onclick: (fun _ -> s.select_button_dom##click; lwt_unit)
-            ();
         ]
 
   let focus s = s.select_button_dom##focus
@@ -134,7 +128,7 @@ let prepare_gen (type model)(type model_validated)
       Utils.Button.make
         ~label: ("Select a " ^ model_name)
         ~label_processing: ("Selecting a " ^ model_name ^ "...")
-        ~classes: ["btn-outline-secondary"; "w-100"; "text-start"]
+        ~classes: ["text-secondary"; "btn-outline-light"; "w-100"; "text-start"]
         ~onclick: select_model
         ()
     in
@@ -153,9 +147,9 @@ let prepare_gen (type model)(type model_validated)
             ]
           | Some model ->
             [
-              div ~a: [a_class ["row"; "m-0"]] [
+              div ~a: [a_class ["rounded-2"; "border"; "w-100"; "px-2"; "py-1"]] [
                 tablex
-                  ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"; "col"]]
+                  ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"]]
                   [tbody (List.map Utils.ResultRow.to_clickable_row [make_result model])];
               ];
               div ~a: [a_class ["row"; "m-0"; "overflow-hidden"]] [

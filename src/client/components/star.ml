@@ -4,6 +4,7 @@ open Html
 
 let prepare (type value)(type state)
   ~label
+  ?make_header
   ?(more_actions = S.const [])
   ((module C): (value, state) Component.s)
   : (value list, state list) Component.s
@@ -74,7 +75,7 @@ let prepare (type value)(type state)
         ~label: ("Add a " ^ String.lowercase_ascii C.label)
         ~label_processing: ("Adding a " ^ String.lowercase_ascii C.label)
         ~icon: "plus-circle"
-        ~classes: ["btn-secondary"]
+        ~classes: ["btn-light"]
         ~onclick: (fun () ->
           let%lwt component = C.initialise C.empty in
           set_components (S.value components @ [component]);
@@ -87,41 +88,47 @@ let prepare (type value)(type state)
     let inner_html =
       div [
         R.div
-          ~a: [R.a_class (S.map (function [] -> [] | _ -> ["mb-2"]) components)]
+          ~a: [R.a_class (S.map (function [] -> [] | _ -> ["mb-1"]) components)]
           (
             flip S.map components @@ fun components_ ->
             let last_index = List.length components_ - 1 in
             flip List.mapi components_ @@ fun n component ->
-            div ~a: [a_class ["row"; "border-start"; "m-0"; "ps-2"; (if n = 0 then "pb-1" else if n = last_index then "pt-1" else "py-1")]] [
-              div ~a: [a_class ["col"; "text-start"; "p-0"]] [C.inner_html component];
-              R.div ~a: [a_class ["col-auto"; "p-0"]] (
-                S.l2
-                  (@)
-                  (C.actions component)
-                  (
-                    S.const [
-                      Utils.Button.make
-                        ~icon: "trash"
-                        ~tooltip: ("Remove this " ^ String.lowercase_ascii C.label ^ " from the list. It cannot be recovered.")
-                        ~classes: ["btn-warning"]
-                        ~onclick: (fun _ -> set_components @@ List.remove n @@ S.value components; lwt_unit)
-                        ();
-                      Utils.Button.make
-                        ~icon: "arrow-down"
-                        ~tooltip: ("Move this " ^ String.lowercase_ascii C.label ^ " down in the list.")
-                        ~classes: (["btn-outline-secondary"] @ (if n = last_index then ["disabled"] else []))
-                        ~onclick: (fun _ -> set_components @@ List.swap n (n + 1) @@ S.value components; lwt_unit)
-                        ();
-                      Utils.Button.make
-                        ~icon: "arrow-up"
-                        ~tooltip: ("Move this " ^ String.lowercase_ascii C.label ^ " up in the list.")
-                        ~classes: (["btn"; "btn-outline-secondary"] @ (if n = 0 then ["disabled"] else []))
-                        ~onclick: (fun _ -> set_components @@ List.swap (n - 1) n @@ S.value components; lwt_unit)
-                        ();
-                    ]
-                  )
-              );
-            ]
+            div ~a: [a_class ["row"; "border-start"; "m-0"; "ps-2"; (if n = 0 then "pt-0" else "pt-1")]] (
+              (
+                match make_header with
+                | None -> []
+                | Some make_header -> [div ~a: [a_class ["p-0"; "mb-1"]] [make_header @@ n + 1]]
+              ) @ [
+                div ~a: [a_class ["col"; "text-start"; "p-0"]] [C.inner_html component];
+                R.div ~a: [a_class ["col-auto"; "p-0"]] (
+                  S.l2
+                    (@)
+                    (C.actions component)
+                    (
+                      S.const [
+                        Utils.Button.make
+                          ~icon: "trash"
+                          ~tooltip: ("Remove this " ^ String.lowercase_ascii C.label ^ " from the list. It cannot be recovered.")
+                          ~classes: ["btn-warning"]
+                          ~onclick: (fun _ -> set_components @@ List.remove n @@ S.value components; lwt_unit)
+                          ();
+                        Utils.Button.make
+                          ~icon: "arrow-down"
+                          ~tooltip: ("Move this " ^ String.lowercase_ascii C.label ^ " down in the list.")
+                          ~classes: (["btn-outline-secondary"] @ (if n = last_index then ["disabled"] else []))
+                          ~onclick: (fun _ -> set_components @@ List.swap n (n + 1) @@ S.value components; lwt_unit)
+                          ();
+                        Utils.Button.make
+                          ~icon: "arrow-up"
+                          ~tooltip: ("Move this " ^ String.lowercase_ascii C.label ^ " up in the list.")
+                          ~classes: (["btn"; "btn-outline-secondary"] @ (if n = 0 then ["disabled"] else []))
+                          ~onclick: (fun _ -> set_components @@ List.swap (n - 1) n @@ S.value components; lwt_unit)
+                          ();
+                      ]
+                    )
+                );
+              ]
+            )
           );
         div [button_add_object];
       ]
@@ -131,20 +138,22 @@ end)
 
 let make (type value)(type state)
     ~label
+    ?make_header
     ?more_actions
     (component : (value, state) Component.s)
     (initial_values : state list)
     : (value list, state list) Component.t Lwt.t
   =
-  Component.initialise (prepare ~label ?more_actions component) initial_values
+  Component.initialise (prepare ~label ?make_header ?more_actions component) initial_values
 
 let prepare_non_empty (type value)(type state)
   ~label
+  ?make_header
   ?more_actions
   ((module C): (value, state) Component.s)
   : (value NEList.t, state list) Component.s
 = (module struct
-  include (val (prepare ~label ?more_actions (module C)))
+  include (val (prepare ~label ?make_header ?more_actions (module C)))
   type value = C.value NEList.t
   let value_to_string _ = lwt "<FIXME star>"
   let value_to_state = value_to_state % NEList.to_list
@@ -158,9 +167,10 @@ end)
 
 let make_non_empty (type value)(type state)
     ~label
+    ?make_header
     ?more_actions
     (component : (value, state) Component.s)
     (initial_values : state list)
     : (value NEList.t, state list) Component.t Lwt.t
   =
-  Component.initialise (prepare_non_empty ~label ?more_actions component) initial_values
+  Component.initialise (prepare_non_empty ~label ?make_header ?more_actions component) initial_values
