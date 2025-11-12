@@ -90,7 +90,7 @@ let prepare_gen_unsafe (type value)(type choice_value)
               )
               ();
             Html.label
-              ~a: [a_class ["btn"; "btn-outline-secondary"]; a_label_for choice.id]
+              ~a: [a_class ["btn"; "btn-light"]; a_label_for choice.id]
               choice.contents;
           ]
         )

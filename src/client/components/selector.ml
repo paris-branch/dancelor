@@ -134,7 +134,7 @@ let prepare_gen (type model)(type model_validated)
       Utils.Button.make
         ~label: ("Select a " ^ model_name)
         ~label_processing: ("Selecting a " ^ model_name ^ "...")
-        ~classes: ["btn-outline-secondary"; "w-100"; "text-start"]
+        ~classes: ["text-secondary"; "btn-outline-light"; "w-100"; "text-start"]
         ~onclick: select_model
         ()
     in

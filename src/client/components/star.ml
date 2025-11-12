@@ -75,7 +75,7 @@ let prepare (type value)(type state)
         ~label: ("Add a " ^ String.lowercase_ascii C.label)
         ~label_processing: ("Adding a " ^ String.lowercase_ascii C.label)
         ~icon: "plus-circle"
-        ~classes: ["btn-secondary"]
+        ~classes: ["btn-light"]
         ~onclick: (fun () ->
           let%lwt component = C.initialise C.empty in
           set_components (S.value components @ [component]);
