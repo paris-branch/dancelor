@@ -112,6 +112,7 @@ let
           cat ${./tune/scheme/fancy_unfold_repeats/split_rhythmic_event_at.scm}
           cat ${./tune/scheme/fancy_unfold_repeats/add_trailing_silence.scm}
           cat ${./tune/scheme/fancy_unfold_repeats/fancy_unfold_repeats.scm}
+          cat ${./tune/scheme/bar_numbering/repeat_aware.scm}
         } > $out
       '';
 
