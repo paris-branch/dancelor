@@ -60,9 +60,9 @@
           ++ (self.makeIntegrationCheckInputs pkgs);
         inputsFrom = [ self'.packages.dancelor ];
         shellHook = config.pre-commit.installationScript;
-        ## Dancelor runs Nix, which needs to grab `nixpkgs` and `nixpkgs2211`.
-        ## We expose the flake inputs under those names.
-        NIX_PATH = "nixpkgs=${inputs.nixpkgs}:nixpkgs2211=${inputs.nixpkgs2211}";
+        ## Dancelor runs Nix, and we want it to use the same `nixpkgs`. We
+        ## expose the flake input `nixpkgs` as a channel in the Nix path.
+        NIX_PATH = "nixpkgs=${inputs.nixpkgs}";
       };
 
       packages.ocaml-merlin-lib = pkgs.ocamlPackages.buildDunePackage {

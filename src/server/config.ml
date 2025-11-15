@@ -49,7 +49,6 @@ let github_token_file = ref ""
 let github_repository = ref ""
 let github_database_repository = ref ""
 let nixpkgs = ref ""
-let nixpkgs2211 = ref ""
 
 let check_config () =
   if !github_token_file <> "" then
@@ -100,7 +99,6 @@ let load_from_file filename =
   github_repository := field config ~type_: string ~default: !github_repository ["github-repository"];
   github_database_repository := field config ~type_: string ~default: !github_database_repository ["github-database-repository"];
   nixpkgs := field config ~type_: string ~default: !nixpkgs ["nixpkgs"];
-  nixpkgs2211 := field config ~type_: string ~default: !nixpkgs2211 ["nixpkgs2211"];
   ()
 
 let parse_cmd_line () =
@@ -133,7 +131,6 @@ let parse_cmd_line () =
         "--github-repository", Set_string github_repository, spf "STR Set the Github repository to STR. This is used by the issue report mechanism. It must contain the host, owner, and repository.";
         "--github-database-repository", Set_string github_database_repository, spf "STR Set the Github database repository to STR. This is used by the issue report mechanism. It must contain the host, owner, and repository.";
         "--nixpkgs", Set_string nixpkgs, spf "DIR Set path to nixpkgs (default: will grab <nixpkgs>)";
-        "--nixpkgs2211", Set_string nixpkgs2211, spf "DIR Set path to nixpkgs2211 (for LilyPond 2.22) (default: will grab <nixpkgs2211>)";
       ]
   in
   let anon_fun _ = raise (Arg.Bad "no anonymous argument expected") in

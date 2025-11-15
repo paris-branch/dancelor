@@ -36,7 +36,6 @@
                 ${self'.packages.dancelor}/bin/dancelor \
                   --share ${self'.packages.dancelor}/share/dancelor \
                   --nixpkgs ${inputs.nixpkgs} \
-                  --nixpkgs2211 ${inputs.nixpkgs2211} \
                   "$@"
               '';
             };
