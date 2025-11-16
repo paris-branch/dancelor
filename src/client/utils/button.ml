@@ -60,6 +60,23 @@ let make_content
         );
       ]
 
+let make_attributes
+    ?(classes = [])
+    ?(disabled = S.const false)
+    ?(processing = S.const false)
+    ?tooltip
+    ()
+  =
+  List.flatten
+    [
+      [R.a_class @@
+        let classes = "btn" :: classes in
+        flip S.map (S.l2 (||) disabled processing) @@ function
+          | true -> "disabled" :: classes
+          | false -> classes];
+      (match tooltip with None -> [] | Some tooltip -> [a_title tooltip]);
+    ]
+
 let make
     ?label
     ?label_processing
@@ -67,7 +84,7 @@ let make
     ?badge
     ?tooltip
     ?classes
-    ?(disabled = S.const false)
+    ?disabled
     ?onclick
     ?(more_a = [])
     ()
@@ -78,11 +95,6 @@ let make
       List.flatten
         [
           [a_button_type `Button];
-          [R.a_class @@
-            let classes = "btn" :: Option.value ~default: [] classes in
-            flip S.map (S.l2 (||) disabled processing) @@ function
-              | true -> "disabled" :: classes
-              | false -> classes];
           (
             match onclick with
             | None -> []
@@ -98,7 +110,7 @@ let make
                 false
               ]
           );
-          (match tooltip with None -> [] | Some tooltip -> [a_title tooltip]);
+          (make_attributes ?classes ?disabled ?tooltip ~processing ());
           more_a;
         ]
     )
@@ -118,7 +130,7 @@ let make_a
     ?icon
     ?badge
     ?tooltip
-    ?(disabled = S.const false)
+    ?disabled
     ?classes
     ~href
     ?(more_a = [])
@@ -127,15 +139,8 @@ let make_a
   a
     ~a: (
       List.flatten [
-        [R.a_class
-          (
-            let classes = "btn" :: Option.value ~default: [] classes in
-            flip S.map disabled @@ function
-              | true -> "disabled" :: classes
-              | false -> classes
-          )];
-        (match tooltip with None -> [] | Some tooltip -> [a_title tooltip]);
         [R.a_href href];
+        (make_attributes ?classes ?disabled ?tooltip ());
         more_a
       ]
     )
