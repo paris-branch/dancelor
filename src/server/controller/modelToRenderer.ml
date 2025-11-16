@@ -92,9 +92,9 @@ let version_parts_to_lilypond_content ~version_params version parts =
       (* no structure; or we couldn't find a good one *)
       let melody =
         String.concat " \\bar \"||\"\\break " (
-          List.map
-            (fun (part_name, part) ->
-              spf "\\mark\\markup\\box{%c} %s" part_name part.Model.Version.Content.melody
+          List.mapi
+            (fun part_name part ->
+              spf "\\mark\\markup\\box{%c} %s" (Model.Version.Content.Part_name.to_char part_name) part.Model.Version.Content.melody
             )
             parts
         ) ^
@@ -102,14 +102,14 @@ let version_parts_to_lilypond_content ~version_params version parts =
       in
       let chords =
         String.concat " " (
-          List.map (fun (_, part) -> part.Model.Version.Content.chords) parts
+          List.map (fun part -> part.Model.Version.Content.chords) parts
         )
       in
       let instructions = Option.map (fun structure -> "play " ^ structure) desired_structure in
         (melody, chords, instructions)
     | Some structure ->
       let rec to_lilypond_melody = function
-        | Part part -> (List.assoc part parts).melody
+        | Part part -> (List.nth parts (Model.Version.Content.Part_name.of_char_exn part)).melody
         | Append (e, f) ->
           (* FIXME: with LilyPond 2.24, we could just generate \\section and not bother with this *)
           let show_double_bar = not (ends_with_repeat e) && not (starts_with_repeat f) in
@@ -123,7 +123,7 @@ let version_parts_to_lilypond_content ~version_params version parts =
           (if not (ends_with_repeat structure) then "\\bar \"|.\"" else "")
       in
       let rec to_lilypond_chords = function
-        | Part part -> (List.assoc part parts).chords
+        | Part part -> (List.nth parts (Model.Version.Content.Part_name.of_char_exn part)).chords
         | Append (e, f) -> spf "%s %s" (to_lilypond_chords e) (to_lilypond_chords f)
         | Repeat (_, e) -> to_lilypond_chords e
       in

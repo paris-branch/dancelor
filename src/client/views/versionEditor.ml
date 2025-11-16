@@ -55,44 +55,32 @@ let content_in_parts () =
     (
       Star.prepare_non_empty
         ~label: "Parts"
+        ~make_header: (fun n -> div [txtf "Part %c" @@ Model.Version.Content.Part_name.to_char n])
         (
           Cpair.prepare
             ~label: "Part"
-            (
-              Input.prepare
-                ~type_: Text
-                ~label: "Part name"
-                ~placeholder: "eg. A, B, C"
-                ~serialise: Char.to_string
-                ~validate: (S.const % Option.to_result ~none: "Must be one character" % Char.of_string_opt)
-                ()
-            )
+            (bars ~placeholder: "most often 8" ())
             (
               Cpair.prepare
-                ~label: "FIXME"
-                (bars ~placeholder: "most often 8" ())
+                ~label: "Part content"
                 (
-                  Cpair.prepare
-                    ~label: "Part content"
-                    (
-                      Input.prepare
-                        ~type_: (Textarea {rows = 13})
-                        ~label: "Melody"
-                        ~serialise: id
-                        ~validate: (S.const % ok)
-                        ~placeholder: "\\relative f' {\n  \\partial 4 a4 |\n  d,4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d cis b a g fis e |\n  \\break\n\n  d4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d e fis d4\n}"
-                        ~template: "\\relative f' {\n  %% add part's melody here\n}\n"
-                        ()
-                    )
-                    (
-                      Input.prepare
-                        ~type_: (Textarea {rows = 2})
-                        ~label: "Chords"
-                        ~serialise: id
-                        ~validate: (S.const % ok)
-                        ~placeholder: "s4 | d2 g | a d | b:m e:m | a2 a:7 |\nd2 g | a d | b:m e:m | a2:7 d4"
-                        ()
-                    )
+                  Input.prepare
+                    ~type_: (Textarea {rows = 13})
+                    ~label: "Melody"
+                    ~serialise: id
+                    ~validate: (S.const % ok)
+                    ~placeholder: "\\relative f' {\n  \\partial 4 a4 |\n  d,4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d cis b a g fis e |\n  \\break\n\n  d4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d e fis d4\n}"
+                    ~template: "\\relative f' {\n  %% add part's melody here\n}\n"
+                    ()
+                )
+                (
+                  Input.prepare
+                    ~type_: (Textarea {rows = 2})
+                    ~label: "Chords"
+                    ~serialise: id
+                    ~validate: (S.const % ok)
+                    ~placeholder: "s4 | d2 g | a d | b:m e:m | a2 a:7 |\nd2 g | a d | b:m e:m | a2:7 d4"
+                    ()
                 )
             )
         )
@@ -112,11 +100,7 @@ let content () =
       | Succ Zero (parts, common_structures) ->
         Model.Version.Content.Destructured
           {
-            parts = (
-              NEList.map
-                (Pair.map_snd (fun (bars, (melody, chords)) -> Model.Version.Content.{bars; melody; chords}))
-                parts
-            );
+            parts = NEList.map (fun (bars, (melody, chords)) -> Model.Version.Content.{bars; melody; chords}) parts;
             common_structures;
           }
       | _ -> assert false (* types guarantee this is not reachable *)
@@ -125,9 +109,7 @@ let content () =
       | Model.Version.Content.Monolithic {bars; structure; lilypond} -> Zero ((bars, structure), lilypond)
       | Model.Version.Content.Destructured {parts; common_structures} ->
         one (
-          NEList.map
-            (Pair.map_snd (fun Model.Version.Content.{bars; melody; chords} -> (bars, (melody, chords))))
-            parts,
+          NEList.map (fun Model.Version.Content.{bars; melody; chords} -> (bars, (melody, chords))) parts,
           common_structures
         )
     )

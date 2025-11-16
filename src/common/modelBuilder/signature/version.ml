@@ -4,9 +4,16 @@ module type S = sig
   open Nes
 
   module Content : sig
-    type part_name = Core.Version.Content.part_name
+    module Part_name : sig
+      type t = Core.Version.Content.Part_name.t
 
-    type structure = (* Core.Version.Content.structure = *) part_name NEList.t
+      val of_char : char -> t option
+      val of_char_exn : char -> t
+
+      val to_char : t -> char
+    end
+
+    type structure = (* Core.Version.Content.structure = *) Part_name.t NEList.t
 
     val structure_to_string : structure -> NEString.t
     val structure_of_string : NEString.t -> structure option
@@ -19,7 +26,7 @@ module type S = sig
 
     type t = Core.Version.Content.t =
       | Monolithic of {lilypond: string; bars: int; structure: structure} (** A tune as a full LilyPond, including clef, key, etc. *)
-      | Destructured of {parts: (part_name * part) NEList.t; common_structures: structure NEList.t} (** A tune decomposed as building blocks *)
+      | Destructured of {parts: part NEList.t; common_structures: structure NEList.t} (** A tune decomposed as building blocks *)
     [@@deriving variants]
   end
 
