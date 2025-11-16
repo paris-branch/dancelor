@@ -1,6 +1,11 @@
 {
   perSystem =
-    { self', pkgs, ... }:
+    {
+      self',
+      inputs',
+      pkgs,
+      ...
+    }:
     {
       packages.dancelor = pkgs.ocamlPackages.buildDunePackage {
         pname = "dancelor";
@@ -16,6 +21,7 @@
 
         buildInputs = with pkgs.ocamlPackages; [
           self'.packages.ocaml-argon2
+          inputs'.monadise.packages.default
 
           cohttp-lwt-jsoo
           cohttp-lwt-unix
