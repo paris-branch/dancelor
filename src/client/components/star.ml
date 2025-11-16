@@ -97,7 +97,7 @@ let prepare (type value)(type state)
               (
                 match make_header with
                 | None -> []
-                | Some make_header -> [div ~a: [a_class ["p-0"; "mb-1"]] [make_header @@ n + 1]]
+                | Some make_header -> [div ~a: [a_class ["p-0"; "mb-1"]] [make_header n]]
               ) @ [
                 div ~a: [a_class ["col"; "text-start"; "p-0"]] [C.inner_html component];
                 R.div ~a: [a_class ["col-auto"; "p-0"]] (
