@@ -93,7 +93,7 @@ let content () =
         Model.Version.Content.Destructured
           {
             default_structure;
-            parts = NEList.map (fun (melody, chords) -> Model.Version.Content.{bars = 8; melody; chords}) parts;
+            parts = NEList.map (fun (melody, chords) -> Model.Version.Content.{melody; chords}) parts;
           }
       | _ -> assert false (* types guarantee this is not reachable *)
     )
@@ -102,12 +102,7 @@ let content () =
       | Model.Version.Content.Destructured {default_structure; parts} ->
         one (
           default_structure,
-          NEList.map
-            (fun Model.Version.Content.{bars; melody; chords} ->
-              if bars <> 8 then raise Editor.NonConvertible;
-              (melody, chords)
-            )
-            parts
+          NEList.map (fun Model.Version.Content.{melody; chords} -> (melody, chords)) parts
         )
     )
     (

@@ -21,7 +21,6 @@ module type S = sig
     type part = Core.Version.Content.part = {
       melody: string; (** the melody of that part; they must not include clef or time; they may include the key *)
       chords: string; (** the chords of that part; they will be interpreted in LilyPond's [\chordmode] *)
-      bars: int; (** how many bars does this part span; most often 8 bars *)
     }
 
     type t = Core.Version.Content.t =

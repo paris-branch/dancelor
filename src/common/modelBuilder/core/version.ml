@@ -32,7 +32,6 @@ module Content = struct
   type part = {
     melody: string;
     chords: string;
-    bars: int;
   }
   [@@deriving eq, yojson, show {with_path = false}]
 
@@ -79,7 +78,7 @@ module Content = struct
 
   let erase_lilypond = function
     | Monolithic {bars; structure; _} -> Monolithic {bars; structure; lilypond = ""}
-    | Destructured {default_structure; _} -> Destructured {default_structure; parts = NEList.singleton {melody = ""; chords = ""; bars = 0}}
+    | Destructured {default_structure; _} -> Destructured {default_structure; parts = NEList.singleton {melody = ""; chords = ""}}
 end
 
 let _key = "version"
