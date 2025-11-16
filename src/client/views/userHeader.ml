@@ -138,7 +138,7 @@ let header_item =
         Utils.Button.make
           ~label: "Sign in"
           ~icon: "box-arrow-in-right"
-          ~classes: ["btn-primary"; "disabled"; "placeholder"]
+          ~classes: ["disabled"; "placeholder"]
           ()
       ] @@
       flip Lwt.map Environment.user @@ function
