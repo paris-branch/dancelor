@@ -1,20 +1,8 @@
 open Nes
 open Common
-
 open Components
 open Html
 open Utils
-
-let bars =
-  Input.prepare
-    ~type_: Text
-    ~label: "Number of bars"
-    ~serialise: string_of_int
-    ~validate: (
-      S.const %
-        Option.to_result ~none: "The number of bars has to be an integer." %
-        int_of_string_opt
-    )
 
 let structure =
   Input.prepare
@@ -34,7 +22,19 @@ let content_full () =
     (
       Cpair.prepare
         ~label: "FIXME"
-        (bars ~placeholder: "eg. 32 or 48" ())
+        (
+          Input.prepare
+            ~type_: Text
+            ~label: "Number of bars"
+            ~placeholder: "eg. 32 or 48"
+            ~serialise: string_of_int
+            ~validate: (
+              S.const %
+                Option.to_result ~none: "The number of bars has to be an integer." %
+                int_of_string_opt
+            )
+            ()
+        )
         (structure ())
     )
     (
@@ -58,30 +58,25 @@ let content_in_parts () =
         ~make_header: (fun n -> div [txtf "Part %c" @@ Model.Version.Content.Part_name.to_char n])
         (
           Cpair.prepare
-            ~label: "Part"
-            (bars ~placeholder: "most often 8" ())
+            ~label: "Part content"
             (
-              Cpair.prepare
-                ~label: "Part content"
-                (
-                  Input.prepare
-                    ~type_: (Textarea {rows = 13})
-                    ~label: "Melody"
-                    ~serialise: id
-                    ~validate: (S.const % ok)
-                    ~placeholder: "\\relative f' {\n  \\partial 4 a4 |\n  d,4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d cis b a g fis e |\n  \\break\n\n  d4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d e fis d4\n}"
-                    ~template: "\\relative f' {\n  %% add part's melody here\n}\n"
-                    ()
-                )
-                (
-                  Input.prepare
-                    ~type_: (Textarea {rows = 2})
-                    ~label: "Chords"
-                    ~serialise: id
-                    ~validate: (S.const % ok)
-                    ~placeholder: "s4 | d2 g | a d | b:m e:m | a2 a:7 |\nd2 g | a d | b:m e:m | a2:7 d4"
-                    ()
-                )
+              Input.prepare
+                ~type_: (Textarea {rows = 13})
+                ~label: "Melody"
+                ~serialise: id
+                ~validate: (S.const % ok)
+                ~placeholder: "\\relative f' {\n  \\partial 4 a4 |\n  d,4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d cis b a g fis e |\n  \\break\n\n  d4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d e fis d4\n}"
+                ~template: "\\relative f' {\n  %% add part's melody here\n}\n"
+                ()
+            )
+            (
+              Input.prepare
+                ~type_: (Textarea {rows = 2})
+                ~label: "Chords"
+                ~serialise: id
+                ~validate: (S.const % ok)
+                ~placeholder: "s4 | d2 g | a d | b:m e:m | a2 a:7 |\nd2 g | a d | b:m e:m | a2:7 d4"
+                ()
             )
         )
     )
@@ -100,7 +95,7 @@ let content () =
       | Succ Zero (parts, common_structures) ->
         Model.Version.Content.Destructured
           {
-            parts = NEList.map (fun (bars, (melody, chords)) -> Model.Version.Content.{bars; melody; chords}) parts;
+            parts = NEList.map (fun (melody, chords) -> Model.Version.Content.{bars = 8; melody; chords}) parts;
             common_structures;
           }
       | _ -> assert false (* types guarantee this is not reachable *)
@@ -109,7 +104,12 @@ let content () =
       | Model.Version.Content.Monolithic {bars; structure; lilypond} -> Zero ((bars, structure), lilypond)
       | Model.Version.Content.Destructured {parts; common_structures} ->
         one (
-          NEList.map (fun Model.Version.Content.{bars; melody; chords} -> (bars, (melody, chords))) parts,
+          NEList.map
+            (fun Model.Version.Content.{bars; melody; chords} ->
+              if bars <> 8 then raise Editor.NonConvertible;
+              (melody, chords)
+            )
+            parts,
           common_structures
         )
     )
