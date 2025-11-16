@@ -26,7 +26,7 @@ module type S = sig
 
     type t = Core.Version.Content.t =
       | Monolithic of {lilypond: string; bars: int; structure: structure} (** A tune as a full LilyPond, including clef, key, etc. *)
-      | Destructured of {parts: part NEList.t; common_structures: structure NEList.t} (** A tune decomposed as building blocks *)
+      | Destructured of {parts: part NEList.t; default_structure: structure} (** A tune decomposed as building blocks *)
     [@@deriving variants]
   end
 

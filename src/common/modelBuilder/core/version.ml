@@ -70,7 +70,7 @@ module Content = struct
 
   type t =
     | Monolithic of {lilypond: string; bars: int; structure: structure}
-    | Destructured of {parts: part NEList.t; common_structures: structure NEList.t}
+    | Destructured of {parts: part NEList.t; default_structure: structure}
   [@@deriving eq, yojson, show {with_path = false}, variants]
 
   let lilypond kind key = function
@@ -79,7 +79,7 @@ module Content = struct
 
   let erase_lilypond = function
     | Monolithic {bars; structure; _} -> Monolithic {bars; structure; lilypond = ""}
-    | Destructured {common_structures; _} -> Destructured {common_structures; parts = NEList.singleton {melody = ""; chords = ""; bars = 0}}
+    | Destructured {default_structure; _} -> Destructured {default_structure; parts = NEList.singleton {melody = ""; chords = ""; bars = 0}}
 end
 
 let _key = "version"

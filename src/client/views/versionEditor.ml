@@ -7,7 +7,6 @@ open Utils
 let structure =
   Input.prepare
     ~type_: Text
-    ~label: "Structure"
     ~placeholder: "eg. AABB or ABAB"
     ~serialise: (NEString.to_string % Model.Version.Content.structure_to_string)
     ~validate: (
@@ -35,7 +34,7 @@ let content_full () =
             )
             ()
         )
-        (structure ())
+        (structure ~label: "Structure" ())
     )
     (
       Input.prepare
@@ -52,6 +51,7 @@ let content_full () =
 let content_in_parts () =
   Cpair.prepare
     ~label: "Destructured"
+    (structure ~label: "Default structure" ())
     (
       Star.prepare_non_empty
         ~label: "Parts"
@@ -82,11 +82,6 @@ let content_in_parts () =
             )
         )
     )
-    (
-      Star.prepare_non_empty
-        ~label: "Common structures"
-        (structure ())
-    )
 
 let content () =
   let open Plus.TupleElt in
@@ -94,25 +89,25 @@ let content () =
     ~label: "Content"
     ~cast: (function
       | Zero ((bars, structure), lilypond) -> Model.Version.Content.Monolithic {bars; structure; lilypond}
-      | Succ Zero (parts, common_structures) ->
+      | Succ Zero (default_structure, parts) ->
         Model.Version.Content.Destructured
           {
+            default_structure;
             parts = NEList.map (fun (melody, chords) -> Model.Version.Content.{bars = 8; melody; chords}) parts;
-            common_structures;
           }
       | _ -> assert false (* types guarantee this is not reachable *)
     )
     ~uncast: (function
       | Model.Version.Content.Monolithic {bars; structure; lilypond} -> Zero ((bars, structure), lilypond)
-      | Model.Version.Content.Destructured {parts; common_structures} ->
+      | Model.Version.Content.Destructured {default_structure; parts} ->
         one (
+          default_structure,
           NEList.map
             (fun Model.Version.Content.{bars; melody; chords} ->
               if bars <> 8 then raise Editor.NonConvertible;
               (melody, chords)
             )
-            parts,
-          common_structures
+            parts
         )
     )
     (
@@ -189,7 +184,7 @@ let editor =
             ~unserialise: Model.Source.get
             ()
         )
-        (structure ())
+        (structure ~label: "Structure in that particular source" ())
     ) ^::
   Input.prepare
     ~type_: Text

@@ -416,26 +416,12 @@ let create ?context id =
         (* For de-structured versions, show one of the common structures. *)
         match Model.Version.content' version with
         | Monolithic _ -> Components.VersionSnippets.make version
-        | Destructured {common_structures; _} ->
-          let structure = NEList.hd common_structures in
+        | Destructured {default_structure; _} ->
           div [
-            txtf "Shown here as %s" (NEString.to_string (Version.Content.structure_to_string structure));
-            (
-              match NEList.tl common_structures with
-              | [] -> txt "."
-              | other_structures ->
-                span (
-                  [txt ", but is commonly also seen as "] @
-                  List.interspersei
-                    (fun _ -> txt ", ")
-                    ~last: (fun _ -> txt " or ")
-                    (List.map (txt % NEString.to_string % Model.Version.Content.structure_to_string) other_structures) @
-                    [txt "."]
-                )
-            );
+            txtf "Shown here as %s." (NEString.to_string (Version.Content.structure_to_string default_structure));
             Components.VersionSnippets.make
               version
-              ~params: (Model.VersionParameters.make ~structure ());
+              ~params: (Model.VersionParameters.make ~structure: default_structure ());
           ]
       );
       R.div (
