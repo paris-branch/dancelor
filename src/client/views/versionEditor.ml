@@ -62,6 +62,7 @@ let content_in_parts () =
             (
               Input.prepare
                 ~type_: (Textarea {rows = 13})
+                ~font: Monospace
                 ~label: "Melody"
                 ~serialise: id
                 ~validate: (S.const % ok)
@@ -72,6 +73,7 @@ let content_in_parts () =
             (
               Input.prepare
                 ~type_: (Textarea {rows = 2})
+                ~font: Monospace
                 ~label: "Chords"
                 ~serialise: id
                 ~validate: (S.const % ok)
