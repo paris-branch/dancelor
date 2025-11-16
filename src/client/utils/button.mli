@@ -6,6 +6,7 @@ val make :
   ?icon: string ->
   ?badge: string ->
   ?tooltip: string ->
+  ?btn_class: bool ->
   ?classes: string list ->
   ?disabled: bool S.t ->
   ?onclick: (unit -> unit Lwt.t) ->
@@ -14,10 +15,11 @@ val make :
   [> Html_types.button] elt
 (** Generic button showing [label] and [icon]. When clicked, [label] is replaced
     by [label_processing], and [icon] by a spinning one. The button already has
-    classes ["btn"] and ["disabled"] when needed, but others can be added. When
-    clicked, the button triggers [onclick] and considers its job done when
-    [onclick] returns. It is possible to use [Lwt.async], but it is recommended
-    to actually return when that makes sense. *)
+    classes ["btn"] (unless [~btn_class: false]) and ["disabled"] when needed,
+    but others can be added. When clicked, the button triggers [onclick] and
+    considers its job done when [onclick] returns. It is possible to use
+    [Lwt.async], but it is recommended to actually return when that makes
+    sense. *)
 
 val make_a :
   ?label: string ->
@@ -26,6 +28,7 @@ val make_a :
   ?badge: string ->
   ?tooltip: string ->
   ?disabled: bool S.t ->
+  ?btn_class: bool ->
   ?classes: string list ->
   href: string S.t ->
   ?more_a: [< Html_types.a_attrib >`Class `Href `Title] attrib list ->
