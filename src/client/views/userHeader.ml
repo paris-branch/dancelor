@@ -171,6 +171,7 @@ let header_item =
                           Utils.Button.make_a
                             ~label: "Create user"
                             ~icon: "plus-circle"
+                            ~btn_class: false
                             ~classes: ["dropdown-item"]
                             ~href: (S.const @@ Endpoints.Page.(href UserCreate))
                             ()
@@ -179,6 +180,7 @@ let header_item =
                           Utils.Button.make
                             ~label: "Victorise"
                             ~icon: "stop-circle"
+                            ~btn_class: false
                             ~classes: ["dropdown-item"]
                             ~onclick: (fun () -> victorise (); lwt_unit)
                             ()
@@ -191,6 +193,7 @@ let header_item =
                     Utils.Button.make_a
                       ~label: "My person"
                       ~icon: "person"
+                      ~btn_class: false
                       ~classes: ["dropdown-item"]
                       ~href: (S.from' "" (Endpoints.Page.(href Person None) <$> (Entry.id <$> Model.User.person' user)))
                       ()
@@ -199,6 +202,7 @@ let header_item =
                     Utils.Button.make
                       ~label: "Sign out"
                       ~icon: "box-arrow-right"
+                      ~btn_class: false
                       ~classes: ["dropdown-item"]
                       ~onclick: sign_out
                       ()
