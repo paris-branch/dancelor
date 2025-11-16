@@ -60,14 +60,33 @@ let make_content
         );
       ]
 
+let make_attributes
+    ?(btn_class = true)
+    ?(classes = [])
+    ?(disabled = S.const false)
+    ?(processing = S.const false)
+    ?tooltip
+    ()
+  =
+  List.flatten
+    [
+      [R.a_class @@
+        let classes = (if btn_class then ["btn"] else []) @ classes in
+        flip S.map (S.l2 (||) disabled processing) @@ function
+          | true -> "disabled" :: classes
+          | false -> classes];
+      (match tooltip with None -> [] | Some tooltip -> [a_title tooltip]);
+    ]
+
 let make
     ?label
     ?label_processing
     ?icon
     ?badge
     ?tooltip
+    ?btn_class
     ?classes
-    ?(disabled = S.const false)
+    ?disabled
     ?onclick
     ?(more_a = [])
     ()
@@ -78,11 +97,6 @@ let make
       List.flatten
         [
           [a_button_type `Button];
-          [R.a_class @@
-            let classes = "btn" :: Option.value ~default: [] classes in
-            flip S.map (S.l2 (||) disabled processing) @@ function
-              | true -> "disabled" :: classes
-              | false -> classes];
           (
             match onclick with
             | None -> []
@@ -98,7 +112,7 @@ let make
                 false
               ]
           );
-          (match tooltip with None -> [] | Some tooltip -> [a_title tooltip]);
+          (make_attributes ?btn_class ?classes ?disabled ?tooltip ~processing ());
           more_a;
         ]
     )
@@ -118,7 +132,8 @@ let make_a
     ?icon
     ?badge
     ?tooltip
-    ?(disabled = S.const false)
+    ?disabled
+    ?btn_class
     ?classes
     ~href
     ?(more_a = [])
@@ -127,15 +142,8 @@ let make_a
   a
     ~a: (
       List.flatten [
-        [R.a_class
-          (
-            let classes = "btn" :: Option.value ~default: [] classes in
-            flip S.map disabled @@ function
-              | true -> "disabled" :: classes
-              | false -> classes
-          )];
-        (match tooltip with None -> [] | Some tooltip -> [a_title tooltip]);
         [R.a_href href];
+        (make_attributes ?btn_class ?classes ?disabled ?tooltip ());
         more_a
       ]
     )
