@@ -10,6 +10,8 @@ module type S = sig
       val of_char : char -> t option
       val of_char_exn : char -> t
 
+      val of_nestring : NEString.t -> t option
+
       val to_char : t -> char
     end
 
@@ -25,6 +27,7 @@ module type S = sig
 
     type destructured = Core.Version.Content.destructured = {
       parts: part NEList.t;
+      transitions: (Part_name.t option * Part_name.t option * part) list;
       default_structure: structure;
     }
 

@@ -14,6 +14,10 @@ module Content = struct
       | Some c -> c
       | None -> failwith "Version.Content.Part_name.of_char_exn: not a letter between A and Z"
 
+    let of_nestring s =
+      let s = NEString.to_string s in
+      if String.length s = 1 then of_char s.[0] else None
+
     let to_char c = Char.chr (c + 65)
   end
 
@@ -68,6 +72,7 @@ module Content = struct
 
   type destructured = {
     parts: part NEList.t;
+    transitions: (Part_name.t option * Part_name.t option * part) list;
     default_structure: structure;
   }
   [@@deriving eq, yojson, show {with_path = false}]
@@ -83,7 +88,12 @@ module Content = struct
 
   let erase_lilypond = function
     | Monolithic {bars; structure; _} -> Monolithic {bars; structure; lilypond = ""}
-    | Destructured {default_structure; _} -> Destructured {default_structure; parts = NEList.singleton {melody = ""; chords = ""}}
+    | Destructured {default_structure; _} ->
+      Destructured {
+        default_structure;
+        parts = NEList.singleton {melody = ""; chords = ""};
+        transitions = [];
+      }
 end
 
 let _key = "version"
