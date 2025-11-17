@@ -21,8 +21,7 @@ module Content = struct
   [@@deriving eq, show {with_path = false}]
 
   let structure_to_string = NEString.of_string_exn % String.of_seq % Seq.map Part_name.to_char % List.to_seq % NEList.to_list
-  let structure_of_string = NEList.of_list % List.of_seq % Seq.map Part_name.of_char_exn % String.to_seq % NEString.to_string
-  (* FIXME: use Part_name.of_char and propagate error *)
+  let structure_of_string = Option.join % Option.map NEList.of_list % Monadise.Option.monadise_1_1 List.map Part_name.of_char % List.of_seq % String.to_seq % NEString.to_string
 
   let structure_to_yojson s = `String (NEString.to_string @@ structure_to_string s)
   let structure_of_yojson = function

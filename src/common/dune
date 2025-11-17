@@ -11,6 +11,7 @@
   logs
   lwt
   menhirLib
+  monadise
   ppx_deriving_yojson.runtime
   str
   yojson)
