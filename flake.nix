@@ -5,9 +5,14 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     topiary.url = "github:tweag/topiary";
 
+    ## FIXME: when more stable, push Monadise to OPAM and nixpkgs and get it from there
     monadise = {
       url = "github:niols/ocaml-monadise";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        topiary.follows = "topiary";
+        git-hooks.follows = "git-hooks-nix";
+      };
     };
 
     git-hooks-nix = {
