@@ -23,3 +23,5 @@ let map_exn f n =
   match map f n with
   | None -> invalid_arg "NesNonEmptyString.map_exn: empty string"
   | Some n -> n
+
+let of_char c = N (String.make 1 c)

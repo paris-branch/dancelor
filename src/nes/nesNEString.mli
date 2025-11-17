@@ -16,3 +16,5 @@ val of_string_exn : string -> t
 val map_exn : (string -> string) -> t -> t
 (** Map a function over a non-empty string, raise {!Invalid_argument} if the
     result is empty. *)
+
+val of_char : char -> t
