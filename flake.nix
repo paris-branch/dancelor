@@ -5,6 +5,11 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     topiary.url = "github:tweag/topiary";
 
+    monadise = {
+      url = "github:niols/ocaml-monadise";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     git-hooks-nix = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";

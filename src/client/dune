@@ -3,6 +3,8 @@
 (executables
  (names client)
  (modes js)
+ (js_of_ocaml
+  (flags --effects=cps))
  (libraries
   cohttp-lwt-jsoo
   dancelor.common

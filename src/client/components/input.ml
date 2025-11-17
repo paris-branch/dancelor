@@ -75,11 +75,12 @@ let prepare (type value)
                   (@)
                   (
                     S.const @@
-                    (match font with Normal -> [] | Monospace -> ["font-monospace"]) @
-                      ["form-control"]
+                    (match font with Normal -> [] | Monospace -> ["font-monospace"]) @ ["form-control"]
                   )
                   (Component.case_errored ~no: ["is-valid"] ~yes: (const ["is-invalid"]) signal)
               );
+              (* monospace font looks huge by default so we reduce it a tad *)
+              a_style (match font with Normal -> "" | Monospace -> "font-size: 0.9rem;");
               a_oninput (fun event ->
                 (
                   Js.Opt.iter event##.target @@ fun elt ->
@@ -110,6 +111,8 @@ let prepare (type value)
                   )
                   (Component.case_errored ~no: ["is-valid"] ~yes: (const ["is-invalid"]) signal)
               );
+              (* monospace font looks huge by default so we reduce it a tad *)
+              a_style (match font with Normal -> "" | Monospace -> "font-size: 0.9rem;");
               a_oninput (fun event ->
                 (
                   Js.Opt.iter event##.target @@ fun elt ->

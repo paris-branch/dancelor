@@ -1,15 +1,27 @@
 open Nes
 
 module Content = struct
-  type part_name = char
-  [@@deriving eq, yojson, show {with_path = false}]
-  (* FIXME: limit to capitals *)
+  module Part_name = struct
+    type t = int (* invariant: ∈ [0; 25] *)
+    [@@deriving eq, yojson, show {with_path = false}]
 
-  type structure = part_name NEList.t
+    let of_char c =
+      let c = Char.code c in
+      if c < 65 || c > 90 then None else Some (c - 65)
+
+    let of_char_exn c =
+      match of_char c with
+      | Some c -> c
+      | None -> failwith "Version.Content.Part_name.of_char_exn: not a letter between A and Z"
+
+    let to_char c = Char.chr (c + 65)
+  end
+
+  type structure = Part_name.t NEList.t
   [@@deriving eq, show {with_path = false}]
 
-  let structure_to_string = NEString.of_string_exn % String.of_seq % List.to_seq % NEList.to_list
-  let structure_of_string = NEList.of_list % List.of_seq % String.to_seq % NEString.to_string
+  let structure_to_string = NEString.of_string_exn % String.of_seq % Seq.map Part_name.to_char % List.to_seq % NEList.to_list
+  let structure_of_string = Option.join % Option.map NEList.of_list % Monadise.Option.monadise_1_1 List.map Part_name.of_char % List.of_seq % String.to_seq % NEString.to_string
 
   let structure_to_yojson s = `String (NEString.to_string @@ structure_to_string s)
   let structure_of_yojson = function
@@ -19,7 +31,6 @@ module Content = struct
   type part = {
     melody: string;
     chords: string;
-    bars: int;
   }
   [@@deriving eq, yojson, show {with_path = false}]
 
@@ -39,15 +50,15 @@ module Content = struct
     let parts = NEList.to_list parts in
     let melody =
       String.concat " \\bar \"||\"\\break " (
-        List.map
-          (fun (part_name, part) ->
-            spf "\\mark\\markup\\box{%c} %s" part_name part.melody
+        List.mapi
+          (fun part_name part ->
+            spf "\\mark\\markup\\box{%c} %s" (Part_name.to_char part_name) part.melody
           )
           parts
       ) ^
         "\\bar \"|.\""
     in
-    let chords = String.concat " " (List.map (fun (_part_name, part) -> part.chords) parts) in
+    let chords = String.concat " " (List.map (fun part -> part.chords) parts) in
     spf
       "<< \\new Voice {\\clef treble \\time %s \\key %s {%s}}\\new ChordNames {\\chordmode {%s}}>>"
       time
@@ -57,7 +68,7 @@ module Content = struct
 
   type t =
     | Monolithic of {lilypond: string; bars: int; structure: structure}
-    | Destructured of {parts: (part_name * part) NEList.t; common_structures: structure NEList.t}
+    | Destructured of {parts: part NEList.t; default_structure: structure}
   [@@deriving eq, yojson, show {with_path = false}, variants]
 
   let lilypond kind key = function
@@ -66,7 +77,7 @@ module Content = struct
 
   let erase_lilypond = function
     | Monolithic {bars; structure; _} -> Monolithic {bars; structure; lilypond = ""}
-    | Destructured {common_structures; _} -> Destructured {common_structures; parts = NEList.singleton ('X', {melody = ""; chords = ""; bars = 0})}
+    | Destructured {default_structure; _} -> Destructured {default_structure; parts = NEList.singleton {melody = ""; chords = ""}}
 end
 
 let _key = "version"

@@ -137,7 +137,7 @@ let editor =
     () ^::
   Star.prepare
     ~label: "Contents"
-    ~make_header: (fun n -> div ~a: [a_class (if n = 1 then [] else ["pt-1"; "mt-1"; "border-top"])] [txtf "Page %d" n])
+    ~make_header: (fun n -> div ~a: [a_class (if n = 0 then [] else ["pt-1"; "mt-1"; "border-top"])] [txtf "Page %d" (n + 1)])
     (
       let open Plus.TupleElt in
       Plus.prepare
