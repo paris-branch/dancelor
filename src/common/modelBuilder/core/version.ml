@@ -66,9 +66,15 @@ module Content = struct
       melody
       chords
 
+  type destructured = {
+    parts: part NEList.t;
+    default_structure: structure;
+  }
+  [@@deriving eq, yojson, show {with_path = false}]
+
   type t =
     | Monolithic of {lilypond: string; bars: int; structure: structure}
-    | Destructured of {parts: part NEList.t; default_structure: structure}
+    | Destructured of destructured
   [@@deriving eq, yojson, show {with_path = false}, variants]
 
   let lilypond kind key = function
