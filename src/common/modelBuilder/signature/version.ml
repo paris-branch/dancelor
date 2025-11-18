@@ -10,6 +10,8 @@ module type S = sig
       val of_char : char -> t option
       val of_char_exn : char -> t
 
+      val of_nestring : NEString.t -> t option
+
       val to_char : t -> char
     end
 
@@ -22,10 +24,17 @@ module type S = sig
       melody: string; (** the melody of that part; they must not include clef or time; they may include the key *)
       chords: string; (** the chords of that part; they will be interpreted in LilyPond's [\chordmode] *)
     }
+    [@@deriving fields]
+
+    type destructured = Core.Version.Content.destructured = {
+      parts: part NEList.t;
+      transitions: (Part_name.t option * Part_name.t option * part) list;
+      default_structure: structure;
+    }
 
     type t = Core.Version.Content.t =
       | Monolithic of {lilypond: string; bars: int; structure: structure} (** A tune as a full LilyPond, including clef, key, etc. *)
-      | Destructured of {parts: part NEList.t; default_structure: structure} (** A tune decomposed as building blocks *)
+      | Destructured of destructured (** A tune decomposed as building blocks *)
     [@@deriving variants]
   end
 

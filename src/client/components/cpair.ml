@@ -112,6 +112,7 @@ let prepare_wrap (type value1)(type state1)(type value2)(type state2)(type value
   ~label: the_label
   ~(wrap : value1 * value2 -> value)
   ~(unwrap : value -> value1 * value2)
+  ?(input_group = false)
   ((module C1): (value1, state1) Component.s)
   ((module C2): (value2, state2) Component.s)
   : (value, state1 * state2) Component.s
@@ -121,10 +122,18 @@ let prepare_wrap (type value1)(type state1)(type value2)(type state2)(type value
   let label = the_label
 
   let inner_html p =
-    div [
-      div [C1.inner_html (c1 p)] ~a: [a_class ["mb-1"]];
-      div [C2.inner_html (c2 p)];
-    ]
+    if input_group then
+      div ~a: [a_class ["input-group"]] [
+        span ~a: [a_class ["input-group-text"]] [txt C1.label];
+        C1.inner_html (c1 p);
+        span ~a: [a_class ["input-group-text"]] [txt C2.label];
+        C2.inner_html (c2 p);
+      ]
+    else
+      div [
+        div [C1.inner_html (c1 p)] ~a: [a_class ["mb-1"]];
+        div [C2.inner_html (c2 p)];
+      ]
 
   let actions _ = S.const []
 end)

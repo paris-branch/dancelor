@@ -53,32 +53,92 @@ let content_in_parts () =
     ~label: "Destructured"
     (structure ~label: "Default structure" ())
     (
-      Star.prepare_non_empty
-        ~label: "Parts"
-        ~make_header: (fun n -> div [txtf "Part %c" @@ Model.Version.Content.Part_name.to_char n])
+      Cpair.prepare
+        ~label: "FIXME"
         (
-          Cpair.prepare
-            ~label: "Part content"
+          Star.prepare_non_empty
+            ~label: "Parts"
+            ~make_header: (fun n -> div [txtf "Part %c" @@ Model.Version.Content.Part_name.to_char n])
             (
-              Input.prepare
-                ~type_: (Textarea {rows = 13})
-                ~font: Monospace
-                ~label: "Melody"
-                ~serialise: id
-                ~validate: (S.const % ok)
-                ~placeholder: "\\relative f' {\n  \\partial 4 a4 |\n  d,4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d cis b a g fis e |\n  \\break\n\n  d4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d e fis d4\n}"
-                ~template: "\\relative f' {\n  %% add part's melody here\n}\n"
-                ()
+              Cpair.prepare
+                ~label: "Part"
+                (
+                  Input.prepare
+                    ~type_: (Textarea {rows = 13})
+                    ~font: Monospace
+                    ~label: "Melody"
+                    ~serialise: id
+                    ~validate: (S.const % ok)
+                    ~placeholder: "\\relative f' {\n  \\partial 4 a4 |\n  d,4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d cis b a g fis e |\n  \\break\n\n  d4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d e fis d4\n}"
+                    ~template: "\\relative f' {\n  %% add part's melody here\n}\n"
+                    ()
+                )
+                (
+                  Input.prepare
+                    ~type_: (Textarea {rows = 2})
+                    ~font: Monospace
+                    ~label: "Chords"
+                    ~serialise: id
+                    ~validate: (S.const % ok)
+                    ~placeholder: "s4 | d2 g | a d | b:m e:m | a2 a:7 |\nd2 g | a d | b:m e:m | a2:7 d4"
+                    ()
+                )
             )
+        )
+        (
+          Star.prepare
+            ~label: "Transitions"
+            ~make_header: (fun n -> div [txtf "Transition #%d" (n + 1)])
             (
-              Input.prepare
-                ~type_: (Textarea {rows = 2})
-                ~font: Monospace
-                ~label: "Chords"
-                ~serialise: id
-                ~validate: (S.const % ok)
-                ~placeholder: "s4 | d2 g | a d | b:m e:m | a2 a:7 |\nd2 g | a d | b:m e:m | a2:7 d4"
-                ()
+              Cpair.prepare
+                ~label: "Transition"
+                (
+                  Cpair.prepare
+                    ~label: "Transition parts"
+                    ~input_group: true
+                    (
+                      Input.prepare_option
+                        ~type_: Text
+                        ~serialise: (NEString.of_char % Model.Version.Content.Part_name.to_char)
+                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Content.Part_name.of_nestring)
+                        ~label: "from"
+                        ~placeholder: "B"
+                        ()
+                    )
+                    (
+                      Input.prepare_option
+                        ~type_: Text
+                        ~serialise: (NEString.of_char % Model.Version.Content.Part_name.to_char)
+                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Content.Part_name.of_nestring)
+                        ~label: "to"
+                        ~placeholder: "A"
+                        ()
+                    )
+                )
+                (
+                  Cpair.prepare
+                    ~label: "Transition content"
+                    (
+                      Input.prepare
+                        ~type_: (Textarea {rows = 1})
+                        ~font: Monospace
+                        ~label: "Melody"
+                        ~serialise: id
+                        ~validate: (S.const % ok)
+                        ~placeholder: "\\relative f' { e8 d e f d4 }"
+                        ()
+                    )
+                    (
+                      Input.prepare
+                        ~type_: (Textarea {rows = 1})
+                        ~font: Monospace
+                        ~label: "Chords"
+                        ~serialise: id
+                        ~validate: (S.const % ok)
+                        ~placeholder: "a2:7 d4"
+                        ()
+                    )
+                )
             )
         )
     )
@@ -89,20 +149,26 @@ let content () =
     ~label: "Content"
     ~cast: (function
       | Zero ((bars, structure), lilypond) -> Model.Version.Content.Monolithic {bars; structure; lilypond}
-      | Succ Zero (default_structure, parts) ->
+      | Succ Zero (default_structure, (parts, transitions)) ->
+        let wrap_part (melody, chords) = {Model.Version.Content.melody; chords} in
         Model.Version.Content.Destructured
           {
             default_structure;
-            parts = NEList.map (fun (melody, chords) -> Model.Version.Content.{melody; chords}) parts;
+            parts = NEList.map wrap_part parts;
+            transitions = List.map (fun ((from, to_), part) -> (from, to_, wrap_part part)) transitions;
           }
       | _ -> assert false (* types guarantee this is not reachable *)
     )
     ~uncast: (function
       | Model.Version.Content.Monolithic {bars; structure; lilypond} -> Zero ((bars, structure), lilypond)
-      | Model.Version.Content.Destructured {default_structure; parts} ->
+      | Model.Version.Content.Destructured {default_structure; parts; transitions} ->
+        let unwrap_part Model.Version.Content.{melody; chords} = (melody, chords) in
         one (
           default_structure,
-          NEList.map (fun Model.Version.Content.{melody; chords} -> (melody, chords)) parts
+          (
+            NEList.map unwrap_part parts,
+            List.map (fun (from, to_, part) -> ((from, to_), unwrap_part part)) transitions
+          )
         )
     )
     (

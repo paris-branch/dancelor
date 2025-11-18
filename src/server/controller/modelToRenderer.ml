@@ -15,10 +15,8 @@ let format_persons =
   String.concat ", " ~last: " and " % format_persons_list
 
 (** Structures, but with more structure *)
-type structure =
-  | Part of char
-  | Append of structure * structure
-  | Repeat of int * structure
+type structure_item = Part of char | Repeat of int * structure
+and structure = structure_item list
 
 (** A few helpers *)
 let a = Part 'A'
@@ -27,48 +25,71 @@ let c = Part 'C'
 let d = Part 'D'
 let e = Part 'E'
 let f = Part 'F'
-let append x y = Append (x, y)
-let append_l = function
-  | [] -> failwith "append_l"
-  | x :: xs -> List.fold_left append x xs
 let repeat n x = Repeat (n, x)
+
+let rec first_part_exn structure =
+  match List.hd_opt structure with
+  | None -> failwith "first_part_exn"
+  | Some Part a -> a
+  | Some Repeat (_, structure) -> first_part_exn structure
+
+let first_part structure =
+  match List.hd_opt structure with
+  | None -> None
+  | Some Part a -> Some a
+  | Some Repeat (_, structure) -> Some (first_part_exn structure)
+
+let rec last_part_exn structure =
+  match List.ft_opt structure with
+  | None -> failwith "last_part_exn"
+  | Some Part a -> a
+  | Some Repeat (_, structure) -> last_part_exn structure
+
+let last_part structure =
+  match List.ft_opt structure with
+  | None -> None
+  | Some Part a -> Some a
+  | Some Repeat (_, structure) -> Some (last_part_exn structure)
+
+let ends_with_repeat structure =
+  match List.ft structure with
+  | Repeat _ -> true
+  | _ -> false
 
 (** A general algorithm would be great, but for now this will do. *)
 let best_structure_for = function
-  | "A" -> some a
-  | "B" -> some b
-  | "C" -> some c
-  | "D" -> some d
-  | "AB" -> some @@ append a b
-  | "AAB" -> some @@ append_l [repeat 2 a; b]
-  | "ABB" -> some @@ append_l [a; repeat 2 b]
-  | "AABB" -> some @@ append_l [repeat 2 a; repeat 2 b]
-  | "ABAB" -> some @@ repeat 2 (append a b)
-  | "ABBA" -> some @@ append_l [a; repeat 2 b; a]
-  | "AABC" -> some @@ append_l [repeat 2 a; b; c]
-  | "AABBB" -> some @@ append_l [repeat 2 a; repeat 3 b]
-  | "ABABB" -> some @@ append_l [repeat 2 (append a b); b]
-  | "ABBAB" -> some @@ append_l [a; repeat 2 b; a; b]
-  | "ABABC" -> some @@ append_l [repeat 2 (append a b); c]
-  | "ABABAB" -> some @@ repeat 3 (append a b)
-  | "AABBAB" -> some @@ append_l [repeat 2 a; repeat 2 b; a; b]
-  | "AABBCC" -> some @@ append_l [repeat 2 a; repeat 2 b; repeat 2 c]
-  | "AABBCCDD" -> some @@ append_l [repeat 2 a; repeat 2 b; repeat 2 c; repeat 2 d]
-  | "AABCDDEF" -> some @@ append_l [repeat 2 a; c; d; repeat 2 d; e; f]
+  | "A" -> some [a]
+  | "B" -> some [b]
+  | "C" -> some [c]
+  | "D" -> some [d]
+  | "AB" -> some [a; b]
+  | "AAB" -> some [repeat 2 [a]; b]
+  | "ABB" -> some [a; repeat 2 [b]]
+  | "ABC" -> some [a; b; c]
+  | "AABB" -> some [repeat 2 [a]; repeat 2 [b]]
+  | "ABAB" -> some [repeat 2 [a; b]]
+  | "ABBA" -> some [a; repeat 2 [b]; a]
+  | "AABC" -> some [repeat 2 [a]; b; c]
+  | "ABCD" -> some [a; b; c; d]
+  | "AABBB" -> some [repeat 2 [a]; repeat 3 [b]]
+  | "ABABB" -> some [repeat 2 [a; b]; b]
+  | "ABBAB" -> some [a; repeat 2 [b]; a; b]
+  | "ABABC" -> some [repeat 2 [a; b]; c]
+  | "ABCDE" -> some [a; b; c; d; e]
+  | "ABABAB" -> some [repeat 3 [a; b]]
+  | "AABBAB" -> some [repeat 2 [a]; repeat 2 [b]; a; b]
+  | "AABBCC" -> some [repeat 2 [a]; repeat 2 [b]; repeat 2 [c]]
+  | "ABCDEF" -> some [a; b; c; d; e; f]
+  | "AABBCCDD" -> some [repeat 2 [a]; repeat 2 [b]; repeat 2 [c]; repeat 2 [d]]
+  | "AABCDDEF" -> some [repeat 2 [a]; c; d; repeat 2 [d]; e; f]
   | _ -> None
 
-let rec starts_with_repeat = function
-  | Part _ -> false
-  | Repeat _ -> true
-  | Append (_, f) -> starts_with_repeat f
-
-let rec ends_with_repeat = function
-  | Part _ -> false
-  | Repeat _ -> true
-  | Append (_, f) -> ends_with_repeat f
-
-let version_parts_to_lilypond_content ~version_params version parts =
+let version_parts_to_lilypond_content ~version_params version parts transitions =
   ignore version_params;
+  let transitions =
+    (* rearrange the given transitions because we will want to List.assoc later *)
+    List.map (fun (p1, p2, t) -> (Pair.map_both (Option.map Model.Version.Content.Part_name.to_char) (p1, p2), t)) transitions
+  in
   let%lwt kind = Model.Version.kind version in
   let key = Model.Version.key version in
   let time =
@@ -108,26 +129,58 @@ let version_parts_to_lilypond_content ~version_params version parts =
       let instructions = Option.map (fun structure -> "play " ^ structure) desired_structure in
         (melody, chords, instructions)
     | Some structure ->
-      let rec to_lilypond_melody = function
-        | Part part -> (List.nth parts (Model.Version.Content.Part_name.of_char_exn part)).melody
-        | Append (e, f) ->
-          (* FIXME: with LilyPond 2.24, we could just generate \\section and not bother with this *)
-          let show_double_bar = not (ends_with_repeat e) && not (starts_with_repeat f) in
-          spf "%s %s \\break %s" (to_lilypond_melody e) (if show_double_bar then "\\bar \"||\"" else "") (to_lilypond_melody f)
-        | Repeat (n, e) -> spf "\\repeat volta %d { %s }" n (to_lilypond_melody e)
+      let rec item_to_lilypond ~next_part = function
+        | Part part ->
+          (
+            let lilypond = List.nth parts (Model.Version.Content.Part_name.of_char_exn part) in
+            match List.assoc_opt (Some part, next_part) transitions with
+            | None -> lilypond
+            | Some transition ->
+              {
+                melody = lilypond.melody ^ " " ^ transition.Model.Version.Content.melody;
+                chords = lilypond.chords ^ " " ^ transition.Model.Version.Content.chords;
+              }
+          )
+        | Repeat (times, structure) ->
+          (
+            let lilypond : Model.Version.Content.part = to_lilypond structure in
+            let empty_lilypond : Model.Version.Content.part = {melody = ""; chords = ""} in
+            let first_part = first_part_exn structure in
+            let last_part = last_part_exn structure in
+            let alt_1 = Option.value ~default: empty_lilypond @@ List.assoc_opt (Some last_part, Some first_part) transitions in
+            let alt_2 = Option.value ~default: empty_lilypond @@ List.assoc_opt (Some last_part, next_part) transitions in
+            {
+              Model.Version.Content.melody =
+              spf
+                "\\repeat volta %d { %s } \\alternative { { %s } { %s } }"
+                times
+                lilypond.melody
+                alt_1.melody
+                alt_2.melody;
+              chords =
+              spf
+                "%s %s %s"
+                lilypond.chords
+                alt_1.chords
+                alt_2.chords;
+            }
+          )
+      and map_item_to_lilypond = function
+        | [] -> []
+        | item :: items -> item_to_lilypond ~next_part: (first_part items) item :: map_item_to_lilypond items
+      and to_lilypond structure =
+        let structure = map_item_to_lilypond structure in
+        {
+          melody = String.concat " \\section\\break " (List.map Model.Version.Content.melody structure);
+          chords = String.concat " " (List.map Model.Version.Content.chords structure);
+        }
       in
-      let lilypond_melody =
-        spf
-          "%s %s"
-          (to_lilypond_melody structure)
-          (if not (ends_with_repeat structure) then "\\bar \"|.\"" else "")
-      in
-      let rec to_lilypond_chords = function
-        | Part part -> (List.nth parts (Model.Version.Content.Part_name.of_char_exn part)).chords
-        | Append (e, f) -> spf "%s %s" (to_lilypond_chords e) (to_lilypond_chords f)
-        | Repeat (_, e) -> to_lilypond_chords e
-      in
-        (lilypond_melody, to_lilypond_chords structure, None)
+      let Model.Version.Content.{melody; chords} = to_lilypond structure in
+      (
+        spf "%s %s" melody (if not (ends_with_repeat structure) then "\\bar \"|.\"" else ""),
+        chords,
+        None
+      )
   in
   lwt (
     spf
@@ -145,7 +198,7 @@ let version_to_lilypond_content ~version_params version =
   let%lwt (content, instructions) =
     match content with
     | Monolithic {lilypond; _} -> lwt (lilypond, None)
-    | Destructured {parts; _} -> version_parts_to_lilypond_content ~version_params version parts
+    | Destructured {parts; transitions; _} -> version_parts_to_lilypond_content ~version_params version parts transitions
   in
   (* update the clef *)
   let content =
