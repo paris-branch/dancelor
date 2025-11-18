@@ -34,16 +34,16 @@ let create ?context id =
       lwt
         [
           Utils.Button.make
-            ~classes: ["dropdown-item"]
-            ~onclick: (fun _ -> ignore <$> SetDownloadDialog.create_and_open set)
-            ~icon: "file-pdf"
             ~label: "Download PDF"
+            ~icon: "file-pdf"
+            ~onclick: (fun _ -> ignore <$> SetDownloadDialog.create_and_open set)
+            ~dropdown: true
             ();
           Utils.Button.make_a
-            ~classes: ["dropdown-item"]
-            ~href: (S.const @@ Endpoints.Page.(href SetEdit) id)
-            ~icon: "pencil-square"
             ~label: "Edit"
+            ~icon: "pencil-square"
+            ~href: (S.const @@ Endpoints.Page.(href SetEdit) id)
+            ~dropdown: true
             ();
           Utils.Action.delete
             ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Set Delete) (Entry.id set))

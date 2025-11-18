@@ -354,36 +354,37 @@ let create ?context id =
               Utils.Button.make
                 ~label: "Download PDF"
                 ~icon: "file-pdf"
-                ~classes: ["dropdown-item"]
+                ~dropdown: true
                 ~onclick: (fun _ -> ignore <$> VersionDownloadDialog.create_and_open version)
                 ();
               Utils.Button.make
-                ~classes: ["dropdown-item"]
                 ~label: "Show LilyPond"
                 ~label_processing: "Showing LilyPond..."
                 ~icon: "file-music"
+                ~dropdown: true
                 ~onclick: (fun () -> show_lilypond_dialog version)
                 ();
               Utils.Button.make_a
-                ~classes: ["dropdown-item"]
-                ~href: (S.const @@ Endpoints.Page.(href VersionEdit) id)
-                ~icon: "pencil-square"
                 ~label: "Edit"
+                ~icon: "pencil-square"
+                ~href: (S.const @@ Endpoints.Page.(href VersionEdit) id)
+                ~dropdown: true
                 ();
               Utils.Button.make_a
-                ~classes: ["dropdown-item"]
-                ~href: (S.const @@ Endpoints.Page.(href TuneEdit) (Entry.id tune))
-                ~icon: "pencil-square"
                 ~label: "Edit tune"
+                ~icon: "pencil-square"
+                ~href: (S.const @@ Endpoints.Page.(href TuneEdit) (Entry.id tune))
+                ~dropdown: true
                 ();
               Utils.Action.delete
                 ~model: "version"
                 ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Version Delete) (Entry.id version))
                 ();
               Utils.Button.make
-                ~classes: ["dropdown-item"; "btn-warning"]
                 ~label: "De-duplicate"
                 ~icon: "node-minus"
+                ~dropdown: true
+                ~classes: ["btn-warning"]
                 ~onclick: (deduplication_dialog ~version ~other_versions_promise)
                 ()
             ]
@@ -391,16 +392,7 @@ let create ?context id =
         (
           match%lwt Tune.scddb_id' <$> Model.Version.tune' version with
           | None -> lwt_nil
-          | Some scddb_id ->
-            lwt
-              [
-                Utils.Button.make_a
-                  ~classes: ["dropdown-item"]
-                  ~href: (S.const @@ Uri.to_string @@ SCDDB.tune_uri scddb_id)
-                  ~icon: "box-arrow-up-right"
-                  ~label: "See on SCDDB"
-                  ()
-              ]
+          | Some scddb_id -> lwt [Utils.Action.scddb Tune scddb_id]
         )
     )
     [

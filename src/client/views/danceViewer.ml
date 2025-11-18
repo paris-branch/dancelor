@@ -31,10 +31,10 @@ let create ?context id =
     ~actions: (
       lwt @@
       [Utils.Button.make_a
-        ~classes: ["dropdown-item"]
-        ~href: (S.const @@ Endpoints.Page.(href DanceEdit) id)
-        ~icon: "pencil-square"
         ~label: "Edit"
+        ~icon: "pencil-square"
+        ~href: (S.const @@ Endpoints.Page.(href DanceEdit) id)
+        ~dropdown: true
         ();
       Utils.Action.delete
         ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Dance Delete) (Entry.id dance))
@@ -43,18 +43,7 @@ let create ?context id =
       ] @ (
         match Dance.scddb_id' dance with
         | None -> []
-        | Some scddb_id ->
-          [
-            a
-              ~a: [
-                a_class ["dropdown-item"];
-                a_href (Uri.to_string @@ SCDDB.dance_uri scddb_id);
-              ]
-              [
-                i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
-                txt " See on SCDDB";
-              ]
-          ]
+        | Some scddb_id -> [Utils.Action.scddb Dance scddb_id]
       );
     )
     [

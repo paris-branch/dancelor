@@ -190,36 +190,25 @@ let create ?context id =
     ~actions: (
       lwt @@
       [Utils.Button.make
-        ~classes: ["dropdown-item"]
-        ~onclick: (fun _ -> ignore <$> BookDownloadDialog.create_and_open book)
-        ~icon: "file-pdf"
         ~label: "Download PDF"
+        ~icon: "file-pdf"
+        ~onclick: (fun _ -> ignore <$> BookDownloadDialog.create_and_open book)
+        ~dropdown: true
         ();
       Utils.Button.make_a
-        ~classes: ["dropdown-item"]
-        ~href: (S.const @@ Endpoints.Page.(href BookEdit) id)
-        ~icon: "pencil-square"
         ~label: "Edit"
+        ~icon: "pencil-square"
+        ~href: (S.const @@ Endpoints.Page.(href BookEdit) id)
+        ~dropdown: true
         ();
       Utils.Action.delete
-        ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Book Delete) (Entry.id book))
         ~model: "book"
+        ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Book Delete) (Entry.id book))
         ();
       ] @ (
         match Book.scddb_id' book with
         | None -> []
-        | Some scddb_id ->
-          [
-            a
-              ~a: [
-                a_class ["dropdown-item"];
-                a_href (Uri.to_string @@ SCDDB.publication_uri scddb_id);
-              ]
-              [
-                i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
-                txt " See on SCDDB";
-              ]
-          ]
+        | Some scddb_id -> [Utils.Action.scddb Publication scddb_id]
       )
     )
     [

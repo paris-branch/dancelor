@@ -3,7 +3,7 @@ open Html
 
 let delete ~onclick ~model () =
   Button.make
-    ~classes: ["dropdown-item"; "btn-warning"]
+    ~classes: ["btn-warning"]
     ~onclick: (fun _ ->
       match%lwt onclick () with
       | Ok() ->
@@ -20,4 +20,13 @@ let delete ~onclick ~model () =
     )
     ~icon: "trash"
     ~label: "Delete"
+    ~dropdown: true
+    ()
+
+let scddb type_ id =
+  Button.make_a
+    ~label: "See on SCDDB"
+    ~icon: "box-arrow-up-right"
+    ~href: (S.const @@ Uri.to_string @@ Common.SCDDB.entry_uri type_ id)
+    ~dropdown: true
     ()
