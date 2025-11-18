@@ -26,7 +26,21 @@ let d = Part 'D'
 let e = Part 'E'
 let f = Part 'F'
 let repeat n x = Repeat (n, x)
-let is_repeat = function Repeat _ -> true | _ -> false
+
+let rec first_part structure =
+  match List.hd structure with
+  | Part a -> a
+  | Repeat (_, structure) -> first_part structure
+
+let rec last_part structure =
+  match List.ft structure with
+  | Part a -> a
+  | Repeat (_, structure) -> last_part structure
+
+let ends_with_repeat structure =
+  match List.ft structure with
+  | Repeat _ -> true
+  | _ -> false
 
 (** A general algorithm would be great, but for now this will do. *)
 let best_structure_for = function
@@ -97,27 +111,28 @@ let version_parts_to_lilypond_content ~version_params version parts =
       let instructions = Option.map (fun structure -> "play " ^ structure) desired_structure in
         (melody, chords, instructions)
     | Some structure ->
-      let rec item_to_lilypond_melody = function
+      let rec item_to_lilypond = function
         | Part part ->
-          (List.nth parts (Model.Version.Content.Part_name.of_char_exn part)).melody
+          List.nth parts (Model.Version.Content.Part_name.of_char_exn part)
         | Repeat (n, e) ->
-          spf "\\repeat volta %d { %s }" n (to_lilypond_melody e)
-      and to_lilypond_melody structure =
-        String.concat " \\section\\break " @@ List.map item_to_lilypond_melody structure
+          let e = to_lilypond e in
+          {
+            melody = spf "\\repeat volta %d { %s }" n e.Model.Version.Content.melody;
+            chords = e.chords
+          }
+      and to_lilypond structure =
+        let structure = List.map item_to_lilypond structure in
+        {
+          melody = String.concat " \\section\\break " (List.map (fun l -> l.Model.Version.Content.melody) structure);
+          chords = String.concat " " (List.map (fun l -> l.Model.Version.Content.chords) structure);
+        }
       in
-      let lilypond_melody =
-        spf
-          "%s %s"
-          (to_lilypond_melody structure)
-          (if not (is_repeat @@ List.ft structure) then "\\bar \"|.\"" else "")
-      in
-      let rec item_to_lilypond_chords = function
-        | Part part -> (List.nth parts (Model.Version.Content.Part_name.of_char_exn part)).chords
-        | Repeat (_, e) -> to_lilypond_chords e
-      and to_lilypond_chords structure =
-        String.concat " " @@ List.map item_to_lilypond_chords structure
-      in
-        (lilypond_melody, to_lilypond_chords structure, None)
+      let Model.Version.Content.{melody; chords} = to_lilypond structure in
+      (
+        spf "%s %s" melody (if not (ends_with_repeat structure) then "\\bar \"|.\"" else ""),
+        chords,
+        None
+      )
   in
   lwt (
     spf
