@@ -150,7 +150,7 @@ let content () =
     ~cast: (function
       | Zero ((bars, structure), lilypond) -> Model.Version.Content.Monolithic {bars; structure; lilypond}
       | Succ Zero (default_structure, (parts, transitions)) ->
-        let wrap_part (melody, chords) = let open Model.Version.Content in {melody; chords} in
+        let wrap_part (melody, chords) = {Model.Version.Content.melody; chords} in
         Model.Version.Content.Destructured
           {
             default_structure;

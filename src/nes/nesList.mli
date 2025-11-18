@@ -16,6 +16,8 @@ val sort_count : ('a -> 'a -> int) -> 'a list -> ('a * int) t
 
 (** {3 Others} *)
 
+val hd_opt : 'a list -> 'a option
+
 val hd_tl : 'a list -> 'a * 'a list
 (** Pair of {!hd} and {!tl}.
 
@@ -48,6 +50,8 @@ val map_context : ('a -> 'b) -> 'a context -> 'b context
 (** Maps the given function on all the elements of the context. *)
 
 (** {4 Bodies and feet} *)
+
+val ft_opt : 'a list -> 'a option
 
 val ft : 'a t -> 'a
 (** Return the foot of the given list, that is the last element of the list.

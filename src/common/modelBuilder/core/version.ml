@@ -36,7 +36,7 @@ module Content = struct
     melody: string;
     chords: string;
   }
-  [@@deriving eq, yojson, show {with_path = false}]
+  [@@deriving eq, yojson, show {with_path = false}, fields]
 
   let lilypond_from_parts kind key parts =
     let time =

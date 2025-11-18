@@ -27,15 +27,29 @@ let e = Part 'E'
 let f = Part 'F'
 let repeat n x = Repeat (n, x)
 
-let rec first_part structure =
-  match List.hd structure with
-  | Part a -> a
-  | Repeat (_, structure) -> first_part structure
+let rec first_part_exn structure =
+  match List.hd_opt structure with
+  | None -> failwith "first_part_exn"
+  | Some Part a -> a
+  | Some Repeat (_, structure) -> first_part_exn structure
 
-let rec last_part structure =
-  match List.ft structure with
-  | Part a -> a
-  | Repeat (_, structure) -> last_part structure
+let first_part structure =
+  match List.hd_opt structure with
+  | None -> None
+  | Some Part a -> Some a
+  | Some Repeat (_, structure) -> Some (first_part_exn structure)
+
+let rec last_part_exn structure =
+  match List.ft_opt structure with
+  | None -> failwith "last_part_exn"
+  | Some Part a -> a
+  | Some Repeat (_, structure) -> last_part_exn structure
+
+let last_part structure =
+  match List.ft_opt structure with
+  | None -> None
+  | Some Part a -> Some a
+  | Some Repeat (_, structure) -> Some (last_part_exn structure)
 
 let ends_with_repeat structure =
   match List.ft structure with
@@ -70,8 +84,12 @@ let best_structure_for = function
   | "AABCDDEF" -> some [repeat 2 [a]; c; d; repeat 2 [d]; e; f]
   | _ -> None
 
-let version_parts_to_lilypond_content ~version_params version parts =
+let version_parts_to_lilypond_content ~version_params version parts transitions =
   ignore version_params;
+  let transitions =
+    (* rearrange the given transitions because we will want to List.assoc later *)
+    List.map (fun (p1, p2, t) -> (Pair.map_both (Option.map Model.Version.Content.Part_name.to_char) (p1, p2), t)) transitions
+  in
   let%lwt kind = Model.Version.kind version in
   let key = Model.Version.key version in
   let time =
@@ -111,20 +129,50 @@ let version_parts_to_lilypond_content ~version_params version parts =
       let instructions = Option.map (fun structure -> "play " ^ structure) desired_structure in
         (melody, chords, instructions)
     | Some structure ->
-      let rec item_to_lilypond = function
+      let rec item_to_lilypond ~next_part = function
         | Part part ->
-          List.nth parts (Model.Version.Content.Part_name.of_char_exn part)
-        | Repeat (n, e) ->
-          let e = to_lilypond e in
-          {
-            melody = spf "\\repeat volta %d { %s }" n e.Model.Version.Content.melody;
-            chords = e.chords
-          }
+          (
+            let lilypond = List.nth parts (Model.Version.Content.Part_name.of_char_exn part) in
+            match List.assoc_opt (Some part, next_part) transitions with
+            | None -> lilypond
+            | Some transition ->
+              {
+                melody = lilypond.melody ^ " " ^ transition.Model.Version.Content.melody;
+                chords = lilypond.chords ^ " " ^ transition.Model.Version.Content.chords;
+              }
+          )
+        | Repeat (times, structure) ->
+          (
+            let lilypond : Model.Version.Content.part = to_lilypond structure in
+            let empty_lilypond : Model.Version.Content.part = {melody = ""; chords = ""} in
+            let first_part = first_part_exn structure in
+            let last_part = last_part_exn structure in
+            let alt_1 = Option.value ~default: empty_lilypond @@ List.assoc_opt (Some last_part, Some first_part) transitions in
+            let alt_2 = Option.value ~default: empty_lilypond @@ List.assoc_opt (Some last_part, next_part) transitions in
+            {
+              Model.Version.Content.melody =
+              spf
+                "\\repeat volta %d { %s } \\alternative { { %s } { %s } }"
+                times
+                lilypond.melody
+                alt_1.melody
+                alt_2.melody;
+              chords =
+              spf
+                "%s %s %s"
+                lilypond.chords
+                alt_1.chords
+                alt_2.chords;
+            }
+          )
+      and map_item_to_lilypond = function
+        | [] -> []
+        | item :: items -> item_to_lilypond ~next_part: (first_part items) item :: map_item_to_lilypond items
       and to_lilypond structure =
-        let structure = List.map item_to_lilypond structure in
+        let structure = map_item_to_lilypond structure in
         {
-          melody = String.concat " \\section\\break " (List.map (fun l -> l.Model.Version.Content.melody) structure);
-          chords = String.concat " " (List.map (fun l -> l.Model.Version.Content.chords) structure);
+          melody = String.concat " \\section\\break " (List.map Model.Version.Content.melody structure);
+          chords = String.concat " " (List.map Model.Version.Content.chords structure);
         }
       in
       let Model.Version.Content.{melody; chords} = to_lilypond structure in
@@ -150,7 +198,7 @@ let version_to_lilypond_content ~version_params version =
   let%lwt (content, instructions) =
     match content with
     | Monolithic {lilypond; _} -> lwt (lilypond, None)
-    | Destructured {parts; _} -> version_parts_to_lilypond_content ~version_params version parts
+    | Destructured {parts; transitions; _} -> version_parts_to_lilypond_content ~version_params version parts transitions
   in
   (* update the clef *)
   let content =

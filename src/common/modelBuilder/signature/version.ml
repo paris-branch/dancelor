@@ -24,6 +24,7 @@ module type S = sig
       melody: string; (** the melody of that part; they must not include clef or time; they may include the key *)
       chords: string; (** the chords of that part; they will be interpreted in LilyPond's [\chordmode] *)
     }
+    [@@deriving fields]
 
     type destructured = Core.Version.Content.destructured = {
       parts: part NEList.t;
