@@ -15,10 +15,8 @@ let format_persons =
   String.concat ", " ~last: " and " % format_persons_list
 
 (** Structures, but with more structure *)
-type structure =
-  | Part of char
-  | Append of structure * structure
-  | Repeat of int * structure
+type structure_item = Part of char | Repeat of int * structure
+and structure = structure_item list
 
 (** A few helpers *)
 let a = Part 'A'
@@ -27,45 +25,32 @@ let c = Part 'C'
 let d = Part 'D'
 let e = Part 'E'
 let f = Part 'F'
-let append x y = Append (x, y)
-let append_l = function
-  | [] -> failwith "append_l"
-  | x :: xs -> List.fold_left append x xs
 let repeat n x = Repeat (n, x)
+let is_repeat = function Repeat _ -> true | _ -> false
 
 (** A general algorithm would be great, but for now this will do. *)
 let best_structure_for = function
-  | "A" -> some a
-  | "B" -> some b
-  | "C" -> some c
-  | "D" -> some d
-  | "AB" -> some @@ append a b
-  | "AAB" -> some @@ append_l [repeat 2 a; b]
-  | "ABB" -> some @@ append_l [a; repeat 2 b]
-  | "AABB" -> some @@ append_l [repeat 2 a; repeat 2 b]
-  | "ABAB" -> some @@ repeat 2 (append a b)
-  | "ABBA" -> some @@ append_l [a; repeat 2 b; a]
-  | "AABC" -> some @@ append_l [repeat 2 a; b; c]
-  | "AABBB" -> some @@ append_l [repeat 2 a; repeat 3 b]
-  | "ABABB" -> some @@ append_l [repeat 2 (append a b); b]
-  | "ABBAB" -> some @@ append_l [a; repeat 2 b; a; b]
-  | "ABABC" -> some @@ append_l [repeat 2 (append a b); c]
-  | "ABABAB" -> some @@ repeat 3 (append a b)
-  | "AABBAB" -> some @@ append_l [repeat 2 a; repeat 2 b; a; b]
-  | "AABBCC" -> some @@ append_l [repeat 2 a; repeat 2 b; repeat 2 c]
-  | "AABBCCDD" -> some @@ append_l [repeat 2 a; repeat 2 b; repeat 2 c; repeat 2 d]
-  | "AABCDDEF" -> some @@ append_l [repeat 2 a; c; d; repeat 2 d; e; f]
+  | "A" -> some [a]
+  | "B" -> some [b]
+  | "C" -> some [c]
+  | "D" -> some [d]
+  | "AB" -> some [a; b]
+  | "AAB" -> some [repeat 2 [a]; b]
+  | "ABB" -> some [a; repeat 2 [b]]
+  | "AABB" -> some [repeat 2 [a]; repeat 2 [b]]
+  | "ABAB" -> some [repeat 2 [a; b]]
+  | "ABBA" -> some [a; repeat 2 [b]; a]
+  | "AABC" -> some [repeat 2 [a]; b; c]
+  | "AABBB" -> some [repeat 2 [a]; repeat 3 [b]]
+  | "ABABB" -> some [repeat 2 [a; b]; b]
+  | "ABBAB" -> some [a; repeat 2 [b]; a; b]
+  | "ABABC" -> some [repeat 2 [a; b]; c]
+  | "ABABAB" -> some [repeat 3 [a; b]]
+  | "AABBAB" -> some [repeat 2 [a]; repeat 2 [b]; a; b]
+  | "AABBCC" -> some [repeat 2 [a]; repeat 2 [b]; repeat 2 [c]]
+  | "AABBCCDD" -> some [repeat 2 [a]; repeat 2 [b]; repeat 2 [c]; repeat 2 [d]]
+  | "AABCDDEF" -> some [repeat 2 [a]; c; d; repeat 2 [d]; e; f]
   | _ -> None
-
-let rec starts_with_repeat = function
-  | Part _ -> false
-  | Repeat _ -> true
-  | Append (_, f) -> starts_with_repeat f
-
-let rec ends_with_repeat = function
-  | Part _ -> false
-  | Repeat _ -> true
-  | Append (_, f) -> ends_with_repeat f
 
 let version_parts_to_lilypond_content ~version_params version parts =
   ignore version_params;
@@ -108,24 +93,25 @@ let version_parts_to_lilypond_content ~version_params version parts =
       let instructions = Option.map (fun structure -> "play " ^ structure) desired_structure in
         (melody, chords, instructions)
     | Some structure ->
-      let rec to_lilypond_melody = function
-        | Part part -> (List.nth parts (Model.Version.Content.Part_name.of_char_exn part)).melody
-        | Append (e, f) ->
-          (* FIXME: with LilyPond 2.24, we could just generate \\section and not bother with this *)
-          let show_double_bar = not (ends_with_repeat e) && not (starts_with_repeat f) in
-          spf "%s %s \\break %s" (to_lilypond_melody e) (if show_double_bar then "\\bar \"||\"" else "") (to_lilypond_melody f)
-        | Repeat (n, e) -> spf "\\repeat volta %d { %s }" n (to_lilypond_melody e)
+      let rec item_to_lilypond_melody = function
+        | Part part ->
+          (List.nth parts (Model.Version.Content.Part_name.of_char_exn part)).melody
+        | Repeat (n, e) ->
+          spf "\\repeat volta %d { %s }" n (to_lilypond_melody e)
+      and to_lilypond_melody structure =
+        String.concat " \\section\\break " @@ List.map item_to_lilypond_melody structure
       in
       let lilypond_melody =
         spf
           "%s %s"
           (to_lilypond_melody structure)
-          (if not (ends_with_repeat structure) then "\\bar \"|.\"" else "")
+          (if not (is_repeat @@ List.ft structure) then "\\bar \"|.\"" else "")
       in
-      let rec to_lilypond_chords = function
+      let rec item_to_lilypond_chords = function
         | Part part -> (List.nth parts (Model.Version.Content.Part_name.of_char_exn part)).chords
-        | Append (e, f) -> spf "%s %s" (to_lilypond_chords e) (to_lilypond_chords f)
         | Repeat (_, e) -> to_lilypond_chords e
+      and to_lilypond_chords structure =
+        String.concat " " @@ List.map item_to_lilypond_chords structure
       in
         (lilypond_melody, to_lilypond_chords structure, None)
   in
