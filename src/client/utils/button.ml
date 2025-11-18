@@ -61,7 +61,7 @@ let make_content
       ]
 
 let make_attributes
-    ?(btn_class = true)
+    ?(dropdown = false)
     ?(classes = [])
     ?(disabled = S.const false)
     ?(processing = S.const false)
@@ -71,7 +71,7 @@ let make_attributes
   List.flatten
     [
       [R.a_class @@
-        let classes = (if btn_class then ["btn"] else []) @ classes in
+        let classes = (if dropdown then ["dropdown-item"] else ["btn"]) @ classes in
         flip S.map (S.l2 (||) disabled processing) @@ function
           | true -> "disabled" :: classes
           | false -> classes];
@@ -84,7 +84,7 @@ let make
     ?icon
     ?badge
     ?tooltip
-    ?btn_class
+    ?dropdown
     ?classes
     ?disabled
     ?onclick
@@ -112,7 +112,7 @@ let make
                 false
               ]
           );
-          (make_attributes ?btn_class ?classes ?disabled ?tooltip ~processing ());
+          (make_attributes ?dropdown ?classes ?disabled ?tooltip ~processing ());
           more_a;
         ]
     )
@@ -133,7 +133,7 @@ let make_a
     ?badge
     ?tooltip
     ?disabled
-    ?btn_class
+    ?dropdown
     ?classes
     ~href
     ?(more_a = [])
@@ -143,7 +143,7 @@ let make_a
     ~a: (
       List.flatten [
         [R.a_href href];
-        (make_attributes ?btn_class ?classes ?disabled ?tooltip ());
+        (make_attributes ?dropdown ?classes ?disabled ?tooltip ());
         more_a
       ]
     )

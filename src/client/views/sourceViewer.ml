@@ -20,27 +20,19 @@ let create ?context id =
     ~actions: (
       lwt @@
       [Utils.Button.make_a
-        ~classes: ["dropdown-item"]
-        ~href: (S.const @@ Endpoints.Page.(href SourceEdit) id)
-        ~icon: "pencil-square"
         ~label: "Edit"
+        ~icon: "pencil-square"
+        ~href: (S.const @@ Endpoints.Page.(href SourceEdit) id)
+        ~dropdown: true
         ();
       Utils.Action.delete
-        ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Source Delete) (Entry.id source))
         ~model: "source"
+        ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Source Delete) (Entry.id source))
         ();
       ] @ (
         match Source.scddb_id' source with
         | None -> []
-        | Some scddb_id ->
-          [
-            Utils.Button.make_a
-              ~classes: ["dropdown-item"]
-              ~href: (S.const @@ Uri.to_string @@ SCDDB.publication_uri scddb_id)
-              ~icon: "box-arrow-up-right"
-              ~label: "See on SCDDB"
-              ()
-          ]
+        | Some scddb_id -> [Utils.Action.scddb Publication scddb_id]
       )
     )
     [

@@ -56,13 +56,13 @@ let nav_item_explore =
       ul
         ~a: [a_class ["dropdown-menu"]]
         (
-          [li [Utils.Button.make_a ~label: "All" ~href: (S.const @@ Endpoints.Page.(href Explore) None) ~btn_class: false ~classes: ["dropdown-item"] ()];
+          [li [Utils.Button.make_a ~label: "All" ~href: (S.const @@ Endpoints.Page.(href Explore) None) ~dropdown: true ()];
           li [hr ~a: [a_class ["dropdown-divider"]] ()];
           ] @
             List.map
               (fun (icon, key, label) ->
                 let href = S.const @@ Endpoints.Page.(href Explore) @@ some @@ TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
-                li [Utils.Button.make_a ~label ~icon ~href ~btn_class: false ~classes: ["dropdown-item"] ()]
+                li [Utils.Button.make_a ~label ~icon ~href ~dropdown: true ()]
               )
               [
                 ("archive", "source", "Sources");
@@ -93,7 +93,7 @@ let nav_item_create =
               let open Endpoints.Page in
               List.map
                 (fun (icon, href, label) ->
-                  li [Utils.Button.make_a ~label ~icon ~href: (S.const href) ~btn_class: false ~classes: ["dropdown-item"] ()]
+                  li [Utils.Button.make_a ~label ~icon ~href: (S.const href) ~dropdown: true ()]
                 )
                 [
                   ("archive", href SourceAdd, "Source");

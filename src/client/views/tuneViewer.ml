@@ -19,30 +19,19 @@ let create ?context id =
     ~actions: (
       lwt @@
       [Utils.Button.make_a
-        ~classes: ["dropdown-item"]
-        ~href: (S.const @@ Endpoints.Page.(href TuneEdit) id)
-        ~icon: "pencil-square"
         ~label: "Edit"
+        ~icon: "pencil-square"
+        ~href: (S.const @@ Endpoints.Page.(href TuneEdit) id)
+        ~dropdown: true
         ();
       Utils.Action.delete
-        ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Tune Delete) (Entry.id tune))
         ~model: "tune"
+        ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Tune Delete) (Entry.id tune))
         ();
       ] @ (
         match Tune.scddb_id' tune with
         | None -> []
-        | Some scddb_id ->
-          [
-            a
-              ~a: [
-                a_class ["dropdown-item"];
-                a_href (Uri.to_string @@ SCDDB.tune_uri scddb_id);
-              ]
-              [
-                i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
-                txt " See on SCDDB";
-              ]
-          ]
+        | Some scddb_id -> [Utils.Action.scddb Publication scddb_id]
       )
     )
     [

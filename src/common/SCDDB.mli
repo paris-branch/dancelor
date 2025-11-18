@@ -23,11 +23,10 @@ type entry_id = int
 
 (** {2 Entry to URI} *)
 
+val entry_uri : entry_type -> entry_id -> Uri.t
 val dance_uri : entry_id -> Uri.t
-
 val person_uri : entry_id -> Uri.t
 val publication_uri : entry_id -> Uri.t
-
 val tune_uri : entry_id -> Uri.t
 
 (** {2 Entry from URI} *)
