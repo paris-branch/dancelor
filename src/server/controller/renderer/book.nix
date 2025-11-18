@@ -139,7 +139,8 @@ let
     }:
     runCommand "book-${book.slug}"
       {
-        allowSubtitutes = false;
+        preferLocalBuild = true;
+        allowSubstitutes = false;
         buildInputs = [
           (pkgs.texlive.combine {
             inherit (pkgs.texlive)

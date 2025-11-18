@@ -94,7 +94,8 @@ let
   tuneScheme =
     runCommand "preamble.scm"
       {
-        allowSubtitutes = false;
+        preferLocalBuild = true;
+        allowSubstitutes = false;
       }
       ''
         {
@@ -138,7 +139,8 @@ let
     in
     runCommand "tune-${slug}.ly"
       {
-        allowSubtitutes = false;
+        preferLocalBuild = true;
+        allowSubstitutes = false;
       }
       ''
         {
@@ -189,7 +191,8 @@ let
     tune@{ slug, stylesheet, ... }:
     runCommand "tune-${slug}-snippets"
       {
-        allowSubtitutes = false;
+        preferLocalBuild = true;
+        allowSubstitutes = false;
         buildInputs = with pkgs; [
           lilypond
           timidity
