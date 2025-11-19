@@ -97,21 +97,21 @@ let content_in_parts () =
                     ~label: "Transition parts"
                     ~input_group: true
                     (
-                      Input.prepare_option
+                      Input.prepare
                         ~type_: Text
-                        ~serialise: (NEString.of_char % Model.Version.Content.Part_name.to_char)
-                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Content.Part_name.of_nestring)
+                        ~serialise: Model.Version.Content.Part_name.open_to_string
+                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Content.Part_name.open_of_string)
                         ~label: "from"
-                        ~placeholder: "B"
+                        ~placeholder: "eg. “A”, “B” or “start”"
                         ()
                     )
                     (
-                      Input.prepare_option
+                      Input.prepare
                         ~type_: Text
-                        ~serialise: (NEString.of_char % Model.Version.Content.Part_name.to_char)
-                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Content.Part_name.of_nestring)
+                        ~serialise: Model.Version.Content.Part_name.open_to_string
+                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Content.Part_name.open_of_string)
                         ~label: "to"
-                        ~placeholder: "A"
+                        ~placeholder: "eg. “A”, “B” or “start”"
                         ()
                     )
                 )

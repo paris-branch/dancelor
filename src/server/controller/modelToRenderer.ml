@@ -15,16 +15,16 @@ let format_persons =
   String.concat ", " ~last: " and " % format_persons_list
 
 (** Structures, but with more structure *)
-type structure_item = Part of char | Repeat of int * structure
+type structure_item = Part of Model.Version.Content.Part_name.t | Repeat of int * structure
 and structure = structure_item list
 
 (** A few helpers *)
-let a = Part 'A'
-let b = Part 'B'
-let c = Part 'C'
-let d = Part 'D'
-let e = Part 'E'
-let f = Part 'F'
+let a = Part (Model.Version.Content.Part_name.of_char_exn 'A')
+let b = Part (Model.Version.Content.Part_name.of_char_exn 'B')
+let c = Part (Model.Version.Content.Part_name.of_char_exn 'C')
+let d = Part (Model.Version.Content.Part_name.of_char_exn 'D')
+let e = Part (Model.Version.Content.Part_name.of_char_exn 'E')
+let f = Part (Model.Version.Content.Part_name.of_char_exn 'F')
 let repeat n x = Repeat (n, x)
 
 let rec first_part_exn structure =
@@ -93,7 +93,7 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
   ignore version_params;
   let transitions =
     (* rearrange the given transitions because we will want to List.assoc later *)
-    List.map (fun (p1, p2, t) -> (Pair.map_both (Option.map Model.Version.Content.Part_name.to_char) (p1, p2), t)) transitions
+    List.map (fun (p1, p2, t) -> ((p1, p2), t)) transitions
   in
   let%lwt kind = Model.Version.kind version in
   let key = Model.Version.key version in
@@ -137,8 +137,8 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
       let rec item_to_lilypond ~next_part = function
         | Part part ->
           (
-            let lilypond = List.nth parts (Model.Version.Content.Part_name.of_char_exn part) in
-            match List.assoc_opt (Some part, next_part) transitions with
+            let lilypond = List.nth parts part in
+            match List.assoc_opt (Model.Version.Content.Part_name.Middle part, next_part) transitions with
             | None -> lilypond
             | Some transition ->
               {
@@ -152,8 +152,9 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
             let empty_lilypond : Model.Version.Content.part = {melody = ""; chords = ""} in
             let first_part = first_part_exn structure in
             let last_part = last_part_exn structure in
-            let alt_1 = Option.value ~default: empty_lilypond @@ List.assoc_opt (Some last_part, Some first_part) transitions in
-            let alt_2 = Option.value ~default: empty_lilypond @@ List.assoc_opt (Some last_part, next_part) transitions in
+            let middle = Model.Version.Content.Part_name.middle in
+            let alt_1 = Option.value ~default: empty_lilypond @@ List.assoc_opt (middle last_part, middle first_part) transitions in
+            let alt_2 = Option.value ~default: empty_lilypond @@ List.assoc_opt (middle last_part, next_part) transitions in
             {
               Model.Version.Content.melody =
               spf
@@ -172,7 +173,9 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
           )
       and map_item_to_lilypond = function
         | [] -> []
-        | item :: items -> item_to_lilypond ~next_part: (first_part items) item :: map_item_to_lilypond items
+        | item :: items ->
+          let next_part = Option.fold ~none: Model.Version.Content.Part_name.End ~some: Model.Version.Content.Part_name.middle (first_part items) in
+          item_to_lilypond ~next_part item :: map_item_to_lilypond items
       and to_lilypond structure =
         let structure = map_item_to_lilypond structure in
         {

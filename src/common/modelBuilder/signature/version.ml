@@ -9,10 +9,17 @@ module type S = sig
 
       val of_char : char -> t option
       val of_char_exn : char -> t
-
-      val of_nestring : NEString.t -> t option
+      val of_string : string -> t option
 
       val to_char : t -> char
+      val to_string : t -> string
+
+      type open_ = Core.Version.Content.Part_name.open_ =
+        Start | Middle of t | End
+      [@@deriving eq, yojson, show {with_path = false}, variants]
+
+      val open_to_string : open_ -> string
+      val open_of_string : string -> open_ option
     end
 
     type structure = (* Core.Version.Content.structure = *) Part_name.t NEList.t
@@ -28,7 +35,7 @@ module type S = sig
 
     type destructured = Core.Version.Content.destructured = {
       parts: part NEList.t;
-      transitions: (Part_name.t option * Part_name.t option * part) list;
+      transitions: (Part_name.open_ * Part_name.open_ * part) list;
       default_structure: structure;
     }
 
