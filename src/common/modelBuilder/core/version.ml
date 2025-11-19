@@ -96,12 +96,28 @@ module Content = struct
       }
 end
 
+type source_core = {
+  source: Source.t Entry.Id.t;
+  structure: Content.structure;
+  details: string; [@default ""]
+}
+[@@deriving eq, yojson, show {with_path = false}]
+
+type source = {
+  source: Source.t Entry.t;
+  structure: Content.structure;
+  details: string;
+}
+
+let source_to_source_core : source -> source_core = fun {source; structure; details} ->
+  {source = Entry.id source; structure; details}
+
 let _key = "version"
 
 type t = {
   tune: Tune.t Entry.Id.t;
   key: Music.Key.t;
-  sources: (Source.t Entry.Id.t * Content.structure) list; [@default []]
+  sources: source_core list; [@default []]
   arrangers: Person.t Entry.Id.t list; [@default []]
   remark: string; [@default ""]
   disambiguation: string; [@default ""]
@@ -114,7 +130,7 @@ type t = {
 let make ~tune ~key ?sources ?arrangers ?remark ?disambiguation ~content () =
   let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in
   let tune = Entry.id tune in
-  let sources = Option.map (List.map (Pair.map_fst Entry.id)) sources in
+  let sources = Option.map (List.map source_to_source_core) sources in
   let arrangers = Option.map (List.map Entry.id) arrangers in
   make ~tune ~key ?sources ?arrangers ?remark ?disambiguation ~content ()
 

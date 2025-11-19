@@ -77,8 +77,11 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
           txt "add the following sources:";
           ul (
             List.map
-              (fun (source, structure) ->
-                li [Formatters.Source.name' source; txtf " (%s)" (NEString.to_string @@ Version.Content.structure_to_string structure)]
+              (fun Model.Version.{source; structure; _} ->
+                li [
+                  Formatters.Source.name' source;
+                  txtf " (%s)" (NEString.to_string @@ Version.Content.structure_to_string structure);
+                ]
               )
               this_sources
           );
@@ -431,10 +434,11 @@ let create ?context id =
         S.from' [] @@
           match%lwt Model.Version.sources' version with
           | [] -> lwt_nil
-          | [(source, structure)] ->
+          | [{source; structure; details}] ->
             lwt [
               txt "Appears in ";
               Formatters.Source.name' source;
+              (if details <> "" then txtf " %s" details else txt "");
               txtf " as %s." (NEString.to_string (Model.Version.Content.structure_to_string structure));
             ]
           | sources ->
@@ -442,11 +446,12 @@ let create ?context id =
               txt "Appears:";
               ul (
                 List.map
-                  (fun (source, structure) ->
+                  (fun Model.Version.{source; structure; details} ->
                     li [
                       txt "in ";
                       Formatters.Source.name' source;
-                      txtf " as %s " (NEString.to_string @@ Model.Version.Content.structure_to_string structure);
+                      (if details <> "" then txtf " %s" details else txt "");
+                      txtf " as %s" (NEString.to_string @@ Model.Version.Content.structure_to_string structure);
                     ]
                   )
                   sources

@@ -4,8 +4,8 @@ disambiguation: Niols's Version
 arrangers:
   - uwoe-u6ij-ikgp
 sources:
-  - - 2f8s-90v8-33do
-    - AABB
+  - source: 2f8s-90v8-33do
+    structure: AABB
 created-at: "2023-04-04T18:45:27+00:00"
 modified-at: "2023-06-25T16:51:15+02:00"
 privacy: public

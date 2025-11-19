@@ -38,12 +38,18 @@ module type S = sig
     [@@deriving variants]
   end
 
+  type source = Core.Version.source = {
+    source: Core.Source.t Entry.t;
+    structure: Content.structure;
+    details: string;
+  }
+
   type t = Core.Version.t
 
   val make :
     tune: Core.Tune.t Entry.t ->
     key: Music.Key.t ->
-    ?sources: (Core.Source.t Entry.t * Content.structure) list ->
+    ?sources: source list ->
     ?arrangers: Core.Person.t Entry.t list ->
     ?remark: string ->
     ?disambiguation: string ->
@@ -57,8 +63,8 @@ module type S = sig
   val key : t -> Music.Key.t
   val key' : t Entry.t -> Music.Key.t
 
-  val sources : t -> (Core.Source.t Entry.t * Content.structure) list Lwt.t
-  val sources' : t Entry.t -> (Core.Source.t Entry.t * Content.structure) list Lwt.t
+  val sources : t -> source list Lwt.t
+  val sources' : t Entry.t -> source list Lwt.t
 
   val arrangers : t -> Core.Person.t Entry.t list Lwt.t
   val arrangers' : t Entry.t -> Core.Person.t Entry.t list Lwt.t

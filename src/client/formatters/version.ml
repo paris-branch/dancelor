@@ -16,10 +16,21 @@ let disambiguation_and_sources_internal ?source_links version =
     | sources ->
       lwt (
         [txt " (from "] @
-        List.interspersei
-          (fun _ -> txt ", ")
-          ~last: (fun _ -> txt " and ")
-          (List.map (Source.name' ~short: true ?link: source_links % fst) sources) @
+        List.flatten (
+          List.interspersei
+            (fun _ -> [txt ", "])
+            ~last: (fun _ -> [txt " and "])
+            (
+              List.map
+                (fun {Model.Version.source; details; _} ->
+                  [
+                    Source.name' ~short: true ?link: source_links source;
+                    (if details <> "" then txtf " %s" details else txt "");
+                  ]
+                )
+                sources
+            )
+        ) @
           [txt ")"]
       )
   in

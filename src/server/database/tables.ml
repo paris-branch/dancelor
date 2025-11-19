@@ -42,7 +42,7 @@ module Version = Table.Make(struct
   include ModelBuilder.Core.Version
   let dependencies version =
     [id_for "tune" (ModelBuilder.Core.Version.tune version)] @
-    List.map (id_for "source" % fst) (ModelBuilder.Core.Version.sources version) @
+    List.map (id_for "source" % (fun ({source; _}: ModelBuilder.Core.Version.source_core) -> source)) (ModelBuilder.Core.Version.sources version) @
     List.map (id_for "person") (ModelBuilder.Core.Version.arrangers version)
   let wrap_any = ModelBuilder.Core.Any.version
 end)

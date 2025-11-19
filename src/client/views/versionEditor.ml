@@ -245,7 +245,20 @@ let editor =
             ~unserialise: Model.Source.get
             ()
         )
-        (structure ~label: "Structure in that particular source" ())
+        (
+          Cpair.prepare
+            ~label: "FIXME"
+            (structure ~label: "Structure in that particular source" ())
+            (
+              Input.prepare
+                ~type_: Text
+                ~label: "FIXME"
+                ~placeholder: "eg. “for The Eightsome Reel” or “as a 2/4 reel”"
+                ~serialise: id
+                ~validate: (S.const % ok)
+                ()
+            )
+        )
     ) ^::
   Input.prepare
     ~type_: Text
@@ -258,6 +271,7 @@ let editor =
   nil
 
 let assemble (tune, (key, (arrangers, (remark, (sources, (disambiguation, (content, ()))))))) =
+  let sources = List.map (fun (source, (structure, details)) -> Model.Version.{source; structure; details}) sources in
   Model.Version.make ~tune ~key ~arrangers ~remark ~sources ~disambiguation ~content ()
 
 let preview version =
@@ -288,6 +302,7 @@ let disassemble version =
   let%lwt arrangers = Model.Version.arrangers version in
   let remark = Model.Version.remark version in
   let%lwt sources = Model.Version.sources version in
+  let sources = List.map (fun Model.Version.{source; structure; details} -> (source, (structure, details))) sources in
   let disambiguation = Model.Version.disambiguation version in
   let content = Model.Version.content version in
   lwt (tune, (key, (arrangers, (remark, (sources, (disambiguation, (content, ())))))))

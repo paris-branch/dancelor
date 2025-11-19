@@ -134,7 +134,7 @@ module Make (Model : ModelBuilder.S) = struct
       | Key key' ->
         lwt @@ Formula.interpret_bool (Model.Version.key' version = key')
       | ExistsSource sfilter ->
-        let%lwt sources = List.map fst <$> Model.Version.sources' version in
+        let%lwt sources = List.map (fun {Model.Version.source; _} -> source) <$> Model.Version.sources' version in
         Formula.interpret_exists (accepts_source sfilter) sources
 
   let rec accepts_any filter any =
