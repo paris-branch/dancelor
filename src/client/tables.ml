@@ -74,7 +74,7 @@ let versions ?onclick versions =
       ?href
       ?onclick
       [
-        lwt [Formatters.Version.disambiguation_and_sources' version];
+        lwt [Formatters.Version.disambiguation_and_sources' ~parentheses: false version];
         (List.singleton <$> (Formatters.Person.names' <$> Version.arrangers' version));
         (List.singleton <$> (txt % Kind.Base.to_pretty_string % Tune.kind' <$> Version.tune' version));
         lwt [txt @@ Music.Key.to_pretty_string @@ Version.key' version];

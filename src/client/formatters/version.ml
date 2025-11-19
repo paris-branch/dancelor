@@ -3,20 +3,25 @@ open Common
 
 open Html
 
-let disambiguation version =
+let disambiguation ?(parentheses = true) version =
   span @@
     match Model.Version.disambiguation version with
     | "" -> []
-    | disambiguation -> [txt (spf " (%s)" disambiguation)]
+    | disambiguation when parentheses -> [txt (spf " (%s)" disambiguation)]
+    | disambiguation -> [txt (spf " %s" disambiguation)]
 
-let disambiguation_and_sources_internal ?source_links version =
+let disambiguation_and_sources_internal ?(parentheses = true) ?source_links version =
   let sources_block =
     match%lwt Model.Version.sources version with
     | [] -> lwt_nil
     | sources ->
-      lwt (
-        [txt " (from "] @
-        List.flatten (
+      lwt @@
+      List.flatten @@
+      List.flatten
+        [
+          [[txt (if parentheses then " (from" else "")];
+          [txt " from "];
+          ];
           List.interspersei
             (fun _ -> [txt ", "])
             ~last: (fun _ -> [txt " and "])
@@ -29,15 +34,17 @@ let disambiguation_and_sources_internal ?source_links version =
                   ]
                 )
                 sources
-            )
-        ) @
-          [txt ")"]
-      )
+            );
+          [[txt (if parentheses then ")" else "")]];
+        ]
   in
-    [disambiguation version; with_span_placeholder sources_block]
+    [with_span_placeholder sources_block; disambiguation ~parentheses version]
 
-let disambiguation_and_sources ?source_links version = span (disambiguation_and_sources_internal ?source_links version)
-let disambiguation_and_sources' ?source_links version = disambiguation_and_sources ?source_links @@ Entry.value version
+let disambiguation_and_sources ?parentheses ?source_links version =
+  span (disambiguation_and_sources_internal ?parentheses ?source_links version)
+
+let disambiguation_and_sources' ?parentheses ?source_links version =
+  disambiguation_and_sources ?parentheses ?source_links @@ Entry.value version
 
 let description ?arranger_links version =
   let shape =
