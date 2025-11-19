@@ -33,7 +33,10 @@
         ./src/server/controller/renderer/flake-part.nix
       ];
 
-      systems = [ "x86_64-linux" ];
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
 
       ## Improve the way `inputs'` are computed by also handling the case of
       ## flakes having a `lib.${system}` attribute.
