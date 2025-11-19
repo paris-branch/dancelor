@@ -117,7 +117,7 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
     | None ->
       (* no structure; or we couldn't find a good one *)
       let melody =
-        String.concat " \\bar \"||\"\\break " (
+        String.concat " \\section\\break " (
           List.mapi
             (fun part_name part ->
               spf "\\mark\\markup\\box{%c} %s" (Model.Version.Content.Part_name.to_char part_name) part.Model.Version.Content.melody

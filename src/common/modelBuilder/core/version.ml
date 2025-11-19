@@ -53,7 +53,7 @@ module Content = struct
     in
     let parts = NEList.to_list parts in
     let melody =
-      String.concat " \\bar \"||\"\\break " (
+      String.concat " \\section\\break " (
         List.mapi
           (fun part_name part ->
             spf "\\mark\\markup\\box{%c} %s" (Part_name.to_char part_name) part.melody
