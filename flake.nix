@@ -12,6 +12,7 @@
         nixpkgs.follows = "nixpkgs";
         topiary.follows = "topiary";
         git-hooks.follows = "git-hooks-nix";
+        flake-parts.follows = "flake-parts";
       };
     };
 
