@@ -79,6 +79,7 @@ let best_structure_for = function
   | "AABBB" -> some [repeat 2 [a]; repeat 3 [b]]
   | "ABABB" -> some [repeat 2 [a; b]; b]
   | "ABBAB" -> some [a; repeat 2 [b]; a; b]
+  | "ABBCC" -> some [a; repeat 2 [b]; repeat 2 [c]]
   | "ABABC" -> some [repeat 2 [a; b]; c]
   | "ABCDE" -> some [a; b; c; d; e]
   | "ABABAB" -> some [repeat 3 [a; b]]
