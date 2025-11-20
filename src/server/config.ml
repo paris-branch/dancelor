@@ -39,8 +39,6 @@ let init_only = ref false
 let loglevel = ref Logs.Debug
 let pid_file = ref ""
 let port = ref 6872
-let routines = ref true
-let heavy_routines = ref false
 let share = ref "_build/install/default/share"
 let sync_storage = ref true
 let write_storage = ref true
@@ -49,6 +47,7 @@ let github_token_file = ref ""
 let github_repository = ref ""
 let github_database_repository = ref ""
 let nixpkgs = ref ""
+let routine_threads = ref 2
 
 let check_config () =
   if !github_token_file <> "" then
@@ -89,8 +88,6 @@ let load_from_file filename =
   loglevel := field config ~type_: loglevel_of_json_string ~default: !loglevel ["loglevel"];
   pid_file := field config ~type_: string ~default: !pid_file ["pid_file"];
   port := field config ~type_: int ~default: !port ["port"];
-  routines := field config ~type_: bool ~default: !routines ["routines"];
-  heavy_routines := field config ~type_: bool ~default: !heavy_routines ["heavy_routines"];
   share := field config ~type_: string ~default: !share ["share"];
   sync_storage := field config ~type_: bool ~default: !sync_storage ["sync_storage"];
   write_storage := field config ~type_: bool ~default: !write_storage ["write_storage"];
@@ -99,6 +96,7 @@ let load_from_file filename =
   github_repository := field config ~type_: string ~default: !github_repository ["github-repository"];
   github_database_repository := field config ~type_: string ~default: !github_database_repository ["github-database-repository"];
   nixpkgs := field config ~type_: string ~default: !nixpkgs ["nixpkgs"];
+  routine_threads := field config ~type_: int ~default: !routine_threads ["routine-threads"];
   ()
 
 let parse_cmd_line () =
@@ -117,10 +115,6 @@ let parse_cmd_line () =
         "--loglevel", String (loglevel_of_string ||> (:=) loglevel), spf "LEVEL Set the log level (default: %s)" (loglevel_to_string !loglevel);
         "--pid-file", Set_string pid_file, spf "FILE Write process id to the given file.";
         "--port", Set_int port, spf "NB Set the port (default: %d)" !port;
-        "--routines", Set routines, aspf " Start routines%a" pp_default !routines;
-        "--no-routines", Clear routines, aspf " Do not start routines%a" pp_default (not !routines);
-        "--heavy-routines", Set heavy_routines, aspf " Allow heavy load for routines%a" pp_default !heavy_routines;
-        "--no-heavy-routines", Clear heavy_routines, aspf " Disallow heavy load for routines%a" pp_default (not !heavy_routines);
         "--share", Set_string share, spf "DIR Set share directory (default: %s)" !share;
         "--sync-storage", Set sync_storage, aspf " Sync storage using git%a" pp_default !sync_storage;
         "--no-sync-storage", Clear sync_storage, aspf " Do not sync storage using git%a" pp_default (not !sync_storage);
@@ -131,6 +125,7 @@ let parse_cmd_line () =
         "--github-repository", Set_string github_repository, spf "STR Set the Github repository to STR. This is used by the issue report mechanism. It must contain the host, owner, and repository.";
         "--github-database-repository", Set_string github_database_repository, spf "STR Set the Github database repository to STR. This is used by the issue report mechanism. It must contain the host, owner, and repository.";
         "--nixpkgs", Set_string nixpkgs, spf "DIR Set path to nixpkgs (default: will grab <nixpkgs>)";
+        "--routine-threads", Set_int routine_threads, "INT Set the number of threads to use for tourines";
       ]
   in
   let anon_fun _ = raise (Arg.Bad "no anonymous argument expected") in

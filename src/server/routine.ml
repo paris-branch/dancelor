@@ -57,4 +57,4 @@ let initialiase_job_runners ~threads =
   )
 
 let initialise () =
-  initialiase_job_runners ~threads: 2
+  initialiase_job_runners ~threads: !Config.routine_threads

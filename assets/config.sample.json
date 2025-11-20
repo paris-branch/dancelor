@@ -2,7 +2,5 @@
   "port": 6872,
   "database": "/var/lib/dancelor/database",
   "share": "/usr/share/dancelor",
-  "loglevel": "warning",
-  "routines": "true",
-  "heavy_routines": "false"
+  "loglevel": "warning"
 }
