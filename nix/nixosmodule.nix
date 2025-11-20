@@ -75,57 +75,58 @@
 
       config = lib.mkIf cfg.enable (
         let
-          init-dancelor = pkgs.writeShellApplication {
+          stateDir = "/var/lib/dancelor";
+          databaseDir = "${stateDir}/database";
+
+          ## Part of the `init-dancelor` process that runs as the Dancelor user.
+          init-dancelor-as-dancelor = pkgs.writeShellApplication {
             name = "init-dancelor";
             runtimeInputs = with pkgs; [ git ];
             excludeShellChecks = [ "SC2016" ];
-            text = ''
-              mkdir -p /var/lib/dancelor
-
-              ## Test whether the given path is a Git repository owned by 'dancelor'.
-              is_dancelor_git_repository () (
-                cd "$1" && ${pkgs.su}/bin/su -s /bin/sh dancelor -c \
-                  'test "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = true'
-              )
-
-              ${
-                if cfg.testMode then
-                  ''
-                    ln -sf ${../tests/database} /var/lib/dancelor/database
-                  ''
-                else
-                  ''
-                    ## If the repository does not exist, then we clone it.
-                    if ! [ -e /var/lib/dancelor/database ]; then
-                      echo 'Cloning the repository to /var/lib/dancelor/database...'
-                      git clone "$(cat ${cfg.databaseRepositoryFile})" /var/lib/dancelor/database
+            text =
+              if cfg.testMode then
+                ''
+                  ln -sf ${../tests/database} ${databaseDir}
+                ''
+              else
+                ''
+                  ## If the repository does not exist, then we clone it.
+                  if ! [ -e ${databaseDir} ]; then
+                    echo "Cloning the repository to ${databaseDir}..."
+                    git clone "$(cat ${cfg.databaseRepositoryFile})" ${databaseDir}
+                    echo 'done.'
+                  fi
+                  cd ${databaseDir} 
+                  ## Once the repository exists and is a Git repository, we
+                  ## configure it. Most of these will not change, but they might
+                  ## sometimes (in particular the repository) and it will not hurt
+                  ## to do that again.
+                  if [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = true ]; then
+                    (
+                      echo 'Setting up the git repository...'
+                      echo '  - username...'
+                      git config user.name Dancelor
+                      echo '  - email...'
+                      git config user.email dancelor@dancelor.org
+                      echo '  - remote...'
+                      git remote set-url origin "$(cat ${cfg.databaseRepositoryFile})"
                       echo 'done.'
-                    fi
+                    )
+                  else
+                    echo "The directory '${databaseDir}' exists but is not a Git repository." >&2
+                    exit 1
+                  fi
+                '';
+          };
 
-                    ## Once the repository exists and is a Git repository, we
-                    ## configure it. Most of these will not change, but they might
-                    ## sometimes (in particular the repository) and it will not hurt
-                    ## to do that again.
-                    if is_dancelor_git_repository /var/lib/dancelor/database; then
-                      (
-                        echo 'Setting up the git repository...'
-                        cd /var/lib/dancelor/database
-                        echo '  - username...'
-                        git -c safe.directory=/var/lib/dancelor/database config user.name Dancelor
-                        echo '  - email...'
-                        git -c safe.directory=/var/lib/dancelor/database config user.email dancelor@dancelor.org
-                        echo '  - remote...'
-                        git -c safe.directory=/var/lib/dancelor/database remote set-url origin "$(cat ${cfg.databaseRepositoryFile})"
-                        echo 'done.'
-                      )
-                    else
-                      echo "The directory '/var/lib/dancelor/database' exists but is not a Git repository." >&2
-                      exit 1
-                    fi
-                  ''
-              }
-
-              chown -R dancelor:dancelor /var/lib/dancelor
+          ## The actual `init-dancelor` process, just a small wrapper around the
+          ## previous one.
+          init-dancelor = pkgs.writeShellApplication {
+            name = "init-dancelor";
+            text = ''
+              mkdir -p ${stateDir}
+              chown -R dancelor:dancelor ${stateDir}
+              ${pkgs.su}/bin/su -s /bin/sh dancelor -c ${init-dancelor-as-dancelor}/bin/init-dancelor
             '';
           };
 
@@ -133,7 +134,7 @@
             name = "run-dancelor";
             text = ''
               ${self.apps.${pkgs.system}.dancelor.program} \
-                --database /var/lib/dancelor/database \
+                --database ${databaseDir} \
                 ${lib.strings.optionalString cfg.testMode ''
                   --no-sync-storage \
                   --no-write-storage \
