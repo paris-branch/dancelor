@@ -55,6 +55,15 @@
           example = "github.com/paris-branch/dancelor-database";
         };
 
+        routineThreads = lib.mkOption {
+          type = lib.types.int;
+          description = ''
+            Number of threads used by routines.
+          '';
+          default = 2;
+          example = 8;
+        };
+
         testMode = lib.mkOption {
           type = lib.types.bool;
           description = ''
@@ -128,13 +137,13 @@
                 ${lib.strings.optionalString cfg.testMode ''
                   --no-sync-storage \
                   --no-write-storage \
-                  --no-routines \
                 ''} \
                 --loglevel info \
                 --port ${toString cfg.listeningPort} \
                 --github-token-file ${cfg.githubTokenFile} \
                 --github-repository ${cfg.githubRepository} \
-                --github-database-repository ${cfg.githubDatabaseRepository}
+                --github-database-repository ${cfg.githubDatabaseRepository} \
+                --routine-threads ${toString cfg.routineThreads}
             '';
           };
 

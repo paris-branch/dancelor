@@ -3,8 +3,6 @@
   "database": "tests/database",
   "share": "_build/install/default/share/dancelor",
   "loglevel": "warning",
-  "routines": "false",
-  "heavy_routines": "false",
   "sync_storage": "false",
   "write_storage": "false"
 }

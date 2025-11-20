@@ -3,8 +3,6 @@
   "database": "../dancelor-database",
   "share": "_build/install/default/share/dancelor",
   "loglevel": "debug",
-  "routines": "false",
-  "heavy_routines": "false",
   "sync_storage": "false",
   "write_storage": "false",
   "github-repository": "paris-branch/test-dancelor",
