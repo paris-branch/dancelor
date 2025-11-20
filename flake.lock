@@ -110,6 +110,9 @@
     },
     "monadise": {
       "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
         "git-hooks": [
           "git-hooks-nix"
         ],
@@ -121,11 +124,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1763372626,
-        "narHash": "sha256-0MmrxCDI+WWVtKNr0lQo4xsEo+v3+cUEv4n+B9PhCs4=",
+        "lastModified": 1763650215,
+        "narHash": "sha256-xr8S14yGvAdf9vKBWhvjhfHjm4AQPvVTUzgFvtVjYSw=",
         "owner": "niols",
         "repo": "ocaml-monadise",
-        "rev": "7a558784221a03f2121ddda9ee6f1cb76a91def6",
+        "rev": "65a852b877cd52508db52c0553d7c8e2893916ba",
         "type": "github"
       },
       "original": {
