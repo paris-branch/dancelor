@@ -91,6 +91,15 @@ let best_structure_for = function
   | "AABCDDEF" -> some [repeat 2 [a]; b; c; repeat 2 [d]; e; f]
   | _ -> None
 
+(* FIXME: move in a better place and rename [part] to something better *)
+let concat_parts p1 p2 = Model.Version.Content.{melody = p1.melody ^ p2.melody; chords = p1.chords ^ p2.chords}
+let part_empty = Model.Version.Content.{melody = ""; chords = ""}
+let concat_parts_l = List.fold_left concat_parts part_empty
+let part_space = Model.Version.Content.{melody = " "; chords = " "}
+let part_mark c = Model.Version.Content.{melody = spf "\\mark\\markup\\box{%c} " (Part_name.to_char c); chords = ""}
+let part_section_break = Model.Version.Content.{melody = " \\section\\break "; chords = " "}
+let part_fine = Model.Version.Content.{melody = " \\fine"; chords = ""}
+
 let version_parts_to_lilypond_content ~version_params version parts transitions =
   ignore version_params;
   let transitions =
@@ -112,81 +121,68 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
     " " ^ (Music.Mode.to_lilypond_string @@ Music.Key.mode key)
   in
   let parts = NEList.to_list parts in
-  let (melody, chords, instructions) =
+  let (Model.Version.Content.{melody; chords}, instructions) =
     let desired_structure = Option.map (NEString.to_string % Model.Version.Content.structure_to_string) (Model.VersionParameters.structure version_params) in
     let structure = Option.fold ~none: None ~some: best_structure_for desired_structure in
+    let show_part_marks = structure = None in
+    let rec item_to_lilypond ~next_part = function
+      | Part part ->
+        (
+          let lilypond = List.nth parts part in
+          let lilypond = if show_part_marks then concat_parts (part_mark part) lilypond else lilypond in
+          match List.assoc_opt (Model.Version.Content.Part_name.Middle part, next_part) transitions with
+          | None -> lilypond
+          | Some transition -> concat_parts_l [lilypond; part_space; transition]
+        )
+      | Repeat (times, structure) ->
+        (
+          let lilypond : Model.Version.Content.part = to_lilypond structure in
+          let first_part = first_part_exn structure in
+          let last_part = last_part_exn structure in
+          let middle = Model.Version.Content.Part_name.middle in
+          let alt_1 = Option.value ~default: part_empty @@ List.assoc_opt (middle last_part, middle first_part) transitions in
+          let alt_2 = Option.value ~default: part_empty @@ List.assoc_opt (middle last_part, next_part) transitions in
+          {
+            Model.Version.Content.melody =
+            spf
+              "\\repeat volta %d { %s } \\alternative { { %s } { %s } }"
+              times
+              lilypond.melody
+              alt_1.melody
+              alt_2.melody;
+            chords =
+            spf
+              "%s %s %s"
+              lilypond.chords
+              alt_1.chords
+              alt_2.chords;
+          }
+        )
+    and map_item_to_lilypond = function
+      | [] -> []
+      | item :: items ->
+        let next_part = Option.fold ~none: Model.Version.Content.Part_name.End ~some: Model.Version.Content.Part_name.middle (first_part items) in
+        item_to_lilypond ~next_part item :: map_item_to_lilypond items
+    and to_lilypond structure =
+      concat_parts_l (List.intersperse part_section_break (map_item_to_lilypond structure))
+    in
+    let to_lilypond structure =
+      let lilypond = to_lilypond structure in
+      let first_part = first_part_exn structure in
+      let transition = List.assoc_opt Model.Version.Content.Part_name.(Start, Middle first_part) transitions in
+      match transition with
+      | None -> lilypond
+      | Some transition -> concat_parts_l [transition; part_space; lilypond]
+    in
     match structure with
     | None ->
       (* no structure; or we couldn't find a good one *)
-      let melody =
-        String.concat " \\section\\break " (
-          List.mapi
-            (fun part_name part ->
-              spf "\\mark\\markup\\box{%c} %s" (Model.Version.Content.Part_name.to_char part_name) part.Model.Version.Content.melody
-            )
-            parts
-        ) ^
-          "\\fine"
-      in
-      let chords =
-        String.concat " " (
-          List.map (fun part -> part.Model.Version.Content.chords) parts
-        )
-      in
-      let instructions = Option.map (fun structure -> "play " ^ structure) desired_structure in
-        (melody, chords, instructions)
+      (
+        to_lilypond (List.mapi (fun part_name _ -> Part part_name) parts),
+        Option.map (fun structure -> "play " ^ structure) desired_structure
+      )
     | Some structure ->
-      let rec item_to_lilypond ~next_part = function
-        | Part part ->
-          (
-            let lilypond = List.nth parts part in
-            match List.assoc_opt (Model.Version.Content.Part_name.Middle part, next_part) transitions with
-            | None -> lilypond
-            | Some transition ->
-              {
-                melody = lilypond.melody ^ " " ^ transition.Model.Version.Content.melody;
-                chords = lilypond.chords ^ " " ^ transition.Model.Version.Content.chords;
-              }
-          )
-        | Repeat (times, structure) ->
-          (
-            let lilypond : Model.Version.Content.part = to_lilypond structure in
-            let empty_lilypond : Model.Version.Content.part = {melody = ""; chords = ""} in
-            let first_part = first_part_exn structure in
-            let last_part = last_part_exn structure in
-            let middle = Model.Version.Content.Part_name.middle in
-            let alt_1 = Option.value ~default: empty_lilypond @@ List.assoc_opt (middle last_part, middle first_part) transitions in
-            let alt_2 = Option.value ~default: empty_lilypond @@ List.assoc_opt (middle last_part, next_part) transitions in
-            {
-              Model.Version.Content.melody =
-              spf
-                "\\repeat volta %d { %s } \\alternative { { %s } { %s } }"
-                times
-                lilypond.melody
-                alt_1.melody
-                alt_2.melody;
-              chords =
-              spf
-                "%s %s %s"
-                lilypond.chords
-                alt_1.chords
-                alt_2.chords;
-            }
-          )
-      and map_item_to_lilypond = function
-        | [] -> []
-        | item :: items ->
-          let next_part = Option.fold ~none: Model.Version.Content.Part_name.End ~some: Model.Version.Content.Part_name.middle (first_part items) in
-          item_to_lilypond ~next_part item :: map_item_to_lilypond items
-      and to_lilypond structure =
-        let structure = map_item_to_lilypond structure in
-        {
-          melody = String.concat " \\section\\break " (List.map Model.Version.Content.melody structure);
-          chords = String.concat " " (List.map Model.Version.Content.chords structure);
-        }
-      in
-      let Model.Version.Content.{melody; chords} = to_lilypond structure in
-        (melody ^ " \\fine", chords, None)
+      (concat_parts (to_lilypond structure) part_fine, None)
   in
   lwt (
     spf
