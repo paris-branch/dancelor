@@ -164,11 +164,15 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
         let next_part = Option.fold ~none: Model.Version.Content.Part_name.End ~some: Model.Version.Content.Part_name.middle (first_part items) in
         item_to_lilypond ~next_part item :: map_item_to_lilypond items
     and to_lilypond structure =
-      let structure = map_item_to_lilypond structure in
-      {
-        melody = String.concat " \\section\\break " (List.map Model.Version.Content.melody structure);
-        chords = String.concat " " (List.map Model.Version.Content.chords structure);
-      }
+      concat_parts_l (List.intersperse part_section_break (map_item_to_lilypond structure))
+    in
+    let to_lilypond structure =
+      let lilypond = to_lilypond structure in
+      let first_part = first_part_exn structure in
+      let transition = List.assoc_opt Model.Version.Content.Part_name.(Start, Middle first_part) transitions in
+      match transition with
+      | None -> lilypond
+      | Some transition -> concat_parts_l [transition; part_space; lilypond]
     in
     match structure with
     | None ->
