@@ -77,6 +77,7 @@ let best_structure_for = function
   | "AABC" -> some [repeat 2 [a]; b; c]
   | "ABCD" -> some [a; b; c; d]
   | "AABBB" -> some [repeat 2 [a]; repeat 3 [b]]
+  | "ABABA" -> some [repeat 2 [a; b]; a]
   | "ABABB" -> some [repeat 2 [a; b]; b]
   | "ABBAB" -> some [a; repeat 2 [b]; a; b]
   | "ABBCC" -> some [a; repeat 2 [b]; repeat 2 [c]]
@@ -87,7 +88,7 @@ let best_structure_for = function
   | "AABBCC" -> some [repeat 2 [a]; repeat 2 [b]; repeat 2 [c]]
   | "ABCDEF" -> some [a; b; c; d; e; f]
   | "AABBCCDD" -> some [repeat 2 [a]; repeat 2 [b]; repeat 2 [c]; repeat 2 [d]]
-  | "AABCDDEF" -> some [repeat 2 [a]; c; d; repeat 2 [d]; e; f]
+  | "AABCDDEF" -> some [repeat 2 [a]; b; c; repeat 2 [d]; e; f]
   | _ -> None
 
 let version_parts_to_lilypond_content ~version_params version parts transitions =
