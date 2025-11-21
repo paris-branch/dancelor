@@ -126,7 +126,7 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
             )
             parts
         ) ^
-          "\\bar \"|.\""
+          "\\fine"
       in
       let chords =
         String.concat " " (
@@ -186,11 +186,7 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
         }
       in
       let Model.Version.Content.{melody; chords} = to_lilypond structure in
-      (
-        spf "%s %s" melody (if not (ends_with_repeat structure) then "\\bar \"|.\"" else ""),
-        chords,
-        None
-      )
+        (melody ^ " \\fine", chords, None)
   in
   lwt (
     spf

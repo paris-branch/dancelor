@@ -80,7 +80,7 @@ module Content = struct
           )
           parts
       ) ^
-        "\\bar \"|.\""
+        "\\fine"
     in
     let chords = String.concat " " (List.map (fun part -> part.chords) parts) in
     spf
