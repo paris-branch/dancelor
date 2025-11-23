@@ -11,7 +11,10 @@ type t =
   | Destructured of destructured (** A tune decomposed as building blocks *)
 [@@deriving eq, yojson, show, variants]
 
-val lilypond : Kind.Base.t -> Music.Key.t -> t -> string
+val lilypond : ?structure: Structure.t -> kind: Kind.Base.t -> key: Music.Key.t -> t -> string
+(** Produce a LilyPond string from a content and some additional information.
+    The [?structure] optional argument is ignored in case of monolithic content,
+    but tries to produce a LilyPond for the given structure if possible. *)
 
 val erase_lilypond : t -> t
 (** Erase the LilyPond from a version content. This is used to send smaller

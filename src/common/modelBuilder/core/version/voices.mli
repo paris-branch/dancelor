@@ -1,5 +1,3 @@
-open Nes
-
 type t = {
   melody: string; (** the melody of that part; they must not include clef or time; they may include the key *)
   chords: string; (** the chords of that part; they will be interpreted in LilyPond's [\chordmode] *)
@@ -25,7 +23,3 @@ val concat : t -> t -> t
 
 val concat_l : t list -> t
 (** Like {!concat} but on a list of voices. *)
-
-val lilypond_from_parts : kind: KindBase.t -> key: Music.Key.t -> t NEList.t -> string
-(** Produce a LilyPond string from several parts. FIXME: This should probably
-    not be in this module. *)

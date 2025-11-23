@@ -33,11 +33,12 @@ module Build (Getters : Getters.S) = struct
   let slug version = Entry.Slug.of_string % NEString.to_string <$> one_name version
   let slug' = slug % Entry.value
 
-  let content_lilypond ?content: the_content version =
+  let content_lilypond ?structure ?content: the_content version =
     let%lwt kind = kind version in
     let key = key version in
     let content = Option.value the_content ~default: (content version) in
-    lwt @@ Content.lilypond kind key content
+    lwt @@ Content.lilypond ?structure ~kind ~key content
 
-  let content_lilypond' ?content version = content_lilypond ?content @@ Entry.value version
+  let content_lilypond' ?structure ?content version =
+    content_lilypond ?structure ?content @@ Entry.value version
 end
