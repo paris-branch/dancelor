@@ -15,16 +15,16 @@ let format_persons =
   String.concat ", " ~last: " and " % format_persons_list
 
 (** Structures, but with more structure *)
-type structure_item = Part of Model.Version.Content.Part_name.t | Repeat of int * structure
+type structure_item = Part of Model.Version.Part_name.t | Repeat of int * structure
 and structure = structure_item list
 
 (** A few helpers *)
-let a = Part (Model.Version.Content.Part_name.of_char_exn 'A')
-let b = Part (Model.Version.Content.Part_name.of_char_exn 'B')
-let c = Part (Model.Version.Content.Part_name.of_char_exn 'C')
-let d = Part (Model.Version.Content.Part_name.of_char_exn 'D')
-let e = Part (Model.Version.Content.Part_name.of_char_exn 'E')
-let f = Part (Model.Version.Content.Part_name.of_char_exn 'F')
+let a = Part (Model.Version.Part_name.of_char_exn 'A')
+let b = Part (Model.Version.Part_name.of_char_exn 'B')
+let c = Part (Model.Version.Part_name.of_char_exn 'C')
+let d = Part (Model.Version.Part_name.of_char_exn 'D')
+let e = Part (Model.Version.Part_name.of_char_exn 'E')
+let f = Part (Model.Version.Part_name.of_char_exn 'F')
 let repeat n x = Repeat (n, x)
 
 let rec first_part_exn structure =
@@ -96,7 +96,7 @@ let concat_parts p1 p2 = Model.Version.Content.{melody = p1.melody ^ p2.melody; 
 let part_empty = Model.Version.Content.{melody = ""; chords = ""}
 let concat_parts_l = List.fold_left concat_parts part_empty
 let part_space = Model.Version.Content.{melody = " "; chords = " "}
-let part_mark c = Model.Version.Content.{melody = spf "\\mark\\markup\\box{%c} " (Part_name.to_char c); chords = ""}
+let part_mark c = Model.Version.{Content.melody = spf "\\mark\\markup\\box{%c} " (Part_name.to_char c); chords = ""}
 let part_section_break = Model.Version.Content.{melody = " \\section\\break "; chords = " "}
 let part_fine = Model.Version.Content.{melody = " \\fine"; chords = ""}
 
@@ -130,7 +130,7 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
         (
           let lilypond = List.nth parts part in
           let lilypond = if show_part_marks then concat_parts (part_mark part) lilypond else lilypond in
-          match List.assoc_opt (Model.Version.Content.Part_name.Middle part, next_part) transitions with
+          match List.assoc_opt (Model.Version.Part_name.Middle part, next_part) transitions with
           | None -> lilypond
           | Some transition -> concat_parts_l [lilypond; part_space; transition]
         )
@@ -139,7 +139,7 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
           let lilypond : Model.Version.Content.part = to_lilypond structure in
           let first_part = first_part_exn structure in
           let last_part = last_part_exn structure in
-          let middle = Model.Version.Content.Part_name.middle in
+          let middle = Model.Version.Part_name.middle in
           let alt_1 = Option.value ~default: part_empty @@ List.assoc_opt (middle last_part, middle first_part) transitions in
           let alt_2 = Option.value ~default: part_empty @@ List.assoc_opt (middle last_part, next_part) transitions in
           {
@@ -161,7 +161,7 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
     and map_item_to_lilypond = function
       | [] -> []
       | item :: items ->
-        let next_part = Option.fold ~none: Model.Version.Content.Part_name.End ~some: Model.Version.Content.Part_name.middle (first_part items) in
+        let next_part = Option.fold ~none: Model.Version.Part_name.End ~some: Model.Version.Part_name.middle (first_part items) in
         item_to_lilypond ~next_part item :: map_item_to_lilypond items
     and to_lilypond structure =
       concat_parts_l (List.intersperse part_section_break (map_item_to_lilypond structure))
@@ -169,7 +169,7 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
     let to_lilypond structure =
       let lilypond = to_lilypond structure in
       let first_part = first_part_exn structure in
-      let transition = List.assoc_opt Model.Version.Content.Part_name.(Start, Middle first_part) transitions in
+      let transition = List.assoc_opt Model.Version.Part_name.(Start, Middle first_part) transitions in
       match transition with
       | None -> lilypond
       | Some transition -> concat_parts_l [transition; part_space; lilypond]

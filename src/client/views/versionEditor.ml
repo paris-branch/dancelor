@@ -58,7 +58,7 @@ let content_in_parts () =
         (
           Star.prepare_non_empty
             ~label: "Parts"
-            ~make_header: (fun n -> div [txtf "Part %c" @@ Model.Version.Content.Part_name.to_char n])
+            ~make_header: (fun n -> div [txtf "Part %c" @@ Model.Version.Part_name.to_char n])
             (
               Cpair.prepare
                 ~label: "Part"
@@ -99,8 +99,8 @@ let content_in_parts () =
                     (
                       Input.prepare
                         ~type_: Text
-                        ~serialise: Model.Version.Content.Part_name.open_to_string
-                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Content.Part_name.open_of_string)
+                        ~serialise: Model.Version.Part_name.open_to_string
+                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Part_name.open_of_string)
                         ~label: "from"
                         ~placeholder: "eg. “A”, “B” or “start”"
                         ()
@@ -108,8 +108,8 @@ let content_in_parts () =
                     (
                       Input.prepare
                         ~type_: Text
-                        ~serialise: Model.Version.Content.Part_name.open_to_string
-                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Content.Part_name.open_of_string)
+                        ~serialise: Model.Version.Part_name.open_to_string
+                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Part_name.open_of_string)
                         ~label: "to"
                         ~placeholder: "eg. “A”, “B” or “start”"
                         ()

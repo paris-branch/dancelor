@@ -1,5 +1,6 @@
 open Nes
 
+module Part_name = Part_name
 module Content = Content
 
 type source_core = {

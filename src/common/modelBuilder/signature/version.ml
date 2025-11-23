@@ -3,25 +3,25 @@ module type S = sig
 
   open Nes
 
+  module Part_name : sig
+    type t = Core.Version.Part_name.t
+
+    val of_char : char -> t option
+    val of_char_exn : char -> t
+    val of_string : string -> t option
+
+    val to_char : t -> char
+    val to_string : t -> string
+
+    type open_ = Core.Version.Part_name.open_ =
+      Start | Middle of t | End
+    [@@deriving eq, yojson, show {with_path = false}, variants]
+
+    val open_to_string : open_ -> string
+    val open_of_string : string -> open_ option
+  end
+
   module Content : sig
-    module Part_name : sig
-      type t = Core.Version.Content.Part_name.t
-
-      val of_char : char -> t option
-      val of_char_exn : char -> t
-      val of_string : string -> t option
-
-      val to_char : t -> char
-      val to_string : t -> string
-
-      type open_ = Core.Version.Content.Part_name.open_ =
-        Start | Middle of t | End
-      [@@deriving eq, yojson, show {with_path = false}, variants]
-
-      val open_to_string : open_ -> string
-      val open_of_string : string -> open_ option
-    end
-
     type structure = (* Core.Version.Content.structure = *) Part_name.t NEList.t
 
     val structure_to_string : structure -> NEString.t
