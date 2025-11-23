@@ -10,6 +10,9 @@ let disambiguation ?(parentheses = true) version =
     | disambiguation when parentheses -> [txt (spf " (%s)" disambiguation)]
     | disambiguation -> [txt (spf " %s" disambiguation)]
 
+let disambiguation' ?parentheses version =
+  disambiguation ?parentheses (Entry.value version)
+
 let disambiguation_and_sources_internal ?(parentheses = true) ?source_links version =
   let sources_block =
     match%lwt Model.Version.sources version with
@@ -45,26 +48,6 @@ let disambiguation_and_sources ?parentheses ?source_links version =
 
 let disambiguation_and_sources' ?parentheses ?source_links version =
   disambiguation_and_sources ?parentheses ?source_links @@ Entry.value version
-
-let description ?arranger_links version =
-  let shape =
-    let key = Model.Version.key version in
-    match Model.Version.content version with
-    | Monolithic {bars; structure; _} ->
-      spf "%d-bar %s version in %s" bars (NEString.to_string @@ Model.Version.Structure.to_string structure) (Music.Key.to_pretty_string key)
-    | Destructured _ -> spf "Destructured version in %s" (Music.Key.to_pretty_string key)
-  in
-  let arranger_block =
-    match%lwt Model.Version.arrangers version with
-    | [] -> lwt_nil
-    | arrangers ->
-      let name_block = Person.names' ?links: arranger_links arrangers in
-      lwt ([txt " arranged by "; name_block])
-  in
-  span [txt shape; with_span_placeholder arranger_block; disambiguation version]
-
-let description' ?arranger_links version =
-  description ?arranger_links @@ Entry.value version
 
 let name_gen version_gen =
   with_span_placeholder @@

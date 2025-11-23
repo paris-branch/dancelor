@@ -343,10 +343,7 @@ let create ?context id =
         (lwt @@ Any.version version);
     ]
     ~title: (NEString.to_string <$> Version.one_name' version)
-    ~subtitles: [
-      Formatters.Version.tune_description' version;
-      Formatters.Version.description' ~arranger_links: true version;
-    ]
+    ~subtitles: [Formatters.Version.tune_description' version]
     ~share: (Version version)
     ~actions: (
       Lwt.l2
@@ -409,15 +406,36 @@ let create ?context id =
         ];
       (
         (* For de-structured versions, show one of the common structures. *)
-        match Model.Version.content' version with
-        | Monolithic _ -> Components.VersionSnippets.make version
-        | Destructured {default_structure; _} ->
-          div [
-            txtf "Shown here as %s." (NEString.to_string (Version.Structure.to_string default_structure));
-            Components.VersionSnippets.make
-              version
-              ~params: (Model.VersionParameters.make ~structure: default_structure ());
-          ]
+        div [
+          div ~a: [a_class ["row"; "justify-content-between"]] [
+            div ~a: [a_class ["col"; "text-start"]] [
+              let key = Model.Version.key' version in
+              match Model.Version.content' version with
+              | Monolithic {bars; structure; _} ->
+                txtf "%d-bar %s version in %s" bars (NEString.to_string @@ Model.Version.Structure.to_string structure) (Music.Key.to_pretty_string key)
+              | Destructured {default_structure; _} ->
+                txtf
+                  "Destructured version in %s, shown here as %s"
+                  (Music.Key.to_pretty_string key)
+                  (NEString.to_string @@ Version.Structure.to_string default_structure)
+            ];
+            div ~a: [a_class ["col"; "text-end"]] [
+              Formatters.Version.disambiguation' ~parentheses: false version;
+              with_span_placeholder (
+                match%lwt Model.Version.arrangers' version with
+                | [] -> lwt_nil
+                | arrangers ->
+                  let name_block = Formatters.Person.names' ~links: true arrangers in
+                  lwt ([txt " arranged by "; name_block])
+              );
+            ];
+          ];
+          (
+            match Model.Version.content' version with
+            | Monolithic _ -> Components.VersionSnippets.make version
+            | Destructured {default_structure; _} -> Components.VersionSnippets.make version ~params: (Model.VersionParameters.make ~structure: default_structure ());
+          )
+        ];
       );
       R.div (
         S.from' [] @@
