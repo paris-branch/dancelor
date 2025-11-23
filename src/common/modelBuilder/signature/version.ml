@@ -21,33 +21,37 @@ module type S = sig
     val open_of_string : string -> open_ option
   end
 
-  module Content : sig
-    type structure = (* Core.Version.Content.structure = *) Part_name.t NEList.t
+  module Structure : sig
+    type t = (*  *Core.Version.Structure.t = *) Part_name.t NEList.t
 
-    val structure_to_string : structure -> NEString.t
-    val structure_of_string : NEString.t -> structure option
+    val to_string : t -> NEString.t
+    val of_string : NEString.t -> t option
+  end
 
-    type part = Core.Version.Content.part = {
+  module Voices : sig
+    type t = Core.Version.Voices.t = {
       melody: string; (** the melody of that part; they must not include clef or time; they may include the key *)
       chords: string; (** the chords of that part; they will be interpreted in LilyPond's [\chordmode] *)
     }
     [@@deriving fields]
+  end
 
+  module Content : sig
     type destructured = Core.Version.Content.destructured = {
-      parts: part NEList.t;
-      transitions: (Part_name.open_ * Part_name.open_ * part) list;
-      default_structure: structure;
+      parts: Voices.t NEList.t;
+      transitions: (Part_name.open_ * Part_name.open_ * Voices.t) list;
+      default_structure: Structure.t;
     }
 
     type t = Core.Version.Content.t =
-      | Monolithic of {lilypond: string; bars: int; structure: structure} (** A tune as a full LilyPond, including clef, key, etc. *)
+      | Monolithic of {lilypond: string; bars: int; structure: Structure.t} (** A tune as a full LilyPond, including clef, key, etc. *)
       | Destructured of destructured (** A tune decomposed as building blocks *)
     [@@deriving variants]
   end
 
   type source = Core.Version.source = {
     source: Core.Source.t Entry.t;
-    structure: Content.structure;
+    structure: Structure.t;
     details: string;
   }
 

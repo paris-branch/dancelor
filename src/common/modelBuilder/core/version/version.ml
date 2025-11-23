@@ -1,18 +1,20 @@
 open Nes
 
 module Part_name = Part_name
+module Structure = Structure
+module Voices = Voices
 module Content = Content
 
 type source_core = {
   source: Source.t Entry.Id.t;
-  structure: Content.structure;
+  structure: Structure.t;
   details: string; [@default ""]
 }
 [@@deriving eq, yojson, show {with_path = false}]
 
 type source = {
   source: Source.t Entry.t;
-  structure: Content.structure;
+  structure: Structure.t;
   details: string;
 }
 

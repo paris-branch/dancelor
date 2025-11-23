@@ -92,13 +92,13 @@ let best_structure_for = function
   | _ -> None
 
 (* FIXME: move in a better place and rename [part] to something better *)
-let concat_parts p1 p2 = Model.Version.Content.{melody = p1.melody ^ p2.melody; chords = p1.chords ^ p2.chords}
-let part_empty = Model.Version.Content.{melody = ""; chords = ""}
+let concat_parts p1 p2 = Model.Version.Voices.{melody = p1.melody ^ p2.melody; chords = p1.chords ^ p2.chords}
+let part_empty = Model.Version.Voices.{melody = ""; chords = ""}
 let concat_parts_l = List.fold_left concat_parts part_empty
-let part_space = Model.Version.Content.{melody = " "; chords = " "}
-let part_mark c = Model.Version.{Content.melody = spf "\\mark\\markup\\box{%c} " (Part_name.to_char c); chords = ""}
-let part_section_break = Model.Version.Content.{melody = " \\section\\break "; chords = " "}
-let part_fine = Model.Version.Content.{melody = " \\fine"; chords = ""}
+let part_space = Model.Version.Voices.{melody = " "; chords = " "}
+let part_mark c = Model.Version.{Voices.melody = spf "\\mark\\markup\\box{%c} " (Part_name.to_char c); chords = ""}
+let part_section_break = Model.Version.Voices.{melody = " \\section\\break "; chords = " "}
+let part_fine = Model.Version.Voices.{melody = " \\fine"; chords = ""}
 
 let version_parts_to_lilypond_content ~version_params version parts transitions =
   ignore version_params;
@@ -121,8 +121,8 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
     " " ^ (Music.Mode.to_lilypond_string @@ Music.Key.mode key)
   in
   let parts = NEList.to_list parts in
-  let (Model.Version.Content.{melody; chords}, instructions) =
-    let desired_structure = Option.map (NEString.to_string % Model.Version.Content.structure_to_string) (Model.VersionParameters.structure version_params) in
+  let (Model.Version.Voices.{melody; chords}, instructions) =
+    let desired_structure = Option.map (NEString.to_string % Model.Version.Structure.to_string) (Model.VersionParameters.structure version_params) in
     let structure = Option.fold ~none: None ~some: best_structure_for desired_structure in
     let show_part_marks = structure = None in
     let rec item_to_lilypond ~next_part = function
@@ -136,14 +136,14 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
         )
       | Repeat (times, structure) ->
         (
-          let lilypond : Model.Version.Content.part = to_lilypond structure in
+          let lilypond : Model.Version.Voices.t = to_lilypond structure in
           let first_part = first_part_exn structure in
           let last_part = last_part_exn structure in
           let middle = Model.Version.Part_name.middle in
           let alt_1 = Option.value ~default: part_empty @@ List.assoc_opt (middle last_part, middle first_part) transitions in
           let alt_2 = Option.value ~default: part_empty @@ List.assoc_opt (middle last_part, next_part) transitions in
           {
-            Model.Version.Content.melody =
+            Model.Version.Voices.melody =
             spf
               "\\repeat volta %d { %s } \\alternative { { %s } { %s } }"
               times
