@@ -58,7 +58,7 @@ let content_in_parts () =
         (
           Star.prepare_non_empty
             ~label: "Parts"
-            ~make_header: (fun n -> div [txtf "Part %c" @@ Model.Version.Part_name.to_char n])
+            ~make_header: (fun n -> div [txtf "Part %c" @@ Model.Version.Part_name.(to_char % of_int) n])
             (
               Cpair.prepare
                 ~label: "Part"

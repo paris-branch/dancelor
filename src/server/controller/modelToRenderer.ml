@@ -42,7 +42,7 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
     let rec item_to_lilypond ~next_part = function
       | Model.Version.Structure.Part part ->
         (
-          let lilypond = List.nth parts part in
+          let lilypond = List.nth parts (Model.Version.Part_name.to_int part) in
           let lilypond = if show_part_marks then Model.Version.Voices.concat (Model.Version.Voices.mark part) lilypond else lilypond in
           match List.assoc_opt (Model.Version.Part_name.Middle part, next_part) transitions with
           | None -> lilypond
@@ -97,7 +97,7 @@ let version_parts_to_lilypond_content ~version_params version parts transitions 
     | None ->
       (* no structure; or we couldn't find a good one *)
       (
-        to_lilypond (List.mapi (fun n _ -> Model.Version.Structure.part n) parts),
+        to_lilypond (List.mapi (fun n _ -> Model.Version.Structure.part @@ Model.Version.Part_name.of_int n) parts),
         Option.map (fun structure -> "play " ^ NEString.to_string (Model.Version.Structure.to_string structure)) desired_structure
       )
     | Some structure ->

@@ -15,7 +15,7 @@ let fine = {melody = " \\fine"; chords = ""}
 let concat v1 v2 = {melody = v1.melody ^ v2.melody; chords = v1.chords ^ v2.chords}
 let concat_l = List.fold_left concat empty
 
-let lilypond_from_parts kind key parts =
+let lilypond_from_parts ~kind ~key parts =
   let time =
     match kind with
     | Kind.Base.Reel -> "2/2"
@@ -33,7 +33,7 @@ let lilypond_from_parts kind key parts =
     String.concat " \\section\\break " (
       List.mapi
         (fun part_name part ->
-          spf "\\mark\\markup\\box{%c} %s" (Part_name.to_char part_name) part.melody
+          spf "\\mark\\markup\\box{%c} %s" (Part_name.(to_char % of_int) part_name) part.melody
         )
         parts
     ) ^

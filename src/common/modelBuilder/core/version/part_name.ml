@@ -3,6 +3,9 @@ open Nes
 type t = int (* invariant: ∈ [0; 25] *)
 [@@deriving eq, show {with_path = false}]
 
+let to_int = id
+let of_int = id
+
 let of_char c =
   let c = Char.code c in
   if c < 65 || c > 90 then None else Some (c - 65)

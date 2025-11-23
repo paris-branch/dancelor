@@ -14,7 +14,7 @@ type t =
 
 let lilypond kind key = function
   | Monolithic {lilypond; _} -> lilypond
-  | Destructured {parts; _} -> Voices.lilypond_from_parts kind key parts
+  | Destructured {parts; _} -> Voices.lilypond_from_parts ~kind ~key parts
 
 let erase_lilypond = function
   | Monolithic {bars; structure; _} -> Monolithic {bars; structure; lilypond = ""}
