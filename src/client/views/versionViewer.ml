@@ -408,17 +408,27 @@ let create ?context id =
         (* For de-structured versions, show one of the common structures. *)
         div [
           div ~a: [a_class ["row"; "justify-content-between"]] [
-            div ~a: [a_class ["col"; "text-start"]] [
+            div ~a: [a_class ["col"; "text-start"]] (
               let key = Model.Version.key' version in
               match Model.Version.content' version with
               | Monolithic {bars; structure; _} ->
-                txtf "%d-bar %s version in %s" bars (NEString.to_string @@ Model.Version.Structure.to_string structure) (Music.Key.to_pretty_string key)
+                [
+                  txtf
+                    "%d-bar %s version in %s"
+                    bars
+                    (NEString.to_string @@ Model.Version.Structure.to_string structure)
+                    (Music.Key.to_pretty_string key)
+                ]
               | Destructured {default_structure; _} ->
-                txtf
-                  "Destructured version in %s, shown here as %s"
-                  (Music.Key.to_pretty_string key)
-                  (NEString.to_string @@ Version.Structure.to_string default_structure)
-            ];
+                [
+                  txt "Destructured version ";
+                  Utils.Documentation.link "destructured-versions";
+                  txtf
+                    " in %s, shown here as %s"
+                    (Music.Key.to_pretty_string key)
+                    (NEString.to_string @@ Version.Structure.to_string default_structure)
+                ]
+            );
             div ~a: [a_class ["col"; "text-end"]] [
               Formatters.Version.disambiguation' ~parentheses: false version;
               with_span_placeholder (
