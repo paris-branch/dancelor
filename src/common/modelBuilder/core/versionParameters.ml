@@ -8,7 +8,7 @@ type t = {
   transposition: Transposition.t option; [@default None]
   first_bar: int option; [@default None] [@key "first-bar"]
   clef: Music.Clef.t option; [@default None]
-  structure: Version.Content.structure option; [@default None]
+  structure: Version.Structure.t option; [@default None]
   trivia: string option; [@default None]
   display_name: NEString.t option; [@default None] [@key "display-name"]
   display_composer: NEString.t option [@default None] [@key "display-composer"]

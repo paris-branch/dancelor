@@ -14,193 +14,23 @@ let format_persons_list =
 let format_persons =
   String.concat ", " ~last: " and " % format_persons_list
 
-(** Structures, but with more structure *)
-type structure_item = Part of Model.Version.Content.Part_name.t | Repeat of int * structure
-and structure = structure_item list
-
-(** A few helpers *)
-let a = Part (Model.Version.Content.Part_name.of_char_exn 'A')
-let b = Part (Model.Version.Content.Part_name.of_char_exn 'B')
-let c = Part (Model.Version.Content.Part_name.of_char_exn 'C')
-let d = Part (Model.Version.Content.Part_name.of_char_exn 'D')
-let e = Part (Model.Version.Content.Part_name.of_char_exn 'E')
-let f = Part (Model.Version.Content.Part_name.of_char_exn 'F')
-let repeat n x = Repeat (n, x)
-
-let rec first_part_exn structure =
-  match List.hd_opt structure with
-  | None -> failwith "first_part_exn"
-  | Some Part a -> a
-  | Some Repeat (_, structure) -> first_part_exn structure
-
-let first_part structure =
-  match List.hd_opt structure with
-  | None -> None
-  | Some Part a -> Some a
-  | Some Repeat (_, structure) -> Some (first_part_exn structure)
-
-let rec last_part_exn structure =
-  match List.ft_opt structure with
-  | None -> failwith "last_part_exn"
-  | Some Part a -> a
-  | Some Repeat (_, structure) -> last_part_exn structure
-
-let last_part structure =
-  match List.ft_opt structure with
-  | None -> None
-  | Some Part a -> Some a
-  | Some Repeat (_, structure) -> Some (last_part_exn structure)
-
-let ends_with_repeat structure =
-  match List.ft structure with
-  | Repeat _ -> true
-  | _ -> false
-
-(** A general algorithm would be great, but for now this will do. *)
-let best_structure_for = function
-  | "A" -> some [a]
-  | "B" -> some [b]
-  | "C" -> some [c]
-  | "D" -> some [d]
-  | "AB" -> some [a; b]
-  | "AAB" -> some [repeat 2 [a]; b]
-  | "ABB" -> some [a; repeat 2 [b]]
-  | "ABC" -> some [a; b; c]
-  | "AAAA" -> some [repeat 4 [a]]
-  | "AAAB" -> some [repeat 3 [a]; b]
-  | "AABA" -> some [repeat 2 [a]; b; a]
-  | "AABB" -> some [repeat 2 [a]; repeat 2 [b]]
-  | "ABAA" -> some [a; b; repeat 2 [a]]
-  | "ABAB" -> some [repeat 2 [a; b]]
-  | "ABBA" -> some [a; repeat 2 [b]; a]
-  | "ABBB" -> some [a; repeat 3 [b]]
-  | "AABC" -> some [repeat 2 [a]; b; c]
-  | "ABCD" -> some [a; b; c; d]
-  | "AABBB" -> some [repeat 2 [a]; repeat 3 [b]]
-  | "ABABA" -> some [repeat 2 [a; b]; a]
-  | "ABABB" -> some [repeat 2 [a; b]; b]
-  | "ABBAB" -> some [a; repeat 2 [b]; a; b]
-  | "ABBCC" -> some [a; repeat 2 [b]; repeat 2 [c]]
-  | "ABABC" -> some [repeat 2 [a; b]; c]
-  | "ABCDE" -> some [a; b; c; d; e]
-  | "ABABAB" -> some [repeat 3 [a; b]]
-  | "AABBAB" -> some [repeat 2 [a]; repeat 2 [b]; a; b]
-  | "AABBCC" -> some [repeat 2 [a]; repeat 2 [b]; repeat 2 [c]]
-  | "ABCDEF" -> some [a; b; c; d; e; f]
-  | "AABBCCDD" -> some [repeat 2 [a]; repeat 2 [b]; repeat 2 [c]; repeat 2 [d]]
-  | "AABCDDEF" -> some [repeat 2 [a]; b; c; repeat 2 [d]; e; f]
-  | _ -> None
-
-(* FIXME: move in a better place and rename [part] to something better *)
-let concat_parts p1 p2 = Model.Version.Content.{melody = p1.melody ^ p2.melody; chords = p1.chords ^ p2.chords}
-let part_empty = Model.Version.Content.{melody = ""; chords = ""}
-let concat_parts_l = List.fold_left concat_parts part_empty
-let part_space = Model.Version.Content.{melody = " "; chords = " "}
-let part_mark c = Model.Version.Content.{melody = spf "\\mark\\markup\\box{%c} " (Part_name.to_char c); chords = ""}
-let part_section_break = Model.Version.Content.{melody = " \\section\\break "; chords = " "}
-let part_fine = Model.Version.Content.{melody = " \\fine"; chords = ""}
-
-let version_parts_to_lilypond_content ~version_params version parts transitions =
-  ignore version_params;
-  let transitions =
-    (* rearrange the given transitions because we will want to List.assoc later *)
-    List.map (fun (p1, p2, t) -> ((p1, p2), t)) transitions
-  in
-  let%lwt kind = Model.Version.kind version in
-  let key = Model.Version.key version in
-  let time =
-    match kind with
-    | Kind.Base.Reel -> "2/2"
-    | Jig -> "6/8"
-    | Strathspey -> "4/4"
-    | Waltz -> "3/4"
-    | Polka -> "2/2"
-  in
-  let key =
-    (Music.Note.to_lilypond_string @@ Music.Pitch.note @@ Music.Key.pitch key) ^
-    " " ^ (Music.Mode.to_lilypond_string @@ Music.Key.mode key)
-  in
-  let parts = NEList.to_list parts in
-  let (Model.Version.Content.{melody; chords}, instructions) =
-    let desired_structure = Option.map (NEString.to_string % Model.Version.Content.structure_to_string) (Model.VersionParameters.structure version_params) in
-    let structure = Option.fold ~none: None ~some: best_structure_for desired_structure in
-    let show_part_marks = structure = None in
-    let rec item_to_lilypond ~next_part = function
-      | Part part ->
-        (
-          let lilypond = List.nth parts part in
-          let lilypond = if show_part_marks then concat_parts (part_mark part) lilypond else lilypond in
-          match List.assoc_opt (Model.Version.Content.Part_name.Middle part, next_part) transitions with
-          | None -> lilypond
-          | Some transition -> concat_parts_l [lilypond; part_space; transition]
-        )
-      | Repeat (times, structure) ->
-        (
-          let lilypond : Model.Version.Content.part = to_lilypond structure in
-          let first_part = first_part_exn structure in
-          let last_part = last_part_exn structure in
-          let middle = Model.Version.Content.Part_name.middle in
-          let alt_1 = Option.value ~default: part_empty @@ List.assoc_opt (middle last_part, middle first_part) transitions in
-          let alt_2 = Option.value ~default: part_empty @@ List.assoc_opt (middle last_part, next_part) transitions in
-          {
-            Model.Version.Content.melody =
-            spf
-              "\\repeat volta %d { %s } \\alternative { { %s } { %s } }"
-              times
-              lilypond.melody
-              alt_1.melody
-              alt_2.melody;
-            chords =
-            spf
-              "%s %s %s"
-              lilypond.chords
-              alt_1.chords
-              alt_2.chords;
-          }
-        )
-    and map_item_to_lilypond = function
-      | [] -> []
-      | item :: items ->
-        let next_part = Option.fold ~none: Model.Version.Content.Part_name.End ~some: Model.Version.Content.Part_name.middle (first_part items) in
-        item_to_lilypond ~next_part item :: map_item_to_lilypond items
-    and to_lilypond structure =
-      concat_parts_l (List.intersperse part_section_break (map_item_to_lilypond structure))
-    in
-    let to_lilypond structure =
-      let lilypond = to_lilypond structure in
-      let first_part = first_part_exn structure in
-      let transition = List.assoc_opt Model.Version.Content.Part_name.(Start, Middle first_part) transitions in
-      match transition with
-      | None -> lilypond
-      | Some transition -> concat_parts_l [transition; part_space; lilypond]
-    in
-    match structure with
-    | None ->
-      (* no structure; or we couldn't find a good one *)
-      (
-        to_lilypond (List.mapi (fun part_name _ -> Part part_name) parts),
-        Option.map (fun structure -> "play " ^ structure) desired_structure
-      )
-    | Some structure ->
-      (concat_parts (to_lilypond structure) part_fine, None)
-  in
-  lwt (
-    spf
-      "<< \\new Voice {\\clef treble \\time %s \\key %s {%s}}\\new ChordNames {\\chordmode {%s}}>>"
-      time
-      key
-      melody
-      chords,
-    instructions
-  )
-
 let version_to_lilypond_content ~version_params version =
-  let content = Model.Version.content version in
   (* get a LilyPond from the potentially-destructured content *)
-  let%lwt (content, instructions) =
-    match content with
-    | Monolithic {lilypond; _} -> lwt (lilypond, None)
-    | Destructured {parts; transitions; _} -> version_parts_to_lilypond_content ~version_params version parts transitions
+  let structure = Model.VersionParameters.structure version_params in
+  let%lwt content = Model.Version.content_lilypond ?structure version in
+  let instructions =
+    (* if the version is destructured, and the user asked for a structure, but
+       we could not find a fold for this structure, then at least we produce the
+       instruction to play that structure as we generate a destructured output *)
+    match Model.Version.content version with
+    | Monolithic _ -> None
+    | Destructured _ ->
+      match structure with
+      | None -> None
+      | Some structure ->
+        match Model.Version.Structure.best_fold_for structure with
+        | Some _ -> None
+        | None -> Some ("Play " ^ NEString.to_string (Model.Version.Structure.to_string structure))
   in
   (* update the clef *)
   let content =

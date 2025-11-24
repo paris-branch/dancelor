@@ -8,10 +8,10 @@ let structure =
   Input.prepare
     ~type_: Text
     ~placeholder: "eg. AABB or ABAB"
-    ~serialise: (NEString.to_string % Model.Version.Content.structure_to_string)
+    ~serialise: (NEString.to_string % Model.Version.Structure.to_string)
     ~validate: (
       S.const % Option.to_result ~none: "not a valid structure" %
-        (fun s -> Option.bind (NEString.of_string s) Model.Version.Content.structure_of_string
+        (fun s -> Option.bind (NEString.of_string s) Model.Version.Structure.of_string
         )
     )
 
@@ -58,7 +58,7 @@ let content_in_parts () =
         (
           Star.prepare_non_empty
             ~label: "Parts"
-            ~make_header: (fun n -> div [txtf "Part %c" @@ Model.Version.Content.Part_name.to_char n])
+            ~make_header: (fun n -> div [txtf "Part %c" @@ Model.Version.Part_name.(to_char % of_int) n])
             (
               Cpair.prepare
                 ~label: "Part"
@@ -99,8 +99,8 @@ let content_in_parts () =
                     (
                       Input.prepare
                         ~type_: Text
-                        ~serialise: Model.Version.Content.Part_name.open_to_string
-                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Content.Part_name.open_of_string)
+                        ~serialise: Model.Version.Part_name.open_to_string
+                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Part_name.open_of_string)
                         ~label: "from"
                         ~placeholder: "eg. “A”, “B” or “start”"
                         ()
@@ -108,8 +108,8 @@ let content_in_parts () =
                     (
                       Input.prepare
                         ~type_: Text
-                        ~serialise: Model.Version.Content.Part_name.open_to_string
-                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Content.Part_name.open_of_string)
+                        ~serialise: Model.Version.Part_name.open_to_string
+                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Part_name.open_of_string)
                         ~label: "to"
                         ~placeholder: "eg. “A”, “B” or “start”"
                         ()
@@ -150,7 +150,7 @@ let content () =
     ~cast: (function
       | Zero ((bars, structure), lilypond) -> Model.Version.Content.Monolithic {bars; structure; lilypond}
       | Succ Zero (default_structure, (parts, transitions)) ->
-        let wrap_part (melody, chords) = {Model.Version.Content.melody; chords} in
+        let wrap_part (melody, chords) = {Model.Version.Voices.melody; chords} in
         Model.Version.Content.Destructured
           {
             default_structure;
@@ -162,7 +162,7 @@ let content () =
     ~uncast: (function
       | Model.Version.Content.Monolithic {bars; structure; lilypond} -> Zero ((bars, structure), lilypond)
       | Model.Version.Content.Destructured {default_structure; parts; transitions} ->
-        let unwrap_part Model.Version.Content.{melody; chords} = (melody, chords) in
+        let unwrap_part Model.Version.Voices.{melody; chords} = (melody, chords) in
         one (
           default_structure,
           (

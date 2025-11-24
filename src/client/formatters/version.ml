@@ -51,7 +51,7 @@ let description ?arranger_links version =
     let key = Model.Version.key version in
     match Model.Version.content version with
     | Monolithic {bars; structure; _} ->
-      spf "%d-bar %s version in %s" bars (NEString.to_string @@ Model.Version.Content.structure_to_string structure) (Music.Key.to_pretty_string key)
+      spf "%d-bar %s version in %s" bars (NEString.to_string @@ Model.Version.Structure.to_string structure) (Music.Key.to_pretty_string key)
     | Destructured _ -> spf "Destructured version in %s" (Music.Key.to_pretty_string key)
   in
   let arranger_block =
@@ -100,7 +100,7 @@ let name_disambiguation_and_sources_gen ?(params = Model.VersionParameters.none)
   let structure_block =
     match Model.VersionParameters.structure params with
     | None -> []
-    | Some structure -> [txtf " [play %s]" (NEString.to_string @@ Model.Version.Content.structure_to_string structure)]
+    | Some structure -> [txtf " [play %s]" (NEString.to_string @@ Model.Version.Structure.to_string structure)]
   in
   let transposition_block =
     match Model.VersionParameters.transposition params with
@@ -154,7 +154,7 @@ let kind_and_structure version =
     let%lwt kind = Model.Tune.kind' <$> Model.Version.tune version in
     match Model.Version.content version with
     | Monolithic {bars; structure; _} ->
-      lwt [txt @@ Kind.Version.to_string (bars, kind) ^ " (" ^ NEString.to_string (Model.Version.Content.structure_to_string structure) ^ ")"]
+      lwt [txt @@ Kind.Version.to_string (bars, kind) ^ " (" ^ NEString.to_string (Model.Version.Structure.to_string structure) ^ ")"]
     | Destructured _ ->
       lwt [txt @@ "∗ " ^ Kind.Base.to_string kind ^ " (destr.)"]
 

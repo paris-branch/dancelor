@@ -22,8 +22,8 @@ let editor =
     ~type_: Text
     ~label: "Structure"
     ~placeholder: "eg. AABB or ABABB"
-    ~serialise: Model.Version.Content.structure_to_string
-    ~validate: (S.const % Option.to_result ~none: "not a valid structure" % Model.Version.Content.structure_of_string)
+    ~serialise: Model.Version.Structure.to_string
+    ~validate: (S.const % Option.to_result ~none: "not a valid structure" % Model.Version.Structure.of_string)
     () ^::
   Input.prepare_option
     ~type_: Text

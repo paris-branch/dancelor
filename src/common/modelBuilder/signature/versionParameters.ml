@@ -10,7 +10,7 @@ module type S = sig
   val make :
     ?transposition: Transposition.t ->
     ?clef: Music.Clef.t ->
-    ?structure: Core.Version.Content.structure ->
+    ?structure: Core.Version.Structure.t ->
     ?first_bar: int ->
     ?display_name: NEString.t ->
     ?display_composer: NEString.t ->
@@ -24,7 +24,7 @@ module type S = sig
   val display_name : t -> NEString.t option
   val display_composer : t -> NEString.t option
   val clef : t -> Music.Clef.t option
-  val structure : t -> Core.Version.Content.structure option
+  val structure : t -> Core.Version.Structure.t option
   val transposition : t -> Transposition.t option
   val trivia' : default: string -> t -> string
 

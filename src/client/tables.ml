@@ -81,7 +81,7 @@ let versions ?onclick versions =
         lwt [
           txt @@
             match Version.content' version with
-            | Monolithic {structure; _} -> NEString.to_string @@ Version.Content.structure_to_string structure
+            | Monolithic {structure; _} -> NEString.to_string @@ Version.Structure.to_string structure
             | Destructured _ -> "destr."
         ];
       ]
@@ -101,7 +101,7 @@ let versions_with_names versions =
         lwt [
           txt @@
             match Version.content' version with
-            | Monolithic {structure; _} -> NEString.to_string @@ Version.Content.structure_to_string structure
+            | Monolithic {structure; _} -> NEString.to_string @@ Version.Structure.to_string structure
             | Destructured _ -> "destr."
         ];
       ]

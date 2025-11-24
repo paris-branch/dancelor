@@ -80,7 +80,7 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
               (fun Model.Version.{source; structure; _} ->
                 li [
                   Formatters.Source.name' source;
-                  txtf " (%s)" (NEString.to_string @@ Version.Content.structure_to_string structure);
+                  txtf " (%s)" (NEString.to_string @@ Version.Structure.to_string structure);
                 ]
               )
               this_sources
@@ -413,7 +413,7 @@ let create ?context id =
         | Monolithic _ -> Components.VersionSnippets.make version
         | Destructured {default_structure; _} ->
           div [
-            txtf "Shown here as %s." (NEString.to_string (Version.Content.structure_to_string default_structure));
+            txtf "Shown here as %s." (NEString.to_string (Version.Structure.to_string default_structure));
             Components.VersionSnippets.make
               version
               ~params: (Model.VersionParameters.make ~structure: default_structure ());
@@ -439,7 +439,7 @@ let create ?context id =
               txt "Appears in ";
               Formatters.Source.name' source;
               (if details <> "" then txtf " %s" details else txt "");
-              txtf " as %s." (NEString.to_string (Model.Version.Content.structure_to_string structure));
+              txtf " as %s." (NEString.to_string (Model.Version.Structure.to_string structure));
             ]
           | sources ->
             lwt [
@@ -451,7 +451,7 @@ let create ?context id =
                       txt "in ";
                       Formatters.Source.name' source;
                       (if details <> "" then txtf " %s" details else txt "");
-                      txtf " as %s" (NEString.to_string @@ Model.Version.Content.structure_to_string structure);
+                      txtf " as %s" (NEString.to_string @@ Model.Version.Structure.to_string structure);
                     ]
                   )
                   sources
