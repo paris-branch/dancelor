@@ -2,16 +2,6 @@ open Nes
 open Common
 open Html
 
-val description :
-  ?arranger_links: bool ->
-  Model.Version.t ->
-  [> Html_types.span] elt
-
-val description' :
-  ?arranger_links: bool ->
-  Model.Version.t Entry.t ->
-  [> Html_types.span] elt
-
 val name :
   Model.Version.t ->
   [> Html_types.span] elt
@@ -23,6 +13,16 @@ val name' :
   [> Html_types.span] elt
 (** Variant of {!name} taking an {!Entry.t}. Because this is an entry, we can
     additionnally have a link. *)
+
+val disambiguation :
+  ?parentheses: bool ->
+  Model.Version.t ->
+  [> Html_types.span] elt
+
+val disambiguation' :
+  ?parentheses: bool ->
+  Model.Version.t Entry.t ->
+  [> Html_types.span] elt
 
 val name_disambiguation_and_sources' :
   ?name_link: bool ->

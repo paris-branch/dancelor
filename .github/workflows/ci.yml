@@ -47,8 +47,8 @@ jobs:
       - name: Build (and run unit tests)
         run: nix build .#packages.x86_64-linux.dancelor -vL --no-link
 
-      - name: Build documentation
-        run: nix build .#packages.x86_64-linux.documentation -vL --out-link doc
+      - name: Build API documentation
+        run: nix build .#packages.x86_64-linux.documentation -vL --out-link api-doc
 
       - name: Run renderer smoke tests
         run: |
@@ -61,7 +61,7 @@ jobs:
       - name: Upload GitHub pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: doc/
+          path: api-doc/
 
   deploy-documentation:
     name: Deploy documentation
