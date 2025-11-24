@@ -25,6 +25,12 @@ module type S = sig
   val scddb_id : t -> int option
   val scddb_id' : t Entry.t -> int option
 
+  val composed_tunes_are_public : t -> bool
+  val composed_tunes_are_public' : t Entry.t -> bool
+
+  val published_tunes_are_public : t -> bool
+  val published_tunes_are_public' : t Entry.t -> bool
+
   val equal : t -> t -> bool
   (** Structural equality. This is different from entry equality. *)
 

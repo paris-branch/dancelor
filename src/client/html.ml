@@ -11,9 +11,9 @@ module S = struct
 
   let all (ss : 'a t list) : 'a list t = merge (flip List.cons) [] (List.rev ss)
 
-  (** [from ~placeholder promise] creates a signal that holds the [placeholder]
-      until the [promise] resolves. When it resolves, it . This is similar to {!from} except it does
-      only one update. *)
+  (** [from_lwt_stream placeholder stream] creates a signal that holds the
+      [placeholder] to start, and updates every time the [stream] resolves to a
+      new value. *)
   let from_lwt_stream (type a) (placeholder : a) (stream : a Lwt_stream.t) : a t =
     let placeholder =
       (* Inspect the stream: if there is already a first element, then we take
@@ -110,11 +110,11 @@ let div_placeholder ?(min = 4) ?(max = 8) () =
   let height_n_rem = "height: " ^ string_of_int (Random.int_in_range ~min ~max) ^ "rem;" in
   div ~a: [a_class ["placeholder"; "w-100"]; a_style height_n_rem] []
 
-let with_span_placeholder ?min ?max promise =
-  R.span @@ S.from' [span_placeholder ?min ?max ()] promise
+let with_span_placeholder ?a ?min ?max promise =
+  R.span ?a @@ S.from' [span_placeholder ?min ?max ()] promise
 
-let with_div_placeholder ?min ?max promise =
-  R.div @@ S.from' [div_placeholder ?min ?max ()] promise
+let with_div_placeholder ?a ?min ?max promise =
+  R.div ?a @@ S.from' [div_placeholder ?min ?max ()] promise
 
 module To_dom = Js_of_ocaml_tyxml.Tyxml_js.To_dom
 (** Conversion from TyXML nodes to Dom ones. *)

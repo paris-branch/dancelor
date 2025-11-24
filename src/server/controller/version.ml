@@ -62,15 +62,52 @@ include Search.Build(struct
     Lwt_list.[increasing (NEString.to_string <%> Model.Version.one_name') String.Sensible.compare]
 end)
 
+(** Additionnally to the low-level permission system, version content is
+    protected by copyright, so we check whether the composer or the publisher of
+    the tune agree on this publication *)
+let with_copyright_check version f =
+  let%lwt tune = Model.Version.tune' version in
+  let%lwt composer_agrees =
+    let%lwt composers = Model.Tune.composers' tune in
+    let%lwt arrangers = Model.Version.arrangers' version in
+    lwt (
+      composers <> [] (* there must be at least one composer to agree *)
+      && List.for_all Model.Person.composed_tunes_are_public' composers
+      && List.for_all Model.Person.composed_tunes_are_public' arrangers
+    )
+  in
+  let%lwt publisher_agrees =
+    let source_editors_agree source =
+      let%lwt editors = Model.Source.editors' source in
+      lwt @@ List.exists Model.Person.published_tunes_are_public' editors
+    in
+    Lwt_list.filter_s source_editors_agree =<< (List.map Model.Version.source_source <$> Model.Version.sources' version)
+  in
+  (* let's see if we have a reason to agree to showing this version's content;
+     if there is a publication, then it is up to the publisher; otherwise, it is
+     up to the composer (and arranger) of that version *)
+  let reason =
+    match publisher_agrees with (* if there is no publication, it is up to the composer *)
+    | source :: _ -> Some (Endpoints.Version.Copyright_response.Publisher_agrees source)
+    | [] when composer_agrees -> Some Endpoints.Version.Copyright_response.Composer_agrees
+    | [] -> None
+  in
+  match reason with
+  | None -> lwt Endpoints.Version.Copyright_response.Protected
+  | Some reason ->
+    let%lwt payload = f () in
+    lwt (Endpoints.Version.Copyright_response.Granted {payload; reason})
+
 let content env id =
   Log.debug (fun m -> m "content %a" Entry.Id.pp' id);
   get env id >>= fun version ->
-  Permission.assert_can_get env version;%lwt
+  with_copyright_check version @@ fun () ->
   lwt @@ Model.Version.content' version
 
 let build_pdf env id version_params rendering_params =
   Log.debug (fun m -> m "build_pdf %a" Entry.Id.pp' id);
   get env id >>= fun version ->
+  with_copyright_check version @@ fun () ->
   (* never show the headers for a simple version *)
   let rendering_params =
     RenderingParameters.update
@@ -107,6 +144,7 @@ let render_svg ?version_params version =
 let build_svg env id version_params _rendering_params =
   Log.debug (fun m -> m "build_svg %a" Entry.Id.pp' id);
   get env id >>= fun version ->
+  with_copyright_check version @@ fun () ->
   uncurry Job.register_job <$> render_svg (Entry.value version) ~version_params
 
 let build_svg' env version version_params _rendering_params =
@@ -121,6 +159,7 @@ let render_ogg ?version_params version =
 let build_ogg env id version_params _rendering_params =
   Log.debug (fun m -> m "build_ogg %a" Entry.Id.pp' id);
   get env id >>= fun version ->
+  with_copyright_check version @@ fun () ->
   uncurry Job.register_job <$> render_ogg (Entry.value version) ~version_params
 
 let build_ogg' env version version_params _rendering_params =
