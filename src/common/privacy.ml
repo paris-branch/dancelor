@@ -10,7 +10,7 @@ type t =
      |
    Public *)
 
-let default = Private
+let default = Public
 
 let eq = (=)
 
