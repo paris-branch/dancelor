@@ -10,6 +10,7 @@
   dancelor.madge.server
   logs
   lwt.unix
+  monadise-lwt
   str
   tyxml
   yaml)

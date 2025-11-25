@@ -22,46 +22,6 @@ let delete env id =
   Permission.assert_can_delete env =<< get env id;%lwt
   Database.Version.delete id
 
-let rec search_and_extract acc s regexp =
-  let rem = Str.replace_first regexp "" s in
-  try
-    let gp = Str.matched_group 1 s in
-    let gp_words =
-      String.split_on_char ',' gp
-      |> List.map (String.remove_char '"')
-      |> List.map (String.remove_char '\'')
-      |> List.filter (fun s -> s <> "")
-    in
-    let rem, l = search_and_extract acc rem regexp in
-    rem, gp_words @ l
-  with
-    | Not_found | Invalid_argument _ -> rem, acc
-
-let score_list_vs_word words needle =
-  List.map (String.inclusion_proximity ~char_equal: Char.Sensible.equal ~needle) words
-  |> List.fold_left max 0.
-
-let score_list_vs_list words needles =
-  if needles = [] then 1.
-  else
-    begin
-      List.map (score_list_vs_word words) needles
-      |> List.fold_left max 0.
-    end
-
-include Search.Build(struct
-  type value = Model.Version.t Entry.t
-  type filter = Filter.Version.t
-
-  let get_all env =
-    List.filter (Permission.can_get env) (Database.Version.get_all ())
-
-  let filter_accepts = Filter.Version.accepts
-
-  let tiebreakers =
-    Lwt_list.[increasing (NEString.to_string <%> Model.Version.one_name') String.Sensible.compare]
-end)
-
 (** Additionnally to the low-level permission system, version content is
     protected by copyright, so we check whether the composer or the publisher of
     the tune agree on this publication *)
@@ -97,6 +57,52 @@ let with_copyright_check version f =
   | Some reason ->
     let%lwt payload = f () in
     lwt (Endpoints.Version.Copyright_response.Granted {payload; reason})
+
+let can_get_and_copyright_ok env version =
+  let%lwt _ = get env (Entry.id version) in
+  match%lwt with_copyright_check version (const lwt_unit) with
+  | Protected -> lwt_false
+  | Granted _ -> lwt_true
+
+let rec search_and_extract acc s regexp =
+  let rem = Str.replace_first regexp "" s in
+  try
+    let gp = Str.matched_group 1 s in
+    let gp_words =
+      String.split_on_char ',' gp
+      |> List.map (String.remove_char '"')
+      |> List.map (String.remove_char '\'')
+      |> List.filter (fun s -> s <> "")
+    in
+    let rem, l = search_and_extract acc rem regexp in
+    rem, gp_words @ l
+  with
+    | Not_found | Invalid_argument _ -> rem, acc
+
+let score_list_vs_word words needle =
+  List.map (String.inclusion_proximity ~char_equal: Char.Sensible.equal ~needle) words
+  |> List.fold_left max 0.
+
+let score_list_vs_list words needles =
+  if needles = [] then 1.
+  else
+    begin
+      List.map (score_list_vs_word words) needles
+      |> List.fold_left max 0.
+    end
+
+include Search.Build(struct
+  type value = Model.Version.t Entry.t
+  type filter = Filter.Version.t
+
+  let get_all env =
+    Monadise_lwt.monadise_1_1 List.filter (can_get_and_copyright_ok env) (Database.Version.get_all ())
+
+  let filter_accepts = Filter.Version.accepts
+
+  let tiebreakers =
+    Lwt_list.[increasing (NEString.to_string <%> Model.Version.one_name') String.Sensible.compare]
+end)
 
 let content env id =
   Log.debug (fun m -> m "content %a" Entry.Id.pp' id);

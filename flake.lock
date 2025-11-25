@@ -124,11 +124,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1763650215,
-        "narHash": "sha256-xr8S14yGvAdf9vKBWhvjhfHjm4AQPvVTUzgFvtVjYSw=",
+        "lastModified": 1764081093,
+        "narHash": "sha256-eek3LGsSNYxY4xA3geZ9+jNCs5cgezJVXu/gSErLfgA=",
         "owner": "niols",
         "repo": "ocaml-monadise",
-        "rev": "65a852b877cd52508db52c0553d7c8e2893916ba",
+        "rev": "1775e1fcae9f7ea373bcd872e9c9328fb99280d8",
         "type": "github"
       },
       "original": {
