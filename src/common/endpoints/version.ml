@@ -5,6 +5,7 @@ module Filter = FilterBuilder.Core
 
 module Copyright_response = struct
   type reason =
+    | Connected
     | Composer_agrees
     | Publisher_agrees of Source.t Entry.t
   [@@deriving yojson]

@@ -63,6 +63,8 @@ let make_gen
             List.cons (txt "You may see this version's content because ")
             <$>
               match (reason : Endpoints.Version.Copyright_response.reason) with
+              | Connected ->
+                lwt [txt "you are connected."]
               | Composer_agrees ->
                 lwt [txt "the composer agrees to have his tunes available publicly."]
               | Publisher_agrees source ->
