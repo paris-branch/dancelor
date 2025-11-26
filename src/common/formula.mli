@@ -92,7 +92,3 @@ val convert_res : ('p -> ('q t, 'e) Result.t) -> 'p t -> ('q t, 'e) Result.t
 val pp : (Format.formatter -> 'p -> unit) -> Format.formatter -> 'p t -> unit
 (** For debugging purposes. This is compatible with [ppx_deriving_show] but is a
     more usual representation of formulas. *)
-
-module Make_Jsonable : functor (M : Madge.JSONABLE) ->
-  Madge.JSONABLE with
-  type t = M.t t

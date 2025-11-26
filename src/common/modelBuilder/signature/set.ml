@@ -42,9 +42,6 @@ module type S = sig
   val slug : t -> Entry.Slug.t
   val slug' : t Entry.t -> Entry.Slug.t
 
-  val contains_version : Core.Version.t Entry.Id.t -> t Entry.t -> bool
-  (** REVIEW: This really takes a id? *)
-
   val find_context : int -> t -> Core.Version.t Entry.t List.context option Lwt.t
   val find_context' : int -> t Entry.t -> Core.Version.t Entry.t List.context option Lwt.t
   (** Given an indice and a set, find the context around that indice in the
@@ -59,9 +56,6 @@ module type S = sig
 
   type warning = Core.Set.warning =
     | Empty
-    | WrongKind
-    | WrongVersionBars of Core.Version.t Entry.t
-    | WrongVersionKind of Core.Tune.t Entry.t
     | DuplicateVersion of Core.Tune.t Entry.t
 
   type warnings = warning list

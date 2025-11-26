@@ -54,8 +54,6 @@ module Type = struct
     let comp = diff all
   end
 
-  let are_all l = Set.(equal (of_list l) all)
-
   let equal = (=)
 
   let to_string = function

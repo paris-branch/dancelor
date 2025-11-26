@@ -70,23 +70,6 @@ let of_string =
 let of_string_opt s =
   try Some (of_string s) with _ -> None
 
-let check ?number s =
-  match of_string_opt s with
-  | None -> false
-  | Some o ->
-    match number with
-    | None -> true
-    | Some n ->
-      (* Check that the n tunes are mentioned *)
-      let present = Array.make n false in
-      List.iter
-        (function
-          | External _ -> ()
-          | Internal i -> present.(i - 1) <- true
-        )
-        o;
-      Array.for_all Fun.id present
-
 let of_yojson = function
   | `String string ->
     (

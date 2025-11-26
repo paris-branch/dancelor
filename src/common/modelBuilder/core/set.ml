@@ -35,9 +35,6 @@ let set_contents contents set =
 
 type warning =
   | Empty
-  | WrongKind
-  | WrongVersionBars of Version.t Entry.t
-  | WrongVersionKind of Tune.t Entry.t
   | DuplicateVersion of Tune.t Entry.t
 [@@deriving yojson]
 

@@ -70,9 +70,6 @@ module type S = sig
     (** All the existing types, as a list. There is no guarantee on the order in
         which those elements appear. *)
 
-    val are_all : t list -> bool
-    (** Whether the given list contains all the existing types. *)
-
     val compare : t -> t -> int
     (** Total comparison function for types. *)
 

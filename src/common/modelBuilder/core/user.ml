@@ -12,11 +12,8 @@ type t = {
 [@@deriving eq, make, yojson, fields, show {with_path = false}]
 
 let make ~username ~person ?password ?password_reset_token ?remember_me_tokens () =
-  make ~username ~person ~password ~password_reset_token ?remember_me_tokens ()
-
-let make ~username ~person ?password ?password_reset_token ?remember_me_tokens () =
   let username = NEString.map_exn (String.remove_duplicates ~char: ' ') username in
-  make ~username ~person: (Entry.id person) ?password ?password_reset_token ?remember_me_tokens ()
+  make ~username ~person: (Entry.id person) ~password ~password_reset_token ?remember_me_tokens ()
 
 let update ?username ?person ?password ?password_reset_token ?remember_me_tokens user =
   let%lwt person = Option.value person ~default: lwt user.person in

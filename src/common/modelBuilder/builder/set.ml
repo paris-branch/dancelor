@@ -20,14 +20,6 @@ module Build (Getters : Getters.S) = struct
       contents
   let contents' = contents % Entry.value
 
-  (* FIXME: use Version.equal *)
-  let contains_version id1 set =
-    List.exists
-      (fun (id2, _parameters) ->
-        Entry.Id.equal' id1 id2
-      )
-      (Entry.value set).contents
-
   let find_context index set =
     let%lwt versions = List.map fst <$> contents set in
     lwt @@ List.findi_context (fun i _ -> i = index) versions

@@ -163,9 +163,3 @@ let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise
       | Pred p -> Pred (optimise_predicate p)
   in
   optimise formula
-
-module Make_Jsonable (M : Madge.JSONABLE) = struct
-  type nonrec t = M.t t
-  let of_yojson = of_yojson M.of_yojson
-  let to_yojson = to_yojson M.to_yojson
-end

@@ -155,21 +155,6 @@ module Build (Getters : Getters.S) = struct
           []
       |> lwt
 
-    let sets_and_parameters_from_contents' book =
-      let%lwt contents = contents' book in
-      Lwt_list.filter_map_p
-        (function
-          | Part _
-          | Dance (_, DanceOnly)
-          | Dance (_, DanceVersions _)
-          | Versions _ ->
-            lwt_none
-          | Dance (_, DanceSet (set, parameters))
-          | Set (set, parameters) ->
-            lwt_some (set, parameters)
-        )
-        contents
-
     let all book =
       Lwt_list.fold_left_s
         (fun warnings new_warnings_lwt ->
