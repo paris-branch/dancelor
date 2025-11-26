@@ -13,6 +13,7 @@ let
 
   inherit (import ./utils.nix { })
     withArgumentType
+    setupFontconfigCache
     ;
 
   inherit
@@ -20,6 +21,7 @@ let
       inherit
         pkgs
         withArgumentType
+        setupFontconfigCache
         ;
     })
     tuneType
@@ -33,6 +35,7 @@ let
         tuneType
         makeTuneSnippets
         withArgumentType
+        setupFontconfigCache
         ;
     })
     makeBookPdf

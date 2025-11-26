@@ -1,6 +1,7 @@
 {
   pkgs,
   withArgumentType,
+  setupFontconfigCache,
   ...
 }:
 
@@ -204,7 +205,8 @@ let
           };
       }
       ''
-        export HOME=$(mktemp -d)
+        ${setupFontconfigCache}
+
         lilypond \
           --loglevel=WARNING \
           --define-default=no-point-and-click \

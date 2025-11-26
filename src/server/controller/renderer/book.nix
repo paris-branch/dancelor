@@ -3,6 +3,7 @@
   tuneType,
   makeTuneSnippets,
   withArgumentType,
+  setupFontconfigCache,
   ...
 }:
 
@@ -168,6 +169,8 @@ let
           };
       }
       ''
+        ${setupFontconfigCache}
+
         cp ${./book}/*.tex .
         {
           printf '\\newif\\ifsimple\n'
