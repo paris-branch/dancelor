@@ -56,7 +56,7 @@ module type S = sig
 
   type warning = Core.Set.warning =
     | Empty
-    | DuplicateVersion of Core.Tune.t Entry.t
+    | Duplicate_tune of Core.Tune.t Entry.t
 
   type warnings = warning list
 

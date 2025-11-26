@@ -81,12 +81,12 @@ let set_contents contents book =
 
 type warning =
   | Empty
-  | DuplicateSet of Set.t Entry.t (* FIXME: duplicate dance? *)
-  | DuplicateVersion of Tune.t Entry.t * (Set.t Entry.t option * int) list
-  (* DuplicateVersion contains the list of sets in which the tune appears, as
+  | Duplicate_set of Set.t Entry.t (* FIXME: duplicate dance? *)
+  | Duplicate_tune of Tune.t Entry.t * (Set.t Entry.t option * int) list
+  (* Duplicate_tune contains the list of sets in which the tune appears, as
      well as the number of times this set is present *)
-  | SetDanceMismatch of Set.t Entry.t * Dance.t Entry.t
-(* SetDanceMismatch contains a set where one of the associated dances
+  | Set_dance_kind_mismatch of Set.t Entry.t * Dance.t Entry.t
+(* Set_dance_kind_mismatch contains a set where one of the associated dances
    does not have the same kind *)
 [@@deriving show {with_path = false}, yojson]
 

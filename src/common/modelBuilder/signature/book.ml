@@ -82,9 +82,9 @@ module type S = sig
 
   type warning = Core.Book.warning =
     | Empty
-    | DuplicateSet of Core.Set.t Entry.t
-    | DuplicateVersion of Core.Tune.t Entry.t * (Core.Set.t Entry.t option * int) list
-    | SetDanceMismatch of Core.Set.t Entry.t * Core.Dance.t Entry.t
+    | Duplicate_set of Core.Set.t Entry.t
+    | Duplicate_tune of Core.Tune.t Entry.t * (Core.Set.t Entry.t option * int) list
+    | Set_dance_kind_mismatch of Core.Set.t Entry.t * Core.Dance.t Entry.t
   (* FIXME: a more specific type for (Set.t option * int) list. Maybe
      “occurrences”? And maybe with a record so that this “int” has a name? *)
 

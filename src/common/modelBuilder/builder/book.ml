@@ -81,7 +81,7 @@ module Build (Getters : Getters.S) = struct
         )
         contents
 
-    let duplicateSet book =
+    let duplicate_set book =
       flip Lwt.map (sets_from_contents' book) @@ fun sets ->
       match List.sort Entry.compare' sets with
       | [] -> []
@@ -91,7 +91,7 @@ module Build (Getters : Getters.S) = struct
             (fun (previous_set, warnings) current_set ->
               let warnings =
                 if Entry.equal' current_set previous_set then
-                    ((DuplicateSet current_set) :: warnings)
+                    ((Duplicate_set current_set) :: warnings)
                 else
                   warnings
               in
@@ -105,7 +105,7 @@ module Build (Getters : Getters.S) = struct
     let unique_sets_from_contents' =
       Lwt.map (List.sort_uniq Entry.compare') % sets_from_contents'
 
-    let duplicateVersion book =
+    let duplicate_tune book =
       let%lwt sets = unique_sets_from_contents' book in
       let%lwt standalone_versions = versions_from_contents' book in
       (* [tunes_to_sets] is a hashtable from tunes to sets they belong to.
@@ -148,12 +148,25 @@ module Build (Getters : Getters.S) = struct
           (fun warnings (tune, set_opts) ->
             let set_opts = List.sort_count (Option.compare Entry.compare') set_opts in
             if List.length set_opts > 1 then
-                ((DuplicateVersion (tune, set_opts)) :: warnings)
+                ((Duplicate_tune (tune, set_opts)) :: warnings)
             else
               warnings
           )
           []
       |> lwt
+
+    let set_dance_kind_mismatch book =
+      let%lwt contents = contents' book in
+      Lwt_list.filter_map_s
+        (function
+          | Dance (dance, DanceSet (set, _)) ->
+            if Core.Dance.kind' dance <> Core.Set.kind' set then
+              lwt_some (Set_dance_kind_mismatch (set, dance))
+            else
+              lwt_none
+          | _ -> lwt_none
+        )
+        contents
 
     let all book =
       Lwt_list.fold_left_s
@@ -164,8 +177,9 @@ module Build (Getters : Getters.S) = struct
         []
         [
           empty book;
-          duplicateSet book;
-          duplicateVersion book;
+          duplicate_set book;
+          duplicate_tune book;
+          set_dance_kind_mismatch book;
         ]
   end
 

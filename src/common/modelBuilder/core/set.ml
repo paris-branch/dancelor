@@ -35,7 +35,7 @@ let set_contents contents set =
 
 type warning =
   | Empty
-  | DuplicateVersion of Tune.t Entry.t
+  | Duplicate_tune of Tune.t Entry.t
 [@@deriving yojson]
 
 type warnings = warning list

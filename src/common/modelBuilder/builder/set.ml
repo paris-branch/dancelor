@@ -44,7 +44,7 @@ module Build (Getters : Getters.S) = struct
           List.fold_left
             (fun prev curr ->
               if prev = curr then
-                add_warning (DuplicateVersion curr);
+                add_warning (Duplicate_tune curr);
               curr
             )
             tune
