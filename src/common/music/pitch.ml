@@ -149,6 +149,6 @@ let add p1 n = of_int (to_int p1 + n)
 let%test _ = add c0 0 = c0
 let%test _ = add c0 1 = make C Sharp 0
 let%test _ = add c0 2 = make D Natural 0
-let%test _ = add c0 15 = make D Sharp 1
+let%test _ = add c0 15 = make E Flat 1
 let%test _ = add c0 (-1) = make B Natural (-1)
-let%test _ = add c0 (-2) = make A Sharp (-1)
+let%test _ = add c0 (-2) = make B Flat (-1)
