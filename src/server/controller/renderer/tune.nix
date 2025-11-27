@@ -47,10 +47,6 @@ let
         description = "What the first bar of the tune should be.";
         type = types.int;
       };
-      stylesheet = mkOption {
-        description = "A stylesheet to inject into the resulting SVG.";
-        type = types.str;
-      };
       tempo_unit = mkOption {
         description = ''
           The unit of tempo; eg. `4.`.
@@ -120,10 +116,6 @@ let
 
   ## TODO: cf tuneScheme
   ##
-  ## NOTE: We could put the SVG book in second place, and avoid the argument
-  ## `--define-default=backend=svg`, but somehow this messes up the integration
-  ## of the Elementaler font into the resulting SVGs. The SVG-first approach
-  ## does not, however, seem to bother the PS/PDF generation.
   makeTuneLilypond =
     {
       slug,
@@ -157,39 +149,22 @@ let
           fi
           cat ${./tune/lilypond/scottish_chords.ly}
           cat ${./tune/lilypond/fancy_unfold_repeats.ly}
-          ## SVG
-          printf '\\book {\n'
-          printf '  \\bookOutputSuffix "svg"\n'
-          printf '  \\score {\n'
-          printf '    \\layout { \\context { \\Score currentBarNumber = #%d } }\n' ${toString first_bar}
-          printf '    { %s }\n' "$(cat "${contentFile}")"
-          printf '  }\\markup\\null\n'
-          printf '}\n\n'
-          ## PDF
-          printf "#(ly:set-option 'backend 'ps)\n"
-          printf '\\book {\n'
-          printf '  \\bookOutputSuffix "pdf"\n'
-          printf '  \\score {\n'
-          printf '    \\layout { \\context { \\Score currentBarNumber = #%d } }\n' ${toString first_bar}
-          printf '    { %s }\n' "$(cat "${contentFile}")"
-          printf '  }\\markup\\null\n'
-          printf '}\n\n'
-          ## OGG
+          printf '\\score {\n'
+          printf '  \\layout { \\context { \\Score currentBarNumber = #%d } }\n' ${toString first_bar}
+          printf '  { %s }\n' "$(cat "${contentFile}")"
+          printf '}\\markup\\null\n'
           printf '#(set! make-music the-make-music)\n'
-          printf '\\book {\n'
-          printf '  \\bookOutputSuffix "ogg"\n'
-          printf '  \\score {\n'
-          printf '    \\midi { \\tempo ${tempo_unit} = ${toString tempo_value} }\n'
-          printf '    \\${chords_kind}Chords \\fancyUnfoldRepeats {\n'
-          printf '      %s\n' "$(cat "${contentFile}")"
-          printf '    }\n'
+          printf '\\score {\n'
+          printf '  \\midi { \\tempo ${tempo_unit} = ${toString tempo_value} }\n'
+          printf '  \\${chords_kind}Chords \\fancyUnfoldRepeats {\n'
+          printf '    %s\n' "$(cat "${contentFile}")"
           printf '  }\n'
           printf '}\n'
         } > $out
       '';
 
   makeTuneSnippets = withArgumentType "makeTuneSnippets" tuneType (
-    tune@{ slug, stylesheet, ... }:
+    tune@{ slug, ... }:
     runCommand "tune-${slug}-snippets"
       {
         preferLocalBuild = true;
@@ -210,24 +185,18 @@ let
         lilypond \
           --loglevel=WARNING \
           --define-default=no-point-and-click \
-          --define-default=backend=svg \
+          --define-default=backend=cairo \
+          --formats=pdf,svg \
           --output=snippet \
           ${makeTuneLilypond tune}
-
-        ## Using `sed`, add a CSS import directive to the given stylesheet after
-        ## the `<style>` block.
-        sed -i 's|^\(<style.*\)$|\1\n@import url("${stylesheet}");|' snippet-svg.svg
 
         ## Use TiMidity++ to compile from LilyPond's MIDI to an ogg file.
         timidity \
           --quiet=7 \
           --output-mode=v \
-          snippet-ogg.midi
+          snippet.midi
 
-        mkdir $out
-        mv snippet-pdf.pdf $out/snippet.pdf
-        mv snippet-svg.svg $out/snippet.svg
-        mv snippet-ogg.ogg $out/snippet.ogg
+        mkdir $out && mv snippet.{pdf,svg,ogg} $out/
       ''
   );
 

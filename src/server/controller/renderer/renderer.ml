@@ -11,7 +11,6 @@ type tune = {
   composer: string;
   content: string;
   first_bar: int;
-  stylesheet: string;
   tempo_unit: string;
   tempo_value: int;
   chords_kind: string;

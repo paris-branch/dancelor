@@ -71,7 +71,6 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
   let%lwt (content, instructions) = version_to_lilypond_content ~version_params version in
   let instructions = Option.value instructions ~default: "" in
   let first_bar = Model.VersionParameters.first_bar' version_params in
-  let stylesheet = "/fonts.css" in
   let%lwt tune = Model.Version.tune version in
   let kind = Model.Tune.kind' tune in
   let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
@@ -80,7 +79,7 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
     Model.Version.(Content.is_monolithic @@ content version)
     || Model.VersionParameters.structure version_params <> None
   in
-  lwt Renderer.{slug; name; instructions; composer; content; first_bar; stylesheet; tempo_unit; tempo_value; chords_kind; show_bar_numbers}
+  lwt Renderer.{slug; name; instructions; composer; content; first_bar; tempo_unit; tempo_value; chords_kind; show_bar_numbers}
 
 let version_to_renderer_tune' ?version_params version =
   version_to_renderer_tune ?version_params (Entry.value version)
