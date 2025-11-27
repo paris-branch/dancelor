@@ -90,7 +90,7 @@
       ;; we for sure will not find a volta repeat in it. We return the music
       ;; unchanged and we just add the duration of the note to the given one.
       (if (music-is-of-type? music 'rhythmic-event)
-          (let ((event-duration (ly:duration-length (ly:music-property music 'duration))))
+          (let ((event-duration (ly:duration->moment (ly:music-property music 'duration))))
             (list music 'NoVolta (ly:moment-add duration event-duration)))
 
           ;; Otherwise, if the music is a volta repeat, then it is the first one

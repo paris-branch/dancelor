@@ -195,7 +195,7 @@ let
         preferLocalBuild = true;
         allowSubstitutes = false;
         buildInputs = with pkgs; [
-          lilypond
+          lilypond-unstable # for Cairo support as of 27 Nov 2025; can go back to stable in a while
           timidity
         ];
         FONTCONFIG_FILE =

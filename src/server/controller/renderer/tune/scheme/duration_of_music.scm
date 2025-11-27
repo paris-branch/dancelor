@@ -9,7 +9,7 @@
   ;; We check whether the music object is a rhythmic event. In that case, we
   ;; simply return its duration.
   (if (music-is-of-type? music 'rhythmic-event)
-      (ly:duration-length (ly:music-property music 'duration))
+      (ly:duration->moment (ly:music-property music 'duration))
 
       ;; FIXME: actually, no, but not doing it will break the tunes that
       ;; use unfold repeats (or tremolos or whatnot)
