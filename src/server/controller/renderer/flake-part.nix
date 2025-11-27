@@ -23,7 +23,7 @@ let
       >>
     '';
     first_bar = 1;
-    stylesheet = "<dummy>";
+    stylesheet = "dummy";
     tempo_unit = "4";
     tempo_value = 108;
     chords_kind = "reel";
