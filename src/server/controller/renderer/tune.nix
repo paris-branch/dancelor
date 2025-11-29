@@ -105,11 +105,6 @@ let
           cat ${./tune/scheme/scottish_chords/reel_chords.scm}
           cat ${./tune/scheme/scottish_chords/waltz_chords.scm}
           cat ${./tune/scheme/scottish_chords/chords.scm}
-          cat ${./tune/scheme/fancy_unfold_repeats/unfold_first_volta_repeat.scm}
-          cat ${./tune/scheme/fancy_unfold_repeats/extract_span.scm}
-          cat ${./tune/scheme/fancy_unfold_repeats/split_rhythmic_event_at.scm}
-          cat ${./tune/scheme/fancy_unfold_repeats/add_trailing_silence.scm}
-          cat ${./tune/scheme/fancy_unfold_repeats/fancy_unfold_repeats.scm}
           cat ${./tune/scheme/bar_numbering/repeat_aware.scm}
         } > $out
       '';
@@ -148,7 +143,6 @@ let
             printf '\\layout {\\context {\\Score\\omit BarNumber}}\n'
           fi
           cat ${./tune/lilypond/scottish_chords.ly}
-          cat ${./tune/lilypond/fancy_unfold_repeats.ly}
           printf '\\score {\n'
           printf '  \\layout { \\context { \\Score currentBarNumber = #%d } }\n' ${toString first_bar}
           printf '  { %s }\n' "$(cat "${contentFile}")"
@@ -156,7 +150,7 @@ let
           printf '#(set! make-music the-make-music)\n'
           printf '\\score {\n'
           printf '  \\midi { \\tempo ${tempo_unit} = ${toString tempo_value} }\n'
-          printf '  \\${chords_kind}Chords \\fancyUnfoldRepeats {\n'
+          printf '  \\${chords_kind}Chords \\unfoldRepeats {\n'
           printf '    %s\n' "$(cat "${contentFile}")"
           printf '  }\n'
           printf '}\n'
