@@ -21,7 +21,8 @@
 
         buildInputs = with pkgs.ocamlPackages; [
           self'.packages.ocaml-argon2
-          inputs'.monadise.packages.default
+          inputs'.monadise.packages.monadise
+          inputs'.monadise.packages.monadise-lwt
 
           cohttp-lwt-jsoo
           cohttp-lwt-unix

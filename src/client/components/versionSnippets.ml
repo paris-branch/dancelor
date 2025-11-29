@@ -45,59 +45,108 @@ let make_ogg_gen status_signal =
         | Succeeded src -> [audio ~a: [a_controls ()] ~src []]
     )
 
-let make_gen ?show_logs ?(show_audio = true) svg_status_signal ogg_status_signal =
-  div (
-    [div [make_svg_gen ?show_logs svg_status_signal]] @ (
-      if show_audio then
-          [div ~a: [a_class ["mt-1"; "d-flex"; "justify-content-end"]] [make_ogg_gen ogg_status_signal]]
-      else []
-    )
-  )
+let make_gen
+    ?show_logs
+    ?(show_audio = true)
+    ?(copyright_reason_promise = lwt_none)
+    svg_status_signal
+    ogg_status_signal
+  =
+  div [
+    div [make_svg_gen ?show_logs svg_status_signal];
+    div ~a: [a_class ["mt-1"; "d-flex"; "justify-content-between"]] [
+      (
+        with_div_placeholder ~a: [a_class ["alert"; "alert-info"; "me-1"; "lh-sm"]] @@
+          match%lwt copyright_reason_promise with
+          | None -> lwt []
+          | Some reason ->
+            List.cons (txt "You may see this version's content because ")
+            <$>
+              match (reason : Endpoints.Version.Copyright_response.reason) with
+              | Connected ->
+                lwt [txt "you are connected."]
+              | Composer_agrees ->
+                lwt [txt "the composer agrees to have his tunes available publicly."]
+              | Publisher_agrees source ->
+                let%lwt editors = Model.Source.editors' source in
+                lwt
+                  [
+                    txt "it is published in ";
+                    Formatters.Source.name' source;
+                    txt ", and the publisher, ";
+                    Formatters.Person.names' editors;
+                    txt ", agrees to have their publications available publicly.";
+                  ]
+      );
+      (if show_audio then make_ogg_gen ogg_status_signal else div []);
+    ];
+  ]
 
 let make ?show_logs ?show_audio ?(params = Model.VersionParameters.none) version =
+  let (copyright_reason_promise, svg_status_signal) =
+    let copyright_response_promise =
+      Madge_client.call
+        Endpoints.Api.(route @@ Version BuildSvg)
+        (Entry.id version)
+        params
+        RenderingParameters.none
+    in
+    let copyright_reason_promise =
+      Job.copyright_reponse_promise_to_copyright_reason_promise
+        copyright_response_promise
+    in
+    let svg_status_signal =
+      Job.status_signal_from_promise @@
+        let%lwt slug = Model.Version.slug' version in
+        lwt @@
+        Job.run3 (Entry.Slug.add_suffix slug ".svg") @@
+        Job.copyright_reponse_promise_to_job_registration_promise copyright_response_promise
+    in
+      (copyright_reason_promise, svg_status_signal)
+  in
+  let ogg_status_signal =
+    let copyright_response_promise =
+      Madge_client.call
+        Endpoints.Api.(route @@ Version BuildOgg)
+        (Entry.id version)
+        params
+        RenderingParameters.none
+    in
+    let ogg_status_signal =
+      Job.status_signal_from_promise @@
+        let%lwt slug = Model.Version.slug' version in
+        lwt @@
+        Job.run3 (Entry.Slug.add_suffix slug ".svg") @@
+        Job.copyright_reponse_promise_to_job_registration_promise copyright_response_promise
+    in
+    ogg_status_signal
+  in
   make_gen
     ?show_logs
     ?show_audio
-    (
-      Job.status_signal_from_promise @@
-        let%lwt slug = Model.Version.slug' version in
-        lwt @@
-          Job.run
-            (Entry.Slug.add_suffix slug ".svg")
-            Endpoints.Api.(route @@ Version BuildSvg)
-            (Entry.id version)
-            params
-            RenderingParameters.none
-    )
-    (
-      Job.status_signal_from_promise @@
-        let%lwt slug = Model.Version.slug' version in
-        lwt @@
-          Job.run
-            (Entry.Slug.add_suffix slug ".ogg")
-            Endpoints.Api.(route @@ Version BuildOgg)
-            (Entry.id version)
-            params
-            RenderingParameters.none
-    )
+    ~copyright_reason_promise
+    svg_status_signal
+    ogg_status_signal
 
 let make_preview ?show_logs ?show_audio ?(params = Model.VersionParameters.none) version =
+  let svg_status_signal =
+    Job.run
+      Entry.Slug.(add_suffix (of_string "preview") ".svg")
+      Endpoints.Api.(route @@ Version BuildSvg')
+      version
+      params
+      RenderingParameters.none
+  in
+  let ogg_status_signal =
+    Job.run
+      Entry.Slug.(add_suffix (of_string "preview") ".ogg")
+      Endpoints.Api.(route @@ Version BuildOgg')
+      version
+      params
+      RenderingParameters.none
+  in
   make_gen
     ?show_logs
     ?show_audio
-    (
-      Job.run
-        Entry.Slug.(add_suffix (of_string "preview") ".svg")
-        Endpoints.Api.(route @@ Version BuildSvg')
-        version
-        params
-        RenderingParameters.none
-    )
-    (
-      Job.run
-        Entry.Slug.(add_suffix (of_string "preview") ".ogg")
-        Endpoints.Api.(route @@ Version BuildOgg')
-        version
-        params
-        RenderingParameters.none
-    )
+    svg_status_signal
+    ogg_status_signal

@@ -6,7 +6,7 @@ module type Searchable = sig
   type value
   type filter
 
-  val get_all : Environment.t -> value list
+  val get_all : Environment.t -> value list Lwt.t
 
   val filter_accepts : filter -> value -> float Lwt.t
 
@@ -20,7 +20,7 @@ module type S = sig
   val search : Environment.t -> Slice.t -> filter -> (int * value list) Lwt.t
 
   (** Pass through for better composition *)
-  val get_all : Environment.t -> value list
+  val get_all : Environment.t -> value list Lwt.t
   val tiebreakers : (value -> value -> int Lwt.t) list
 end
 
