@@ -42,7 +42,7 @@
          (bass     (car  bass-fifth-and-notes))
          (fifth    (cadr bass-fifth-and-notes))
          (notes    (cddr bass-fifth-and-notes))
-         (duration (ly:duration-length (event-chord-duration chord))))
+         (duration (ly:duration->moment (event-chord-duration chord))))
     (rewrite-reel-chord-aux #t bass fifth notes duration position)))
 
 (define (reel-chords music) (chords rewrite-reel-chord music))

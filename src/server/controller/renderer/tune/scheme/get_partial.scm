@@ -8,7 +8,7 @@
 (define (get-partial-length music)
   (let ((result (get-partial music)))
     (case (car result)
-      ((Partial) (ly:duration-length (ly:music-property (cadr result) 'duration)))
+      ((Partial) (ly:duration->moment (ly:music-property (cadr result) 'duration)))
       ((NoPartial) ly:moment-zero))))
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;

@@ -24,12 +24,9 @@
 
 \paper {
   indent = 0
-  #(define fonts
-    (set-global-fonts
-     #:roman "Source Sans"
-     #:sans "Source Sans"
-     #:typewriter "Source Sans"
-   ))
+  property-defaults.fonts.roman = "Source Sans 3"
+  property-defaults.fonts.sans = "Source Sans 3"
+  property-defaults.fonts.typewriter = "Source Sans 3"
   ragged-right = ##f
   ragged-bottom = ##t
   ragged-last-bottom = ##t

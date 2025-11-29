@@ -5,9 +5,24 @@ let
     slug = "test-slug";
     name = "Test Name";
     composer = "Test Composer";
-    content = "{ a1 b c d }";
+    content = ''
+      \version "2.18.2"
+      <<
+        \new Voice {
+          \key f \minor
+          \time 3/4
+          \repeat volta 2 {
+            f'2. g' aes' bes'
+          }
+        }
+        \new ChordNames {
+          \chordmode {
+            f2. g:m7 aes bes:dim
+          }
+        }
+      >>
+    '';
     first_bar = 1;
-    stylesheet = "<dummy>";
     tempo_unit = "4";
     tempo_value = 108;
     chords_kind = "reel";
