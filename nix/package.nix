@@ -4,6 +4,7 @@
       self',
       inputs',
       pkgs,
+      lib,
       ...
     }:
     {
@@ -21,6 +22,7 @@
 
         buildInputs = with pkgs.ocamlPackages; [
           self'.packages.ocaml-argon2
+          self'.packages.prometheus-app
           inputs'.monadise.packages.default
 
           cohttp-lwt-jsoo
@@ -39,6 +41,7 @@
           ppx_fields_conv
           ppx_monad
           ppx_variants_conv
+          prometheus
           slug
           yaml
         ];
@@ -89,6 +92,36 @@
           dune-configurator
           result
         ];
+      };
+
+      packages.prometheus-app = pkgs.ocamlPackages.buildDunePackage rec {
+        pname = "prometheus-app";
+        version = "1.2";
+
+        src = pkgs.fetchurl {
+          url = "https://github.com/mirage/prometheus/releases/download/v${version}/prometheus-${version}.tbz";
+          sha256 = "sha256-g2Q6ApprbecdFANO7i6U/v8dCHVcSkHVg9wVMKtVW8s=";
+        };
+
+        duneVersion = "3";
+
+        propagatedBuildInputs = with pkgs.ocamlPackages; [
+          alcotest
+          astring
+          asetmap
+          cohttp-lwt-unix
+          fmt
+          logs
+          lwt
+          prometheus
+          re
+        ];
+
+        meta = {
+          description = "Client library for Prometheus monitoring";
+          license = lib.licenses.asl20;
+          maintainers = [ lib.maintainers.ulrikstrid ];
+        };
       };
     };
 }
