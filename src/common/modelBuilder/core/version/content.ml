@@ -42,23 +42,29 @@ let lilypond ?structure: desired_structure ~kind ~key parts transitions =
   let Voices.{melody; chords} =
     let structure = Option.bind desired_structure Structure.best_fold_for in
     let show_part_marks = structure = None in
-    let rec item_to_lilypond ~next_part = function
+    let transition ~toplevel from to_ =
+      (* NOTE: The transition from start and to the end should only ever be
+         considered when at toplevel of the structure; otherwise they would be
+         produced at all levels of imbricated repeats. *)
+      if (from = Part_name.Start || to_ = Part_name.End) && not toplevel then None
+      else List.assoc_opt (from, to_) transitions
+    in
+    let rec item_to_lilypond ~toplevel ~next_part = function
       | Structure.Part part ->
         (
           let lilypond = List.nth parts (Part_name.to_int part) in
           let lilypond = if show_part_marks then Voices.concat (Voices.mark part) lilypond else lilypond in
-          match List.assoc_opt (Part_name.Middle part, next_part) transitions with
+          match transition ~toplevel (Middle part) next_part with
           | None -> lilypond
           | Some transition -> Voices.concat_l [lilypond; Voices.space; transition]
         )
       | Repeat (times, structure) ->
         (
-          let lilypond : Voices.t = to_lilypond structure in
+          let lilypond : Voices.t = to_lilypond ~toplevel: false structure in
           let first_part = Structure.first_part_exn structure in
           let last_part = Structure.last_part_exn structure in
-          let middle = Part_name.middle in
-          let alt_1 = Option.value ~default: Voices.empty @@ List.assoc_opt (middle last_part, middle first_part) transitions in
-          let alt_2 = Option.value ~default: Voices.empty @@ List.assoc_opt (middle last_part, next_part) transitions in
+          let alt_1 = Option.value ~default: Voices.empty @@ transition ~toplevel (Middle last_part) (Middle first_part) in
+          let alt_2 = Option.value ~default: Voices.empty @@ transition ~toplevel (Middle last_part) next_part in
           {
             Voices.melody =
             spf
@@ -75,7 +81,7 @@ let lilypond ?structure: desired_structure ~kind ~key parts transitions =
               alt_2.chords;
           }
         )
-    and map_item_to_lilypond = function
+    and map_item_to_lilypond ~toplevel = function
       | [] -> []
       | item :: items ->
         let next_part =
@@ -84,15 +90,14 @@ let lilypond ?structure: desired_structure ~kind ~key parts transitions =
             ~some: Part_name.middle
             (Structure.first_part items)
         in
-        item_to_lilypond ~next_part item :: map_item_to_lilypond items
-    and to_lilypond structure =
-      Voices.concat_l (List.intersperse Voices.section_break (map_item_to_lilypond structure))
+        item_to_lilypond ~toplevel ~next_part item :: map_item_to_lilypond ~toplevel items
+    and to_lilypond ~toplevel structure =
+      Voices.concat_l (List.intersperse Voices.section_break (map_item_to_lilypond ~toplevel structure))
     in
     let to_lilypond structure =
-      let lilypond = to_lilypond structure in
+      let lilypond = to_lilypond ~toplevel: true structure in
       let first_part = Structure.first_part_exn structure in
-      let transition = List.assoc_opt Part_name.(Start, Middle first_part) transitions in
-      match transition with
+      match transition ~toplevel: true Start (Middle first_part) with
       | None -> lilypond
       | Some transition -> Voices.concat_l [transition; Voices.space; lilypond]
     in
