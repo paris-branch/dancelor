@@ -10,7 +10,7 @@
   dancelor.madge.server
   logs
   lwt.unix
-  prometheus-app
+  prometheus-app.unix
   str
   tyxml
   yaml)
