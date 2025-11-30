@@ -21,6 +21,8 @@ let c = Part (Part_name.of_char_exn 'C')
 let d = Part (Part_name.of_char_exn 'D')
 let e = Part (Part_name.of_char_exn 'E')
 let f = Part (Part_name.of_char_exn 'F')
+let g = Part (Part_name.of_char_exn 'G')
+let h = Part (Part_name.of_char_exn 'H')
 
 let part n = Part n
 let repeat n x = Repeat (n, x)
@@ -113,5 +115,19 @@ let best_fold_for structure =
   | "ABCABC" -> some [repeat 2 [a; b; c]]
   | "ABCDEF" -> some [a; b; c; d; e; f]
   | "AABBCCDD" -> some [repeat 2 [a]; repeat 2 [b]; repeat 2 [c]; repeat 2 [d]]
+  | "AABBCCDE" -> some [repeat 2 [a]; repeat 2 [b]; repeat 2 [c]; d; e]
+  | "AABBCDEE" -> some [repeat 2 [a]; repeat 2 [b]; c; d; repeat 2 [e]]
+  | "AABBCDEF" -> some [repeat 2 [a]; repeat 2 [b]; c; d; e; f]
+  | "AABCDDEE" -> some [repeat 2 [a]; b; c; repeat 2 [d]; repeat 2 [e]]
   | "AABCDDEF" -> some [repeat 2 [a]; b; c; repeat 2 [d]; e; f]
+  | "AABCDEFF" -> some [repeat 2 [a]; b; c; d; e; repeat 2 [f]]
+  | "AABCDEFG" -> some [repeat 2 [a]; b; c; d; e; f; g]
+  | "ABCCDDEE" -> some [a; b; repeat 2 [c]; repeat 2 [d]; repeat 2 [e]]
+  | "ABCCDDEF" -> some [a; b; repeat 2 [c]; repeat 2 [d]; e; f]
+  | "ABCCDEFF" -> some [a; b; repeat 2 [c]; d; e; repeat 2 [f]]
+  | "ABCCDEFG" -> some [a; b; repeat 2 [c]; d; e; f; g]
+  | "ABCDEEFF" -> some [a; b; c; d; repeat 2 [e]; repeat 2 [f]]
+  | "ABCDEEFG" -> some [a; b; c; d; repeat 2 [e]; f; g]
+  | "ABCDEFGG" -> some [a; b; c; d; e; f; repeat 2 [g]]
+  | "ABCDEFGH" -> some [a; b; c; d; e; f; g; h]
   | _ -> None
