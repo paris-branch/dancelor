@@ -9,6 +9,7 @@ module Dance = Dance
 module Version = Version
 module Tune = Tune
 module Job = Job
+module Metrics = Metrics
 
 module Log = (val Logger.create "controller": Logs.LOG)
 
@@ -33,3 +34,4 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.t -> a =
   | BootTime ->
     Log.debug (fun m -> m "Answering boot time");
     lwt Environment.boot_time
+  | Metrics -> Metrics.get ()
