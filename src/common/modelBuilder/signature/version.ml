@@ -36,6 +36,9 @@ module type S = sig
   val sources : t -> source list Lwt.t
   val sources' : t Entry.t -> source list Lwt.t
 
+  val sources_grouped : t -> source list list Lwt.t
+  val sources_grouped' : t Entry.t -> source list list Lwt.t
+
   val arrangers : t -> Core.Person.t Entry.t list Lwt.t
   val arrangers' : t Entry.t -> Core.Person.t Entry.t list Lwt.t
 

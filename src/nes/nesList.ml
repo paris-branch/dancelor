@@ -148,3 +148,25 @@ let to_option ?(more = fun _ -> invalid_arg "NesList.to_option") = function
   | [] -> None
   | [x] -> Some x
   | xs -> more xs
+
+let group ~by l =
+  (* this could really be made way more efficient, but since it will be used
+     on groups of two or three elements, it does not matter *)
+  let rec aux gs = function
+    | [] -> gs
+    | x :: xs ->
+      let (gs, found) =
+        List.fold_left
+          (fun (gs, found) g ->
+            if not found && by x (hd g) then
+                ((x :: g) :: gs, true)
+            else
+                (g :: gs, found)
+          )
+          ([], false)
+          (rev gs)
+      in
+      if found then aux gs xs
+      else aux ([x] :: gs) xs
+  in
+  aux [] l

@@ -12,6 +12,9 @@ type source_core = {
 }
 [@@deriving eq, yojson, show {with_path = false}]
 
+let source_core_have_same_source s1 s2 =
+  Entry.Id.equal' s1.source s2.source
+
 type source = {
   source: Source.t Entry.t;
   structure: Structure.t;
@@ -54,3 +57,6 @@ let set_content content version =
 
 let erase_lilypond_from_content version =
   {version with content = Content.erase_lilypond version.content}
+
+let sources_grouped v =
+  List.group ~by: source_core_have_same_source (sources v)

@@ -460,29 +460,36 @@ let create ?context id =
       );
       R.div (
         S.from' [] @@
-          match%lwt Model.Version.sources' version with
+          let show_source_group source_group =
+            let source = (List.hd source_group).Model.Version.source in
+            span @@
+            [Formatters.Source.name' source] @
+            (
+              List.concat @@
+              List.interspersei
+                (fun _ -> [txt ", "])
+                ~last: (fun _ -> [txt " and "]) @@
+              List.map
+                (fun Model.Version.{details; structure; _} ->
+                  [
+                    (if details <> "" then txtf " %s" details else txt "");
+                    txtf " as %s" (NEString.to_string (Model.Version.Structure.to_string structure));
+                  ]
+                )
+                source_group
+            ) @
+              [txt "."]
+          in
+          match%lwt Model.Version.sources_grouped' version with
           | [] -> lwt_nil
-          | [{source; structure; details}] ->
-            lwt [
-              txt "Appears in ";
-              Formatters.Source.name' source;
-              (if details <> "" then txtf " %s" details else txt "");
-              txtf " as %s." (NEString.to_string (Model.Version.Structure.to_string structure));
-            ]
-          | sources ->
+          | [source_group] -> lwt [txt "Appears in "; show_source_group source_group]
+          | source_groups ->
             lwt [
               txt "Appears:";
               ul (
                 List.map
-                  (fun Model.Version.{source; structure; details} ->
-                    li [
-                      txt "in ";
-                      Formatters.Source.name' source;
-                      (if details <> "" then txtf " %s" details else txt "");
-                      txtf " as %s" (NEString.to_string @@ Model.Version.Structure.to_string structure);
-                    ]
-                  )
-                  sources
+                  (fun source_group -> li [txt "in "; show_source_group source_group])
+                  source_groups
               )
             ]
       );

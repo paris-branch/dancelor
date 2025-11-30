@@ -15,6 +15,9 @@ module Build (Getters : Getters.S) = struct
   let sources = Lwt_list.map_p source_core_to_source % sources
   let sources' = sources % Entry.value
 
+  let sources_grouped = Lwt_list.map_p (Lwt_list.map_p source_core_to_source) % sources_grouped
+  let sources_grouped' = sources_grouped % Entry.value
+
   let arrangers = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % arrangers
   let arrangers' = arrangers % Entry.value
 

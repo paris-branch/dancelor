@@ -92,3 +92,7 @@ val to_option : ?more: ('a list -> 'a option) -> 'a list -> 'a option
 (** Converts a lists to an option. The function [?more] is used for when the
     list is neither empty nor a singleton. It defaults to raising
     {!Invalid_arg}. *)
+
+val group : by: ('a -> 'a -> bool) -> 'a list -> 'a list list
+(** Group the elements of the given list using the “equality” [by]. The equality
+    is assumed to be transitive. *)
