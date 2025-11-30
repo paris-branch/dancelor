@@ -22,9 +22,7 @@ let disambiguation_and_sources_internal ?(parentheses = true) ?source_links vers
       List.flatten @@
       List.flatten
         [
-          [[txt (if parentheses then " (from" else "")];
-          [txt " from "];
-          ];
+          [[txt (if parentheses then " (from " else " from ")]];
           List.interspersei
             (fun _ -> [txt ", "])
             ~last: (fun _ -> [txt " and "])
