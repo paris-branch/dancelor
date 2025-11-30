@@ -111,7 +111,7 @@ let content_in_parts () =
                         ~serialise: Model.Version.Part_name.open_to_string
                         ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Part_name.open_of_string)
                         ~label: "to"
-                        ~placeholder: "eg. “A”, “B” or “start”"
+                        ~placeholder: "eg. “A”, “B” or “end”"
                         ()
                     )
                 )
