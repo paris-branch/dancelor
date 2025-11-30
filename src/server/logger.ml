@@ -30,6 +30,8 @@ let level_to_color = function
 
 let my_reporter () =
   let report src level ~over k msgf =
+    let src = Logs.Src.name src in
+    Prometheus_unix.Logging.inc_counter level src;
     let k _ = over (); k () in
     msgf @@ fun ?header ?tags fmt ->
     ignore tags;
@@ -45,7 +47,7 @@ let my_reporter () =
       time.tm_min
       time.tm_sec
       (level_to_string level)
-      (Logs.Src.name src)
+      src
   in
     {Logs.report}
 
@@ -75,6 +77,7 @@ let initialise_future_loglevel loglevel =
   Logs.set_level ~all: false (Some loglevel)
 
 let () =
+  Prometheus_unix.Logging.init ();
   (* This has to be done before anything else, so that even if early things
      break, we get some logging. The logging level will then be possibly changed
      by the configuration. *)
