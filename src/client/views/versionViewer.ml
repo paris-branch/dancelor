@@ -408,7 +408,7 @@ let create ?context id =
         (* For de-structured versions, show one of the common structures. *)
         div [
           div ~a: [a_class ["row"; "justify-content-between"]] [
-            div ~a: [a_class ["col"; "text-start"]] (
+            div ~a: [a_class ["col-auto"; "text-start"]] (
               let key = Model.Version.key' version in
               match Model.Version.content' version with
               | Monolithic {bars; structure; _} ->
@@ -429,7 +429,7 @@ let create ?context id =
                     (NEString.to_string @@ Version.Structure.to_string default_structure)
                 ]
             );
-            div ~a: [a_class ["col"; "text-end"]] [
+            div ~a: [a_class ["col-auto"; "text-end"]] [
               Formatters.Version.disambiguation' ~parentheses: false version;
               with_span_placeholder (
                 match%lwt Model.Version.arrangers' version with
