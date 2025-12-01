@@ -41,7 +41,7 @@ type job_and_file = {
     registered in {!job_of_expr}. *)
 let job_and_file_of_id : (JobId.t, job_and_file) Hashtbl.t = Hashtbl.create 8
 
-let register_job (expr : expr) (file : string) : Endpoints.Job.Registration.t =
+let register_job (expr : expr) (file : string) : JobId.t Endpoints.Job.registration_response =
   let job_and_file =
     match Hashtbl.find_opt job_of_expr expr with
     | Some job when not (is_failed !(job.state)) ->

@@ -1,12 +1,12 @@
 open Nes
 open Madge
 
-module Registration = struct
-  type t =
-    | AlreadySucceeded of JobId.t (** for when the job is cached and has already succeeded; avoids an extra call to check the status *)
-    | Registered of JobId.t (** the job has been registered (whether it happened right now or already before) *)
-  [@@deriving yojson]
-end
+(** Abstract type of the response to a registration endpoint, parametrised
+    by the payload. *)
+type 'payload registration_response =
+  | AlreadySucceeded of 'payload (** for when the job is cached and has already succeeded; avoids an extra call to check the status *)
+  | Registered of 'payload (** the job has been registered (whether it happened right now or already before) *)
+[@@deriving yojson]
 
 module Status = struct
   type t =
@@ -21,6 +21,13 @@ type (_, _, _) t =
   | Status : (JobId.t -> 'w, 'w, Status.t) t
   | File : (JobId.t -> Entry.Slug.t -> 'w, 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
+
+module Registration_response
+    (Payload : Madge.JSONABLE)
+  : Madge.JSONABLE with type t = Payload.t registration_response
+= struct
+  type t = Payload.t registration_response [@@deriving yojson]
+end
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in

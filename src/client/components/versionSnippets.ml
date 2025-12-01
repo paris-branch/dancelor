@@ -69,45 +69,52 @@ let make_gen
   ]
 
 let make ?show_logs ?show_audio ?(params = Model.VersionParameters.none) version =
-  let (is_protected_promise, svg_status_signal) =
-    let copyright_response_promise =
-      Madge_client.call
-        Endpoints.Api.(route @@ Version BuildSvg)
-        (Entry.id version)
-        params
-        RenderingParameters.none
-    in
-    let is_protected_promise =
+  let copyright_response_promise =
+    Madge_client.call
+      Endpoints.Api.(route @@ Version BuildSnippets)
+      (Entry.id version)
+      params
+      RenderingParameters.none
+  in
+  let is_protected_promise =
+    match%lwt copyright_response_promise with
+    | Error error -> raise (Madge_client.Error error)
+    | Ok Endpoints.Version.Protected -> lwt_true
+    | Ok Endpoints.Version.Granted _ -> lwt_false
+  in
+  let svg_status_signal =
+    Job.status_signal_from_promise @@
+      let%lwt slug = Model.Version.slug' version in
+      lwt @@
+      Job.run3 (Entry.Slug.add_suffix slug ".svg") @@
+      Job.copyright_reponse_promise_to_job_registration_promise @@
       match%lwt copyright_response_promise with
-      | Error error -> raise (Madge_client.Error error)
-      | Ok Endpoints.Version.Copyright_response.Protected -> lwt_true
-      | Ok Endpoints.Version.Copyright_response.Granted _ -> lwt_false
-    in
-    let svg_status_signal =
-      Job.status_signal_from_promise @@
-        let%lwt slug = Model.Version.slug' version in
-        lwt @@
-        Job.run3 (Entry.Slug.add_suffix slug ".svg") @@
-        Job.copyright_reponse_promise_to_job_registration_promise copyright_response_promise
-    in
-      (is_protected_promise, svg_status_signal)
+      | Error err -> lwt_error err
+      | Ok copyright_response ->
+        lwt_ok @@
+          Endpoints.Version.map_copyright_response
+            (function
+              | Endpoints.Job.AlreadySucceeded snippet_ids -> Endpoints.Job.AlreadySucceeded snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
+              | Registered snippet_ids -> Registered snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
+            )
+            copyright_response
   in
   let ogg_status_signal =
-    let copyright_response_promise =
-      Madge_client.call
-        Endpoints.Api.(route @@ Version BuildOgg)
-        (Entry.id version)
-        params
-        RenderingParameters.none
-    in
-    let ogg_status_signal =
-      Job.status_signal_from_promise @@
-        let%lwt slug = Model.Version.slug' version in
-        lwt @@
-        Job.run3 (Entry.Slug.add_suffix slug ".svg") @@
-        Job.copyright_reponse_promise_to_job_registration_promise copyright_response_promise
-    in
-    ogg_status_signal
+    Job.status_signal_from_promise @@
+      let%lwt slug = Model.Version.slug' version in
+      lwt @@
+      Job.run3 (Entry.Slug.add_suffix slug ".ogg") @@
+      Job.copyright_reponse_promise_to_job_registration_promise @@
+      match%lwt copyright_response_promise with
+      | Error err -> lwt_error err
+      | Ok copyright_response ->
+        lwt_ok @@
+          Endpoints.Version.map_copyright_response
+            (function
+              | Endpoints.Job.AlreadySucceeded snippet_ids -> Endpoints.Job.AlreadySucceeded snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
+              | Registered snippet_ids -> Registered snippet_ids.Endpoints.Version.Snippet_ids.ogg_job_id
+            )
+            copyright_response
   in
   make_gen
     ?show_logs
@@ -117,21 +124,38 @@ let make ?show_logs ?show_audio ?(params = Model.VersionParameters.none) version
     ogg_status_signal
 
 let make_preview ?show_logs ?show_audio ?(params = Model.VersionParameters.none) version =
-  let svg_status_signal =
-    Job.run
-      Entry.Slug.(add_suffix (of_string "preview") ".svg")
-      Endpoints.Api.(route @@ Version BuildSvg')
+  let copyright_response_promise =
+    Madge_client.call
+      Endpoints.Api.(route @@ Version BuildSnippets')
       version
       params
       RenderingParameters.none
   in
+  let svg_status_signal =
+    Job.status_signal_from_promise @@
+      let%lwt slug = Model.Version.slug version in
+      lwt @@
+      Job.run3 (Entry.Slug.add_suffix slug ".svg") @@ (
+        Result.to_option
+        <$>
+          match%lwt copyright_response_promise with
+          | Error err -> lwt_error err
+          | Ok Endpoints.Job.AlreadySucceeded snippet_ids -> lwt_ok @@ Endpoints.Job.AlreadySucceeded snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
+          | Ok Registered snippet_ids -> lwt_ok @@ Endpoints.Job.Registered snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
+      )
+  in
   let ogg_status_signal =
-    Job.run
-      Entry.Slug.(add_suffix (of_string "preview") ".ogg")
-      Endpoints.Api.(route @@ Version BuildOgg')
-      version
-      params
-      RenderingParameters.none
+    Job.status_signal_from_promise @@
+      let%lwt slug = Model.Version.slug version in
+      lwt @@
+      Job.run3 (Entry.Slug.add_suffix slug ".ogg") @@ (
+        Result.to_option
+        <$>
+          match%lwt copyright_response_promise with
+          | Error err -> lwt_error err
+          | Ok Endpoints.Job.AlreadySucceeded snippet_ids -> lwt_ok @@ Endpoints.Job.AlreadySucceeded snippet_ids.Endpoints.Version.Snippet_ids.ogg_job_id
+          | Ok Registered snippet_ids -> lwt_ok @@ Endpoints.Job.Registered snippet_ids.Endpoints.Version.Snippet_ids.ogg_job_id
+      )
   in
   make_gen
     ?show_logs

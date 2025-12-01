@@ -21,9 +21,9 @@ let run' slug promise =
   Lwt_stream.(concat % return_lwt) @@
   match%lwt promise with
   | Error error -> raise (Madge_client.Error error)
-  | Ok Endpoints.Job.Registration.AlreadySucceeded jobId ->
+  | Ok Endpoints.Job.AlreadySucceeded jobId ->
     lwt @@ Lwt_stream.return (Succeeded (Endpoints.Api.(href @@ Job File) jobId slug))
-  | Ok Endpoints.Job.Registration.Registered jobId ->
+  | Ok Endpoints.Job.Registered jobId ->
     let first_time = ref true in
     lwt @@
     Lwt_stream.from_next @@ fun () ->
@@ -48,9 +48,9 @@ let run3 slug promise =
   Lwt_stream.(concat % return_lwt) @@
   match%lwt promise with
   | None -> assert false
-  | Some Endpoints.Job.Registration.AlreadySucceeded jobId ->
+  | Some Endpoints.Job.AlreadySucceeded jobId ->
     lwt @@ Lwt_stream.return (Succeeded (Endpoints.Api.(href @@ Job File) jobId slug))
-  | Some Endpoints.Job.Registration.Registered jobId ->
+  | Some Endpoints.Job.Registered jobId ->
     let first_time = ref true in
     lwt @@
     Lwt_stream.from_next @@ fun () ->
@@ -67,8 +67,8 @@ let run3 slug promise =
 let copyright_reponse_promise_to_job_registration_promise copyright_response_promise =
   match%lwt copyright_response_promise with
   | Error error -> raise (Madge_client.Error error)
-  | Ok Endpoints.Version.Copyright_response.Protected -> lwt_none
-  | Ok Endpoints.Version.Copyright_response.Granted {payload; _} -> lwt_some payload
+  | Ok Endpoints.Version.Protected -> lwt_none
+  | Ok Endpoints.Version.Granted {payload; _} -> lwt_some payload
 
 let status_signal_from_promise = S.switch % S.from' (S.const Registering)
 
