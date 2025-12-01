@@ -87,7 +87,10 @@ let lwt_nil = Lwt.return_nil
 let lwt_empty = Lwt.return ""
 let lwt_true = Lwt.return_true
 let lwt_false = Lwt.return_false
+let lwt_ok = Lwt.return_ok
+let lwt_error = Lwt.return_error
 let lwt_left x = Lwt.return @@ left x
+let lwt_right x = Lwt.return @@ right x
 
 let (<$>) = Lwt.map
 let (<%>) f g x = f <$> g x
