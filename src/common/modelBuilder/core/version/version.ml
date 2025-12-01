@@ -24,6 +24,10 @@ type source = {
 let source_to_source_core : source -> source_core = fun {source; structure; details} ->
   {source = Entry.id source; structure; details}
 
+let source_source source = source.source
+let source_structure source = source.structure
+let source_details source = source.details
+
 let _key = "version"
 
 type t = {

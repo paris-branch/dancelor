@@ -13,9 +13,10 @@ type status =
   | Succeeded of string
 [@@deriving yojson]
 
-(** Run a job, and return a signal that contains its status. *)
-let run slug route =
-  Madge_client.call_gen route @@ fun promise ->
+(** Same as {!job}, but the client code must provide the promise. It is advised
+    to create it with {!Madge_client.call_gen}. Prefer using {!run} if
+    possible. *)
+let run' slug promise =
   S.from_lwt_stream Registering @@
   Lwt_stream.(concat % return_lwt) @@
   match%lwt promise with
@@ -35,6 +36,39 @@ let run slug route =
       | Running logs -> Lwt_stream.Next (Running logs)
       | Failed logs -> Lwt_stream.Next (Failed logs)
       | Succeeded -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) jobId slug))
+
+(** Run a job, and return a signal that contains its status. *)
+let run slug route =
+  Madge_client.call_gen route @@ fun promise ->
+  run' slug promise
+
+(* FIXME: duplicate of {!run} *)
+let run3 slug promise =
+  S.from_lwt_stream Registering @@
+  Lwt_stream.(concat % return_lwt) @@
+  match%lwt promise with
+  | None -> assert false
+  | Some Endpoints.Job.Registration.AlreadySucceeded jobId ->
+    lwt @@ Lwt_stream.return (Succeeded (Endpoints.Api.(href @@ Job File) jobId slug))
+  | Some Endpoints.Job.Registration.Registered jobId ->
+    let first_time = ref true in
+    lwt @@
+    Lwt_stream.from_next @@ fun () ->
+    (* the very first time, do not wait *)
+    if !first_time then (first_time := false; lwt_unit) else Js_of_ocaml_lwt.Lwt_js.sleep 3.;%lwt
+    let%lwt status = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) jobId in
+    lwt @@
+      match status with
+      | Pending -> Lwt_stream.Next Pending
+      | Running logs -> Lwt_stream.Next (Running logs)
+      | Failed logs -> Lwt_stream.Next (Failed logs)
+      | Succeeded -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) jobId slug))
+
+let copyright_reponse_promise_to_job_registration_promise copyright_response_promise =
+  match%lwt copyright_response_promise with
+  | Error error -> raise (Madge_client.Error error)
+  | Ok Endpoints.Version.Copyright_response.Protected -> lwt_none
+  | Ok Endpoints.Version.Copyright_response.Granted {payload; _} -> lwt_some payload
 
 let status_signal_from_promise = S.switch % S.from' (S.const Registering)
 

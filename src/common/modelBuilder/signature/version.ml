@@ -14,6 +14,10 @@ module type S = sig
     details: string;
   }
 
+  val source_source : source -> Core.Source.t Entry.t
+  val source_structure : source -> Structure.t
+  val source_details : source -> string
+
   type t = Core.Version.t
 
   val make :

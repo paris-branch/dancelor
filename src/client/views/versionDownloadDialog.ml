@@ -87,6 +87,12 @@ let open_pdf_generation_dialog status_signal =
       )]
       ~buttons: [Utils.Button.cancel' ~return ()]
 
+let copyright_reponse_promise_to_job_registration_promise copyright_response_promise =
+  match%lwt copyright_response_promise with
+  | Error error -> raise (Madge_client.Error error)
+  | Ok Endpoints.Version.Copyright_response.Protected -> lwt_none
+  | Ok Endpoints.Version.Copyright_response.Granted {payload; _} -> lwt_some payload
+
 let open_ version dialog =
   Page.open_dialog @@ fun return ->
   Page.make'
@@ -100,12 +106,16 @@ let open_ version dialog =
           let%lwt slug = Version.slug' version in
           return None;
           open_pdf_generation_dialog (
-            Job.run
-              (Entry.Slug.add_suffix slug ".pdf")
-              Endpoints.Api.(route @@ Version BuildPdf)
-              (Entry.id version)
-              version_params
-              rendering_params
+            let copyright_response_promise =
+              Madge_client.call
+                Endpoints.Api.(route @@ Version BuildPdf)
+                (Entry.id version)
+                version_params
+                rendering_params
+            in
+            let job_registration_promise = copyright_reponse_promise_to_job_registration_promise copyright_response_promise in
+            let slug = Entry.Slug.add_suffix slug ".pdf" in
+            Job.run3 slug job_registration_promise
           )
         )
         ();
