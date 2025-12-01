@@ -24,6 +24,7 @@
           self'.packages.ocaml-argon2
           self'.packages.prometheus-app
           inputs'.camelotte.packages.monadise
+          inputs'.camelotte.packages.monadise-lwt
 
           cohttp-lwt-jsoo
           cohttp-lwt-unix
