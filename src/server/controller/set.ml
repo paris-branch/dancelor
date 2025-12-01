@@ -25,7 +25,7 @@ include Search.Build(struct
   type filter = Filter.Set.t
 
   let get_all env =
-    List.filter (Permission.can_get env) (Database.Set.get_all ())
+    lwt @@ List.filter (Permission.can_get env) (Database.Set.get_all ())
 
   let filter_accepts = Filter.Set.accepts
 
