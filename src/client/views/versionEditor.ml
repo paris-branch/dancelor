@@ -294,6 +294,11 @@ let unsubmit version =
   (* NOTE: The API erases the LilyPond from versions, so we need to pull the
      full content ourselves and re-insert it in the version. *)
   let%lwt content = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) (Entry.id version) in
+  let content =
+    match content with
+    | Endpoints.Version.Copyright_response.Protected -> assert false
+    | Endpoints.Version.Copyright_response.Granted {payload; _} -> payload
+  in
   lwt @@ Model.Version.set_content content (Entry.value version)
 
 let disassemble version =

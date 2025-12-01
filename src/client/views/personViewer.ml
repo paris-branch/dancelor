@@ -34,6 +34,24 @@ let create ?context id =
       )
     )
     [
+      div (
+        if Model.Person.composed_tunes_are_public' person then
+          [
+            txt
+              "This person indicates that the tunes they compose can be made \
+               publicly available on Dancelor."
+          ]
+        else []
+      );
+      div (
+        if Model.Person.published_tunes_are_public' person then
+          [
+            txt
+              "This person indicates that the tunes they publish can be made \
+               publicly available on Dancelor."
+          ]
+        else []
+      );
       Utils.quick_explorer_links'
         (lwt person)
         [
