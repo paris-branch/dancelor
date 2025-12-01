@@ -296,8 +296,8 @@ let unsubmit version =
   let%lwt content = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) (Entry.id version) in
   let content =
     match content with
-    | Endpoints.Version.Copyright_response.Protected -> assert false
-    | Endpoints.Version.Copyright_response.Granted {payload; _} -> payload
+    | Endpoints.Version.Protected -> assert false
+    | Endpoints.Version.Granted {payload; _} -> payload
   in
   lwt @@ Model.Version.set_content content (Entry.value version)
 

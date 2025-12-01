@@ -50,20 +50,20 @@ let with_copyright_check env version f =
      connected, we get a pass (for now) *)
   let reason =
     if composer_agrees then
-      Some Endpoints.Version.Copyright_response.Composer_agrees
+      Some Endpoints.Version.Composer_agrees
     else
       match publisher_agrees with
-      | source :: _ -> Some (Endpoints.Version.Copyright_response.Publisher_agrees source)
+      | source :: _ -> Some (Endpoints.Version.Publisher_agrees source)
       | [] ->
         if connected then
-          Some Endpoints.Version.Copyright_response.Connected
+          Some Endpoints.Version.Connected
         else None
   in
   match reason with
-  | None -> lwt Endpoints.Version.Copyright_response.Protected
+  | None -> lwt Endpoints.Version.Protected
   | Some reason ->
     let%lwt payload = f () in
-    lwt (Endpoints.Version.Copyright_response.Granted {payload; reason})
+    lwt (Endpoints.Version.Granted {payload; reason})
 
 let rec search_and_extract acc s regexp =
   let rem = Str.replace_first regexp "" s in
@@ -100,7 +100,7 @@ include Search.Build(struct
     let can_get_and_copyright_ok version =
       (&&) (Permission.can_get env version)
       <$> (
-          ((<>) Endpoints.Version.Copyright_response.Protected)
+          ((<>) Endpoints.Version.Protected)
           <$> with_copyright_check env version (const lwt_unit)
         )
     in

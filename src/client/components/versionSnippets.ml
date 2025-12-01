@@ -80,8 +80,8 @@ let make ?show_logs ?show_audio ?(params = Model.VersionParameters.none) version
     let is_protected_promise =
       match%lwt copyright_response_promise with
       | Error error -> raise (Madge_client.Error error)
-      | Ok Endpoints.Version.Copyright_response.Protected -> lwt_true
-      | Ok Endpoints.Version.Copyright_response.Granted _ -> lwt_false
+      | Ok Endpoints.Version.Protected -> lwt_true
+      | Ok Endpoints.Version.Granted _ -> lwt_false
     in
     let svg_status_signal =
       Job.status_signal_from_promise @@

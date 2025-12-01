@@ -8,8 +8,8 @@ let show_lilypond_dialog version =
     let%lwt content = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) (Entry.id version) in
     let content =
       match content with
-      | Endpoints.Version.Copyright_response.Protected -> assert false
-      | Endpoints.Version.Copyright_response.Granted {payload; _} -> payload
+      | Endpoints.Version.Protected -> assert false
+      | Endpoints.Version.Granted {payload; _} -> payload
     in
     Model.Version.content_lilypond' ~content version
   in
@@ -114,8 +114,8 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
     let%lwt other_content = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) (Entry.id other_version) in
     let other_content =
       match other_content with
-      | Endpoints.Version.Copyright_response.Protected -> assert false
-      | Endpoints.Version.Copyright_response.Granted {payload; _} -> payload
+      | Endpoints.Version.Protected -> assert false
+      | Endpoints.Version.Granted {payload; _} -> payload
     in
     add_other_version_changes [txt "use its content; the content of the current version will be lost entirely."];
     (* that's it for changes to the other version; bundle them together as a change *)

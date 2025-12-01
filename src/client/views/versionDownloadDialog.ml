@@ -90,8 +90,8 @@ let open_pdf_generation_dialog status_signal =
 let copyright_reponse_promise_to_job_registration_promise copyright_response_promise =
   match%lwt copyright_response_promise with
   | Error error -> raise (Madge_client.Error error)
-  | Ok Endpoints.Version.Copyright_response.Protected -> lwt_none
-  | Ok Endpoints.Version.Copyright_response.Granted {payload; _} -> lwt_some payload
+  | Ok Endpoints.Version.Protected -> lwt_none
+  | Ok Endpoints.Version.Granted {payload; _} -> lwt_some payload
 
 let open_ version dialog =
   Page.open_dialog @@ fun return ->
