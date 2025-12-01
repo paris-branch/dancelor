@@ -23,7 +23,7 @@
         buildInputs = with pkgs.ocamlPackages; [
           self'.packages.ocaml-argon2
           self'.packages.prometheus-app
-          inputs'.monadise.packages.default
+          inputs'.camelotte.packages.monadise
 
           cohttp-lwt-jsoo
           cohttp-lwt-unix

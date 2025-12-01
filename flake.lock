@@ -16,6 +16,35 @@
         "type": "github"
       }
     },
+    "camelotte": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "git-hooks": [
+          "git-hooks-nix"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "topiary": [
+          "topiary"
+        ]
+      },
+      "locked": {
+        "lastModified": 1764262222,
+        "narHash": "sha256-267n50BxENt2hm9zDPjy9VweBqxF0vtor/oyzCBkiNk=",
+        "owner": "niols",
+        "repo": "camelotte",
+        "rev": "b93cd5a03eaa2c5ef0ec2d9178625a5f9d6d849a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "niols",
+        "repo": "camelotte",
+        "type": "github"
+      }
+    },
     "crane": {
       "locked": {
         "lastModified": 1762538466,
@@ -108,42 +137,13 @@
         "type": "github"
       }
     },
-    "monadise": {
-      "inputs": {
-        "flake-parts": [
-          "flake-parts"
-        ],
-        "git-hooks": [
-          "git-hooks-nix"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "topiary": [
-          "topiary"
-        ]
-      },
-      "locked": {
-        "lastModified": 1763650215,
-        "narHash": "sha256-xr8S14yGvAdf9vKBWhvjhfHjm4AQPvVTUzgFvtVjYSw=",
-        "owner": "niols",
-        "repo": "ocaml-monadise",
-        "rev": "65a852b877cd52508db52c0553d7c8e2893916ba",
-        "type": "github"
-      },
-      "original": {
-        "owner": "niols",
-        "repo": "ocaml-monadise",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1763835633,
-        "narHash": "sha256-HzxeGVID5MChuCPESuC0dlQL1/scDKu+MmzoVBJxulM=",
+        "lastModified": 1764517877,
+        "narHash": "sha256-pp3uT4hHijIC8JUK5MEqeAWmParJrgBVzHLNfJDZxg4=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "050e09e091117c3d7328c7b2b7b577492c43c134",
+        "rev": "2d293cbfa5a793b4c50d17c05ef9e385b90edf6c",
         "type": "github"
       },
       "original": {
@@ -202,9 +202,9 @@
     },
     "root": {
       "inputs": {
+        "camelotte": "camelotte",
         "flake-parts": "flake-parts",
         "git-hooks-nix": "git-hooks-nix",
-        "monadise": "monadise",
         "nixpkgs": "nixpkgs",
         "topiary": "topiary"
       }
@@ -235,11 +235,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1764003497,
-        "narHash": "sha256-9hLAXZZMakTZowG0m4h+Uo3WUhg6vjnYBcoM5XdeGFg=",
+        "lastModified": 1764337750,
+        "narHash": "sha256-wKxYvYjtc4+3nOUKFOT6n5+GkKUc5rehVilDT+aFLXg=",
         "owner": "tweag",
         "repo": "topiary",
-        "rev": "e24aa23867ea71db5c06c83b5b62e4feb2379fc9",
+        "rev": "ee4920e23bcff6d484e1338bf8e97bda26746f41",
         "type": "github"
       },
       "original": {
