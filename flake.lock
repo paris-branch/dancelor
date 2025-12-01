@@ -16,6 +16,35 @@
         "type": "github"
       }
     },
+    "camelotte": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "git-hooks": [
+          "git-hooks-nix"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "topiary": [
+          "topiary"
+        ]
+      },
+      "locked": {
+        "lastModified": 1764262222,
+        "narHash": "sha256-267n50BxENt2hm9zDPjy9VweBqxF0vtor/oyzCBkiNk=",
+        "owner": "niols",
+        "repo": "camelotte",
+        "rev": "b93cd5a03eaa2c5ef0ec2d9178625a5f9d6d849a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "niols",
+        "repo": "camelotte",
+        "type": "github"
+      }
+    },
     "crane": {
       "locked": {
         "lastModified": 1762538466,
@@ -108,35 +137,6 @@
         "type": "github"
       }
     },
-    "monadise": {
-      "inputs": {
-        "flake-parts": [
-          "flake-parts"
-        ],
-        "git-hooks": [
-          "git-hooks-nix"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "topiary": [
-          "topiary"
-        ]
-      },
-      "locked": {
-        "lastModified": 1764081093,
-        "narHash": "sha256-eek3LGsSNYxY4xA3geZ9+jNCs5cgezJVXu/gSErLfgA=",
-        "owner": "niols",
-        "repo": "ocaml-monadise",
-        "rev": "1775e1fcae9f7ea373bcd872e9c9328fb99280d8",
-        "type": "github"
-      },
-      "original": {
-        "owner": "niols",
-        "repo": "ocaml-monadise",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1764517877,
@@ -202,9 +202,9 @@
     },
     "root": {
       "inputs": {
+        "camelotte": "camelotte",
         "flake-parts": "flake-parts",
         "git-hooks-nix": "git-hooks-nix",
-        "monadise": "monadise",
         "nixpkgs": "nixpkgs",
         "topiary": "topiary"
       }
