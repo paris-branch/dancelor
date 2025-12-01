@@ -151,35 +151,27 @@ let render_snippets ?version_params version =
   let%lwt tune = ModelToRenderer.version_to_renderer_tune ?version_params version in
   lwt @@ Renderer.make_tune_snippets tune
 
-let render_svg ?version_params version =
+let register_snippets_job ?version_params version =
   let%lwt tune = ModelToRenderer.version_to_renderer_tune ?version_params version in
-  lwt @@ Renderer.make_tune_svg tune
+  let svg_job = Renderer.make_tune_svg tune in
+  let ogg_job = Renderer.make_tune_ogg tune in
+  lwt @@
+    match (uncurry Job.register_job svg_job, uncurry Job.register_job ogg_job) with
+    | AlreadySucceeded svg_job_id, AlreadySucceeded ogg_job_id -> Endpoints.Job.AlreadySucceeded Endpoints.Version.Snippet_ids.{svg_job_id; ogg_job_id}
+    | Registered svg_job_id, AlreadySucceeded ogg_job_id -> Registered {svg_job_id; ogg_job_id}
+    | AlreadySucceeded svg_job_id, Registered ogg_job_id -> Registered {svg_job_id; ogg_job_id}
+    | Registered svg_job_id, Registered ogg_job_id -> Registered {svg_job_id; ogg_job_id}
 
-let build_svg env id version_params _rendering_params =
-  Log.debug (fun m -> m "build_svg %a" Entry.Id.pp' id);
+let build_snippets env id version_params _rendering_params =
+  Log.debug (fun m -> m "build_snippets %a" Entry.Id.pp' id);
   get env id >>= fun version ->
   with_copyright_check env version @@ fun () ->
-  uncurry Job.register_job <$> render_svg (Entry.value version) ~version_params
+  register_snippets_job ~version_params (Entry.value version)
 
-let build_svg' env version version_params _rendering_params =
-  Log.debug (fun m -> m "build_svg'");
+let build_snippets' env version version_params _rendering_params =
+  Log.debug (fun m -> m "build_snippets'");
   Permission.assert_can_create env;%lwt
-  uncurry Job.register_job <$> render_svg version ~version_params
-
-let render_ogg ?version_params version =
-  let%lwt tune = ModelToRenderer.version_to_renderer_tune ?version_params version in
-  lwt @@ Renderer.make_tune_ogg tune
-
-let build_ogg env id version_params _rendering_params =
-  Log.debug (fun m -> m "build_ogg %a" Entry.Id.pp' id);
-  get env id >>= fun version ->
-  with_copyright_check env version @@ fun () ->
-  uncurry Job.register_job <$> render_ogg (Entry.value version) ~version_params
-
-let build_ogg' env version version_params _rendering_params =
-  Log.debug (fun m -> m "build_ogg'");
-  Permission.assert_can_create env;%lwt
-  uncurry Job.register_job <$> render_ogg version ~version_params
+  register_snippets_job ~version_params version
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun env endpoint ->
   match endpoint with
@@ -190,7 +182,5 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t ->
   | Update -> update env
   | Delete -> delete env
   | BuildPdf -> build_pdf env
-  | BuildSvg -> build_svg env
-  | BuildSvg' -> build_svg' env
-  | BuildOgg -> build_ogg env
-  | BuildOgg' -> build_ogg' env
+  | BuildSnippets -> build_snippets env
+  | BuildSnippets' -> build_snippets' env

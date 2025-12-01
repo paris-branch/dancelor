@@ -14,6 +14,18 @@ type 'payload copyright_response =
   | Granted of {payload: 'payload; reason: copyright_response_reason}
 [@@deriving yojson]
 
+let map_copyright_response f = function
+  | Protected -> Protected
+  | Granted {payload; reason} -> Granted {payload = f payload; reason}
+
+module Snippet_ids = struct
+  type t = {
+    svg_job_id: JobId.t;
+    ogg_job_id: JobId.t;
+  }
+  [@@deriving yojson]
+end
+
 type (_, _, _) t =
 (* Actions without specific version *)
 | Create : ((Version.t -> 'w), 'w, Version.t Entry.t) t
@@ -24,12 +36,10 @@ type (_, _, _) t =
 | Update : ((Version.t Entry.Id.t -> Version.t -> 'w), 'w, Version.t Entry.t) t
 | Delete : ((Version.t Entry.Id.t -> 'w), 'w, unit) t
 (* Files related to a version *)
-| BuildSvg : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, JobId.t Job.registration_response copyright_response) t
-| BuildOgg : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, JobId.t Job.registration_response copyright_response) t
+| BuildSnippets : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Snippet_ids.t Job.registration_response copyright_response) t
 | BuildPdf : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, JobId.t Job.registration_response copyright_response) t
 (* Files related to an anonymous version *)
-| BuildSvg' : ((Version.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, JobId.t Job.registration_response) t
-| BuildOgg' : ((Version.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, JobId.t Job.registration_response) t
+| BuildSnippets' : ((Version.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Snippet_ids.t Job.registration_response) t
 [@@deriving madge_wrapped_endpoints]
 
 (* NOTE: The version model contains its LilyPond content. This is a big string
@@ -62,9 +72,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module Entry.J(VersionNoLilypond))
     | Delete -> variable (module Entry.Id.S(Version)) @@ delete (module JUnit)
     (* Files related to a version *)
-    | BuildSvg -> literal "build-svg" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Copyright_response(Job.Registration_response(JobId)))
-    | BuildOgg -> literal "build-ogg" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Copyright_response(Job.Registration_response(JobId)))
+    | BuildSnippets -> literal "build-snippets" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Copyright_response(Job.Registration_response(Snippet_ids)))
     | BuildPdf -> literal "build-pdf" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Copyright_response(Job.Registration_response(JobId)))
     (* Files related to an anonymous version *)
-    | BuildSvg' -> literal "build-svg" @@ query "version" (module Version) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Job.Registration_response(JobId))
-    | BuildOgg' -> literal "build-ogg" @@ query "version" (module Version) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Job.Registration_response(JobId))
+    | BuildSnippets' -> literal "build-snippets" @@ query "version" (module Version) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Job.Registration_response(Snippet_ids))
