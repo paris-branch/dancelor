@@ -35,7 +35,7 @@ let lilypond ?structure: desired_structure ~kind ~key parts transitions =
     | Polka -> "2/2"
   in
   let key =
-    (Music.Note.to_lilypond_string @@ Music.Pitch.note @@ Music.Key.pitch key) ^
+    (Music.Pitch.to_lilypond_string @@ Music.Key.pitch key) ^
     " " ^ (Music.Mode.to_lilypond_string @@ Music.Key.mode key)
   in
   let parts = NEList.to_list parts in
