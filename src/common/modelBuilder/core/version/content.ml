@@ -101,12 +101,8 @@ let lilypond ?structure: desired_structure ~kind ~key parts transitions =
       | None -> lilypond
       | Some transition -> Voices.concat_l [transition; Voices.space; lilypond]
     in
-    match structure with
-    | None ->
-      (* no structure; or we couldn't find a good one *)
-      to_lilypond (List.mapi (fun n _ -> Structure.part @@ Part_name.of_int n) parts)
-    | Some structure ->
-      Voices.concat (to_lilypond structure) Voices.fine
+    let structure = Option.value structure ~default: (List.mapi (fun n _ -> Structure.part @@ Part_name.of_int n) parts) in
+    Voices.concat (to_lilypond structure) Voices.fine
   in
   spf
     "<< \\new Voice {\\clef treble \\time %s \\key %s {%s}}\\new ChordNames {\\chordmode {%s}}>>"
