@@ -18,10 +18,12 @@ class BrokenTestSetPDFDownload():
 
   def test_setPDFDownload(self):
     self.driver.get("http://localhost:8080/set/tam-lin-thrice")
-    self.driver.find_element(By.LINK_TEXT, "PDF").click()
-    link = self.driver.find_element(By.LINK_TEXT, "Download").get_attribute("href")
+    utils.wait_and_click(self.driver, By.LINK_TEXT, "PDF")
+    link_element = utils.wait_for_element(self.driver, By.LINK_TEXT, "Download")
+    link = link_element.get_attribute("href")
     assert(link == "/api/set//tam-lin-thrice.pdf")
-    self.driver.find_element(By.CSS_SELECTOR, "label:nth-child(6)").click()
-    self.driver.find_element(By.CSS_SELECTOR, "tr:nth-child(2) label:nth-child(4)").click()
-    link = self.driver.find_element(By.LINK_TEXT, "Download").get_attribute("href")
+    utils.wait_and_click(self.driver, By.CSS_SELECTOR, "label:nth-child(6)")
+    utils.wait_and_click(self.driver, By.CSS_SELECTOR, "tr:nth-child(2) label:nth-child(4)")
+    link_element = utils.wait_for_element(self.driver, By.LINK_TEXT, "Download")
+    link = link_element.get_attribute("href")
     assert(link == "/api/set//tam-lin-thrice.pdf?parameters=%7B%22every-version%22:%7B%22transposition%22:%5B%22Relative%22%2C%22Eb%22%2C%22C%2C%22%5D%2C%22instruments%22:%22E%E2%99%AD%20instruments%22%2C%22clef%22:%22bass%22%7D%7D")

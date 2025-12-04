@@ -20,13 +20,14 @@ class TestActions():
 
   def test_versionShowLilyPond(self):
     self.driver.get("http://localhost:8080/version/xzzb-wasm-babe")
-    self.driver.find_element(By.XPATH, "(//i[contains(@class, 'bi-three-dots-vertical')])[2]").click()
-    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Show LilyPond')]").click()
+    utils.wait_and_click(self.driver, By.XPATH, "(//i[contains(@class, 'bi-three-dots-vertical')])[2]")
+    utils.wait_and_click(self.driver, By.XPATH, "//*[contains(text(), 'Show LilyPond')]")
     with open("tests/database/version/xzzb-wasm-babe/meta.yaml") as meta_file:
       [kind, payload] = yaml.safe_load(meta_file)["content"]
       assert (kind == "Monolithic")
       expected = payload["lilypond"]
-    shown = self.driver.find_element(By.XPATH, "//pre[contains(text(), 'clef')]").get_attribute("innerHTML")
+    shown_element = utils.wait_for_element(self.driver, By.XPATH, "//pre[contains(text(), 'clef')]")
+    shown = shown_element.get_attribute("innerHTML")
     assert(html.unescape(shown.strip()) == expected.strip())
     ## TODO: also check the “copy to clipboard” functionality, but the following
     ## does not work:
