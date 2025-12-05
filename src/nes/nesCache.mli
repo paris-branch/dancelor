@@ -9,6 +9,12 @@ val create : ?lifetime: int -> unit -> ('key, 'value) t
     removed from the cache during normal {!use} or when explicitly calling for a
     {!cleanup}. *)
 
-val use : cache: ('key, 'value) t -> key: 'key -> (unit -> 'value) -> 'value
+val use :
+  cache: ('key, 'value) t ->
+  key: 'key ->
+  ?if_: bool ->
+  (unit -> 'value) ->
+  'value
 (** Looks up the [~key] in the [~cache]. If it exists, return its value.
-    Otherwise, call the given function, store its result and return it. *)
+    Otherwise, call the given function, store its result and return it. The
+    optional argument, [?if_], skips the cache when [false] ([true] by default). *)
