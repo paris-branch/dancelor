@@ -86,9 +86,11 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | UserPasswordReset -> literal "user" @@ literal "reset-password" @@ query "username" (module JString) @@ query "token" (module JString) @@ void ()
 
 let href : type a r. (a, string, r) t -> a = fun page ->
-  with_request (route page) @@ fun (module _) {meth; uri; _} ->
-  assert (meth = GET);
-  match Uri.to_string uri with "" -> "/" | uri -> uri
+  with_request (route page) @@ fun (module _) request ->
+  assert (Request.meth request = GET);
+  match Uri.to_string (Request.uri request) with
+  | "" -> "/"
+  | uri -> uri
 
 let href_book ?context book = href Book context book
 let href_dance ?context dance = href Dance context dance
@@ -170,7 +172,7 @@ module MakeDescribe (Model : ModelBuilder.S) = struct
     in
     let madge_match_apply_all : (string * string) option Lwt.t wrapped' list -> (unit -> (string * string) option Lwt.t) option =
       List.map_first_some @@ fun (W' page) ->
-      Madge.apply' (route page) (fun () -> describe page) {meth = GET; uri; body = ""}
+      Madge.apply' (route page) (fun () -> describe page) (Request.make ~meth: GET ~uri ~body: "")
     in
     match madge_match_apply_all @@ all' () with
     | Some page -> page ()

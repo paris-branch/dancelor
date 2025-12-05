@@ -31,7 +31,7 @@ let apply_controller env request =
   in
   (* FIXME: We should just get a URI. *)
   match madge_match_apply_all Endpoints.Api.all with
-  | None -> Madge_server.respond_not_found "The endpoint `%s` does not exist or is not called with the right method and parameters." (Uri.path request.uri)
+  | None -> Madge_server.respond_not_found "The endpoint `%s` does not exist or is not called with the right method and parameters." (Uri.path @@ Madge.Request.uri request)
   | Some (name, thunk) ->
     Log.debug (fun m -> m "Applying endpoint %s" name);
     try%lwt
@@ -73,7 +73,7 @@ let callback _ request body =
       (
         Log.debug (fun m -> m "Looking for an API controller for %s." path);
         let%lwt body = Cohttp_lwt.Body.to_string body in
-        apply_controller env {meth; uri; body}
+        apply_controller env (Madge.Request.make ~meth ~uri ~body)
       )
     else
       Static.serve path

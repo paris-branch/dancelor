@@ -13,10 +13,10 @@ type error_response = {message: string} [@@deriving yojson]
 let max_attempts = 10 (* up to ~2 minutes *)
 
 let call_retry ?(retry = true) (request : Request.t) =
-  let meth = Request.meth_to_cohttp_code_meth request.meth in
-  let body = Cohttp_lwt.Body.of_string request.body in
+  let meth = Request.meth_to_cohttp_code_meth (Request.meth request) in
+  let body = Cohttp_lwt.Body.of_string (Request.body request) in
   let rec call_retry attempt =
-    let%lwt (response, body) = Cohttp_lwt_jsoo.Client.call meth request.uri ~body in
+    let%lwt (response, body) = Cohttp_lwt_jsoo.Client.call meth (Request.uri request) ~body in
     let status = Cohttp.Response.status response in
     if List.mem (Cohttp.Code.code_of_status status) [0; 502; 503; 504] then
       (

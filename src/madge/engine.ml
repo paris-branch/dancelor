@@ -32,7 +32,7 @@ let rec with_request
         else
           Yojson.Safe.to_string @@ `Assoc (Query.to_list body)
       in
-      return (module R) {meth; uri; body}
+      return (module R) (Request.make ~meth ~uri ~body)
     )
   | Literal (str, route) ->
     with_request (path ^ "/" ^ str) query body route return
@@ -60,7 +60,7 @@ let with_request
   with_request "" Query.empty Query.empty route return
 
 let uri : type a r. (a, Uri.t, r) Route.t -> a = fun route ->
-  with_request route (fun (module _) {uri; _} -> uri)
+  with_request route (fun (module _) request -> Request.uri request)
 
 (* request -> route *)
 
@@ -152,11 +152,11 @@ let apply
   Request.t ->
   ((module JSONABLE with type t = r) -> (unit -> w) -> z) ->
   (unit -> z) option
-= fun route controller {meth; uri; body} return ->
+= fun route controller request return ->
   Log.debug (fun m -> m "Madge.apply <route> <controller> <request> <return>");
-  let path = List.filter ((<>) "") (String.split_on_char '/' (Uri.path uri)) in
-  Option.bind (Query.from_uri uri) @@ fun uri_query ->
-  apply route controller meth path uri_query (Query.from_body body) return
+  let path = List.filter ((<>) "") (String.split_on_char '/' (Uri.path @@ Request.uri request)) in
+  Option.bind (Query.from_uri @@ Request.uri request) @@ fun uri_query ->
+  apply route controller (Request.meth request) path uri_query (Query.from_body @@ Request.body request) return
 
 let apply'
   : type a w r. (a, w, r) Route.t ->
