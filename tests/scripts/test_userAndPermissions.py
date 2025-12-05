@@ -1,7 +1,6 @@
 import pytest
 import json
 import html
-import time
 from urllib.parse import urlparse
 
 from selenium import webdriver
@@ -26,30 +25,31 @@ class TestUserAndPermissions():
     self.driver.get("http://localhost:8080/person/wrwk-cz9g-g3wi ")
 
   def is_404(self):
-    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Oooops')]")
+    utils.wait_for_element(self.driver, By.XPATH, "//*[contains(text(), 'Oooops')]")
 
   def is_entry(self):
-    self.driver.find_element(By.XPATH, "//*[contains(text(), 'A Private Person')]")
+    utils.wait_for_element(self.driver, By.XPATH, "//*[contains(text(), 'A Private Person')]")
 
   def sign_in(self, remember_me=False):
-    ## Find the “Sign in” button in the header.
-    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Sign in')]").click()
+    ## Find the "Sign in" button in the header.
+    utils.wait_and_click(self.driver, By.XPATH, "//*[contains(text(), 'Sign in')]")
     ## Fill the form and submit.
-    self.driver.find_element(By.XPATH, "//input[@placeholder = 'JeanMilligan']").send_keys("Niols")
-    self.driver.find_element(By.XPATH, "//input[@placeholder = '1234567']").send_keys("test")
+    utils.wait_and_send_keys(self.driver, By.XPATH, "//input[@placeholder = 'JeanMilligan']", "Niols")
+    utils.wait_and_send_keys(self.driver, By.XPATH, "//input[@placeholder = '1234567']", "test")
     if remember_me:
       ## Find the label, follow it to its input element. Click the element via
       ## JavaScript because the input element is hidden.
-      for_ = self.driver.find_element(By.XPATH, "//label[text()[contains(., 'Remember me')]]").get_attribute("for")
-      self.driver.execute_script("arguments[0].click();", self.driver.find_element(By.ID, for_))
-    self.driver.find_element(By.XPATH, "//button[text()[contains(., 'Sign in')] and not(contains(@class, 'disabled'))]").click()
-    ## Wait until we are signed in. Specifically, we want all the requests to be
-    ## done, as they all may carry the relevant cookies.
-    time.sleep(1)
+      label = utils.wait_for_element(self.driver, By.XPATH, "//label[text()[contains(., 'Remember me')]]")
+      for_ = label.get_attribute("for")
+      checkbox = self.driver.find_element(By.ID, for_)
+      self.driver.execute_script("arguments[0].click();", checkbox)
+    utils.wait_and_click(self.driver, By.XPATH, "//button[text()[contains(., 'Sign in')] and not(contains(@class, 'disabled'))]")
+    ## Wait until we are signed in by checking for the username in the header
+    self.wait.until(expected_conditions.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Niols')]")))
 
   def sign_out(self):
-    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Niols')]").click()
-    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Sign out')]").click()
+    utils.wait_and_click(self.driver, By.XPATH, "//*[contains(text(), 'Niols')]")
+    utils.wait_and_click(self.driver, By.XPATH, "//*[contains(text(), 'Sign out')]")
 
   def test_sign_in_permissions_sign_out(self):
     ## Load the page and check that we are not signed in.
