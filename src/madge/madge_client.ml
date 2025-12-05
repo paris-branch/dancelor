@@ -12,7 +12,7 @@ type error_response = {message: string} [@@deriving yojson]
 
 let max_attempts = 10 (* up to ~2 minutes *)
 
-let call_retry ?(retry = true) (request : Request.t) =
+let call_retry ?(retry = true) (request : Request.t) : (Response.t, error) result Lwt.t =
   let meth = Request.meth_to_cohttp_code_meth (Request.meth request) in
   let body = Cohttp_lwt.Body.of_string (Request.body request) in
   let rec call_retry attempt =
@@ -28,8 +28,8 @@ let call_retry ?(retry = true) (request : Request.t) =
           call_retry (attempt + 1)
       )
     else
-      let%lwt body = Cohttp_lwt.Body.to_string body in
-      Lwt.return_ok (status, body)
+      let%lwt body = Response.body_of_lwt body in
+      lwt_ok (response, body)
   in
   call_retry (if retry then 1 else max_int)
 
@@ -44,10 +44,12 @@ let call_gen
 = fun ?retry route cont ->
   with_request route @@ fun (module R) request ->
   cont @@
-    let%rlwt (status, body) =
+    let%rlwt (response, body) =
       Cache.use ~cache ~key: request ~if_: Request.(is_safe @@ meth request) @@ fun () ->
       call_retry ?retry request
     in
+    let status = Cohttp.Response.status response in
+    let body = Cohttp.Body.to_string body in
     let%rlwt json_body =
       try
         Lwt.return_ok @@ Yojson.Safe.from_string body
