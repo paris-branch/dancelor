@@ -34,8 +34,13 @@ let cohttp_code_meth_to_meth = function
   | `CONNECT -> CONNECT
   | `Other _ -> assert false (* FIXME *)
 
+let is_safe = function
+  | GET | HEAD | OPTIONS | TRACE -> true
+  | PUT | DELETE | PATCH | POST | CONNECT -> false
+
 type t = {
   meth: meth;
   uri: Uri.t;
   body: string;
 }
+[@@deriving make, fields]

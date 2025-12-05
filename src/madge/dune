@@ -4,7 +4,7 @@
  (public_name dancelor.madge)
  (libraries dancelor.nes yojson uri logs cohttp)
  (preprocess
-  (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx)))
+  (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx ppx_fields_conv)))
 
 (library
  (name madge_client)

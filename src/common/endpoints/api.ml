@@ -39,5 +39,6 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Metrics -> literal "api" @@ literal "metrics" @@ void ()
 
 let href : type a r. (a, string, r) t -> a = fun endpoint ->
-  with_request (route endpoint) @@ fun (module _) {meth; uri; _} ->
-  assert (meth = GET); Uri.to_string uri
+  with_request (route endpoint) @@ fun (module _) request ->
+  assert (Request.meth request = GET);
+  Uri.to_string (Request.uri request)

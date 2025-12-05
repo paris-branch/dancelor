@@ -41,7 +41,7 @@ let dispatch uri =
   in
   let madge_match_apply_all : Page.t Lwt.t Endpoints.Page.wrapped' list -> (unit -> Page.t Lwt.t) option =
     List.map_first_some @@ fun (Endpoints.Page.W' endpoint) ->
-    Madge.apply' (Endpoints.Page.route endpoint) (fun () -> dispatch endpoint) {meth = GET; uri; body = ""}
+    Madge.apply' (Endpoints.Page.route endpoint) (fun () -> dispatch endpoint) (Madge.Request.make ~meth: GET ~uri ~body: "")
   in
   match madge_match_apply_all @@ Endpoints.Page.all' () with
   | Some page -> page ()
@@ -98,7 +98,7 @@ let () =
               ~title: "Uncaught API call error"
               [
                 txt "While querying ";
-                a ~a: [a_href (Uri.to_string request.uri)] [txt @@ Uri.path request.uri];
+                a ~a: [a_href (Uri.to_string @@ Madge.Request.uri request)] [txt @@ Uri.path @@ Madge.Request.uri request];
                 txt ", Dancelor encountered “";
                 txt (Cohttp.Code.string_of_status status);
                 txt
@@ -111,7 +111,7 @@ let () =
               ~title: "Server unreachable"
               [
                 txt "While querying ";
-                a ~a: [a_href (Uri.to_string request.uri)] [txt @@ Uri.path request.uri];
+                a ~a: [a_href (Uri.to_string @@ Madge.Request.uri request)] [txt @@ Uri.path @@ Madge.Request.uri request];
                 txt ", the Dancelor server was unreachable (“";
                 txt (Cohttp.Code.string_of_status status);
                 txt

@@ -35,13 +35,16 @@ let cleanup_if_due ~cache ~now =
   if now - cache.last_cleanup > cache.cleanup_every then
     cleanup ~cache
 
-let use ~cache ~key thunk =
+let use ~cache ~key ?(if_ = true) thunk =
   let now = now () in
   cleanup_if_due ~cache ~now;
-  match Hashtbl.find_opt cache.entries key with
-  | Some entry when entry_age ~now entry <= cache.entry_lifetime ->
-    entry.value
-  | _ ->
-    let value = thunk () in
-    Hashtbl.replace cache.entries key {value; created_at = now};
-    value
+  if if_ then
+    match Hashtbl.find_opt cache.entries key with
+    | Some entry when entry_age ~now entry <= cache.entry_lifetime ->
+      entry.value
+    | _ ->
+      let value = thunk () in
+      Hashtbl.replace cache.entries key {value; created_at = now};
+      value
+  else
+    thunk ()
