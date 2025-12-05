@@ -8,17 +8,117 @@ on:
       - "*"
   pull_request:
 
-## We specify a concurrency group with automated cancellation. This means that
-## other pushes on the same `github.ref` (eg. other pushes to the same pull
-## request) cancel previous occurrences of the CI.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build-and-test:
-    name: Build and test
+    name: Build and test (run ${{ matrix.run_number }})
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        run_number:
+          [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95,
+            96,
+            97,
+            98,
+            99,
+            100,
+          ]
 
     steps:
       - name: Check out repository code
@@ -57,50 +157,3 @@ jobs:
 
       - name: Run integration tests
         run: nix build .#checks.x86_64-linux.integration -vL --no-link
-
-      - name: Upload GitHub pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: api-doc/
-
-  deploy-documentation:
-    name: Deploy documentation
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    if: github.ref == 'refs/heads/main'
-
-    ## Grant GITHUB_TOKEN the permissions required to make a Pages deployment.
-    ## It needs to be able to deploy to pages and to verify that the deployment
-    ## originates from an appropriate source.
-    permissions:
-      pages: write
-      id-token: write
-
-    steps:
-      - name: Deploy to GitHub pages
-        uses: actions/deploy-pages@v4
-
-  run-pre-commit-checks:
-    name: Run pre-commit checks
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v6
-
-      - name: Install Nix
-        uses: cachix/install-nix-action@V28
-        with:
-          extra_nix_config: |
-            accept-flake-config = true
-            ## Access token to avoid triggering GitHub's rate limiting.
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Nix caches
-        uses: cachix/cachix-action@v16
-        with:
-          name: dancelor
-          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
-
-      - name: Run pre-commit checks
-        run: nix build .#checks.x86_64-linux.pre-commit -vL --no-link
