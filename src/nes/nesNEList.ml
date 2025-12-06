@@ -22,3 +22,5 @@ let tl (L xs) = List.tl xs
 let singleton x = L [x]
 
 let is_singleton (L xs) = match xs with [_] -> true | _ -> false
+
+let mem x (L xs) = List.mem x xs

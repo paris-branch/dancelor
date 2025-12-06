@@ -27,3 +27,5 @@ val singleton : 'a -> 'a t
 
 val is_singleton : 'a t -> bool
 (** Check if the non-empty list contains a single element. *)
+
+val mem : 'a -> 'a t -> bool
