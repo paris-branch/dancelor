@@ -21,7 +21,7 @@ let log_die () = Logger.log_die (module Log)
 let apply_controller env request =
   let rec madge_match_apply_all = function
     | [] -> None
-    | Endpoints.Api.W endpoint :: wrapped_endpoints ->
+    | Endpoints.Api.W_internal endpoint :: wrapped_endpoints ->
       (
         Log.debug (fun m -> m "Attempting to match endpoint %s" (Endpoints.Api.name endpoint));
         match Madge_server.match_apply (Endpoints.Api.route endpoint) (fun () -> Controller.dispatch env endpoint) request with
@@ -30,7 +30,7 @@ let apply_controller env request =
       )
   in
   (* FIXME: We should just get a URI. *)
-  match madge_match_apply_all Endpoints.Api.all with
+  match madge_match_apply_all Endpoints.Api.all_internals with
   | None -> Madge_server.respond_not_found "The endpoint `%s` does not exist or is not called with the right method and parameters." (Uri.path @@ Madge.Request.uri request)
   | Some (name, thunk) ->
     Log.debug (fun m -> m "Applying endpoint %s" name);

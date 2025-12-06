@@ -13,7 +13,7 @@ module Metrics = Metrics
 
 module Log = (val Logger.create "controller": Logs.LOG)
 
-let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.t -> a = fun env endpoint ->
+let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.internal -> a = fun env endpoint ->
   match endpoint with
   | Source endpoint -> Source.dispatch env endpoint
   | Person endpoint -> Person.dispatch env endpoint
