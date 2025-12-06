@@ -2,7 +2,7 @@ open Nes
 
 type destructured = {
   parts: Voices.t NEList.t;
-  transitions: (Part_name.open_ * Part_name.open_ * Voices.t) list;
+  transitions: (Part_name.opens * Part_name.opens * Voices.t) list;
   default_structure: Structure.t;
 }
 [@@deriving eq, yojson, show {with_path = false}]
@@ -28,7 +28,7 @@ let erase_lilypond = function
     be shown when printing a part. *)
 let lilypond_voices
     ~(parts : Voices.t list)
-    ~(transitions : ((Part_name.open_ * Part_name.open_) * Voices.t) list)
+    ~(transitions : (Part_name.opens * Part_name.opens * Voices.t) list)
     ~(structure : Structure.folded)
     ~(show_part_marks : bool)
   =
@@ -37,7 +37,17 @@ let lilypond_voices
        considered when at toplevel of the structure; otherwise they would be
        produced at all levels of imbricated repeats. *)
     if (from = Part_name.Start || to_ = Part_name.End) && not toplevel then Voices.empty
-    else Option.value (List.assoc_opt (from, to_) transitions) ~default: Voices.empty
+    else
+      Option.value
+        (
+          List.find_map
+            (fun (from_l, to_l, voices) ->
+              if NEList.mem from from_l && NEList.mem to_ to_l then Some voices
+              else None
+            )
+            transitions
+        )
+        ~default: Voices.empty
   in
   let rec item_to_lilypond ~toplevel ~next_part = function
     | Structure.Part part ->
@@ -89,7 +99,6 @@ let lilypond_voices
 let lilypond ?structure ~kind ~key parts transitions =
   let Voices.{melody; chords} =
     let parts = NEList.to_list parts in
-    let transitions = List.map (fun (p1, p2, t) -> ((p1, p2), t)) transitions in
     let structure, show_part_marks =
       (* If we are asked for a structure, and we can find a best fold for it,
          then we produce that folded structure and do not show part marks.

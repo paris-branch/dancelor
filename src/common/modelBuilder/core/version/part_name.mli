@@ -1,3 +1,5 @@
+open Nes
+
 type t
 [@@deriving eq, show]
 (** An abstract part name, eg. “A”, “B”, “C”, etc., for use in a structure. *)
@@ -28,3 +30,11 @@ val open_of_string : string -> open_ option
 (** Either ["start"] or ["end"] or a {!to_char}. *)
 
 val open_to_string : open_ -> string
+
+type opens = open_ NEList.t
+[@@deriving eq, yojson, show]
+
+val opens_of_string : string -> opens option
+(** Comma-separated list of open part names. *)
+
+val opens_to_string : opens -> string

@@ -99,8 +99,8 @@ let content_in_parts () =
                     (
                       Input.prepare
                         ~type_: Text
-                        ~serialise: Model.Version.Part_name.open_to_string
-                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Part_name.open_of_string)
+                        ~serialise: Model.Version.Part_name.opens_to_string
+                        ~validate: (S.const % Option.to_result ~none: "Not a valid list of part names" % Model.Version.Part_name.opens_of_string)
                         ~label: "from"
                         ~placeholder: "eg. “A”, “B” or “start”"
                         ()
@@ -108,8 +108,8 @@ let content_in_parts () =
                     (
                       Input.prepare
                         ~type_: Text
-                        ~serialise: Model.Version.Part_name.open_to_string
-                        ~validate: (S.const % Option.to_result ~none: "Not a valid part name" % Model.Version.Part_name.open_of_string)
+                        ~serialise: Model.Version.Part_name.opens_to_string
+                        ~validate: (S.const % Option.to_result ~none: "Not a valid list of part names" % Model.Version.Part_name.opens_of_string)
                         ~label: "to"
                         ~placeholder: "eg. “A”, “B” or “end”"
                         ()

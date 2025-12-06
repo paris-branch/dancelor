@@ -2,7 +2,7 @@ open Nes
 
 type destructured = {
   parts: Voices.t NEList.t;
-  transitions: (Part_name.open_ * Part_name.open_ * Voices.t) list;
+  transitions: (Part_name.opens * Part_name.opens * Voices.t) list;
   default_structure: Structure.t;
 }
 

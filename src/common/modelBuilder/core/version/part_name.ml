@@ -38,5 +38,21 @@ let open_of_string = function
 let open__to_yojson p = `String (open_to_string p)
 
 let open__of_yojson = function
-  | `String s -> Option.to_result ~none: "" (open_of_string s)
+  | `String s -> Option.to_result ~none: "opens__of_yojson" (open_of_string s)
+  | _ -> Error ""
+
+type opens = open_ NEList.t
+[@@deriving eq, show {with_path = false}]
+
+let opens_to_string = String.concat ", " % List.map open_to_string % NEList.to_list
+
+let opens_of_string =
+  Option.join % Option.map NEList.of_list %
+    Monadise.Option.monadise_1_1 List.map (open_of_string % String.trim) %
+    String.split_on_char ','
+
+let opens_to_yojson p = `String (opens_to_string p)
+
+let opens_of_yojson = function
+  | `String s -> Option.to_result ~none: "opens_of_yojson" (opens_of_string s)
   | _ -> Error ""
