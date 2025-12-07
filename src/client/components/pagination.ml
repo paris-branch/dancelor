@@ -102,7 +102,7 @@ module Button = struct
       ~active: (const false)
       ~enabled: (const false)
       ~target: no_target
-      ~text: "..."
+      ~text: "⋯"
 
   (** A button that is constantly linked to a page number. *)
   let numbered page =
