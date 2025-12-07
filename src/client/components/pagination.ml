@@ -187,3 +187,4 @@ let placeholder ~is_below () =
     ]
 
 let slice page_nav = S.map current_slice page_nav.state
+let reset page_nav = page_nav.update_current_page (Fun.const 1)
