@@ -42,6 +42,7 @@ let make
   (** A signal that provides a {!state} view based on [text]. *)
   let state =
     S.bind slice @@ fun slice ->
+    let is_first_for_this_slice = ref false in
     S.bind text @@ fun text ->
     if String.length text < min_characters then
       (
@@ -53,7 +54,17 @@ let make
       )
     else
       (
-        let delayed_search_promise = replace_promise (Lwt_js.sleep 1.;%lwt search slice text) in
+        (* Delay calling the API by 500ms when typing; we do not apply this
+           delay the first time, that is when the page loaded or when we just
+           changed the slice. *)
+        let delayed_search_promise =
+          replace_promise (
+            if !is_first_for_this_slice then
+                (is_first_for_this_slice := false; search slice text)
+            else
+                (Lwt_js.sleep 0.5;%lwt search slice text)
+          )
+        in
         let search_signal = S.from' None (some <$> delayed_search_promise) in
         flip S.map search_signal @@ function
           | None -> Searching
