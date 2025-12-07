@@ -39,6 +39,18 @@ let apply_controller env request =
     with
       | Database.Error.Exn error -> Madge_server.respond (Database.Error.status error) ""
 
+let apply_controller env request =
+  let process_batched_requests =
+    Lwt_list.map_p (fun request ->
+      let%lwt (response, body) = apply_controller env request in
+      let%lwt body = Madge.Response.body_of_lwt body in
+      lwt (response, body)
+    )
+  in
+  match Madge_server.match_apply Endpoints.Api.(route_full Batch) (fun () -> process_batched_requests) request with
+  | Some thunk -> thunk ()
+  | None -> apply_controller env request
+
 (** Wraps a function into a double catchall: regular exceptions and Lwt
     exceptions. Exceptions are logged as uncaught, and then the `die` function
     is called. *)

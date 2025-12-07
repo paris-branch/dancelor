@@ -33,6 +33,79 @@ let call_retry ?(retry = true) (request : Request.t) : (Response.t, error) resul
   in
   call_retry (if retry then 1 else max_int)
 
+let batch_delay = 0.01 (* 10 ms *)
+
+type batch_state =
+  | GatheringBatch of (Request.t * (Response.t, error) result Lwt.u) list
+  | Idle
+
+let batch_state = ref Idle
+
+let batch_route = ref None
+
+let initialise_batch_route r =
+  match !batch_route with
+  | None -> batch_route := Some r
+  | Some _ -> failwith "Madge_client: batch route initialised twice"
+
+let batch_route () =
+  match !batch_route with
+  | None -> failwith "Madge_client: processed a batch, but batch route has not been initialised"
+  | Some batch_route -> batch_route
+
+type request_list = Request.t list
+[@@deriving yojson]
+
+type response_list = Response.t list
+[@@deriving yojson]
+
+let process_batch () =
+  match !batch_state with
+  | Idle -> assert false
+  | GatheringBatch [(request, resolver)] ->
+    batch_state := Idle;
+    let%lwt response = call_retry request in
+    Lwt.wakeup_later resolver response;
+    lwt_unit
+  | GatheringBatch batch ->
+    batch_state := Idle;
+    let (requests, resolvers) = List.split (List.rev batch) in
+    with_request
+      (batch_route ())
+      (fun _ batched_request ->
+        match%lwt call_retry batched_request with
+        | Error error ->
+          let batch_error =
+            match error with
+            | ServerUnreachable details -> ServerUnreachable details
+            | Http {request; status; message} -> Http {request; status; message = "Batched request: " ^ message}
+            | BodyUnserialisation {body; message} -> BodyUnserialisation {body; message = "Batched request: " ^ message}
+          in
+          List.iter (fun resolver -> Lwt.wakeup_later resolver (Result.Error batch_error)) resolvers;
+          lwt_unit
+        | Ok batched_response ->
+          let responses = Result.get_ok @@ response_list_of_yojson @@ Yojson.Safe.from_string @@ Cohttp.Body.to_string @@ snd batched_response in
+          List.iter2
+            (fun response resolver -> Lwt.wakeup_later resolver (Ok response))
+            responses
+            resolvers;
+          lwt_unit
+      )
+      requests
+
+let call_batch (request : Request.t) : (Response.t, error) result Lwt.t =
+  let (promise, resolver) = Lwt.wait () in
+  let batch_elem = (request, resolver) in
+  batch_state :=
+    (
+      match !batch_state with
+      | GatheringBatch batch -> GatheringBatch (batch_elem :: batch)
+      | Idle ->
+        Lwt.async (fun () -> Js_of_ocaml_lwt.Lwt_js.sleep batch_delay;%lwt process_batch ());
+        GatheringBatch [batch_elem]
+    );
+  promise
+
 (** A very short-lived cache to avoid performing the exact same request several times in a row. *)
 let cache = Cache.create ~lifetime: 1 ()
 
@@ -45,8 +118,10 @@ let call_gen
   with_request route @@ fun (module R) request ->
   cont @@
     let%rlwt (response, body) =
+      ignore retry;
+      (* FIXME *)
       Cache.use ~cache ~key: request ~if_: Request.(is_safe @@ meth request) @@ fun () ->
-      call_retry ?retry request
+      call_batch request
     in
     let status = Cohttp.Response.status response in
     let body = Cohttp.Body.to_string body in

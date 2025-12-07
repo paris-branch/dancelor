@@ -31,10 +31,14 @@ val all_internals : wrapped_internal list
 (** The type of endpoints handled by Dancelor's API. *)
 type (_, _, _) full =
   | Api : ('a, 'w, 'r) internal -> ('a, 'w, 'r) full
+  | Batch : (Madge.Request.t list -> 'w, 'w, Madge.Response.t list) full
 
 (** The type of wrapped endpoints. This allows manipulating the endpoints
     together, even though they do not have the same type. *)
 type wrapped_full = W_full : ('a, 'r Lwt.t, 'r) full -> wrapped_full
+
+(** Return the Madge route corresponding to the given endpoint. *)
+val route_full : ('a, 'w, 'r) full -> ('a, 'w, 'r) Madge.route
 
 (** {2 Internal API, lifted} *)
 

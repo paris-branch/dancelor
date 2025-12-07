@@ -44,12 +44,14 @@ let route_internal : type a w r. (a, w, r) internal -> (a, w, r) route =
 
 type (_, _, _) full =
   | Api : ('a, 'w, 'r) internal -> ('a, 'w, 'r) full
+  | Batch : (Request.t list -> 'w, 'w, Response.t list) full
 [@@deriving madge_wrapped_endpoints]
 
 let route_full : type a w r. (a, w, r) full -> (a, w, r) route =
   let open Route in
   function
     | Api endpoint -> literal "api" @@ route_internal endpoint
+    | Batch -> literal "api" @@ literal "batch" @@ body "requests" (module JList(Request)) @@ post (module JList(Response))
 
 (* Lifted internal API *)
 
