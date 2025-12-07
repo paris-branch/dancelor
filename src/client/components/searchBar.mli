@@ -34,7 +34,7 @@ val focus : 'result t -> unit
 val make :
   search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
   ?min_characters: int ->
-  slice: Slice.t React.signal ->
+  slice: (Slice.t React.signal * (unit -> unit)) ->
   ?on_number_of_entries: (int -> unit) ->
   ?initial_input: string ->
   placeholder: string ->

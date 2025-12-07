@@ -22,7 +22,7 @@ type 'result t = {
 let make
     ~search
     ?(min_characters = 0)
-    ~slice
+    ~slice: (slice, reset_slice)
     ?(on_number_of_entries = (const ()))
     ?(initial_input = "")
     ~placeholder
@@ -39,10 +39,19 @@ let make
       one. This is exactly {!NesLwt.replaceable}. *)
   let replace_promise = Lwt.replaceable () in
 
-  (** A signal that provides a {!state} view based on [text]. *)
+  (** A signal that provides a {!state} view based on [text]. The [S.bind S.l2]
+      thing looks equivalent to two [S.bind] calls, but that isn't true. Because
+      the two signals sometimes update very shortly after one another, we would
+      sometimes have issues. This solution is more robust, but requires us to
+      detect changes in the [text] signal manually. *)
   let state =
-    S.bind slice @@ fun slice ->
-    S.bind text @@ fun text ->
+    let prev_text = ref "" in
+    S.bind (S.l2 Pair.cons slice text) @@ fun (slice, text) ->
+    let text_changed = !prev_text <> text in
+    prev_text := text;
+
+    (* Now we actually run the search and convert it into a {!state}, which can
+       nicely show in the interface. *)
     if String.length text < min_characters then
       (
         S.const @@
@@ -53,7 +62,15 @@ let make
       )
     else
       (
-        let delayed_search_promise = replace_promise (Lwt_js.sleep 1.;%lwt search slice text) in
+        (* Delay calling the API by 500ms when typing; we do not apply this
+           delay the first time, that is when the page loaded or when we just
+           changed the slice. *)
+        let delayed_search_promise =
+          replace_promise (
+            if text_changed then Lwt_js.sleep 0.5 else lwt_unit;%lwt
+            search slice text
+          )
+        in
         let search_signal = S.from' None (some <$> delayed_search_promise) in
         flip S.map search_signal @@ function
           | None -> Searching
@@ -83,6 +100,7 @@ let make
                   Js.Opt.iter event##.target @@ fun elt ->
                   Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
                   let input = Js.to_string input##.value in
+                  reset_slice ();
                   set_text input;
                   Option.value ~default: ignore on_input input;
                 );

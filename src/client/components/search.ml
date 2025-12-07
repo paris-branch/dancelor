@@ -7,8 +7,8 @@ module Search = struct
     | FixedSlice of Slice.t
 
   let slice = function
-    | Pagination p -> Pagination.slice p
-    | FixedSlice s -> S.const s
+    | Pagination p -> (Pagination.slice p, (fun () -> Pagination.reset p))
+    | FixedSlice s -> (S.const s, Fun.const ())
 
   type 'result t = {
     pagination: Pagination.t pagination_mode;
@@ -142,7 +142,7 @@ module Search = struct
                     [
                       R.tbody
                         (
-                          flip S.map (S.Pair.pair (slice t.pagination) (SearchBar.state t.search_bar))
+                          flip S.map (S.Pair.pair (fst @@ slice t.pagination) (SearchBar.state t.search_bar))
                             @@ fun (_, state) ->
                             match state with
                             | Results results ->

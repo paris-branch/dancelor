@@ -19,5 +19,8 @@ val render : is_below: bool -> t -> [> Html_types.nav] elt
 val slice : t -> Slice.t React.signal
 (** Signal giving a {!Model.Slice.t} out of a page navigation. *)
 
+val reset : t -> unit
+(** Reset pagination, going back to the first page. *)
+
 val placeholder : is_below: bool -> unit -> [> Html_types.nav] elt
 (** HTML rendering of a page navigation placeholder. *)
