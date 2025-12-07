@@ -63,21 +63,21 @@ let lilypond_voices
         let last_part = Structure.last_part_exn structure in
         let alt_1 = transition ~toplevel (Middle last_part) (Middle first_part) in
         let alt_2 = transition ~toplevel (Middle last_part) next_part in
-        {
-          Voices.melody =
-          spf
-            "\\repeat volta %d { %s } \\alternative { { %s } { %s } }"
-            times
-            lilypond.melody
-            alt_1.melody
-            alt_2.melody;
-          chords =
-          spf
-            "%s %s %s"
-            lilypond.chords
-            alt_1.chords
-            alt_2.chords;
-        }
+        if Voices.equal alt_1 alt_2 then
+          {
+            Voices.melody = spf "\\repeat volta %d { %s %s }" times lilypond.melody alt_1.melody;
+            Voices.chords = spf "%s %s" lilypond.chords alt_1.chords;
+          }
+        else if Voices.equal alt_1 Voices.empty then
+          {
+            Voices.melody = spf "\\repeat volta %d { %s } %s" times lilypond.melody alt_2.melody;
+            Voices.chords = spf "%s %s" lilypond.chords alt_2.chords;
+          }
+        else
+          {
+            Voices.melody = spf "\\repeat volta %d { %s } \\alternative { { %s } { %s } }" times lilypond.melody alt_1.melody alt_2.melody;
+            Voices.chords = spf "%s %s %s" lilypond.chords alt_1.chords alt_2.chords;
+          }
       )
   and map_item_to_lilypond ~toplevel = function
     | [] -> []
