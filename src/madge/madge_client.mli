@@ -25,3 +25,7 @@ val call_exn : ?retry: bool -> ('a, 'r Lwt.t, 'r) Route.t -> 'a
 (** Variant of {!call} that immediately receives a continuation taking the
     promise of a result. *)
 val call_gen : ?retry: bool -> ('a, 'z, 'r) Route.t -> (('r, error) result Lwt.t -> 'z) -> 'a
+
+(** {2 Other} *)
+
+val initialise_batch_route : (Request.t list -> unit Lwt.t, unit Lwt.t, Response.t list) route -> unit

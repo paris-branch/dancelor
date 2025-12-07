@@ -2,9 +2,14 @@
  (name madge)
  (modules :standard \ madge_client madge_server ppx_madge_wrapped_endpoints)
  (public_name dancelor.madge)
- (libraries dancelor.nes yojson uri logs cohttp)
+ (libraries dancelor.nes yojson uri logs cohttp-lwt)
  (preprocess
-  (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx ppx_fields_conv)))
+  (staged_pps
+   ppx_import
+   ppx_deriving_yojson
+   ppx_deriving.std
+   lwt_ppx
+   ppx_fields_conv)))
 
 (library
  (name madge_client)
