@@ -28,6 +28,13 @@ val end_excl : t -> int
 (** Getters from a slice. [end_excl] may return [min_int] to represent an
     inclusive bound up to [max_int]. *)
 
+val seq : ?strict: bool -> t -> 'a Seq.t -> 'a Seq.t
+(** Slice a sequence. Raises {!Invalid_argument} if [start] is strictly bigger
+    than the length of the sequence. If [strict] is set (the default), also
+    raises {!Invalid_argument} if [end_excl] is strictly bigger than the length
+    of the sequence; otherwise, silently include everything until the end of the
+    sequence. *)
+
 val list : ?strict: bool -> t -> 'a list -> 'a list
 (** Slice a list. Raises {!Invalid_argument} if [start] is strictly bigger than
     the length of the list. If [strict] is set (the default), also raises

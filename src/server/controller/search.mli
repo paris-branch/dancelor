@@ -19,6 +19,10 @@ module type S = sig
 
   val search : Environment.t -> Slice.t -> filter -> (int * value list) Lwt.t
 
+  val search' : Environment.t -> filter -> (int * (value * float) Seq.t) Lwt.t
+  (** Variant of {!search} that exposes the whole sequence of values, sorted,
+      with their scores, before slicing. *)
+
   (** Pass through for better composition *)
   val get_all : Environment.t -> value Lwt_stream.t
   val tiebreakers : (value -> value -> int Lwt.t) list

@@ -29,11 +29,14 @@ let make
 let nothing = make ~end_excl: 0 ()
 let everything = make ~end_incl: max_int ()
 
-let list ?(strict = true) s xs =
-  let rec list i = function
-    | [] when strict && s.end_incl <> i - 1 -> invalid_arg "Slice.list"
-    | _ :: xs when s.start > i -> list (i + 1) xs
-    | x :: xs when s.end_incl >= i -> x :: list (i + 1) xs
-    | _ -> []
+let seq ?(strict = true) slice xs =
+  let rec seq i xs =
+    match xs () with
+    | Seq.Nil when strict && slice.end_incl <> i - 1 -> invalid_arg "Slice.seq"
+    | Seq.Cons (_, xs) when slice.start > i -> seq (i + 1) xs
+    | Seq.Cons (x, xs) when slice.end_incl >= i -> Seq.cons x @@ seq (i + 1) xs
+    | _ -> Seq.empty
   in
-  list 0 xs
+  seq 0 xs
+
+let list ?strict slice l = List.of_seq @@ seq ?strict slice @@ List.to_seq l
