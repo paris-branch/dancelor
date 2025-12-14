@@ -188,3 +188,20 @@ let to_pretty_string =
     TextFormula.of_formula (make_text_formula_converter ~human: true ()) %
     add_explicit_type %
     optimise
+
+let specialise ~from_text_formula ~type_ ~unLift =
+  Formula.convert @@ function
+    | Raw str -> Result.get_ok (from_text_formula (TextFormula.raw' str))
+    | Type t when ModelBuilder.Core.Any.Type.equal t type_ -> Formula.true_
+    | Type _ -> Formula.false_
+    | pred -> Option.value (unLift pred) ~default: Formula.false_
+
+let specialise formula = (
+  specialise ~from_text_formula: Book.from_text_formula ~type_: Book ~unLift: book_val formula,
+  specialise ~from_text_formula: Dance.from_text_formula ~type_: Dance ~unLift: dance_val formula,
+  specialise ~from_text_formula: Person.from_text_formula ~type_: Person ~unLift: person_val formula,
+  specialise ~from_text_formula: Set.from_text_formula ~type_: Set ~unLift: set_val formula,
+  specialise ~from_text_formula: Source.from_text_formula ~type_: Source ~unLift: source_val formula,
+  specialise ~from_text_formula: Tune.from_text_formula ~type_: Tune ~unLift: tune_val formula,
+  specialise ~from_text_formula: Version.from_text_formula ~type_: Version ~unLift: version_val formula
+)

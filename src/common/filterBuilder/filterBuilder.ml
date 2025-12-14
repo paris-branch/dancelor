@@ -41,8 +41,5 @@ module Build (Model : ModelBuilder.S) : S = struct
     let accepts = Accepts.accepts_book
   end
 
-  module Any = struct
-    include Core.Any
-    let accepts = Accepts.accepts_any
-  end
+  module Any = Core.Any
 end

@@ -24,7 +24,6 @@ module type S = sig
       with their scores, before slicing. *)
 
   (** Pass through for better composition *)
-  val get_all : Environment.t -> value Lwt_stream.t
   val tiebreakers : (value -> value -> int Lwt.t) list
 end
 

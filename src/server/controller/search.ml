@@ -21,10 +21,7 @@ module type S = sig
   (** Variant of {!search} that exposes the whole sequence of values, sorted and
       with their scores, but before slicing. *)
 
-  (* Pass through for better composition. FIXME: We should expose the sorted
-     list with scores instead, because that can be assembled in the controller
-     for Any as sorted streams and that is so much more efficient. *)
-  val get_all : Environment.t -> value Lwt_stream.t
+  (* Pass through for better composition. *)
   val tiebreakers : (value -> value -> int Lwt.t) list
 end
 
@@ -54,6 +51,5 @@ module Build (M : Searchable) : S with type value = M.value and type filter = M.
     lwt (count, List.of_seq @@ Slice.seq ~strict: false slice @@ Seq.map fst results)
 
   (* Pass through for better composition *)
-  let get_all = M.get_all
   let tiebreakers = M.tiebreakers
 end
