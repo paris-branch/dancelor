@@ -15,6 +15,7 @@ type 'p t =
 (** {3 Constructors} *)
 
 val true_ : 'p t
+val false_ : 'p t
 val not : 'p t -> 'p t
 
 val and_ : 'p t -> 'p t -> 'p t

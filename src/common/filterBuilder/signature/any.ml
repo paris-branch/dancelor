@@ -18,8 +18,8 @@ module type S = sig
   (** Type of a filter on “any” element, that is a formula over
       {!predicate}s. *)
 
-  val accepts : t -> ModelBuilder.Core.Any.t -> float Lwt.t
-  (** Whether the given filter accepts the given element. *)
+  (* NOTE: There is no [accepts_any] because the search of Any is handled
+     “manually” in the Any controller, for performance reasons. *)
 
   (** {3 Constructors} *)
 
@@ -90,4 +90,10 @@ module type S = sig
 
   val type_based_cleanup : t -> t
   (** Part of {!optimise} exposed for testing purposes. *)
+
+  val specialise : t -> Core.Book.t * Core.Dance.t * Core.Person.t * Core.Set.t * Core.Source.t * Core.Tune.t * Core.Version.t
+  (** Given a formula on any model, returns formulas specialised for all models.
+      This is basically the commutativity of the union: the semantics of a
+      formula on any (which is the union of all models) is the union of the
+      semantics of the specialised formulas. *)
 end

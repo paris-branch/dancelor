@@ -25,8 +25,10 @@ include Search.Build(struct
   type filter = Filter.Book.t
 
   let get_all env =
-    lwt @@ List.filter (Permission.can_get env) (Database.Book.get_all ())
+    Lwt_stream.filter (Permission.can_get env) @@ Lwt_stream.of_seq @@ Database.Book.get_all ()
 
+  let optimise_filter = Filter.Book.optimise
+  let filter_is_empty = (=) Formula.False
   let filter_accepts = Filter.Book.accepts
 
   let tiebreakers =

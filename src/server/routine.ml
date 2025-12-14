@@ -9,7 +9,7 @@ let all_versions =
   Lwt_stream.concat @@
   Lwt_stream.from @@ fun () ->
   Lwt_unix.sleep 600.;%lwt
-  lwt_some @@ Lwt_stream.of_list (Database.Version.get_all ())
+  lwt_some @@ Lwt_stream.of_seq @@ Database.Version.get_all ()
 
 let all_versions_prerendering_job =
   Lwt_stream.map_s
