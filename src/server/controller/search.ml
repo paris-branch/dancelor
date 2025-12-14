@@ -8,8 +8,9 @@ module type Searchable = sig
 
   val optimise_filter : filter -> filter
   val filter_is_empty : filter -> bool
-
+  val filter_is_full : filter -> bool
   val filter_accepts : filter -> value -> float Lwt.t
+  val score_true : float
 
   val tiebreakers : (value -> value -> int Lwt.t) list
 end
@@ -43,17 +44,20 @@ module Build (M : Searchable) : S with type value = M.value and type filter = M.
     if M.filter_is_empty filter then
       lwt (0, Seq.empty)
     else
-      (
-        let values = M.get_all env in
-        (* For each value, compute its score and return the pair (value, score). *)
-        let values = Lwt_stream.map_s (fun value -> Pair.cons value <$> M.filter_accepts filter value) values in
-        (* Keep only values whose score is above the given threshold. *)
-        let values = Lwt_stream.filter (fun value -> snd value >= threshold) values in
-        (* Finally, sort by score, decreasing, falling back on the tiebreakers otherwise. *)
-        let compare = Lwt_list.compare_multiple (Lwt_list.decreasing (lwt % snd) Float.compare :: List.map (fun compare -> fun x y -> compare (fst x) (fst y)) M.tiebreakers) in
-        let%lwt values = Monadise_lwt.monadise_2_1 List.sort compare =<< Lwt_stream.to_list values in
-        lwt (List.length values, List.to_seq values)
-      )
+      let values = M.get_all env in
+      let%lwt values =
+        if M.filter_is_full filter then
+          Lwt_stream.to_list @@ Lwt_stream.map (fun value -> (value, M.score_true)) values
+        else
+          (* For each value, compute its score and return the pair (value, score). *)
+          let values = Lwt_stream.map_s (fun value -> Pair.cons value <$> M.filter_accepts filter value) values in
+          (* Keep only values whose score is above the given threshold. *)
+          let values = Lwt_stream.filter (fun value -> snd value >= threshold) values in
+          (* Finally, sort by score, decreasing, falling back on the tiebreakers otherwise. *)
+          let compare = Lwt_list.compare_multiple (Lwt_list.decreasing (lwt % snd) Float.compare :: List.map (fun compare -> fun x y -> compare (fst x) (fst y)) M.tiebreakers) in
+          Monadise_lwt.monadise_2_1 List.sort compare =<< Lwt_stream.to_list values
+      in
+      lwt (List.length values, List.to_seq values)
 
   let search env slice filter =
     let%lwt (count, results) = search' env filter in

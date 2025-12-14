@@ -10,8 +10,9 @@ module type Searchable = sig
 
   val optimise_filter : filter -> filter
   val filter_is_empty : filter -> bool
-
+  val filter_is_full : filter -> bool
   val filter_accepts : filter -> value -> float Lwt.t
+  val score_true : float
 
   val tiebreakers : (value -> value -> int Lwt.t) list
 end

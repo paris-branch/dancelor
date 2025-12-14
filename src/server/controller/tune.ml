@@ -29,7 +29,9 @@ include Search.Build(struct
 
   let optimise_filter = Filter.Tune.optimise
   let filter_is_empty = (=) Formula.False
+  let filter_is_full = (=) Formula.True
   let filter_accepts = Filter.Tune.accepts
+  let score_true = Formula.interpret_true
 
   let tiebreakers =
     Lwt_list.[increasing (lwt % NEString.to_string % Model.Tune.one_name') String.Sensible.compare;

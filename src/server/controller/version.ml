@@ -108,7 +108,9 @@ include Search.Build(struct
 
   let optimise_filter = Filter.Version.optimise
   let filter_is_empty = (=) Formula.False
+  let filter_is_full = (=) Formula.True
   let filter_accepts = Filter.Version.accepts
+  let score_true = Formula.interpret_true
 
   let tiebreakers =
     Lwt_list.[increasing (NEString.to_string <%> Model.Version.one_name') String.Sensible.compare]

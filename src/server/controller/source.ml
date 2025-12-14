@@ -29,7 +29,9 @@ include Search.Build(struct
 
   let optimise_filter = Filter.Source.optimise
   let filter_is_empty = (=) Formula.False
+  let filter_is_full = (=) Formula.True
   let filter_accepts = Filter.Source.accepts
+  let score_true = Formula.interpret_true
 
   let tiebreakers =
     Lwt_list.[decreasing (lwt % Model.Source.date') (Option.compare PartialDate.compare);
