@@ -27,6 +27,8 @@ include Search.Build(struct
   let get_all env =
     Lwt_stream.filter (Permission.can_get env) @@ Lwt_stream.of_seq @@ Database.Person.get_all ()
 
+  let optimise_filter = Filter.Person.optimise
+  let filter_is_empty = (=) Formula.False
   let filter_accepts = Filter.Person.accepts
 
   let tiebreakers =

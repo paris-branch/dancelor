@@ -8,6 +8,9 @@ module type Searchable = sig
 
   val get_all : Environment.t -> value Lwt_stream.t
 
+  val optimise_filter : filter -> filter
+  val filter_is_empty : filter -> bool
+
   val filter_accepts : filter -> value -> float Lwt.t
 
   val tiebreakers : (value -> value -> int Lwt.t) list

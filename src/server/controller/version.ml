@@ -106,6 +106,8 @@ include Search.Build(struct
     in
     Lwt_stream.filter_s can_get_and_copyright_ok @@ Lwt_stream.of_seq @@ Database.Version.get_all ()
 
+  let optimise_filter = Filter.Version.optimise
+  let filter_is_empty = (=) Formula.False
   let filter_accepts = Filter.Version.accepts
 
   let tiebreakers =
