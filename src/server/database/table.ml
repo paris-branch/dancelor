@@ -34,7 +34,7 @@ module type S = sig
   val list_dependency_problems : unit -> Error.t list
 
   val get : value Entry.Id.t -> value Entry.t option
-  val get_all : unit -> value Entry.t list
+  val get_all : unit -> value Entry.t Seq.t
 
   val create : value -> value Entry.t Lwt.t
   (** Create a new database entry for the given value. *)
@@ -174,7 +174,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
         )
         []
 
-  let get_all () = List.of_seq @@ Hashtbl.to_seq_values table
+  let get_all () = Hashtbl.to_seq_values table
 
   let create_or_update maybe_id model =
     let (is_create, id, model) =

@@ -104,7 +104,7 @@ include Search.Build(struct
           <$> with_copyright_check env version (const lwt_unit)
         )
     in
-    Monadise_lwt.monadise_1_1 List.filter can_get_and_copyright_ok (Database.Version.get_all ())
+    Lwt_stream.filter_s can_get_and_copyright_ok @@ Lwt_stream.of_seq @@ Database.Version.get_all ()
 
   let filter_accepts = Filter.Version.accepts
 

@@ -106,13 +106,14 @@ let reverse_dependencies_of (id : 'any Entry.Id.t) : Table.reverse_dependencies 
   ReverseDependencies (
     List.concat_map
       (fun (module T : Table.S) ->
-        List.filter_map
-          (fun entry ->
-            if List.mem id (T.dependencies (Entry.value entry)) then
-              Some (T._key, Entry.Id.unsafe_coerce @@ Entry.id entry)
-            else None
-          )
-          (T.get_all ())
+        List.of_seq @@
+          Seq.filter_map
+            (fun entry ->
+              if List.mem id (T.dependencies (Entry.value entry)) then
+                Some (T._key, Entry.Id.unsafe_coerce @@ Entry.id entry)
+              else None
+            )
+            (T.get_all ())
       )
       tables
   )

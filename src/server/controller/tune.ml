@@ -25,7 +25,7 @@ include Search.Build(struct
   type filter = Filter.Tune.t
 
   let get_all env =
-    lwt @@ List.filter (Permission.can_get env) (Database.Tune.get_all ())
+    Lwt_stream.filter (Permission.can_get env) @@ Lwt_stream.of_seq @@ Database.Tune.get_all ()
 
   let filter_accepts = Filter.Tune.accepts
 
