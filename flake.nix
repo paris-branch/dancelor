@@ -6,7 +6,7 @@
     topiary.url = "github:tweag/topiary";
 
     camelotte = {
-      url = "github:niols/camelotte";
+      url = "github:lesboloss-es/camelotte";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         topiary.follows = "topiary";
