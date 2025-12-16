@@ -64,13 +64,12 @@ let content_in_parts () =
                 ~label: "Part"
                 (
                   Input.prepare
-                    ~type_: (Textarea {rows = 13})
+                    ~type_: (Textarea {rows = 11})
                     ~font: Monospace
                     ~label: "Melody"
                     ~serialise: id
                     ~validate: (S.const % ok)
-                    ~placeholder: "\\relative f' {\n  \\partial 4 a4 |\n  d,4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d cis b a g fis e |\n  \\break\n\n  d4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d e fis d4\n}"
-                    ~template: "\\relative f' {\n  %% add part's melody here\n}\n"
+                    ~placeholder: "\\partial 4 a4 |\nd,4 fis8 a b4 a |\nb8 a b cis d4 d8 cis |\nb4 d8 fis b a g fis |\ne d cis b a g fis e |\n\\break\n\nd4 fis8 a b4 a |\nb8 a b cis d4 d8 cis |\nb4 d8 fis b a g fis |\ne d e fis d4"
                     ()
                 )
                 (

@@ -98,7 +98,10 @@ let lilypond_voices
 
 let lilypond ?structure ~kind ~key parts transitions =
   let Voices.{melody; chords} =
-    let parts = NEList.to_list parts in
+    (* Wrap the parts in \relative f' by default. If the parts come with their
+       own \relative, it will override our own, so the change won't be impactful. *)
+    let parts = List.map Voices.relative_f' @@ NEList.to_list parts in
+    let transitions = List.map (fun (from, to_, voices) -> (from, to_, Voices.relative_f' voices)) transitions in
     let structure, show_part_marks =
       (* If we are asked for a structure, and we can find a best fold for it,
          then we produce that folded structure and do not show part marks.

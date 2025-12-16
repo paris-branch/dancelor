@@ -18,6 +18,9 @@ val fine : t
 val mark : Part_name.t -> t
 (** A part name mark in the melody; nothing in the chords. *)
 
+val relative_f' : t -> t
+(** Wrap the melody of the given voices in [\relative f' {}]. *)
+
 val concat : t -> t -> t
 (** Concatenates melodies together and chords together in both voices. *)
 
