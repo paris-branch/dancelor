@@ -56,6 +56,7 @@ let create ?context id =
         (lwt person)
         [
           ("tunes they composed", Filter.(Any.tune' % Tune.existscomposer' % Person.is'));
+          ("versions of tunes they composed", Filter.(Any.version' % Version.tune' % Tune.existscomposer' % Person.is'));
           ("dances they devised", Filter.(Any.dance' % Dance.existsdeviser' % Person.is'));
           ("sets they conceived", Filter.(Any.set' % Set.existsconceptor' % Person.is'));
           ("books they edited", Filter.(Any.book' % Book.existseditor' % Person.is'));
