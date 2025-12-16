@@ -157,6 +157,7 @@ let
               greek-fontenc # dependency of hyperref
               hyperref
               realscripts # for \newif
+              texfot
               xltxtra
               xunicode
               ;
@@ -236,8 +237,7 @@ let
           }
           printf '\\end{document}\n'
         } > book.tex
-        # latexmk -f -interaction=nonstopmode -pdfxe book
-        latexmk -pdfxe book
+        texfot latexmk -pdfxe book
         mkdir $out
         mv book.pdf $out
       ''
