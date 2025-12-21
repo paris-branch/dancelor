@@ -13,8 +13,8 @@ let match_apply
   apply route controller request @@ fun (module R) f ->
   try%lwt
     let%lwt value = f () in
-    let headers = Cohttp.Header.of_list [("Content-Type", "application/json")] in
-    let body = Yojson.Safe.to_string @@ R.to_yojson value in
+    let headers = Cohttp.Header.of_list [("Content-Type", "application/x-biniou")] in
+    let body = Bi_io.string_of_tree @@ R.to_biniou value in
     Cohttp_lwt_unix.Server.respond_string ~status: `OK ~headers ~body ()
   with
     | Shortcut response -> Lwt.return response
@@ -39,8 +39,8 @@ let respond_file ~fname =
 
 let respond status =
   Format.kasprintf @@ fun message ->
-  let headers = Cohttp.Header.of_list [("Content-Type", "application/json")] in
-  let body = Yojson.Safe.to_string @@ `Assoc ["message", `String message] in
+  let headers = Cohttp.Header.of_list [("Content-Type", "application/x-biniou")] in
+  let body = Bi_io.string_of_tree @@ `Record [|Some "message", Bi_io.hash_name "message", `String message|] in
   Cohttp_lwt_unix.Server.respond_string ~status ~headers ~body ()
 
 let respond_not_found fmt = respond `Not_found fmt
