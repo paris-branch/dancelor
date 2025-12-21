@@ -1,7 +1,4 @@
 (** {1 Void} *)
 
-type t
+type t [@@deriving biniou {alias = false}, yojson]
 (** Void type: entirely uninhabited. *)
-
-val to_yojson : t -> Yojson.Safe.t
-val of_yojson : Yojson.Safe.t -> (t, string) result

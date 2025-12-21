@@ -9,7 +9,7 @@ type t = {
   password_reset_token: (HashedSecret.t * Datetime.t) option; [@default None] [@key "password-reset-token"]
   remember_me_tokens: (HashedSecret.t * Datetime.t) String.Map.t; [@default String.Map.empty] [@key "remember-me-token"]
 }
-[@@deriving eq, make, yojson, fields, show {with_path = false}]
+[@@deriving eq, make, biniou, yojson, fields, show {with_path = false}]
 
 let make ~username ~person ?password ?password_reset_token ?remember_me_tokens () =
   let username = NEString.map_exn (String.remove_duplicates ~char: ' ') username in

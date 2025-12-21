@@ -6,7 +6,7 @@
 
 (** Type of ids carrying values of type ['value]. *)
 type 'value t
-[@@deriving yojson]
+[@@deriving biniou, yojson]
 
 val make : unit -> 'any t
 (** Make a new random id. *)
@@ -30,6 +30,10 @@ val of_string_exn : string -> 'any t
 
 val to_string : 'any t -> string
 (** Returns a string representing the id. *)
+
+val of_biniou_exn' : Bi_io.tree -> 'any t
+
+val to_biniou' : 'any t -> Bi_io.tree
 
 val of_yojson' : Yojson.Safe.t -> ('any t, string) result
 

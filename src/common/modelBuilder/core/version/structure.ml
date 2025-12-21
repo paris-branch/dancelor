@@ -1,7 +1,7 @@
 open Nes
 
 type t = Part_name.t NEList.t
-[@@deriving eq, show {with_path = false}]
+[@@deriving eq, show {with_path = false}, biniou]
 
 let to_string = NEString.of_string_exn % String.of_seq % Seq.map Part_name.to_char % List.to_seq % NEList.to_list
 let of_string = Option.join % Option.map NEList.of_list % Monadise.Option.monadise_1_1 List.map Part_name.of_char % List.of_seq % String.to_seq % NEString.to_string

@@ -1,6 +1,6 @@
 (** {1 Slice} *)
 
-type t [@@deriving yojson]
+type t [@@deriving biniou, yojson]
 (** Abstract type of slices. *)
 
 val make :

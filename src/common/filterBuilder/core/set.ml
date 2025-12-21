@@ -7,10 +7,10 @@ type predicate =
   | ExistsConceptor of Person.t (** conceptor is defined and passes the filter *)
   | ExistsVersion of Version.t
   | Kind of Kind.Dance.Filter.t
-[@@deriving eq, show {with_path = false}, yojson, variants]
+[@@deriving eq, show {with_path = false}, biniou, yojson, variants]
 
 type t = predicate Formula.t
-[@@deriving eq, show {with_path = false}, yojson]
+[@@deriving eq, show {with_path = false}, biniou, yojson]
 
 let name' = Formula.pred % name
 let namematches' = Formula.pred % namematches

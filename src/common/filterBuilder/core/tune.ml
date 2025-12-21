@@ -7,10 +7,10 @@ type predicate =
   | ExistsComposer of Person.t (** one of the composers of the list passes the filter *)
   | Kind of Kind.Base.Filter.t
   | ExistsDance of Dance.t
-[@@deriving eq, show {with_path = false}, yojson, variants]
+[@@deriving eq, show {with_path = false}, biniou, yojson, variants]
 
 type t = predicate Formula.t
-[@@deriving eq, show {with_path = false}, yojson]
+[@@deriving eq, show {with_path = false}, biniou, yojson]
 
 let name' = Formula.pred % name
 let namematches' = Formula.pred % namematches

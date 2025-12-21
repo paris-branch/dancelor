@@ -13,7 +13,7 @@ type t = {
   display_name: NEString.t option; [@default None] [@key "display-name"]
   display_composer: NEString.t option [@default None] [@key "display-composer"]
 }
-[@@deriving eq, make, show {with_path = false}, yojson, fields]
+[@@deriving eq, make, show {with_path = false}, biniou, yojson, fields]
 
 (* FIXME: [@@deriving yojson] and [@@deriving make] do not have the same
    interpretation of [@default]. Basically, we want [@@deriving yojson] to

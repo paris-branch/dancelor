@@ -15,13 +15,13 @@ type predicate =
   | Set of Set.t
   | Tune of Tune.t
   | Version of Version.t
-[@@deriving eq, show {with_path = false}, yojson, variants]
+[@@deriving eq, show {with_path = false}, biniou, yojson, variants]
 
 (* NOTE: To prevent some shadowing. *)
 let predicate_Raw = raw
 
 type t = predicate Formula.t
-[@@deriving eq, show {with_path = false}, yojson]
+[@@deriving eq, show {with_path = false}, biniou, yojson]
 
 let raw' = Formula.pred % raw
 let type_' = Formula.pred % type_

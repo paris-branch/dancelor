@@ -1,7 +1,7 @@
 open Nes
 
 type t = Part_name.t NEList.t
-[@@deriving eq, show, yojson]
+[@@deriving eq, show, biniou, yojson]
 
 val to_string : t -> NEString.t
 val of_string : NEString.t -> t option

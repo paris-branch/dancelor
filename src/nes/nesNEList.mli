@@ -1,6 +1,6 @@
 (** {1 Non-empty list} *)
 
-type 'a t [@@deriving eq, show, yojson]
+type 'a t [@@deriving eq, show, biniou, yojson]
 (** A non-empty list. *)
 
 val to_list : 'a t -> 'a list

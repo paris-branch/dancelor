@@ -1,6 +1,6 @@
 type t =
   Treble | Bass
-[@@deriving eq, show {with_path = false}]
+[@@deriving eq, show {with_path = false}, biniou]
 
 let to_string = function Treble -> "treble" | Bass -> "bass"
 

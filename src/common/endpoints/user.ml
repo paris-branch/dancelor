@@ -6,8 +6,18 @@ open Madge
    redact them. And to be sure to not miss a future introduction of  *)
 module User = struct
   type t = ModelBuilder.Core.User.t
-  let to_yojson = Json.keep_fields ["username"; "person"] % ModelBuilder.Core.User.to_yojson
-  let of_yojson = ModelBuilder.Core.User.of_yojson
+  [@@deriving of_biniou, of_yojson]
+
+  type proxy = {
+    username: NEString.t;
+    person: ModelBuilder.Core.Person.t Entry.Id.t;
+  }
+  [@@deriving to_biniou, to_yojson]
+  let to_proxy (user : t) : proxy =
+    {username = user.username; person = user.person}
+
+  let to_biniou = proxy_to_biniou % to_proxy
+  let to_yojson = proxy_to_yojson % to_proxy
 end
 
 type (_, _, _) t =

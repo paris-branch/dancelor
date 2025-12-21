@@ -6,7 +6,7 @@ type alteration =
 type octave = int
 
 type t
-[@@deriving eq, show, yojson]
+[@@deriving eq, show, biniou, yojson]
 
 val make : Note.t -> alteration -> octave -> t
 

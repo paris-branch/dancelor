@@ -10,7 +10,7 @@ module Request = struct
     title: string;
     description: string;
   }
-  [@@deriving yojson]
+  [@@deriving biniou, yojson]
 end
 type request = Request.t
 
@@ -20,6 +20,6 @@ module Response = struct
     id: int;
     uri: string; (* FIXME: Uri.t *)
   }
-  [@@deriving yojson]
+  [@@deriving biniou, yojson]
 end
 type response = Response.t

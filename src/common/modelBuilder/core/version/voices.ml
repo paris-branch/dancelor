@@ -4,7 +4,7 @@ type t = {
   melody: string;
   chords: string;
 }
-[@@deriving eq, yojson, show {with_path = false}, fields]
+[@@deriving eq, biniou, yojson, show {with_path = false}, fields]
 
 let empty = {melody = ""; chords = ""}
 let space = {melody = " "; chords = " "}

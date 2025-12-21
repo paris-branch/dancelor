@@ -38,6 +38,15 @@ let to_string = function
 
 let compare d1 d2 = String.compare (to_string d1) (to_string d2)
 
+let to_biniou date =
+  `String (to_string date)
+
+let of_biniou_exn = function
+  | `String s -> NesOption.value' (from_string s) ~default: (fun () -> Ppx_deriving_biniou_runtime.could_not_convert "PartialDate.of_biniou" (`String s))
+  | t -> Ppx_deriving_biniou_runtime.could_not_convert "PartialDate.of_biniou" t
+
+let of_biniou = Ppx_deriving_biniou_runtime.of_biniou_of_of_biniou_exn of_biniou_exn
+
 let to_yojson date =
   `String (to_string date)
 

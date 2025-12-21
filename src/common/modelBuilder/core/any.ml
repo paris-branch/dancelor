@@ -9,7 +9,7 @@ type t =
   | Tune of Tune.t Entry.t
   | Version of Version.t Entry.t
   | User of User.t Entry.t
-[@@deriving show {with_path = false}, yojson, variants]
+[@@deriving show {with_path = false}, biniou, yojson, variants]
 
 (* NOTE: User is not added to [Any] on purpose. It is a bit of a special model
    that should not really be searchable or anything. *)
@@ -24,7 +24,7 @@ module Type = struct
     | Tune
     | Version
     | User
-  [@@deriving eq, show {with_path = false}, yojson]
+  [@@deriving eq, show {with_path = false}, biniou, yojson]
 
   let compare t1 t2 =
     let to_int = function

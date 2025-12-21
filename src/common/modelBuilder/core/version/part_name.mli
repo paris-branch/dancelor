@@ -1,7 +1,7 @@
 open Nes
 
 type t
-[@@deriving eq, show]
+[@@deriving eq, show, biniou]
 (** An abstract part name, eg. “A”, “B”, “C”, etc., for use in a structure. *)
 
 val to_int : t -> int
@@ -22,7 +22,7 @@ val of_string : string -> t option
 
 type open_ =
   Start | Middle of t | End
-[@@deriving eq, yojson, show, variants]
+[@@deriving eq, biniou, yojson, show, variants]
 (** A part, or possibly the start or the end of a tune. This is useful to
     manipulate transitions into or out of the tune. *)
 
@@ -32,7 +32,7 @@ val open_of_string : string -> open_ option
 val open_to_string : open_ -> string
 
 type opens = open_ NEList.t
-[@@deriving eq, yojson, show]
+[@@deriving eq, biniou, yojson, show]
 
 val opens_of_string : string -> opens option
 (** Comma-separated list of open part names. *)

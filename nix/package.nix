@@ -25,6 +25,7 @@
           self'.packages.prometheus-app
           inputs'.camelotte.packages.monadise
           inputs'.camelotte.packages.monadise-lwt
+          inputs'.camelotte.packages.ppx_deriving_biniou
 
           cohttp-lwt-jsoo
           cohttp-lwt-unix

@@ -5,10 +5,10 @@ type predicate =
   | Tune of Tune.t
   | Key of Music.Key.t
   | ExistsSource of Source.t
-[@@deriving eq, show {with_path = false}, yojson, variants]
+[@@deriving eq, show {with_path = false}, biniou, yojson, variants]
 
 type t = predicate Formula.t
-[@@deriving eq, show {with_path = false}, yojson]
+[@@deriving eq, show {with_path = false}, biniou, yojson]
 
 let tune' = Formula.pred % tune
 let key' = Formula.pred % key

@@ -7,12 +7,12 @@ type copyright_response_reason =
   | Connected
   | Composer_agrees
   | Publisher_agrees of Source.t Entry.t
-[@@deriving yojson]
+[@@deriving biniou, yojson]
 
 type 'payload copyright_response =
   | Protected
   | Granted of {payload: 'payload; reason: copyright_response_reason}
-[@@deriving yojson]
+[@@deriving biniou, yojson]
 
 let map_copyright_response f = function
   | Protected -> Protected
@@ -23,7 +23,7 @@ module Snippet_ids = struct
     svg_job_id: JobId.t;
     ogg_job_id: JobId.t;
   }
-  [@@deriving yojson]
+  [@@deriving biniou, yojson]
 end
 
 type (_, _, _) t =
@@ -48,8 +48,8 @@ type (_, _, _) t =
    redact it from the HTTP responses. NOTE: We only redact it from the HTTP
    _responses_, but not from the requests! *)
 module VersionNoLilypond = struct
-  type t = Version.t
-  let of_yojson = Version.of_yojson
+  type t = Version.t [@@deriving of_biniou, of_yojson]
+  let to_biniou = Version.to_biniou % Version.erase_lilypond_from_content
   let to_yojson = Version.to_yojson % Version.erase_lilypond_from_content
 end
 
@@ -57,7 +57,7 @@ module Copyright_response
     (Payload : Madge.JSONABLE)
   : Madge.JSONABLE with type t = Payload.t copyright_response
 = struct
-  type t = Payload.t copyright_response [@@deriving yojson]
+  type t = Payload.t copyright_response [@@deriving biniou, yojson]
 end
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =

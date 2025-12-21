@@ -12,6 +12,9 @@ val of_string_opt : string -> t option
 val to_pretty_string : t -> string
 (** Pretty version *)
 
+val to_biniou : t -> Bi_io.tree
+val of_biniou_exn : Bi_io.tree -> t
+
 val to_yojson : t -> Json.t
 val of_yojson : Json.t -> (t, string) result
 
@@ -34,7 +37,7 @@ module Filter : sig
   val baseIs : KindBase.t -> predicate
 
   type t = predicate Formula.t
-  [@@deriving eq, show, yojson]
+  [@@deriving eq, show, biniou, yojson]
 
   val is' : KindDanceType.t -> t
 

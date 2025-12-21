@@ -6,10 +6,10 @@ type predicate =
   | NameMatches of string
   | Kind of Kind.Dance.Filter.t
   | ExistsDeviser of Person.t (** deviser is defined and passes the filter *)
-[@@deriving eq, show {with_path = false}, yojson, variants]
+[@@deriving eq, show {with_path = false}, biniou, yojson, variants]
 
 type t = predicate Formula.t
-[@@deriving eq, show {with_path = false}, yojson]
+[@@deriving eq, show {with_path = false}, biniou, yojson]
 
 let name' = Formula.pred % name
 let namematches' = Formula.pred % namematches

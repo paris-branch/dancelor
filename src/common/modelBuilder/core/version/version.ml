@@ -10,7 +10,7 @@ type source_core = {
   structure: Structure.t;
   details: string; [@default ""]
 }
-[@@deriving eq, yojson, show {with_path = false}]
+[@@deriving eq, biniou, yojson, show {with_path = false}]
 
 let source_core_have_same_source s1 s2 =
   Entry.Id.equal' s1.source s2.source
@@ -41,7 +41,7 @@ type t = {
   (** In the client, we don't include the content, and it has to be retrieved by
       calling a specific endpoint; in the meantime, we fill it with [None]. *)
 }
-[@@deriving eq, yojson, make, show {with_path = false}, fields]
+[@@deriving eq, biniou, yojson, make, show {with_path = false}, fields]
 
 let make ~tune ~key ?sources ?arrangers ?remark ?disambiguation ~content () =
   let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in

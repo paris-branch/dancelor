@@ -6,7 +6,7 @@ open Madge
 type 'payload registration_response =
   | AlreadySucceeded of 'payload (** for when the job is cached and has already succeeded; avoids an extra call to check the status *)
   | Registered of 'payload (** the job has been registered (whether it happened right now or already before) *)
-[@@deriving yojson]
+[@@deriving biniou, yojson]
 
 module Status = struct
   type t =
@@ -14,7 +14,7 @@ module Status = struct
     | Running of string list (** the server is running the job; carries the logs *)
     | Failed of string list (** the job has failed; carries the logs *)
     | Succeeded (** the job has succeeded *)
-  [@@deriving yojson]
+  [@@deriving biniou, yojson]
 end
 
 type (_, _, _) t =
@@ -26,7 +26,7 @@ module Registration_response
     (Payload : Madge.JSONABLE)
   : Madge.JSONABLE with type t = Payload.t registration_response
 = struct
-  type t = Payload.t registration_response [@@deriving yojson]
+  type t = Payload.t registration_response [@@deriving biniou, yojson]
 end
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =

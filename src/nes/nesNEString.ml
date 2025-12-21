@@ -9,7 +9,14 @@ let of_string_exn n =
   | None -> invalid_arg "NesNonEmptyString.of_string_exn: empty string"
   | Some n -> n
 
-type mystring = string [@@deriving yojson]
+type mystring = string [@@deriving biniou, yojson]
+
+let to_biniou (N s) = mystring_to_biniou s
+
+let of_biniou_exn biniou = Option.get (of_string (mystring_of_biniou_exn biniou))
+let of_biniou biniou =
+  Result.bind (mystring_of_biniou biniou) @@ fun string ->
+  Option.to_result ~none: ("NEString.of_biniou", biniou) (of_string string)
 
 let to_yojson (N s) = mystring_to_yojson s
 

@@ -8,10 +8,10 @@ type predicate =
   | ExistsSet of Set.t
   | ExistsVersionDeep of Version.t
   | ExistsEditor of Person.t
-[@@deriving eq, show {with_path = false}, yojson, variants]
+[@@deriving eq, show {with_path = false}, biniou, yojson, variants]
 
 type t = predicate Formula.t
-[@@deriving eq, show {with_path = false}, yojson]
+[@@deriving eq, show {with_path = false}, biniou, yojson]
 
 let title' = Formula.pred % title
 let titlematches' = Formula.pred % titlematches

@@ -10,7 +10,7 @@ type t = {
   description: string option; [@default None]
   date: PartialDate.t option; [@default None] (** When the source was published. *)
 }
-[@@deriving eq, yojson, make, show {with_path = false}, fields]
+[@@deriving eq, biniou, yojson, make, show {with_path = false}, fields]
 
 let make ~name ?short_name ?editors ?scddb_id ?description ?date () =
   let name = NEString.map_exn (String.remove_duplicates ~char: ' ') name in

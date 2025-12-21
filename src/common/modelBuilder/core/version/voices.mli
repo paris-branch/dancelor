@@ -2,7 +2,7 @@ type t = {
   melody: string; (** the melody of that part; they must not include clef or time; they may include the key *)
   chords: string; (** the chords of that part; they will be interpreted in LilyPond's [\chordmode] *)
 }
-[@@deriving eq, yojson, show, fields]
+[@@deriving eq, biniou, yojson, show, fields]
 
 val empty : t
 

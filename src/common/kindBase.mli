@@ -4,7 +4,7 @@ open Nes
 
 type t =
   Jig | Polka | Reel | Strathspey | Waltz
-[@@deriving eq, ord, show]
+[@@deriving eq, ord, show, biniou, yojson]
 
 val all : t list
 
@@ -19,9 +19,6 @@ val to_pretty_string : ?capitalised: bool -> t -> string
 (** Pretty version. Capitalised if the corresponding boolean is set to true
     (default: false). *)
 
-val to_yojson : t -> Json.t
-val of_yojson : Json.t -> (t, string) result
-
 val tempo : t -> string * int
 (** Returns the base lilypond unit and the associated tempo. eg. [("2", 108)]
     for reels. *)
@@ -34,7 +31,7 @@ type base_kind = t
 module Filter : sig
   type predicate = Is of t
   type t = predicate Formula.t
-  [@@deriving eq, show, yojson]
+  [@@deriving eq, show, biniou, yojson]
 
   val accepts : t -> base_kind -> float Lwt.t
 

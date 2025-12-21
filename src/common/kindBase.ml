@@ -6,7 +6,7 @@ type t =
   | Reel
   | Strathspey
   | Waltz
-[@@deriving eq, ord, show {with_path = false}]
+[@@deriving eq, ord, show {with_path = false}, biniou]
 
 let all = [Jig; Reel; Strathspey; Polka; Waltz]
 
@@ -79,10 +79,10 @@ type base_kind = t (* needed for the interface of filters *)
 module Filter = struct
   type predicate =
     | Is of t
-  [@@deriving eq, show {with_path = false}, yojson, variants]
+  [@@deriving eq, show {with_path = false}, biniou, yojson, variants]
 
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, yojson]
+  [@@deriving eq, show {with_path = false}, biniou, yojson]
 
   let is' = Formula.pred % is
 

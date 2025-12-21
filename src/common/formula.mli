@@ -9,7 +9,7 @@ type 'p t =
   | And of 'p t * 'p t
   | Or of 'p t * 'p t
   | Pred of 'p
-[@@deriving eq, yojson]
+[@@deriving eq, biniou, yojson]
 (** Type of formulas carrying predicates of type ['p]. *)
 
 (** {3 Constructors} *)

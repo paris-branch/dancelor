@@ -34,6 +34,12 @@ let%test _ = of_string "3x40J" = Mul (3, Version (40, Jig))
 let%test _ = of_string "32R" = Version (32, Reel)
 let%test _ = of_string_opt "R" = None
 
+let to_biniou d = `String (to_string d)
+
+let of_biniou_exn = function
+  | `String s -> of_string s
+  | t -> Ppx_deriving_biniou_runtime.could_not_convert "Kind.Dance.of_biniou" t
+
 let to_yojson d =
   `String (to_string d)
 
@@ -82,13 +88,13 @@ module Filter = struct
     | Is of t
     | Simple
     | Version of KindVersion.Filter.t
-  [@@deriving eq, show {with_path = false}, yojson, variants]
+  [@@deriving eq, show {with_path = false}, biniou, yojson, variants]
 
   let base = version % KindVersion.Filter.base'
   let baseIs = version % KindVersion.Filter.baseIs'
 
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, yojson]
+  [@@deriving eq, show {with_path = false}, biniou, yojson]
 
   let is' = Formula.pred % is
   let base' = Formula.pred % base

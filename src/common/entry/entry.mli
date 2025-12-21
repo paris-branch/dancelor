@@ -3,7 +3,7 @@ open Nes
 module Id = Id
 module Slug = ESlug
 
-type 'a t [@@deriving show]
+type 'a t [@@deriving show, biniou]
 (** A database entry.*)
 
 (** {2 Builders} *)

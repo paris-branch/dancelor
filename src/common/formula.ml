@@ -7,7 +7,7 @@ type 'p t =
   | And of 'p t * 'p t
   | Or of 'p t * 'p t
   | Pred of 'p
-[@@deriving yojson, variants]
+[@@deriving biniou, yojson, variants]
 
 (** Comparison of ands and ors is problematic, so we normalise them always in
     the same way before comparing. *)

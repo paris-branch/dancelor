@@ -2,6 +2,7 @@ type t =
   | Locked
   | ToBeConfirmed
   | Unlocked
+[@@deriving biniou]
 
 (* Locked
      |

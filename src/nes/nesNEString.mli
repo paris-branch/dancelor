@@ -1,6 +1,6 @@
 (** {1 Non-empty string} *)
 
-type t [@@deriving eq, show, yojson]
+type t [@@deriving eq, show, biniou, yojson]
 (** A non-empty string. *)
 
 val to_string : t -> string

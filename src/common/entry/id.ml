@@ -56,6 +56,9 @@ let%test _ = try ignore (List.init 100 (fun _ -> make ())); true with Assert_fai
 
 let to_string = Fun.id
 
+let to_biniou' s = `String s
+let to_biniou _ = to_biniou'
+
 let to_yojson' s = `String s
 let to_yojson _ = to_yojson'
 
@@ -68,6 +71,13 @@ let of_string_exn str =
   match of_string str with
   | Some str -> str
   | None -> invalid_arg @@ spf "not a valid id: `%s`" str
+
+let of_biniou_exn' = function
+  | `String s -> Option.get @@ of_string s
+  | t -> Ppx_deriving_biniou_runtime.could_not_convert "Entry.Id.of_biniou" t
+let of_biniou_exn _ = of_biniou_exn'
+
+let of_biniou _ = Ppx_deriving_biniou_runtime.of_biniou_of_of_biniou_exn of_biniou_exn'
 
 let of_yojson' = function
   | `String s -> Option.to_result ~none: (spf "not a valid id: `%s`" s) (of_string s)
@@ -97,6 +107,9 @@ end
 
 module J (A : TYPEABLE) : Madge.JSONABLE with type t = A.t t = struct
   type nonrec t = A.t t
+  let to_biniou = to_biniou'
+  let of_biniou_exn = of_biniou_exn'
+  let of_biniou = Ppx_deriving_biniou_runtime.of_biniou_of_of_biniou_exn of_biniou_exn
   let to_yojson = to_yojson'
   let of_yojson = of_yojson'
 end

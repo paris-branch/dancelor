@@ -2,7 +2,7 @@ open Nes
 
 type t =
   {pitch: Pitch.t; mode: Mode.t}
-[@@deriving eq, show {with_path = false}, qcheck2]
+[@@deriving eq, show {with_path = false}, qcheck2, biniou]
 
 let make pitch mode = {pitch; mode}
 let pitch key = key.pitch
