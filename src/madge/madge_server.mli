@@ -18,17 +18,11 @@ val match_apply :
   (unit -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t) option
 
 module type Endpoints = sig
-  type ('a, 'w, 'r) internal
-  type wrapped_internal = W_internal : ('a, 'r Lwt.t, 'r) internal -> wrapped_internal
-  val all_internals : wrapped_internal list
-  type (_, _, _) full =
-    | Api : ('a, 'w, 'r) internal -> ('a, 'w, 'r) full
-    | Batch : (Madge.Request.t list -> 'w, 'w, Madge.Response.t list) full
-  val route_full : ('a, 'w, 'r) full -> ('a, 'w, 'r) Madge.route
-  val name : ('a, 'w, 'r) internal -> string
-  val route : ('a, 'w, 'r) internal -> ('a, 'w, 'r) Madge.route
+  include Madge.Endpoints
+
   type env
-  val dispatch : 'a 'r. env -> ('a, 'r Lwt.t, 'r) internal -> 'a
+
+  val dispatch : 'a 'r. env -> ('a, 'r Lwt.t, 'r) t -> 'a
   (** A function dispatching routes to controllers. *)
 
   val namespace : string

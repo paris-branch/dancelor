@@ -8,11 +8,11 @@ let madge_call_or_option endpoint id =
     | Error e -> raise (Madge_client.Error e)
 
 include ModelBuilder.Build(struct
-  let get_book = madge_call_or_option Endpoints.Api.(Book Get)
-  let get_dance = madge_call_or_option Endpoints.Api.(Dance Get)
-  let get_person = madge_call_or_option Endpoints.Api.(Person Get)
-  let get_set = madge_call_or_option Endpoints.Api.(Set Get)
-  let get_source = madge_call_or_option Endpoints.Api.(Source Get)
-  let get_tune = madge_call_or_option Endpoints.Api.(Tune Get)
-  let get_version = madge_call_or_option Endpoints.Api.(Version Get)
+  let get_book = madge_call_or_option (Book Get)
+  let get_dance = madge_call_or_option (Dance Get)
+  let get_person = madge_call_or_option (Person Get)
+  let get_set = madge_call_or_option (Set Get)
+  let get_source = madge_call_or_option (Source Get)
+  let get_tune = madge_call_or_option (Tune Get)
+  let get_version = madge_call_or_option (Version Get)
 end)

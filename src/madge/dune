@@ -9,7 +9,8 @@
    ppx_deriving_yojson
    ppx_deriving.std
    lwt_ppx
-   ppx_fields_conv)))
+   ppx_fields_conv
+   ppx_madge_wrapped_endpoints)))
 
 (library
  (name madge_client)

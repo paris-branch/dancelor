@@ -56,17 +56,9 @@ let shortcut_forbidden_no_leak () = shortcut_forbidden "Forbidden."
 let shortcut_bad_request message = shortcut' `Bad_request message
 
 module type Endpoints = sig
-  type ('a, 'w, 'r) internal
-  type wrapped_internal = W_internal : ('a, 'r Lwt.t, 'r) internal -> wrapped_internal
-  val all_internals : wrapped_internal list
-  type (_, _, _) full =
-    | Api : ('a, 'w, 'r) internal -> ('a, 'w, 'r) full
-    | Batch : (Madge.Request.t list -> 'w, 'w, Madge.Response.t list) full
-  val route_full : ('a, 'w, 'r) full -> ('a, 'w, 'r) Madge.route
-  val name : ('a, 'w, 'r) internal -> string
-  val route : ('a, 'w, 'r) internal -> ('a, 'w, 'r) Madge.route
+  include Madge.Endpoints
   type env
-  val dispatch : 'a 'r. env -> ('a, 'r Lwt.t, 'r) internal -> 'a
+  val dispatch : 'a 'r. env -> ('a, 'r Lwt.t, 'r) t -> 'a
   val namespace : string
 end
 
@@ -92,7 +84,7 @@ module Make_apply_controller (E : Endpoints) : Apply_controller with type env = 
   let apply_controller env request =
     let rec madge_match_apply_all = function
       | [] -> None
-      | E.W_internal endpoint :: wrapped_endpoints ->
+      | E.W endpoint :: wrapped_endpoints ->
         (
           match match_apply (E.route endpoint) (fun () -> E.dispatch env endpoint) request with
           | None -> madge_match_apply_all wrapped_endpoints
@@ -100,7 +92,7 @@ module Make_apply_controller (E : Endpoints) : Apply_controller with type env = 
         )
     in
     (* FIXME: We should just get a URI. *)
-    match madge_match_apply_all E.all_internals with
+    match madge_match_apply_all E.all with
     | None -> respond_not_found "The endpoint `%s` does not exist or is not called with the right method and parameters." (Uri.path @@ Madge.Request.uri request)
     | Some (name, thunk) ->
       Prometheus.DefaultHistogram.time
