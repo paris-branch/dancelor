@@ -1,0 +1,117 @@
+--- a/src/bi_io.ml
++++ b/src/bi_io.ml
+@@ -212,37 +212,6 @@
+     | _ -> assert false
+ )
+ 
+-let read_untagged_float64 ib =
+-  let i = Bi_inbuf.read ib 8 in
+-  let s = ib.i_s in
+-  let x = Obj.new_block Obj.double_tag 8 in
+-  (match Lazy.force float_endianness with
+-       `Little ->
+-	 for j = 0 to 7 do
+-	   Bytes.unsafe_set (Obj.obj x) (7-j) (Bytes.unsafe_get s (i+j))
+-	 done
+-     | `Big ->
+-	 for j = 0 to 7 do
+-	   Bytes.unsafe_set (Obj.obj x) j (Bytes.unsafe_get s (i+j))
+-	 done
+-  );
+-  (Obj.obj x : float)
+-
+-let write_untagged_float64 ob x =
+-  let i = Bi_outbuf.alloc ob 8 in
+-  let s = ob.o_s in
+-  (match Lazy.force float_endianness with
+-       `Little ->
+-	 for j = 0 to 7 do
+-	   Bytes.unsafe_set s (i+j) (String.unsafe_get (Obj.magic x) (7-j))
+-	 done
+-     | `Big ->
+-	 for j = 0 to 7 do
+-	   Bytes.unsafe_set s (i+j) (String.unsafe_get (Obj.magic x) j)
+-	 done
+-  )
+-
+-(*
+ let write_untagged_int64 ob x =
+   let x4 = Int64.to_int (Int64.shift_right_logical x 48) in
+   Bi_outbuf.add_char ob (Char.chr (x4 lsr 8));
+@@ -256,24 +225,9 @@
+   let x1 = Int64.to_int x in
+   Bi_outbuf.add_char ob (Char.chr ((x1 lsr 8) land 0xff));
+   Bi_outbuf.add_char ob (Char.chr (x1 land 0xff))
+-*)
+-
+-let write_untagged_int64 ob x =
+-  write_untagged_float64 ob (Int64.float_of_bits x)
+-
+-
+-let safety_test () =
+-  let s = "\x3f\xf0\x06\x05\x04\x03\x02\x01" in
+-  let x = 1.00146962706651288 in
+-  let y = read_untagged_float64 (Bi_inbuf.from_string s) in
+-  if x <> y then
+-    assert false;
+-  let ob = Bi_outbuf.create 8 in
+-  write_untagged_float64 ob x;
+-  if Bi_outbuf.contents ob <> s then
+-    assert false
+-
+ 
++let write_untagged_float64 ob x =
++  write_untagged_int64 ob (Int64.bits_of_float x)
+ 
+ let write_untagged_string ob s =
+   Bi_vint.write_uvint ob (String.length s);
+@@ -542,27 +496,24 @@
+ let read_untagged_float32 ib =
+   Int32.float_of_bits (read_untagged_int32 ib)
+ 
+-(*
+ let read_untagged_int64 ib =
+   let i = Bi_inbuf.read ib 8 in
+   let s = ib.i_s in
++  let get_code s i = Char.code (Bytes.get s i) in
+   let x1 =
+-    Int64.of_int (((Char.code s.[i  ]) lsl 8) lor (Char.code s.[i+1])) in
++    Int64.of_int (((get_code s (i  )) lsl 8) lor (get_code s (i+1))) in
+   let x2 =
+-    Int64.of_int (((Char.code s.[i+2]) lsl 8) lor (Char.code s.[i+3])) in
++    Int64.of_int (((get_code s (i+2)) lsl 8) lor (get_code s (i+3))) in
+   let x3 =
+-    Int64.of_int (((Char.code s.[i+4]) lsl 8) lor (Char.code s.[i+5])) in
++    Int64.of_int (((get_code s (i+4)) lsl 8) lor (get_code s (i+5))) in
+   let x4 =
+-    Int64.of_int (((Char.code s.[i+6]) lsl 8) lor (Char.code s.[i+7])) in
++    Int64.of_int (((get_code s (i+6)) lsl 8) lor (get_code s (i+7))) in
+   Int64.logor (Int64.shift_left x1 48)
+     (Int64.logor (Int64.shift_left x2 32)
+        (Int64.logor (Int64.shift_left x3 16) x4))
+-*)
+-
+-let read_untagged_int64 ib =
+-  Int64.bits_of_float (read_untagged_float64 ib)
+-
+ 
++let read_untagged_float64 ib =
++  Int64.float_of_bits (read_untagged_int64 ib)
+ 
+ let read_untagged_string ib =
+   let len = Bi_vint.read_uvint ib in
+@@ -955,3 +906,14 @@
+ 
+ let output_view ?unhash oc s =
+   output_view_of_tree oc (tree_of_string ?unhash s)
++
++let safety_test () =
++  let s = "\x3f\xf0\x06\x05\x04\x03\x02\x01" in
++  let x = 1.00146962706651288 in
++  let y = read_untagged_float64 (Bi_inbuf.from_string s) in
++  if x <> y then
++    assert false;
++  let ob = Bi_outbuf.create 8 in
++  write_untagged_float64 ob x;
++  if Bi_outbuf.contents ob <> s then
++    assert false

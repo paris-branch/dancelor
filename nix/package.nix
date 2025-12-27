@@ -1,3 +1,5 @@
+{ inputs, ... }:
+
 {
   perSystem =
     {
@@ -5,6 +7,7 @@
       inputs',
       pkgs,
       lib,
+      system,
       ...
     }:
     {
@@ -27,6 +30,7 @@
           inputs'.camelotte.packages.monadise-lwt
           inputs'.camelotte.packages.ppx_deriving_biniou
 
+          biniou
           cohttp-lwt-jsoo
           cohttp-lwt-unix
           dates_calc
@@ -124,6 +128,27 @@
           license = lib.licenses.asl20;
           maintainers = [ lib.maintainers.ulrikstrid ];
         };
+      };
+
+      ## Patch Biniou in nixpkgs's ocamlPackages, such that it works with
+      ## js_of_ocaml. Ultimately, we should contribute to Biniou and have two
+      ## ways to compile it, with and without the patch. (We cannot just
+      ## contribute the patch because the original code is there for performance
+      ## considerations.)
+      ##
+      _module.args.pkgs = import inputs.nixpkgs {
+        inherit system;
+        overlays = [
+          (_: prev: {
+            ocamlPackages = prev.ocamlPackages.overrideScope (
+              _: _: {
+                biniou = prev.ocamlPackages.biniou.overrideAttrs (oldAttrs: {
+                  patches = (oldAttrs.patches or [ ]) ++ [ ./biniou-1.2.2.patch ];
+                });
+              }
+            );
+          })
+        ];
       };
     };
 }
