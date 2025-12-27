@@ -59,7 +59,6 @@ module type Endpoints = sig
   include Madge.Endpoints
   type env
   val dispatch : 'a 'r. env -> ('a, 'r Lwt.t, 'r) t -> 'a
-  val namespace : string
 end
 
 module type Apply_controller = sig
@@ -68,10 +67,18 @@ module type Apply_controller = sig
 end
 
 module Make_apply_controller (E : Endpoints) : Apply_controller with type env = E.env = struct
+  let start_time = Unix.gettimeofday ()
+
+  let uptime_seconds =
+    Prometheus.Gauge.v
+      ~namespace: "madge"
+      ~help: "Time since application started in seconds"
+      "uptime_seconds"
+
   let api_request_duration_seconds =
     let family =
       Prometheus.DefaultHistogram.v_labels
-        ~namespace: E.namespace
+        ~namespace: "madge"
         ~help: "API request duration in seconds"
         "api_request_duration_seconds"
         ~label_names: ["endpoint"]
@@ -82,18 +89,21 @@ module Make_apply_controller (E : Endpoints) : Apply_controller with type env = 
   type env = E.env
 
   let apply_controller env request =
-    let rec madge_match_apply_all = function
+    let rec match_apply_all = function
       | [] -> None
       | E.W endpoint :: wrapped_endpoints ->
         (
           match match_apply (E.route endpoint) (fun () -> E.dispatch env endpoint) request with
-          | None -> madge_match_apply_all wrapped_endpoints
+          | None -> match_apply_all wrapped_endpoints
           | Some f -> Some (E.name endpoint, f)
         )
     in
     (* FIXME: We should just get a URI. *)
-    match madge_match_apply_all E.all with
-    | None -> respond_not_found "The endpoint `%s` does not exist or is not called with the right method and parameters." (Uri.path @@ Madge.Request.uri request)
+    match match_apply_all E.all with
+    | None ->
+      respond_not_found
+        "The endpoint `%s` does not exist or is not called with the right method and parameters."
+        (Uri.path @@ Madge.Request.uri request)
     | Some (name, thunk) ->
       Prometheus.DefaultHistogram.time
         (api_request_duration_seconds ~endpoint: name)
@@ -108,7 +118,16 @@ module Make_apply_controller (E : Endpoints) : Apply_controller with type env = 
         lwt (response, body)
       )
     in
+    let get_metrics () =
+      Prometheus.Gauge.set uptime_seconds (Unix.gettimeofday () -. start_time);
+      let%lwt metrics = Prometheus.CollectorRegistry.(collect default) in
+      let body = Fmt.to_to_string Prometheus_app.TextFormat_0_0_4.output metrics in
+      respond_string ~content_type: "text/plain; version=0.0.4" body
+    in
     match match_apply E.(route_full Batch) (fun () -> process_batched_requests) request with
     | Some thunk -> thunk ()
-    | None -> apply_controller env request
+    | None ->
+      match match_apply E.(route_full Metrics) (fun () -> get_metrics ()) request with
+      | Some thunk -> thunk ()
+      | None -> apply_controller env request
 end

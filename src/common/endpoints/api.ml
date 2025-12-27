@@ -16,7 +16,6 @@ module Endpoints = struct
     | ReportIssue : (IssueReport.request -> 'w, 'w, IssueReport.response) t
     | Victor : ('w, 'w, Void.t) t
     | BootTime : ('w, 'w, Datetime.t) t
-    | Metrics : ('w, 'w, Void.t) t
   [@@deriving madge_wrapped_endpoints]
 end
 include Endpoints
@@ -40,7 +39,6 @@ include Madge.Make_endpoints(struct
       | ReportIssue -> literal "issue" @@ literal "report" @@ query "request" (module IssueReport.Request) @@ post (module IssueReport.Response)
       | Victor -> literal "victor" @@ void ()
       | BootTime -> literal "boot-time" @@ get (module Datetime)
-      | Metrics -> literal "metrics" @@ void ()
 end)
 
 let href : type a r. (a, string, r) t -> a = fun endpoint ->

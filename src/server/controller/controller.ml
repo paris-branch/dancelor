@@ -34,4 +34,3 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.t -> a =
   | BootTime ->
     Log.debug (fun m -> m "Answering boot time");
     lwt Environment.boot_time
-  | Metrics -> Metrics.get ()

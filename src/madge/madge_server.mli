@@ -24,9 +24,6 @@ module type Endpoints = sig
 
   val dispatch : 'a 'r. env -> ('a, 'r Lwt.t, 'r) t -> 'a
   (** A function dispatching routes to controllers. *)
-
-  val namespace : string
-  (** Namespace, for Prometheus metrics; typically the name of the application. *)
 end
 
 module type Apply_controller = sig

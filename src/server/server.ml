@@ -20,7 +20,6 @@ let log_die () = Logger.log_die (module Log)
 
 include Madge_server.Make_apply_controller(struct
   include Endpoints.Api
-  let namespace = "dancelor"
   type env = Environment.t
   let dispatch = Controller.dispatch
 end)
@@ -45,7 +44,7 @@ let catchall ~place ~die fun_ =
     will answer to the request: a static file, or a Madge API point, or the
     standard main JS file. *)
 let callback _ request body =
-  Controller.Metrics.increment_http_requests_total ();
+  Metrics.increment_http_requests_total ();
   catchall
     ~place: "the callback"
     ~die: Madge_server.respond_internal_server_error

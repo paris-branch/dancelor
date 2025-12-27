@@ -23,6 +23,7 @@ module type Endpoints = sig
   type (_, _, _) full =
     | Api : ('a, 'w, 'r) t -> ('a, 'w, 'r) full
     | Batch : (Request.t list -> 'w, 'w, Response.t list) full
+    | Metrics : ('w, 'w, JVoid.t) full
   (** The type of full endpoints, which are the internal endpoints augmented of
       some other endpoints (batching, metrics). *)
 
@@ -42,12 +43,14 @@ module Make_endpoints (Internal : Internal_endpoints) : Endpoints with
   type (_, _, _) full =
     | Api : ('a, 'w, 'r) t -> ('a, 'w, 'r) full
     | Batch : (Request.t list -> 'w, 'w, Response.t list) full
+    | Metrics : ('w, 'w, JVoid.t) full
 
   let route_full : type a w r. (a, w, r) full -> (a, w, r) Route.t =
     let open Route in
     function
       | Api endpoint -> literal "api" @@ route_internal endpoint
       | Batch -> literal "api" @@ literal "batch" @@ body "requests" (module JList(Request)) @@ post (module JList(Response))
+      | Metrics -> literal "api" @@ literal "metrics" @@ void ()
 
   let route endpoint = route_full (Api endpoint)
 end
