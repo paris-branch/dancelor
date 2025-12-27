@@ -54,3 +54,80 @@ let shortcut_not_found message = shortcut' `Not_found message
 let shortcut_forbidden message = shortcut' `Forbidden message
 let shortcut_forbidden_no_leak () = shortcut_forbidden "Forbidden."
 let shortcut_bad_request message = shortcut' `Bad_request message
+
+module type Endpoints = sig
+  include Madge.Endpoints
+  type env
+  val dispatch : 'a 'r. env -> ('a, 'r Lwt.t, 'r) t -> 'a
+end
+
+module type Apply_controller = sig
+  type env
+  val apply_controller : env -> Request.t -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t
+end
+
+module Make_apply_controller (E : Endpoints) : Apply_controller with type env = E.env = struct
+  let start_time = Unix.gettimeofday ()
+
+  let uptime_seconds =
+    Prometheus.Gauge.v
+      ~namespace: "madge"
+      ~help: "Time since application started in seconds"
+      "uptime_seconds"
+
+  let api_request_duration_seconds =
+    let family =
+      Prometheus.DefaultHistogram.v_labels
+        ~namespace: "madge"
+        ~help: "API request duration in seconds"
+        "api_request_duration_seconds"
+        ~label_names: ["endpoint"]
+    in
+    fun ~endpoint ->
+      Prometheus.DefaultHistogram.labels family [endpoint]
+
+  type env = E.env
+
+  let apply_controller env request =
+    let rec match_apply_all = function
+      | [] -> None
+      | E.W endpoint :: wrapped_endpoints ->
+        (
+          match match_apply (E.route endpoint) (fun () -> E.dispatch env endpoint) request with
+          | None -> match_apply_all wrapped_endpoints
+          | Some f -> Some (E.name endpoint, f)
+        )
+    in
+    (* FIXME: We should just get a URI. *)
+    match match_apply_all E.all with
+    | None ->
+      respond_not_found
+        "The endpoint `%s` does not exist or is not called with the right method and parameters."
+        (Uri.path @@ Madge.Request.uri request)
+    | Some (name, thunk) ->
+      Prometheus.DefaultHistogram.time
+        (api_request_duration_seconds ~endpoint: name)
+        Unix.gettimeofday
+        thunk
+
+  let apply_controller env request =
+    let process_batched_requests =
+      Lwt_list.map_p (fun request ->
+        let%lwt (response, body) = apply_controller env request in
+        let%lwt body = Madge.Response.body_of_lwt body in
+        lwt (response, body)
+      )
+    in
+    let get_metrics () =
+      Prometheus.Gauge.set uptime_seconds (Unix.gettimeofday () -. start_time);
+      let%lwt metrics = Prometheus.CollectorRegistry.(collect default) in
+      let body = Fmt.to_to_string Prometheus_app.TextFormat_0_0_4.output metrics in
+      respond_string ~content_type: "text/plain; version=0.0.4" body
+    in
+    match match_apply E.(route_full Batch) (fun () -> process_batched_requests) request with
+    | Some thunk -> thunk ()
+    | None ->
+      match match_apply E.(route_full Metrics) (fun () -> get_metrics ()) request with
+      | Some thunk -> thunk ()
+      | None -> apply_controller env request
+end

@@ -17,6 +17,28 @@ val match_apply :
   Request.t ->
   (unit -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t) option
 
+module type Endpoints = sig
+  include Madge.Endpoints
+
+  type env
+
+  val dispatch : 'a 'r. env -> ('a, 'r Lwt.t, 'r) t -> 'a
+  (** A function dispatching routes to controllers. *)
+end
+
+module type Apply_controller = sig
+  type env
+  (** An environment that {!apply_controller} will pass to
+      {!Endpoints.dispatch}. Madge does not care what is in it, and it can very
+      much be [unit]. *)
+
+  val apply_controller : env -> Request.t -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t
+  (** A function that, given a request, finds a matching route, dispatches to
+      the appropriate controller, and responds correctly. *)
+end
+
+module Make_apply_controller : functor (E : Endpoints) -> Apply_controller with type env = E.env
+
 (** {2 Successful non-JSON responses}
 
     All of these return {!NesVoid.t}, meaning they can only ever be used on a
