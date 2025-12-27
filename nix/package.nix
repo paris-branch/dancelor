@@ -2,7 +2,6 @@
   perSystem =
     {
       self',
-      inputs',
       pkgs,
       lib,
       ...
@@ -23,9 +22,8 @@
         buildInputs = with pkgs.ocamlPackages; [
           self'.packages.ocaml-argon2
           self'.packages.prometheus-app
-          inputs'.camelotte.packages.monadise
-          inputs'.camelotte.packages.monadise-lwt
 
+          biniou
           cohttp-lwt-jsoo
           cohttp-lwt-unix
           dates_calc
@@ -35,7 +33,10 @@
           logs
           lwt_ppx
           lwt_react
+          monadise
+          monadise-lwt
           ppx_blob
+          ppx_deriving_biniou
           ppx_deriving_yojson
           ppx_import
           ppx_inline_test

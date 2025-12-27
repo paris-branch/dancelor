@@ -6,7 +6,10 @@
     topiary.url = "github:tweag/topiary";
 
     camelotte = {
-      url = "github:lesboloss-es/camelotte";
+      ## NOTE: This is `github:lesboloss-es/camelotte`, but the `github:` scheme
+      ## downloads the archive and therefore does not support the `submodules`
+      ## attribute, which Camelotte uses.
+      url = "git+https://github.com/lesboloss-es/camelotte.git";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         topiary.follows = "topiary";
@@ -42,6 +45,22 @@
       ## flakes having a `lib.${system}` attribute.
       ##
       perInput = system: flake: if flake ? lib.${system} then { lib = flake.lib.${system}; } else { };
+
+      ## Create our `pkgs` set by importing nixpkgs with some overlays. This is
+      ## used to inject all of Camelotte, but also sometimes to modify packages
+      ## that we depend on. This actually ensures that Camelotte packages will
+      ## also pick up those modifications.
+      ##
+      perSystem =
+        { system, ... }:
+        {
+          _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            overlays = [
+              inputs.camelotte.overlays.default
+            ];
+          };
+        };
     };
 
   nixConfig = {
