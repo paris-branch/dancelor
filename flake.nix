@@ -45,6 +45,22 @@
       ## flakes having a `lib.${system}` attribute.
       ##
       perInput = system: flake: if flake ? lib.${system} then { lib = flake.lib.${system}; } else { };
+
+      ## Create our `pkgs` set by importing nixpkgs with some overlays. This is
+      ## used to inject all of Camelotte, but also sometimes to modify packages
+      ## that we depend on. This actually ensures that Camelotte packages will
+      ## also pick up those modifications.
+      ##
+      perSystem =
+        { system, ... }:
+        {
+          _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            overlays = [
+              inputs.camelotte.overlays.default
+            ];
+          };
+        };
     };
 
   nixConfig = {
