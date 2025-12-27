@@ -12,7 +12,7 @@ type t = {
   dances: Dance.t Entry.Id.t list; [@default []]
   remark: string; [@default ""]
 }
-[@@deriving eq, yojson, make, show {with_path = false}, fields]
+[@@deriving eq, biniou, yojson, make, show {with_path = false}, fields]
 
 let make ~name ?conceptors ~kind ?contents ~order ?dances () =
   let name = NEString.map_exn (String.remove_duplicates ~char: ' ') name in
@@ -36,7 +36,7 @@ let set_contents contents set =
 type warning =
   | Empty
   | Duplicate_tune of Tune.t Entry.t
-[@@deriving yojson]
+[@@deriving biniou, yojson]
 
 type warnings = warning list
-[@@deriving yojson]
+[@@deriving biniou, yojson]

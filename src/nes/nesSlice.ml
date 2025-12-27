@@ -2,7 +2,7 @@ type t = {
   start: int;
   end_incl: int
 }
-[@@deriving yojson]
+[@@deriving biniou, yojson]
 
 let start s = s.start
 let end_incl s = s.end_incl

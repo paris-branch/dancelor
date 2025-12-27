@@ -8,7 +8,7 @@ type t = {
   composed_tunes_are_public: bool; [@default false]
   published_tunes_are_public: bool; [@default false]
 }
-[@@deriving eq, yojson, make, show {with_path = false}, fields]
+[@@deriving eq, biniou, yojson, make, show {with_path = false}, fields]
 
 let make ~name ?scddb_id () =
   let name = NEString.map_exn (String.remove_duplicates ~char: ' ') name in

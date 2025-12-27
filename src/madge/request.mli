@@ -16,7 +16,7 @@ val cohttp_code_meth_to_meth : Cohttp.Code.meth -> meth
 val is_safe : meth -> bool
 
 (** Abstract type of a request. *)
-type t [@@deriving yojson]
+type t [@@deriving biniou, yojson]
 
 (** Make a request from a method, a URI and a body. *)
 val make : meth: meth -> uri: Uri.t -> body: string -> t

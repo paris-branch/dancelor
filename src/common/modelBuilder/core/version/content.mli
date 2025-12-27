@@ -9,7 +9,7 @@ type destructured = {
 type t =
   | Monolithic of {lilypond: string; bars: int; structure: Structure.t} (** A tune as a full LilyPond, including clef, key, etc. *)
   | Destructured of destructured (** A tune decomposed as building blocks *)
-[@@deriving eq, yojson, show, variants]
+[@@deriving eq, biniou, yojson, show, variants]
 
 val lilypond : ?structure: Structure.t -> kind: Kind.Base.t -> key: Music.Key.t -> t -> string
 (** Produce a LilyPond string from a content and some additional information.

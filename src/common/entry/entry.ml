@@ -9,7 +9,7 @@ type meta = {
   created_at: Datetime.t; [@key "created-at"]
   modified_at: Datetime.t; [@key "modified-at"]
 }
-[@@deriving yojson, show {with_path = false}, fields]
+[@@deriving biniou, yojson, show {with_path = false}, fields]
 
 let make_meta ?(status = Status.bot) ?(privacy = Privacy.default) ?created_at ?modified_at () =
   let now = Datetime.now () in
@@ -29,7 +29,7 @@ let update_meta ?status ?privacy ?created_at ?modified_at meta = {
 
 type 'a t =
   {id: 'a Id.t; meta: meta; value: 'a}
-[@@deriving show {with_path = false}, fields]
+[@@deriving show {with_path = false}, fields, biniou]
 
 let make' ~id ?meta value =
   let meta = Option.value ~default: (make_meta ()) meta in
@@ -72,6 +72,9 @@ let of_yojson value_of_yojson json =
 
 module J (A : Madge.JSONABLE) : Madge.JSONABLE with type t = A.t t = struct
   type nonrec t = A.t t
+  let to_biniou = to_biniou A.to_biniou
+  let of_biniou = of_biniou A.of_biniou_exn
+  let of_biniou_exn = of_biniou_exn A.of_biniou_exn
   let to_yojson = to_yojson A.to_yojson
   let of_yojson = of_yojson A.of_yojson
 end

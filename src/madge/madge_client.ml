@@ -8,7 +8,7 @@ type error =
 
 exception Error of error
 
-type error_response = {message: string} [@@deriving yojson]
+type error_response = {message: string} [@@deriving of_biniou, yojson]
 
 let max_attempts = 10 (* up to ~2 minutes *)
 
@@ -54,10 +54,10 @@ let batch_route () =
   | Some batch_route -> batch_route
 
 type request_list = Request.t list
-[@@deriving yojson]
+[@@deriving of_biniou, yojson]
 
 type response_list = Response.t list
-[@@deriving yojson]
+[@@deriving of_biniou, yojson]
 
 let process_batch () =
   match !batch_state with
@@ -84,7 +84,7 @@ let process_batch () =
           List.iter (fun resolver -> Lwt.wakeup_later resolver (Result.Error batch_error)) resolvers;
           lwt_unit
         | Ok batched_response ->
-          let responses = Result.get_ok @@ response_list_of_yojson @@ Yojson.Safe.from_string @@ Cohttp.Body.to_string @@ snd batched_response in
+          let responses = response_list_of_biniou_exn @@ Bi_io.tree_of_string @@ Cohttp.Body.to_string @@ snd batched_response in
           List.iter2
             (fun response resolver -> Lwt.wakeup_later resolver (Ok response))
             responses
@@ -125,23 +125,23 @@ let call_gen
     in
     let status = Cohttp.Response.status response in
     let body = Cohttp.Body.to_string body in
-    let%rlwt json_body =
+    let%rlwt biniou_body =
       try
-        Lwt.return_ok @@ Yojson.Safe.from_string body
+        Lwt.return_ok @@ Bi_io.tree_of_string body
       with
-        | Yojson.Json_error message ->
-          Lwt.return_error @@ BodyUnserialisation {body; message = "not JSON: " ^ message}
+        | Bi_util.Error message ->
+          Lwt.return_error @@ BodyUnserialisation {body; message = "not Biniou: " ^ message}
     in
     if Cohttp.(Code.(is_success (code_of_status status))) then
       (
-        match R.of_yojson json_body with
-        | Error message -> Lwt.return_error @@ BodyUnserialisation {body; message}
+        match R.of_biniou biniou_body with
+        | Error (message, _) -> Lwt.return_error @@ BodyUnserialisation {body; message}
         | Ok body -> Lwt.return_ok body
       )
     else
       (
-        match error_response_of_yojson json_body with
-        | Error message -> Lwt.return_error @@ BodyUnserialisation {body; message = "expected an error, but " ^ message}
+        match error_response_of_biniou biniou_body with
+        | Error (message, _) -> Lwt.return_error @@ BodyUnserialisation {body; message = "expected an error, but " ^ message}
         | Ok {message} -> Lwt.return_error @@ Http {request; status; message}
       )
 

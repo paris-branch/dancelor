@@ -1,6 +1,6 @@
 type t =
   Major | Minor
-[@@deriving eq, show {with_path = false}, qcheck2]
+[@@deriving eq, show {with_path = false}, qcheck2, biniou]
 
 let to_string = function Major -> "" | Minor -> "m"
 

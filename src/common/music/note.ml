@@ -2,7 +2,7 @@ open Nes
 
 type t =
   A | B | C | D | E | F | G
-[@@deriving eq, show {with_path = false}, qcheck2]
+[@@deriving eq, show {with_path = false}, qcheck2, biniou]
 
 let to_char = function
   | A -> 'a'

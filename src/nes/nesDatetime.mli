@@ -1,6 +1,6 @@
 (** {1 Datetime} *)
 
-type t [@@deriving eq, yojson]
+type t [@@deriving eq, biniou, yojson]
 
 val to_string : t -> string
 (** Prints the date and time as an ISO 8601 string. *)

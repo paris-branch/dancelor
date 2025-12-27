@@ -4,10 +4,10 @@ type predicate =
   | Is of ModelBuilder.Core.Person.t Entry.Id.t
   | Name of string
   | NameMatches of string
-[@@deriving eq, show {with_path = false}, yojson, variants]
+[@@deriving eq, show {with_path = false}, biniou, yojson, variants]
 
 type t = predicate Formula.t
-[@@deriving eq, show {with_path = false}, yojson]
+[@@deriving eq, show {with_path = false}, biniou, yojson]
 
 let name' = Formula.pred % name
 let nameMatches' = Formula.pred % namematches

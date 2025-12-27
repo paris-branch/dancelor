@@ -3,7 +3,7 @@
     This module implements the notion of partial date, that is a date from which
     the day or the month may be missing. *)
 
-type t [@@deriving eq, show, yojson]
+type t [@@deriving eq, show, biniou, yojson]
 (** The type of a partial date. *)
 
 val from_string : string -> t option

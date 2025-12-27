@@ -2,7 +2,7 @@ open Nes
 
 type alteration =
   Flat | Sharp | Natural
-[@@deriving eq, show {with_path = false}, qcheck2]
+[@@deriving eq, show {with_path = false}, qcheck2, biniou]
 
 let alteration_to_string = function Flat -> "b" | Sharp -> "#" | Natural -> ""
 let alteration_to_pretty_string = function Flat -> "♭" | Sharp -> "♯" | Natural -> ""
@@ -15,7 +15,7 @@ let alteration_of_string = function
   | _ -> failwith "Common.Music.alteration_of_string"
 
 type octave = int
-[@@deriving eq, show {with_path = false}]
+[@@deriving eq, show {with_path = false}, biniou]
 
 let gen_octave = QCheck2.Gen.int_range (-8) 8
 
@@ -41,7 +41,7 @@ type t = {
   alteration: alteration;
   octave: octave
 }
-[@@deriving eq, show {with_path = false}, qcheck2]
+[@@deriving eq, show {with_path = false}, qcheck2, biniou]
 
 let make note alteration octave = {note; alteration; octave}
 

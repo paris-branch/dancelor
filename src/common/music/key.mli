@@ -2,7 +2,7 @@
 
 type t =
   {pitch: Pitch.t; mode: Mode.t}
-[@@deriving eq, show, yojson]
+[@@deriving eq, show, biniou, yojson]
 
 val make : Pitch.t -> Mode.t -> t
 val pitch : t -> Pitch.t

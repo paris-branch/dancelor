@@ -1,7 +1,7 @@
 open Nes
 
 type t = int (* number of semitones *)
-[@@deriving eq, show {with_path = false}, yojson]
+[@@deriving eq, show {with_path = false}, biniou, yojson]
 
 let identity = 0
 let compose = (+)

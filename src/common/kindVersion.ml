@@ -1,7 +1,7 @@
 open Nes
 
 type t = int * KindBase.t
-[@@deriving eq, show {with_path = false}]
+[@@deriving eq, show {with_path = false}, biniou]
 
 let to_string (repeats, base) =
   spf "%d %s" repeats (KindBase.to_string base)
@@ -81,12 +81,12 @@ module Filter = struct
     | BarsLt of int
     | BarsLe of int
     | Base of KindBase.Filter.t
-  [@@deriving eq, show {with_path = false}, yojson, variants]
+  [@@deriving eq, show {with_path = false}, biniou, yojson, variants]
 
   let baseIs = base % KindBase.Filter.is'
 
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, yojson]
+  [@@deriving eq, show {with_path = false}, biniou, yojson]
 
   let is' = Formula.pred % is
   let base' = Formula.pred % base

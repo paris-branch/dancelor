@@ -1,5 +1,5 @@
 type t
-[@@deriving eq, show, yojson]
+[@@deriving eq, show, biniou, yojson]
 
 val identity : t
 

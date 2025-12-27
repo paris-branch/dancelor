@@ -11,7 +11,7 @@ type t = {
   disambiguation: string; [@default ""]
   date: PartialDate.t option; [@default None] (** When the dance was devised. *)
 }
-[@@deriving eq, make, show {with_path = false}, yojson, fields]
+[@@deriving eq, make, show {with_path = false}, biniou, yojson, fields]
 
 let make ~names ~kind ?devisers ?two_chords ?scddb_id ?disambiguation ?date () =
   let names = NEList.map (NEString.map_exn (String.remove_duplicates ~char: ' ')) names in

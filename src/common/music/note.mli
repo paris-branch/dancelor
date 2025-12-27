@@ -2,7 +2,7 @@
 
 type t =
   A | B | C | D | E | F | G
-[@@deriving eq, show]
+[@@deriving eq, show, biniou]
 
 val to_char : t -> char
 val to_string : t -> string

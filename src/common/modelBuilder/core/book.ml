@@ -5,14 +5,14 @@ module Page = struct
     | DanceOnly
     | DanceVersions of (Version.t Entry.Id.t * VersionParameters.t) NEList.t
     | DanceSet of Set.t Entry.Id.t * SetParameters.t
-  [@@deriving eq, show {with_path = false}, yojson]
+  [@@deriving eq, show {with_path = false}, biniou, yojson]
 
   type t =
     | Part of NEString.t
     | Dance of Dance.t Entry.Id.t * dance
     | Versions of (Version.t Entry.Id.t * VersionParameters.t) NEList.t
     | Set of Set.t Entry.Id.t * SetParameters.t
-  [@@deriving eq, show {with_path = false}, yojson]
+  [@@deriving eq, show {with_path = false}, biniou, yojson]
 end
 
 type page_dance =
@@ -50,7 +50,7 @@ type t = {
   sources: Source.t Entry.Id.t list; [@default []]
   scddb_id: int option; [@default None] [@key "scddb-id"]
 }
-[@@deriving eq, make, show {with_path = false}, yojson, fields]
+[@@deriving eq, make, show {with_path = false}, biniou, yojson, fields]
 
 let make ~title ?authors ?date ?contents ?remark ?sources ?scddb_id () =
   let title = NEString.map_exn (String.remove_duplicates ~char: ' ') title in

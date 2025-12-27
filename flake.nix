@@ -6,7 +6,10 @@
     topiary.url = "github:tweag/topiary";
 
     camelotte = {
-      url = "github:lesboloss-es/camelotte";
+      ## NOTE: This is `github:lesboloss-es/camelotte`, but the `github:` scheme
+      ## downloads the archive and therefore does not support the `submodules`
+      ## attribute, which Camelotte uses.
+      url = "git+https://github.com/lesboloss-es/camelotte.git";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         topiary.follows = "topiary";

@@ -7,7 +7,7 @@ open Nes
 type paper_size =
   | A of int
   | Custom of float * float * string (** width, height and unit *)
-[@@deriving eq, show {with_path = false}, yojson]
+[@@deriving eq, show {with_path = false}, biniou, yojson]
 
 type pdf_metadata = {
   title: string option; [@default None]
@@ -15,7 +15,7 @@ type pdf_metadata = {
   composers: string list option; [@default None] (* FIXME: difference between “author” and “composer”? *)
   subjects: string list option; [@default None] (** to be used for eg. kinds *)
 }
-[@@deriving fields, show, eq, yojson]
+[@@deriving fields, show, eq, biniou, yojson]
 
 let title' = Option.value ~default: "" % title
 let subtitle' = Option.value ~default: "" % subtitle
@@ -45,7 +45,7 @@ type t = {
   show_headers: bool option; [@default None] [@key "show-headers"]
   pdf_metadata: pdf_metadata; [@default no_pdf_metadata] [@key "pdf-metadata"]
 }
-[@@deriving make, fields, yojson, eq, show]
+[@@deriving make, fields, biniou, yojson, eq, show]
 
 let make ?paper_size ?pdf_metadata ?instruments ?clef ?show_headers () =
   make ~paper_size ?pdf_metadata ~instruments ~clef ~show_headers ()

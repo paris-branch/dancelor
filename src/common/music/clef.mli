@@ -1,6 +1,6 @@
 type t =
   Treble | Bass
-[@@deriving eq, show, yojson]
+[@@deriving eq, show, biniou, yojson]
 
 val to_string : t -> string
 

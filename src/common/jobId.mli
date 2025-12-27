@@ -1,6 +1,6 @@
 (** {1 Job id} *)
 
-type t [@@deriving yojson]
+type t [@@deriving biniou, yojson]
 (** Abstract type of a job id. *)
 
 val to_string : t -> string

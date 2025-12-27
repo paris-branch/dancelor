@@ -14,6 +14,7 @@
   (staged_pps
    ppx_import
    ppx_inline_test
+   ppx_deriving_biniou
    ppx_deriving_yojson
    lwt_ppx
    ppx_deriving.std))

@@ -9,10 +9,10 @@ type context =
   | InSearch of string
   | InSet of Core.Set.t Entry.Id.t * int
   | InBook of Core.Book.t Entry.Id.t * int
-[@@deriving yojson, variants]
+[@@deriving biniou, yojson, variants]
 
 (* For serialisation *)
-module Context = struct type t = context [@@deriving yojson] end
+module Context = struct type t = context [@@deriving biniou, yojson] end
 
 (* FIXME: It would be so much nicer if [Search] could carry an actual
    [Any.Filter.predicate Formula.t]. That however requires moving a lot of

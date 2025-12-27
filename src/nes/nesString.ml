@@ -280,8 +280,17 @@ end)
 module Map = struct
   include Map.Make(struct type nonrec t = t let compare = compare end)
 
-  type ('k, 'v) proxy = ('k * 'v) list [@@deriving show {with_path = false}]
-  let pp pp_v fmt m = pp_proxy Format.pp_print_string pp_v fmt (to_list m)
+  type 'v proxy = (string * 'v) list [@@deriving show {with_path = false}, biniou, yojson]
+  let of_proxy = of_list
+  let to_proxy = to_list
+
+  let pp pp_a fmt m = pp_proxy pp_a fmt (to_proxy m)
+
+  (* NOTE: Biniou and Yojson don't have similar-looking transformations, but
+     that's OK. *)
+
+  let to_biniou a_to_biniou m = proxy_to_biniou a_to_biniou (to_proxy m)
+  let of_biniou_exn a_of_biniou t = of_proxy (proxy_of_biniou_exn a_of_biniou t)
 
   let to_yojson a_to_yojson m = `Assoc (List.map (fun (k, v) -> (k, a_to_yojson v)) (to_list m))
   let of_yojson a_of_yojson = function

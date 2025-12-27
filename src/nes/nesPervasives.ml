@@ -46,7 +46,7 @@ let rec first_non_zero ?(or_ = 0) = function
 let (||>) f g = fun x -> g (f x)
 let ( % ) f g = fun x -> f (g x)
 
-type ('a, 'b) either = [%import: ('a, 'b) Either.t] [@@deriving yojson]
+type ('a, 'b) either = [%import: ('a, 'b) Either.t] [@@deriving biniou, yojson]
 
 let rec fixpoint ?(eq = (=)) f x =
   let y = f x in

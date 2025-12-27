@@ -3,7 +3,7 @@ open Nes
 type component =
   | External of int
   | Internal of int
-[@@deriving eq, show {with_path = false}]
+[@@deriving eq, show {with_path = false}, biniou]
 
 let component_to_string = function
   | External int -> spf "X%d" int
@@ -24,7 +24,7 @@ let component_of_string =
         invalid_arg "Dancelor_common.Model.SetOrder.component_of_string"
 
 type t = component list
-[@@deriving eq, show {with_path = false}]
+[@@deriving eq, show {with_path = false}, biniou]
 
 let to_string order =
   List.map component_to_string order

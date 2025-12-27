@@ -5,6 +5,7 @@
 
 type t =
   Private | Public
+[@@deriving biniou]
 
 (* Private
      |

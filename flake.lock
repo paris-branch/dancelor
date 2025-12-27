@@ -32,17 +32,18 @@
         ]
       },
       "locked": {
-        "lastModified": 1765807766,
-        "narHash": "sha256-emmjQCTftJCUMywKFDd6DfOED/LEumsnbIi6Cu1wPR4=",
-        "owner": "lesboloss-es",
-        "repo": "camelotte",
-        "rev": "919a8d09b0587c978f52135d5288459f821d18d3",
-        "type": "github"
+        "lastModified": 1766360901,
+        "narHash": "sha256-hBdu2qY/vAPFXb1uc+f7ySYSs6cqsX+HnFoXN/CrmbY=",
+        "ref": "refs/heads/main",
+        "rev": "1e1beed7cf3ab645346c8d77578c1ae920fa4fec",
+        "revCount": 288,
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/lesboloss-es/camelotte.git"
       },
       "original": {
-        "owner": "lesboloss-es",
-        "repo": "camelotte",
-        "type": "github"
+        "type": "git",
+        "url": "https://github.com/lesboloss-es/camelotte.git"
       }
     },
     "crane": {

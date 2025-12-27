@@ -11,7 +11,7 @@ type t = {
   scddb_id: int option; [@default None] [@key "scddb-id"]
   date: PartialDate.t option; [@default None] (** When the tune was composed. *)
 }
-[@@deriving eq, yojson, make, show {with_path = false}, fields]
+[@@deriving eq, biniou, yojson, make, show {with_path = false}, fields]
 
 let make ~names ~kind ?composers ?dances ?remark ?scddb_id ?date () =
   let names = NEList.map (NEString.map_exn (String.remove_duplicates ~char: ' ')) names in

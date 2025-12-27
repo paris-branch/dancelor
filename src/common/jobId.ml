@@ -1,6 +1,6 @@
 open Nes
 
-type t = string
+type t = string [@@deriving biniou]
 
 let random_alphanumeral () =
   let n = Random.int 36 in

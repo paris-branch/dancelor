@@ -5,12 +5,12 @@ type destructured = {
   transitions: (Part_name.opens * Part_name.opens * Voices.t) list;
   default_structure: Structure.t;
 }
-[@@deriving eq, yojson, show {with_path = false}]
+[@@deriving eq, biniou, yojson, show {with_path = false}]
 
 type t =
   | Monolithic of {lilypond: string; bars: int; structure: Structure.t}
   | Destructured of destructured
-[@@deriving eq, yojson, show {with_path = false}, variants]
+[@@deriving eq, biniou, yojson, show {with_path = false}, variants]
 
 let erase_lilypond = function
   | Monolithic {bars; structure; _} -> Monolithic {bars; structure; lilypond = ""}
