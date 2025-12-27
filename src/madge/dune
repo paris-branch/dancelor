@@ -28,7 +28,7 @@
  (name madge_server)
  (modules madge_server)
  (public_name dancelor.madge.server)
- (libraries dancelor.madge cohttp-lwt-unix)
+ (libraries dancelor.madge cohttp-lwt-unix prometheus-app.unix)
  (preprocess
   (pps ppx_deriving_yojson lwt_ppx)))
 

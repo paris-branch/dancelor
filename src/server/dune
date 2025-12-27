@@ -11,7 +11,6 @@
   logs
   lwt.unix
   monadise-lwt
-  prometheus-app.unix
   str
   tyxml
   yaml)

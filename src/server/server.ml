@@ -18,38 +18,12 @@ let log_exn ~msg exn =
 let log_exit = Logger.log_exit (module Log)
 let log_die () = Logger.log_die (module Log)
 
-let apply_controller env request =
-  let rec madge_match_apply_all = function
-    | [] -> None
-    | Endpoints.Api.W_internal endpoint :: wrapped_endpoints ->
-      (
-        Log.debug (fun m -> m "Attempting to match endpoint %s" (Endpoints.Api.name endpoint));
-        match Madge_server.match_apply (Endpoints.Api.route endpoint) (fun () -> Controller.dispatch env endpoint) request with
-        | None -> madge_match_apply_all wrapped_endpoints
-        | Some f -> Some (Endpoints.Api.name endpoint, f)
-      )
-  in
-  (* FIXME: We should just get a URI. *)
-  match madge_match_apply_all Endpoints.Api.all_internals with
-  | None -> Madge_server.respond_not_found "The endpoint `%s` does not exist or is not called with the right method and parameters." (Uri.path @@ Madge.Request.uri request)
-  | Some (name, thunk) ->
-    Log.debug (fun m -> m "Applying endpoint %s" name);
-    try%lwt
-      Prometheus.DefaultHistogram.time (Controller.Metrics.api_request_duration_seconds ~endpoint: name) Unix.gettimeofday thunk
-    with
-      | Database.Error.Exn error -> Madge_server.respond (Database.Error.status error) ""
-
-let apply_controller env request =
-  let process_batched_requests =
-    Lwt_list.map_p (fun request ->
-      let%lwt (response, body) = apply_controller env request in
-      let%lwt body = Madge.Response.body_of_lwt body in
-      lwt (response, body)
-    )
-  in
-  match Madge_server.match_apply Endpoints.Api.(route_full Batch) (fun () -> process_batched_requests) request with
-  | Some thunk -> thunk ()
-  | None -> apply_controller env request
+include Madge_server.Make_apply_controller(struct
+  include Endpoints.Api
+  let namespace = "dancelor"
+  type env = Environment.t
+  let dispatch = Controller.dispatch
+end)
 
 (** Wraps a function into a double catchall: regular exceptions and Lwt
     exceptions. Exceptions are logged as uncaught, and then the `die` function

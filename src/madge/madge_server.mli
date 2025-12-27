@@ -17,6 +17,37 @@ val match_apply :
   Request.t ->
   (unit -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t) option
 
+module type Endpoints = sig
+  type ('a, 'w, 'r) internal
+  type wrapped_internal = W_internal : ('a, 'r Lwt.t, 'r) internal -> wrapped_internal
+  val all_internals : wrapped_internal list
+  type (_, _, _) full =
+    | Api : ('a, 'w, 'r) internal -> ('a, 'w, 'r) full
+    | Batch : (Madge.Request.t list -> 'w, 'w, Madge.Response.t list) full
+  val route_full : ('a, 'w, 'r) full -> ('a, 'w, 'r) Madge.route
+  val name : ('a, 'w, 'r) internal -> string
+  val route : ('a, 'w, 'r) internal -> ('a, 'w, 'r) Madge.route
+  type env
+  val dispatch : 'a 'r. env -> ('a, 'r Lwt.t, 'r) internal -> 'a
+  (** A function dispatching routes to controllers. *)
+
+  val namespace : string
+  (** Namespace, for Prometheus metrics; typically the name of the application. *)
+end
+
+module type Apply_controller = sig
+  type env
+  (** An environment that {!apply_controller} will pass to
+      {!Endpoints.dispatch}. Madge does not care what is in it, and it can very
+      much be [unit]. *)
+
+  val apply_controller : env -> Request.t -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t
+  (** A function that, given a request, finds a matching route, dispatches to
+      the appropriate controller, and responds correctly. *)
+end
+
+module Make_apply_controller : functor (E : Endpoints) -> Apply_controller with type env = E.env
+
 (** {2 Successful non-JSON responses}
 
     All of these return {!NesVoid.t}, meaning they can only ever be used on a
