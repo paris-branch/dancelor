@@ -1,6 +1,7 @@
 open Nes
 
 module Id = Id
+module User = User
 
 type 'a t [@@deriving show]
 (** A database entry.*)

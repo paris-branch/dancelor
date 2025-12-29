@@ -1,6 +1,7 @@
 open Nes
 
 module Id = Id
+module User = User
 
 type meta = {
   status: Status.t; [@default Status.bot]
