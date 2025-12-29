@@ -9,8 +9,8 @@ let get env id =
     lwt tune
 
 let create env tune =
-  Permission.assert_can_create env;%lwt
-  Database.Tune.create tune
+  Permission.assert_can_create env @@ fun user ->
+  Database.Tune.create ~owner: (Entry.id user) tune
 
 let update env id tune =
   Permission.assert_can_update env =<< get env id;%lwt

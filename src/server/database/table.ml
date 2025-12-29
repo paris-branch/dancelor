@@ -6,7 +6,7 @@ open Common
 module type Model = sig
   type t
 
-  val dependencies : t -> (string * unit Entry.Id.t) list
+  val dependencies : t -> (string * unit Entry.id) list
 
   val to_yojson : t -> Json.t
   val of_yojson : Json.t -> (t, string) result
@@ -18,9 +18,9 @@ end
 
 (** {2 Type of a table} *)
 
-type 'value database_state = ('value Entry.Id.t, 'value) Hashtbl.t
+type 'value database_state = ('value Entry.id, 'value) Hashtbl.t
 
-type reverse_dependencies = ReverseDependencies of (string * unit Entry.Id.t) list
+type reverse_dependencies = ReverseDependencies of (string * unit Entry.id) list
 (** A type for reverse dependencies. *)
 
 module type S = sig
@@ -33,24 +33,24 @@ module type S = sig
   val load : unit -> unit Lwt.t
   val list_dependency_problems : unit -> Error.t list
 
-  val get : value Entry.Id.t -> value Entry.t option
+  val get : value Entry.id -> value Entry.t option
   val get_all : unit -> value Entry.t Seq.t
 
-  val create : value -> value Entry.t Lwt.t
+  val create : owner: Entry.user_id -> value -> value Entry.t Lwt.t
   (** Create a new database entry for the given value. *)
 
-  val update : value Entry.Id.t -> value -> value Entry.t Lwt.t
+  val update : value Entry.id -> value -> value Entry.t Lwt.t
   (** Update an existing database entry with the given value. *)
 
   val make_delete :
-    (value Entry.Id.t -> reverse_dependencies) ->
-    value Entry.Id.t ->
+    (value Entry.id -> reverse_dependencies) ->
+    value Entry.id ->
     unit Lwt.t
   (** Given a function that computes reverse dependencies, make a function that
       deletes an existing database entry if it is safe to do so. It throws
       {!Error.EntityHasReverseDependencies} otherwise. *)
 
-  val dependencies : value -> unit Entry.Id.t list
+  val dependencies : value -> unit Entry.id list
   (** Pass {!Model.dependencies} through. *)
 
   module Log : Logs.LOG
@@ -179,15 +179,27 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let create_or_update maybe_id model =
     let (is_create, id, model) =
       match maybe_id with
-      | None ->
+      | Left owner ->
         (* no id: this is a creation *)
         let id = GloballyUniqueId.make () in
-        let model = Entry.make ~id model in
+        let model =
+          Entry.make'
+            ~id
+            ~access: (Entry.make_access ~owner)
+            model
+        in
           (true, id, model)
-      | Some id ->
+      | Right id ->
         (* an id: this is an update *)
         let old_model = Option.get @@ get id in
-        let model = Entry.make' ~id ~meta: (Entry.update_meta ~modified_at: (Datetime.now ()) (Entry.meta old_model)) model in
+        let model =
+          Entry.make'
+            ~id
+            ~meta: (Entry.update_meta ~modified_at: (Datetime.now ()) (Entry.meta old_model))
+            ~access: (Entry.access old_model)
+            (* FIXME: possibility to update access *)
+            model
+        in
           (false, id, model)
     in
     let json = Entry.to_yojson' Model.to_yojson model in
@@ -205,8 +217,8 @@ module Make (Model : Model) : S with type value = Model.t = struct
       Hashtbl.replace table id model;
     lwt model
 
-  let create = create_or_update None
-  let update id model = create_or_update (Some id) model
+  let create ~owner model = create_or_update (Left owner) model
+  let update id model = create_or_update (Right id) model
 
   let dependencies = List.map snd % Model.dependencies
 

@@ -30,8 +30,8 @@ let for_user env id =
       else lwt_none
 
 let create env person =
-  Permission.assert_can_create env;%lwt
-  Database.Person.create person
+  Permission.assert_can_create env @@ fun user ->
+  Database.Person.create ~owner: (Entry.id user) person
 
 let update env id person =
   Permission.assert_can_update env =<< get env id;%lwt

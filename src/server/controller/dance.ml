@@ -11,8 +11,8 @@ let get env id =
     lwt dance
 
 let create env dance =
-  Permission.assert_can_create env;%lwt
-  Database.Dance.create dance
+  Permission.assert_can_create env @@ fun user ->
+  Database.Dance.create ~owner: (Entry.id user) dance
 
 let update env id dance =
   Permission.assert_can_update env =<< get env id;%lwt
