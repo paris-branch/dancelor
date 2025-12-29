@@ -15,9 +15,3 @@ let of_string str =
 let to_string = Fun.id
 
 let add_suffix = (^)
-
-module S : Madge.STRINGABLE with type t = t = struct
-  type nonrec t = t
-  let of_string = Option.some % of_string
-  let to_string = to_string
-end

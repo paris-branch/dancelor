@@ -121,7 +121,7 @@ let status id =
     | Succeeded _ -> Succeeded
 
 let file id slug =
-  Log.debug (fun m -> m "file %s %s" (JobId.to_string id) (Entry.Slug.to_string slug));
+  Log.debug (fun m -> m "file %s %s" (JobId.to_string id) (NesSlug.to_string slug));
   get id >>= fun {job; file; _} ->
   match !(job.state) with
   | Pending -> Madge_server.shortcut_bad_request "This job is not running yet, you cannot query the file."

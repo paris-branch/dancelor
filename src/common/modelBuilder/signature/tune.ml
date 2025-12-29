@@ -47,8 +47,8 @@ module type S = sig
   val date : t -> PartialDate.t option
   val date' : t Entry.t -> PartialDate.t option
 
-  val slug : t -> Entry.Slug.t
-  val slug' : t Entry.t -> Entry.Slug.t
+  val slug : t -> NesSlug.t
+  val slug' : t Entry.t -> NesSlug.t
 
   val equal : t -> t -> bool
   (** Structural equality. This is different from entry equality. *)

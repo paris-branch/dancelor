@@ -39,8 +39,8 @@ module type S = sig
   val remark : t -> string
   val remark' : t Entry.t -> string
 
-  val slug : t -> Entry.Slug.t
-  val slug' : t Entry.t -> Entry.Slug.t
+  val slug : t -> NesSlug.t
+  val slug' : t Entry.t -> NesSlug.t
 
   val find_context : int -> t -> Core.Version.t Entry.t List.context option Lwt.t
   val find_context' : int -> t Entry.t -> Core.Version.t Entry.t List.context option Lwt.t

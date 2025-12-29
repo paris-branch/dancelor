@@ -69,8 +69,8 @@ module type S = sig
 
   (** {2 Advanced Field Getters} *)
 
-  val slug : t -> Entry.Slug.t
-  val slug' : t Entry.t -> Entry.Slug.t
+  val slug : t -> NesSlug.t
+  val slug' : t Entry.t -> NesSlug.t
 
   (** {2 Utilities} *)
 

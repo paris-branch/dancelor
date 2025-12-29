@@ -1,7 +1,6 @@
 open Nes
 
 module Id = Id
-module Slug = ESlug
 
 type meta = {
   status: Status.t; [@default Status.bot]

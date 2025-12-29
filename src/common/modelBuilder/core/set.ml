@@ -27,7 +27,7 @@ let order' = order % Entry.value
 let instructions' = instructions % Entry.value
 let remark' = remark % Entry.value
 
-let slug = Entry.Slug.of_string % NEString.to_string % name
+let slug = NesSlug.of_string % NEString.to_string % name
 let slug' = slug % Entry.value
 
 let set_contents contents set =

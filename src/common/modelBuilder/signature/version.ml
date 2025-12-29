@@ -79,8 +79,8 @@ module type S = sig
   val kind' : t Entry.t -> Kind.Base.t Lwt.t
   (** Convenient wrapper around {!tune} and {!Tune.kind}. *)
 
-  val slug : t -> Entry.Slug.t Lwt.t
-  val slug' : t Entry.t -> Entry.Slug.t Lwt.t
+  val slug : t -> NesSlug.t Lwt.t
+  val slug' : t Entry.t -> NesSlug.t Lwt.t
 
   val equal : t -> t -> bool
   (** Structural equality. This is different from entry equality. *)

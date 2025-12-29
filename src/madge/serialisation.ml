@@ -32,6 +32,12 @@ module SStatusCode : STRINGABLE with type t = Cohttp.Code.status_code = struct
   let of_string = Option.map Cohttp.Code.status_of_code % int_of_string_opt
 end
 
+module SSlug : STRINGABLE with type t = NesSlug.t = struct
+  type t = NesSlug.t
+  let of_string = Option.some % NesSlug.of_string
+  let to_string = NesSlug.to_string
+end
+
 module JString : JSONABLE with type t = string = struct
   type t = string [@@deriving yojson]
 end

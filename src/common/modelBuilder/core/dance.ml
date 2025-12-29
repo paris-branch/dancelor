@@ -32,5 +32,5 @@ let scddb_id' = scddb_id % Entry.value
 let disambiguation' = disambiguation % Entry.value
 let date' = date % Entry.value
 
-let slug = Entry.Slug.of_string % NEString.to_string % one_name
+let slug = NesSlug.of_string % NEString.to_string % one_name
 let slug' = slug % Entry.value

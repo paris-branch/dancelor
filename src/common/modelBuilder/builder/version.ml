@@ -33,7 +33,7 @@ module Build (Getters : Getters.S) = struct
   let kind version = Core.Tune.kind' <$> tune version
   let kind' = kind % Entry.value
 
-  let slug version = Entry.Slug.of_string % NEString.to_string <$> one_name version
+  let slug version = NesSlug.of_string % NEString.to_string <$> one_name version
   let slug' = slug % Entry.value
 
   let content_lilypond ?structure ?content: the_content version =

@@ -65,7 +65,7 @@ let remark' = remark % Entry.value
 let sources' = sources % Entry.value
 let scddb_id' = scddb_id % Entry.value
 
-let slug = Entry.Slug.of_string % NEString.to_string % title
+let slug = NesSlug.of_string % NEString.to_string % title
 let slug' = slug % Entry.value
 
 let contains_set set1 book =
