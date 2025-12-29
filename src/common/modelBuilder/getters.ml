@@ -1,6 +1,7 @@
 open Nes
 
 module type S = sig
+  val get_user : Core.User.t Entry.Id.t -> Core.User.t Entry.t option Lwt.t
   val get_book : Core.Book.t Entry.Id.t -> Core.Book.t Entry.t option Lwt.t
   val get_dance : Core.Dance.t Entry.Id.t -> Core.Dance.t Entry.t option Lwt.t
   val get_person : Core.Person.t Entry.Id.t -> Core.Person.t Entry.t option Lwt.t

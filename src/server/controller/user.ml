@@ -3,6 +3,13 @@ open Common
 
 module Log = (val Logger.create "controller.user": Logs.LOG)
 
+let get env id =
+  match Database.User.get id with
+  | None -> Permission.reject_can_get ()
+  | Some user ->
+    Permission.assert_can_get env user;%lwt
+    lwt user
+
 let status = lwt % Environment.user
 
 let sign_in env username password remember_me =
@@ -91,6 +98,7 @@ let can_admin env = lwt @@ Permission.can_admin env
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a = fun env endpoint ->
   match endpoint with
+  | Get -> get env
   | Status -> status env
   | SignIn -> sign_in env
   | SignOut -> sign_out env

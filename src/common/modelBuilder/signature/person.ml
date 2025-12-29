@@ -13,7 +13,10 @@ module type S = sig
 
   val make :
     name: NEString.t ->
+    ?user: Core.User.t Entry.t ->
     ?scddb_id: int ->
+    ?composed_tunes_are_public: bool ->
+    ?published_tunes_are_public: bool ->
     unit ->
     t
 
@@ -21,6 +24,9 @@ module type S = sig
 
   val name : t -> NEString.t
   val name' : t Entry.t -> NEString.t
+
+  val user : t -> Core.User.t Entry.t option Lwt.t
+  val user' : t Entry.t -> Core.User.t Entry.t option Lwt.t
 
   val scddb_id : t -> int option
   val scddb_id' : t Entry.t -> int option

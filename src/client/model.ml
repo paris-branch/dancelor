@@ -8,6 +8,7 @@ let madge_call_or_option endpoint id =
     | Error e -> raise (Madge_client.Error e)
 
 include ModelBuilder.Build(struct
+  let get_user = madge_call_or_option (User Get)
   let get_book = madge_call_or_option (Book Get)
   let get_dance = madge_call_or_option (Dance Get)
   let get_person = madge_call_or_option (Person Get)

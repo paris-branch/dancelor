@@ -3,9 +3,16 @@ open Common
 
 let id_for key entry : string * unit Entry.Id.t = (key, Entry.Id.unsafe_coerce entry)
 
+module User = Table.Make(struct
+  include ModelBuilder.Core.User
+  let dependencies _ = []
+  let wrap_any = ModelBuilder.Core.Any.user
+end)
+
 module Person = Table.Make(struct
   include ModelBuilder.Core.Person
-  let dependencies _ = []
+  let dependencies person =
+    List.map (id_for "user") (Option.to_list @@ ModelBuilder.Core.Person.user person)
   let wrap_any = ModelBuilder.Core.Any.person
 end)
 
@@ -14,13 +21,6 @@ module Source = Table.Make(struct
   let dependencies source =
     List.map (id_for "person") (ModelBuilder.Core.Source.editors source)
   let wrap_any = ModelBuilder.Core.Any.source
-end)
-
-module User = Table.Make(struct
-  include ModelBuilder.Core.User
-  let dependencies user =
-    [id_for "person" (ModelBuilder.Core.User.person user)]
-  let wrap_any = ModelBuilder.Core.Any.user
 end)
 
 module Dance = Table.Make(struct

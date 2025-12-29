@@ -8,6 +8,27 @@ let get env id =
     Permission.assert_can_get env person;%lwt
     lwt person
 
+(** FIXME: This is really the ugliest hack. Basically, we are missing more and
+    more a good database system; this should be an easy query. *)
+let for_user env id =
+  let%lwt person =
+    Database.Person.get_all ()
+    |> Monadise_lwt.monadise_1_1 Seq.find (fun person ->
+        match%lwt Model.Person.user' person with
+        | None -> lwt_false
+        | Some user -> lwt @@ Entry.Id.equal' (Entry.id user) id
+      )
+  in
+  match person with
+  | None -> lwt_none
+  | Some person ->
+    match Database.Person.get (Entry.id person) with
+    | None -> lwt_none
+    | Some person ->
+      if Permission.can_get env person then
+        lwt_some person
+      else lwt_none
+
 let create env person =
   Permission.assert_can_create env;%lwt
   Database.Person.create person
@@ -41,6 +62,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Person.t -> 
   match endpoint with
   | Get -> get env
   | Search -> search env
+  | For_user -> for_user env
   | Create -> create env
   | Update -> update env
   | Delete -> delete env
