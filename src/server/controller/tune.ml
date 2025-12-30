@@ -21,7 +21,7 @@ let delete env id =
   Database.Tune.delete id
 
 include Search.Build(struct
-  type value = Model.Tune.t Entry.t
+  type value = Model.Tune.entry
   type filter = Filter.Tune.t
 
   let get_all env =

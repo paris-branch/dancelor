@@ -172,6 +172,7 @@ end
 module Filter = struct
   module Person = struct
     type predicate = [%import: Common.FilterBuilder.Core.Person.predicate [@with Common.Entry.Id.t := Id.t;
+      Common.Entry.id := Id.t;
       Common.ModelBuilder.Core.Person.t := Model.Person.t;
       ]
     ]
@@ -183,6 +184,7 @@ module Filter = struct
 
   module Source = struct
     type predicate = [%import: Common.FilterBuilder.Core.Source.predicate [@with Common.Entry.Id.t := Id.t;
+      Common.Entry.id := Id.t;
       Common.ModelBuilder.Core.Source.t := Model.Source.t;
       Common__FilterBuilder__Core.Person.t := Person.t;
       ]
@@ -195,6 +197,7 @@ module Filter = struct
 
   module Dance = struct
     type predicate = [%import: Common.FilterBuilder.Core.Dance.predicate [@with Common.Entry.Id.t := Id.t;
+      Common.Entry.id := Id.t;
       Common.ModelBuilder.Core.Dance.t := Model.Dance.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
       Common__FilterBuilder__Core.Person.t := Person.t;

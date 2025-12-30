@@ -43,14 +43,14 @@ let from_string ?filename input =
 let to_text_formula = TextFormula.of_formula text_formula_converter
 let to_string = TextFormula.to_string % to_text_formula
 
-let is = is % Entry.id
-let is' = Formula.pred % is
+let is x = is @@ Entry.id x
+let is' x = Formula.pred @@ is x
 
-let tuneis = tune % Tune.is'
-let tuneis' = Formula.pred % tuneis
+let tuneis x = tune @@ Tune.is' x
+let tuneis' x = Formula.pred @@ tuneis x
 
-let memsource = existssource % Source.is'
-let memsource' = Formula.pred % memsource
+let memsource x = existssource @@ Source.is' x
+let memsource' x = Formula.pred @@ memsource x
 
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}

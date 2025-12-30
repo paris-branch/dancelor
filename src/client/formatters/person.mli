@@ -1,4 +1,3 @@
-open Common
 open Html
 
 val name :
@@ -7,7 +6,7 @@ val name :
 
 val name' :
   ?link: bool ->
-  Model.Person.t Entry.t ->
+  Model.Person.entry ->
   [> Html_types.span] elt
 (** Variant of {!name} taking an {!Entry.t}. Because this is an entry, we can
     additionnally have a link. *)
@@ -20,7 +19,7 @@ val names :
 val names' :
   ?short: bool ->
   ?links: bool ->
-  Model.Person.t Entry.t list ->
+  Model.Person.entry list ->
   [> Html_types.span] elt
 (** Variant of {!names} taking {!Entry.t}. Because they are entries, we can
     additionnally have a link. *)

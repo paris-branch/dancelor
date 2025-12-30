@@ -93,7 +93,7 @@ let score_list_vs_list words needles =
     end
 
 include Search.Build(struct
-  type value = Model.Version.t Entry.t
+  type value = Model.Version.entry
   type filter = Filter.Version.t
 
   let get_all env =

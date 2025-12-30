@@ -1,7 +1,7 @@
 open Nes
 
 type predicate =
-  | Is of ModelBuilder.Core.Dance.t Entry.Id.t
+  | Is of ModelBuilder.Core.Dance.t Entry.id
   | Name of string
   | NameMatches of string
   | Kind of Kind.Dance.Filter.t
@@ -38,8 +38,8 @@ let from_string ?filename input =
 let to_text_formula = TextFormula.of_formula text_formula_converter
 let to_string = TextFormula.to_string % to_text_formula
 
-let is = is % Entry.id
-let is' = Formula.pred % is
+let is x = is @@ Entry.id x
+let is' x = Formula.pred @@ is x
 
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}

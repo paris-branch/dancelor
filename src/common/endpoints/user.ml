@@ -31,24 +31,24 @@ module User = struct
 end
 
 type (_, _, _) t =
-  | Get : ((User.t Entry.Id.t -> 'w), 'w, User.t Entry.t) t
-  | Status : ('w, 'w, User.t Entry.t option) t
+  | Get : ((User.t Entry.Id.t -> 'w), 'w, ModelBuilder.Core.User.entry) t
+  | Status : ('w, 'w, ModelBuilder.Core.User.entry option) t
   | CanCreate : ('w, 'w, bool) t
   | CanAdmin : ('w, 'w, bool) t
-  | SignIn : ((string -> string -> bool -> 'w), 'w, User.t Entry.t option) t
+  | SignIn : ((string -> string -> bool -> 'w), 'w, ModelBuilder.Core.User.entry option) t
   | SignOut : ('w, 'w, unit) t
-  | Create : ((User.t -> 'w), 'w, User.t Entry.t * string) t
+  | Create : ((User.t -> 'w), 'w, ModelBuilder.Core.User.entry * string) t
   | ResetPassword : ((string -> string -> string -> 'w), 'w, unit) t
 [@@deriving madge_wrapped_endpoints]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
-    | Get -> variable (module Entry.Id.S(User)) @@ get (module Entry.J(User))
-    | Status -> literal "status" @@ post (module JOption(Entry.J(User)))
-    | SignIn -> literal "sign-in" @@ body "username" (module JString) @@ body "password" (module JString) @@ body "remember-me" (module JBool) @@ post (module JOption(Entry.J(User)))
+    | Get -> variable (module Entry.Id.S(User)) @@ get (module Entry.JPublic(User))
+    | Status -> literal "status" @@ post (module JOption(Entry.JPublic(User)))
+    | SignIn -> literal "sign-in" @@ body "username" (module JString) @@ body "password" (module JString) @@ body "remember-me" (module JBool) @@ post (module JOption(Entry.JPublic(User)))
     | SignOut -> literal "sign-out" @@ post (module JUnit)
-    | Create -> literal "create" @@ body "user" (module User) @@ post (module JPair(Entry.J(User))(JString))
+    | Create -> literal "create" @@ body "user" (module User) @@ post (module JPair(Entry.JPublic(User))(JString))
     | ResetPassword -> literal "reset-password" @@ body "username" (module JString) @@ body "token" (module JString) @@ body "password" (module JString) @@ post (module JUnit)
     | CanCreate -> literal "can-create" @@ post (module JBool)
     | CanAdmin -> literal "can-admin" @@ post (module JBool)

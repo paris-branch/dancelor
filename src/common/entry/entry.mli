@@ -1,4 +1,4 @@
-open Nes
+(** {1 Entry} *)
 
 (** {2 Module and type aliases} *)
 
@@ -7,74 +7,77 @@ module Id = Id
 module Meta = Meta
 module User = User
 
-type 'value id = 'value Id.t
+type 'value id = 'value Id.t [@@deriving eq, show, yojson]
+
 type user = User.t
 type user_id = user id
 
 (** {2 Entry} *)
 
-type 'value t [@@deriving show]
-(** A database entry.*)
+type ('value, 'access) t [@@deriving eq, ord, show, yojson]
+(** A generic database entry. It carries a value, and the access type is to be
+    instantiated. *)
 
-(** {2 Builders} *)
+type 'value public = ('value, Access.public) t [@@deriving eq, ord, show, yojson]
+type 'value private_ = ('value, Access.private_) t [@@deriving eq, ord, show, yojson]
 
 val make :
   id: 'value Id.t ->
-  ?status: Status.t ->
-  ?privacy: Privacy.t ->
-  ?created_at: Datetime.t ->
-  ?modified_at: Datetime.t ->
-  owner: User.t Id.t ->
-  'value ->
-  'value t
-
-val make' :
-  id: 'value Id.t ->
   ?meta: Meta.t ->
-  access: Access.t ->
+  access: 'access ->
   'value ->
-  'value t
+  ('value, 'access) t
 
 (** {2 Getters} *)
 
-val id : 'value t -> 'value Id.t
-val id' : 'value t -> 'value t Id.t
-val id_as_string : 'value t -> string
-val value : 'value t -> 'value
-val meta : 'value t -> Meta.t
-val access : 'value t -> Access.t
+val id : ('value, 'access) t -> 'value Id.t
+val id' : ('value, 'access) t -> ('value, 'access) t Id.t (* FIXME: why do we ever use this? *)
+val id_as_string : ('value, 'access) t -> string
+
+val value : ('value, 'access) t -> 'value
+(** Return the value of an entry. *)
+
+val value_public : 'value public -> 'value
+(** Alias of {!value} with a more restrictive type. *)
+
+val value_private_ : 'value private_ -> 'value
+(** Alias of {!value} with a more restrictive type. *)
+
+val meta : ('value, 'access) t -> Meta.t
+val access : ('value, 'access) t -> 'access
 
 (** {2 Comparison} *)
 
-val equal : ('value -> 'value -> bool) -> 'value t -> 'value t -> bool
-(** Comparison for ppx_deriving_yojson. The first argument is ignored. Use {!equal'}. *)
+val equal' : ('value, 'access) t -> ('value, 'access) t -> bool
+(** Entry equality is only based on ids; the value {!equal}, compatible with
+    [\[@@deriving eq\]] therefore ignores its arguments. For manual use,
+    {!equal'} is recommended. *)
 
-val equal' : 'value t -> 'value t -> bool
-
-val compare : ('value -> 'value -> int) -> 'value t -> 'value t -> int
-(** Comparison for ppx_deriving_yojson. The first argument is ignored. Use {!compare'}. *)
-
-val compare' : 'value t -> 'value t -> int
+val compare' : ('value, 'access) t -> ('value, 'access) t -> int
+(** Entry comparison is only based on ids; the value {!comparison}, compatible
+    with [\[@@deriving ord\]] therefore ignores its arguments. For manual use,
+    {!compare'} is recommended. *)
 
 (** {2 Serialisation} *)
 
-val to_yojson : ('value -> Yojson.Safe.t) -> 'value t -> Yojson.Safe.t
-val of_yojson : (Yojson.Safe.t -> ('value, string) result) -> Yojson.Safe.t -> ('value t, string) result
-
-val to_yojson_no_id : ('value -> Yojson.Safe.t) -> 'value t -> Yojson.Safe.t
+val to_yojson_no_id : ('value -> Yojson.Safe.t) -> ('access -> Yojson.Safe.t) -> ('value, 'access) t -> Yojson.Safe.t
 (** Variant of {!to_yojson} that doesn't serialise the id, for use in the
     database. *)
 
-val of_yojson_no_id : 'value Id.t -> (Yojson.Safe.t -> ('value, string) result) -> Yojson.Safe.t -> ('value t, string) result
+val of_yojson_no_id : 'value Id.t -> (Yojson.Safe.t -> ('value, string) result) -> (Yojson.Safe.t -> ('access, string) result) -> Yojson.Safe.t -> (('value, 'access) t, string) result
 (** Variant of {!of_yojson} that expects the id as an argument instead of in
     the serialised form, for use in the database. *)
 
-module J : functor (M : Madge.JSONABLE) ->
+module JPublic : functor (M : Madge.JSONABLE) ->
   Madge.JSONABLE with
-  type t = M.t t
+  type t = M.t public
+
+module JPrivate : functor (M : Madge.JSONABLE) ->
+  Madge.JSONABLE with
+  type t = M.t private_
 
 (** {2 Advanced use} *)
 
-val unsafe_set_value : 'value t -> 'new_value -> 'new_value t
-(** Create an entry with the same id and metadata but holding a different
-    value. *)
+val unsafe_erase_value_and_access : ('value, 'access) t -> (unit, unit) t
+(** Create an entry with the same id and metadata but holding no value and with
+    no access information. *)

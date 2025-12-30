@@ -23,7 +23,7 @@ let delete env id =
   Database.Dance.delete id
 
 include Search.Build(struct
-  type value = Model.Dance.t Entry.t
+  type value = Model.Dance.entry
   type filter = Filter.Dance.t
 
   let get_all env =

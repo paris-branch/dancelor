@@ -3,13 +3,13 @@ open Nes
 module Page = struct
   type dance =
     | DanceOnly
-    | DanceVersions of (Version.t Entry.Id.t * VersionParameters.t) NEList.t
-    | DanceSet of Set.t Entry.Id.t * SetParameters.t
+    | DanceVersions of (Version.t Entry.id * VersionParameters.t) NEList.t
+    | DanceSet of Set.t Entry.id * SetParameters.t
   [@@deriving eq, show {with_path = false}, yojson]
 
   type t =
     | Part of NEString.t
-    | Dance of Dance.t Entry.Id.t * dance
+    | Dance of Dance.t Entry.id * dance
     | Versions of (Version.t Entry.Id.t * VersionParameters.t) NEList.t
     | Set of Set.t Entry.Id.t * SetParameters.t
   [@@deriving eq, show {with_path = false}, yojson]
@@ -17,15 +17,15 @@ end
 
 type page_dance =
   | DanceOnly
-  | DanceVersions of (Version.t Entry.t * VersionParameters.t) NEList.t
-  | DanceSet of Set.t Entry.t * SetParameters.t
+  | DanceVersions of (Version.entry * VersionParameters.t) NEList.t
+  | DanceSet of Set.entry * SetParameters.t
 [@@deriving show {with_path = false}, variants]
 
 type page =
   | Part of NEString.t
-  | Dance of Dance.t Entry.t * page_dance
-  | Versions of (Version.t Entry.t * VersionParameters.t) NEList.t
-  | Set of Set.t Entry.t * SetParameters.t
+  | Dance of Dance.entry * page_dance
+  | Versions of (Version.entry * VersionParameters.t) NEList.t
+  | Set of Set.entry * SetParameters.t
 [@@deriving show {with_path = false}, variants]
 
 let page_dance_to_page_dance_core : page_dance -> Page.dance = function
@@ -52,6 +52,10 @@ type t = {
 }
 [@@deriving eq, make, show {with_path = false}, yojson, fields]
 
+type access = Entry.Access.private_ [@@deriving yojson]
+type entry = t Entry.private_
+[@@deriving eq, show, yojson]
+
 let make ~title ?authors ?date ?contents ?remark ?sources ?scddb_id () =
   let title = NEString.map_exn (String.remove_duplicates ~char: ' ') title in
   let authors = Option.map (List.map Entry.id) authors in
@@ -59,14 +63,14 @@ let make ~title ?authors ?date ?contents ?remark ?sources ?scddb_id () =
   let sources = Option.map (List.map Entry.id) sources in
   make ~title ?authors ~date ?contents ?remark ?sources ~scddb_id ()
 
-let title' = title % Entry.value
-let date' = date % Entry.value
-let remark' = remark % Entry.value
-let sources' = sources % Entry.value
-let scddb_id' = scddb_id % Entry.value
+let title' = title % Entry.value_private_
+let date' = date % Entry.value_private_
+let remark' = remark % Entry.value_private_
+let sources' = sources % Entry.value_private_
+let scddb_id' = scddb_id % Entry.value_private_
 
 let slug = NesSlug.of_string % NEString.to_string % title
-let slug' = slug % Entry.value
+let slug' = slug % Entry.value_private_
 
 let contains_set set1 book =
   List.exists
@@ -81,11 +85,11 @@ let set_contents contents book =
 
 type warning =
   | Empty
-  | Duplicate_set of Set.t Entry.t (* FIXME: duplicate dance? *)
-  | Duplicate_tune of Tune.t Entry.t * (Set.t Entry.t option * int) list
+  | Duplicate_set of Set.entry (* FIXME: duplicate dance? *)
+  | Duplicate_tune of Tune.entry * (Set.entry option * int) list
   (* Duplicate_tune contains the list of sets in which the tune appears, as
      well as the number of times this set is present *)
-  | Set_dance_kind_mismatch of Set.t Entry.t * Dance.t Entry.t
+  | Set_dance_kind_mismatch of Set.entry * Dance.entry
 (* Set_dance_kind_mismatch contains a set where one of the associated dances
    does not have the same kind *)
 [@@deriving show {with_path = false}, yojson]

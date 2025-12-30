@@ -1,15 +1,14 @@
 open Common
-
 open Html
 
 val title' :
   ?link: bool ->
   ?context: Endpoints.Page.context ->
-  Model.Book.t Entry.t ->
+  Model.Book.entry ->
   [> Html_types.span] elt
 
 val editors' :
-  Model.Book.t Entry.t ->
+  Model.Book.entry ->
   [> Html_types.span] elt
 
 val date_and_editors :
@@ -17,5 +16,5 @@ val date_and_editors :
   [> Html_types.span] elt
 
 val date_and_editors' :
-  Model.Book.t Entry.t ->
+  Model.Book.entry ->
   [> Html_types.span] elt

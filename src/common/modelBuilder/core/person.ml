@@ -11,12 +11,16 @@ type t = {
 }
 [@@deriving eq, yojson, make, show {with_path = false}, fields]
 
+type access = Entry.Access.public [@@deriving yojson]
+type entry = t Entry.public
+[@@deriving eq, show, yojson]
+
 let make ~name ?user ?scddb_id ?composed_tunes_are_public ?published_tunes_are_public () =
   let name = NEString.map_exn (String.remove_duplicates ~char: ' ') name in
   let user = Option.map Entry.id user in
   make ~name ~user ~scddb_id ?composed_tunes_are_public ?published_tunes_are_public ()
 
-let name' = name % Entry.value
-let scddb_id' = scddb_id % Entry.value
-let composed_tunes_are_public' = composed_tunes_are_public % Entry.value
-let published_tunes_are_public' = published_tunes_are_public % Entry.value
+let name' = name % Entry.value_public
+let scddb_id' = scddb_id % Entry.value_public
+let composed_tunes_are_public' = composed_tunes_are_public % Entry.value_public
+let published_tunes_are_public' = published_tunes_are_public % Entry.value_public

@@ -6,10 +6,10 @@ module Build (Getters : Getters.S) = struct
   let get = Getters.get_book
 
   let authors = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % authors
-  let authors' = authors % Entry.value
+  let authors' = authors % Entry.value_private_
 
   let sources = Lwt_list.map_p (Lwt.map Option.get % Getters.get_source) % sources
-  let sources' = sources % Entry.value
+  let sources' = sources % Entry.value_private_
 
   let contents book =
     Lwt_list.map_p
@@ -37,7 +37,7 @@ module Build (Getters : Getters.S) = struct
       )
       (contents book)
 
-  let contents' = contents % Entry.value
+  let contents' = contents % Entry.value_private_
 
   let versions_from_contents book =
     let%lwt contents = contents book in
@@ -49,7 +49,7 @@ module Build (Getters : Getters.S) = struct
         )
         contents
 
-  let versions_from_contents' = versions_from_contents % Entry.value
+  let versions_from_contents' = versions_from_contents % Entry.value_private_
 
   module BuiltSet = Set.Build(Getters)
 

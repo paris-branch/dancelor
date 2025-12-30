@@ -6,8 +6,8 @@ module Build (Getters : Getters.S) = struct
   let get = Getters.get_tune
 
   let composers = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % composers
-  let composers' = composers % Entry.value
+  let composers' = composers % Entry.value_public
 
   let dances = Lwt_list.map_p (Lwt.map Option.get % Getters.get_dance) % dances
-  let dances' = dances % Entry.value
+  let dances' = dances % Entry.value_public
 end

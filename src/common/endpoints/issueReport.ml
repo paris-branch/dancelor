@@ -2,7 +2,7 @@ open Nes
 
 module Request = struct
   type t = {
-    reporter: (ModelBuilder.Core.User.t Entry.t, string) either;
+    reporter: (ModelBuilder.Core.User.entry, string) either;
     (** either a connected user, or a self description *)
     page: string; (* FIXME: Uri.t *)
     source_is_dancelor: bool;

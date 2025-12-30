@@ -4,14 +4,17 @@ open Common
 (** {2 Type of a model} *)
 
 module type Model = sig
-  type t
+  type t [@@deriving yojson]
 
   val dependencies : t -> (string * unit Entry.id) list
 
-  val to_yojson : t -> Json.t
-  val of_yojson : Json.t -> (t, string) result
+  type access [@@deriving yojson]
 
-  val wrap_any : t Entry.t -> ModelBuilder.Core.Any.t
+  val make_access : owner: Entry.User.t Entry.Id.t -> access
+
+  type entry = (t, access) Entry.t
+
+  val wrap_any : entry -> ModelBuilder.Core.Any.t
 
   val _key : string
 end
@@ -27,19 +30,21 @@ module type S = sig
   val _key : string
 
   type value
+  type access
+  type entry = (value, access) Entry.t
 
   type t = value database_state
 
   val load : unit -> unit Lwt.t
   val list_dependency_problems : unit -> Error.t list
 
-  val get : value Entry.id -> value Entry.t option
-  val get_all : unit -> value Entry.t Seq.t
+  val get : value Entry.id -> entry option
+  val get_all : unit -> entry Seq.t
 
-  val create : owner: Entry.user_id -> value -> value Entry.t Lwt.t
+  val create : owner: Entry.user_id -> value -> entry Lwt.t
   (** Create a new database entry for the given value. *)
 
-  val update : value Entry.id -> value -> value Entry.t Lwt.t
+  val update : value Entry.id -> value -> entry Lwt.t
   (** Update an existing database entry with the given value. *)
 
   val make_delete :
@@ -65,8 +70,8 @@ module GloballyUniqueId : sig
         several times consecutively, that it returns the same id. *)
 
     val register :
-      wrap_any: ('any Entry.t -> ModelBuilder.Core.Any.t) ->
-      'any Entry.t ->
+      wrap_any: (('value, 'access) Entry.t -> ModelBuilder.Core.Any.t) ->
+      ('value, 'access) Entry.t ->
       unit
     (** Register an entry in the global id table. This is used to ensure that
         ids are globally unique across all tables. *)
@@ -94,16 +99,18 @@ end
 
 (** {2 Database Functor} *)
 
-module Make (Model : Model) : S with type value = Model.t = struct
+module Make (Model : Model) : S with type value = Model.t and type access = Model.access = struct
   module Log = (val Logger.create ("database." ^ Model._key): Logs.LOG)
 
   let _key = Model._key
 
   type value = Model.t
+  type access = Model.access
+  type entry = Model.entry
 
   type t = value database_state
 
-  let (table : (Model.t Entry.Id.t, Model.t Entry.t) Hashtbl.t) = Hashtbl.create 8
+  let (table : (value Entry.id, entry) Hashtbl.t) = Hashtbl.create 8
 
   let load () =
     Log.info (fun m -> m "Loading table: %s" _key);
@@ -111,7 +118,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
       Log.debug (fun m -> m "Loading %s %s" _key entry);
       Storage.read_entry_yaml Model._key entry "meta.yaml" >>= fun json ->
       lwt @@
-        match Entry.of_yojson_no_id (Entry.Id.of_string_exn entry) Model.of_yojson json with
+        match Entry.of_yojson_no_id (Entry.Id.of_string_exn entry) Model.of_yojson Model.access_of_yojson json with
         | Ok model ->
           GloballyUniqueId.register model ~wrap_any: Model.wrap_any;
           Hashtbl.add table (Entry.id model) model;
@@ -179,21 +186,16 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let create_or_update maybe_id model =
     let (is_create, id, model) =
       match maybe_id with
-      | Left owner ->
+      | Left access ->
         (* no id: this is a creation *)
         let id = GloballyUniqueId.make () in
-        let model =
-          Entry.make'
-            ~id
-            ~access: (Entry.Access.make ~owner)
-            model
-        in
+        let model = Entry.make ~id ~access model in
           (true, id, model)
       | Right id ->
         (* an id: this is an update *)
         let old_model = Option.get @@ get id in
         let model =
-          Entry.make'
+          Entry.make
             ~id
             ~meta: (Entry.Meta.update ~modified_at: (Datetime.now ()) (Entry.meta old_model))
             ~access: (Entry.access old_model)
@@ -202,7 +204,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
         in
           (false, id, model)
     in
-    let json = Entry.to_yojson_no_id Model.to_yojson model in
+    let json = Entry.to_yojson_no_id Model.to_yojson Model.access_to_yojson model in
     Storage.write_entry_yaml Model._key (Entry.Id.to_string id) "meta.yaml" json;%lwt
     Storage.save_changes_on_entry
       ~msg: (spf "%s %s / %s" (if is_create then "create" else "update") Model._key (Entry.Id.to_string id))
@@ -217,7 +219,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
       Hashtbl.replace table id model;
     lwt model
 
-  let create ~owner model = create_or_update (Left owner) model
+  let create ~owner model = create_or_update (Left (Model.make_access ~owner)) model
   let update id model = create_or_update (Right id) model
 
   let dependencies = List.map snd % Model.dependencies

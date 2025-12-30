@@ -1,4 +1,10 @@
-type t = {
+type public =
+  Public
+[@@deriving eq, show, yojson]
+
+type private_ = {
   owner: User.t Id.t;
 }
-[@@deriving make, show, fields, yojson]
+[@@deriving eq, make, show, fields, yojson]
+
+let make_public_ignore ~owner: _ = Public

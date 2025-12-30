@@ -21,7 +21,7 @@ let delete env id =
   Database.Set.delete id
 
 include Search.Build(struct
-  type value = Model.Set.t Entry.t
+  type value = Model.Set.entry
   type filter = Filter.Set.t
 
   let get_all env =

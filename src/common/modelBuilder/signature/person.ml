@@ -11,9 +11,12 @@ module type S = sig
   type t = Core.Person.t
   (** Abstract type for a person. *)
 
+  type access = Entry.Access.public [@@deriving yojson]
+  type entry = t Entry.public
+
   val make :
     name: NEString.t ->
-    ?user: Core.User.t Entry.t ->
+    ?user: Core.User.entry ->
     ?scddb_id: int ->
     ?composed_tunes_are_public: bool ->
     ?published_tunes_are_public: bool ->
@@ -23,19 +26,19 @@ module type S = sig
   (** {2 Field getters} *)
 
   val name : t -> NEString.t
-  val name' : t Entry.t -> NEString.t
+  val name' : entry -> NEString.t
 
-  val user : t -> Core.User.t Entry.t option Lwt.t
-  val user' : t Entry.t -> Core.User.t Entry.t option Lwt.t
+  val user : t -> Core.User.entry option Lwt.t
+  val user' : entry -> Core.User.entry option Lwt.t
 
   val scddb_id : t -> int option
-  val scddb_id' : t Entry.t -> int option
+  val scddb_id' : entry -> int option
 
   val composed_tunes_are_public : t -> bool
-  val composed_tunes_are_public' : t Entry.t -> bool
+  val composed_tunes_are_public' : entry -> bool
 
   val published_tunes_are_public : t -> bool
-  val published_tunes_are_public' : t Entry.t -> bool
+  val published_tunes_are_public' : entry -> bool
 
   val equal : t -> t -> bool
   (** Structural equality. This is different from entry equality. *)
@@ -45,5 +48,5 @@ module type S = sig
   (** Magic getter. On the client side, this hides an API call, which goes
       through the permissions mechanism. On the server side, this hides a call
       to the database. *)
-  val get : t Entry.Id.t -> t Entry.t option Lwt.t
+  val get : t Entry.id -> entry option Lwt.t
 end

@@ -1,14 +1,14 @@
 open Nes
 
 type t =
-  | Source of Source.t Entry.t
-  | Person of Person.t Entry.t
-  | Dance of Dance.t Entry.t
-  | Book of Book.t Entry.t
-  | Set of Set.t Entry.t
-  | Tune of Tune.t Entry.t
-  | Version of Version.t Entry.t
-  | User of User.t Entry.t
+  | Source of Source.entry
+  | Person of Person.entry
+  | Dance of Dance.entry
+  | Book of Book.entry
+  | Set of Set.entry
+  | Tune of Tune.entry
+  | Version of Version.entry
+  | User of User.entry
 [@@deriving show {with_path = false}, yojson, variants]
 
 (* NOTE: User is not added to [Any] on purpose. It is a bit of a special model
@@ -98,11 +98,11 @@ let type_of = function
   | User _ -> Type.User
 
 let to_entry = function
-  | Source entry -> Entry.unsafe_set_value entry ()
-  | Person entry -> Entry.unsafe_set_value entry ()
-  | Dance entry -> Entry.unsafe_set_value entry ()
-  | Book entry -> Entry.unsafe_set_value entry ()
-  | Set entry -> Entry.unsafe_set_value entry ()
-  | Tune entry -> Entry.unsafe_set_value entry ()
-  | Version entry -> Entry.unsafe_set_value entry ()
-  | User entry -> Entry.unsafe_set_value entry ()
+  | Source entry -> Entry.unsafe_erase_value_and_access entry
+  | Person entry -> Entry.unsafe_erase_value_and_access entry
+  | Dance entry -> Entry.unsafe_erase_value_and_access entry
+  | Book entry -> Entry.unsafe_erase_value_and_access entry
+  | Set entry -> Entry.unsafe_erase_value_and_access entry
+  | Tune entry -> Entry.unsafe_erase_value_and_access entry
+  | Version entry -> Entry.unsafe_erase_value_and_access entry
+  | User entry -> Entry.unsafe_erase_value_and_access entry

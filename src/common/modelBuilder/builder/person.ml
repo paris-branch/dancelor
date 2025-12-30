@@ -10,5 +10,5 @@ module Build (Getters : Getters.S) = struct
     | None -> lwt_none
     | Some user -> Getters.get_user user
 
-  let user' = user % Entry.value
+  let user' = user % Entry.value_public
 end

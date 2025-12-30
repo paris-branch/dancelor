@@ -3,7 +3,7 @@ open Nes
 open Common
 open Html
 
-let prepare_gen (type model)(type model_validated)
+let prepare_gen (type model)(type access)(type model_validated)
   ~label
   ~search
   ~unserialise
@@ -13,18 +13,18 @@ let prepare_gen (type model)(type model_validated)
     ?action: Utils.ResultRow.action ->
     ?prefix: Utils.ResultRow.cell list ->
     ?suffix: Utils.ResultRow.cell list ->
-    model Entry.t ->
+    (model, access) Entry.t ->
     Utils.ResultRow.t
   )
   ?(make_more_results =
-  (const (S.const []): model Entry.t ->
+  (const (S.const []): (model, access) Entry.t ->
     Utils.ResultRow.t list S.t))
   ~model_name
-  ~(create_dialog_content : (model Entry.t, 'any) Editor.mode -> Page.t Lwt.t)
-  ~(validate : model Entry.t option -> (model_validated, string) Result.t)
-  ~(unvalidate : model_validated -> model Entry.t option)
+  ~(create_dialog_content : ((model, access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t)
+  ~(validate : (model, access) Entry.t option -> (model_validated, string) Result.t)
+  ~(unvalidate : model_validated -> (model, access) Entry.t option)
   ()
-  : (model_validated, model Entry.Id.t option) Component.s
+  : (model_validated, model Entry.id option) Component.s
 = (module struct
   let label = label
 
@@ -44,8 +44,8 @@ let prepare_gen (type model)(type model_validated)
   let value_to_state = lwt % Option.map Entry.id % unvalidate
 
   type t = {
-    signal: model Entry.t option S.t;
-    set: model Entry.t option -> unit;
+    signal: (model, access) Entry.t option S.t;
+    set: (model, access) Entry.t option -> unit;
     (* quick_search: model Entry.t Search.Quick.t; *)
     inner_html: Html_types.div_content_fun elt;
     select_button_dom: Dom_html.buttonElement Js.t;
@@ -173,7 +173,7 @@ let prepare
     ~model_name
     ~create_dialog_content
     ()
-    : ('model Entry.t, 'model Entry.Id.t option) Component.s
+    : (('model, 'access) Entry.t, 'model Entry.id option) Component.s
   =
   prepare_gen
     ~label

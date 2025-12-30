@@ -33,4 +33,4 @@ meta:
   created-at: "2023-04-04T18:45:27+00:00"
   modified-at: "2023-06-25T16:51:15+02:00"
 access:
-  owner: lt3h-edgt-ac97
+  - Public

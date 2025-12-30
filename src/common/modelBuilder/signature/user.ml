@@ -6,6 +6,8 @@ module type S = sig
 
   type t = User.t
 
+  type entry = t Entry.public
+
   val make :
     username: NEString.t ->
     ?password: HashedSecret.t ->
@@ -25,16 +27,16 @@ module type S = sig
   (** {2 Field getters} *)
 
   val username : t -> NEString.t
-  val username' : t Entry.t -> NEString.t
+  val username' : entry -> NEString.t
 
   val password : t -> HashedSecret.t option
-  val password' : t Entry.t -> HashedSecret.t option
+  val password' : entry -> HashedSecret.t option
 
   val password_reset_token : t -> (HashedSecret.t * Datetime.t) option
-  val password_reset_token' : t Entry.t -> (HashedSecret.t * Datetime.t) option
+  val password_reset_token' : entry -> (HashedSecret.t * Datetime.t) option
 
   val remember_me_tokens : t -> (HashedSecret.t * Datetime.t) String.Map.t
-  val remember_me_tokens' : t Entry.t -> (HashedSecret.t * Datetime.t) String.Map.t
+  val remember_me_tokens' : entry -> (HashedSecret.t * Datetime.t) String.Map.t
 
-  val admin : t Entry.t -> bool
+  val admin : entry -> bool
 end

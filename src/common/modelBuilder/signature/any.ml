@@ -5,41 +5,41 @@ module type S = sig
   open Core
 
   type t = Any.t =
-    | Source of Source.t Entry.t
-    | Person of Person.t Entry.t
-    | Dance of Dance.t Entry.t
-    | Book of Book.t Entry.t
-    | Set of Set.t Entry.t
-    | Tune of Tune.t Entry.t
-    | Version of Version.t Entry.t
-    | User of User.t Entry.t
+    | Source of Source.entry
+    | Person of Person.entry
+    | Dance of Dance.entry
+    | Book of Book.entry
+    | Set of Set.entry
+    | Tune of Tune.entry
+    | Version of Version.entry
+    | User of User.entry
   (** Type of an “any” element, that is simply a sum type of all the other
       models. *)
 
   (** {3 Constructors} *)
 
-  val source : Source.t Entry.t -> t
+  val source : Source.entry -> t
   (** Function equivalent of the [Source] constructor. *)
 
-  val person : Person.t Entry.t -> t
+  val person : Person.entry -> t
   (** Function equivalent of the [Person] constructor. *)
 
-  val dance : Dance.t Entry.t -> t
+  val dance : Dance.entry -> t
   (** Function equivalent of the [Dance] constructor. *)
 
-  val book : Book.t Entry.t -> t
+  val book : Book.entry -> t
   (** Function equivalent of the [Book] constructor. *)
 
-  val set : Set.t Entry.t -> t
+  val set : Set.entry -> t
   (** Function equivalent of the [Set] constructor. *)
 
-  val tune : Tune.t Entry.t -> t
+  val tune : Tune.entry -> t
   (** Function equivalent of the [Tune] constructor. *)
 
-  val version : Version.t Entry.t -> t
+  val version : Version.entry -> t
   (** Function equivalent of the [Version] constructor. *)
 
-  val user : User.t Entry.t -> t
+  val user : User.entry -> t
   (** Function equivalent of the [User] constructor. *)
 
   (** {3 Destructors} *)
@@ -93,6 +93,6 @@ module type S = sig
   val type_of : t -> Type.t
   (** Get the type of an “any” element. *)
 
-  val to_entry : t -> unit Entry.t
+  val to_entry : t -> (unit, unit) Entry.t
   (** Cast an {!Any.t} to an entry. Of course, the value then needs to be forgotten. *)
 end
