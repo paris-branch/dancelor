@@ -8,44 +8,44 @@
 type 'value t
 [@@deriving yojson]
 
-val make : unit -> 'any t
+val make : unit -> 'value t
 (** Make a new random id. *)
 
-val equal : ('any -> 'any -> bool) -> 'any t -> 'any t -> bool
+val equal : ('value -> 'value -> bool) -> 'value t -> 'value t -> bool
 (** For compatibility with [ppx_deriving.std]'s [equal]. Prefer {!equal'}. *)
 
-val compare : ('any -> 'any -> int) -> 'any t -> 'any t -> int
+val compare : ('value -> 'value -> int) -> 'value t -> 'value t -> int
 (** For compatibility with [ppx_deriving.std]'s [compare]. Prefer {!compare'}. *)
 
-val equal' : 'any t -> 'any t -> bool
-val compare' : 'any t -> 'any t -> int
+val equal' : 'value t -> 'value t -> bool
+val compare' : 'value t -> 'value t -> int
 
-val of_string : string -> 'any t option
+val of_string : string -> 'value t option
 (** Creates an id from the given string, or returns [None] if the given string
     is not a valid id. *)
 
-val of_string_exn : string -> 'any t
+val of_string_exn : string -> 'value t
 (** Creates an id from the given string. This function fails with
     [Invalid_argument _] if the given string is not a valid id. *)
 
-val to_string : 'any t -> string
+val to_string : 'value t -> string
 (** Returns a string representing the id. *)
 
-val of_yojson' : Yojson.Safe.t -> ('any t, string) result
+val of_yojson' : Yojson.Safe.t -> ('value t, string) result
 
-val to_yojson' : 'any t -> Yojson.Safe.t
+val to_yojson' : 'value t -> Yojson.Safe.t
 
-val pp : (Format.formatter -> 'any -> unit) -> Format.formatter -> 'any t -> unit
+val pp : (Format.formatter -> 'value -> unit) -> Format.formatter -> 'value t -> unit
 (** For debugging purposes with [ppx_deriving_show]. Prefer {!pp'}. *)
 
-val pp' : Format.formatter -> 'any t -> unit
+val pp' : Format.formatter -> 'value t -> unit
 
 (** {2 Low-level and Unsafe} *)
 
-val unsafe_coerce : 'a t -> 'b t
+val unsafe_coerce : 'value t -> 'new_value t
 (** Loses the type information from the id. *)
 
-val unsafe_equal : 'a t -> 'b t -> bool
+val unsafe_equal : 'value t -> 'other_value t -> bool
 (** Compare while losing type information. *)
 
 (** {2 Serialisation} *)

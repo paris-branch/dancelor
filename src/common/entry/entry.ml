@@ -5,15 +5,15 @@ module Id = Id
 module Meta = Meta
 module User = User
 
-type 'a id = 'a Id.t
+type 'value id = 'value Id.t
 type user = User.t
 type user_id = user id
 
-type 'a t = {
-  id: 'a Id.t;
+type 'value t = {
+  id: 'value Id.t;
   meta: Meta.t;
   access: Access.t;
-  value: 'a
+  value: 'value
 }
 [@@deriving show {with_path = false}, fields]
 
