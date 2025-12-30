@@ -138,8 +138,8 @@ module Make (Model : Model) : S with type value = Model.t = struct
     | Some dep_entry ->
       let dep_entry = ModelBuilder.Core.Any.to_entry dep_entry in
       let dep_meta = Entry.meta dep_entry in
-      let dep_status = Entry.status dep_meta in
-      let dep_privacy = Entry.privacy dep_meta in
+      let dep_status = Entry.Meta.status dep_meta in
+      let dep_privacy = Entry.Meta.privacy dep_meta in
       (
         if Status.can_depend status ~on: dep_status then []
         else
@@ -164,8 +164,8 @@ module Make (Model : Model) : S with type value = Model.t = struct
     |> List.fold_left
         (fun problems model ->
           let id = Entry.id model in
-          let status = Entry.(status % meta) model in
-          let privacy = Entry.(privacy % meta) model in
+          let status = Entry.(Meta.status % meta) model in
+          let privacy = Entry.(Meta.privacy % meta) model in
           let deps = Model.dependencies @@ Entry.value model in
           let new_problems = List.map (uncurry @@ list_dependency_problems_for id status privacy) deps in
           new_problems
@@ -185,7 +185,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
         let model =
           Entry.make'
             ~id
-            ~access: (Entry.make_access ~owner)
+            ~access: (Entry.Access.make ~owner)
             model
         in
           (true, id, model)
@@ -195,7 +195,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
         let model =
           Entry.make'
             ~id
-            ~meta: (Entry.update_meta ~modified_at: (Datetime.now ()) (Entry.meta old_model))
+            ~meta: (Entry.Meta.update ~modified_at: (Datetime.now ()) (Entry.meta old_model))
             ~access: (Entry.access old_model)
             (* FIXME: possibility to update access *)
             model

@@ -1,58 +1,31 @@
 open Nes
 
+module Access = Access
 module Id = Id
+module Meta = Meta
 module User = User
 
 type 'a id = 'a Id.t
 type user = User.t
 type user_id = user id
 
-type meta = {
-  status: Status.t; [@default Status.bot]
-  privacy: Privacy.t; [@default Privacy.default]
-  created_at: Datetime.t; [@key "created-at"]
-  modified_at: Datetime.t; [@key "modified-at"]
-}
-[@@deriving yojson, show {with_path = false}, fields]
-
-let make_meta ?(status = Status.bot) ?(privacy = Privacy.default) ?created_at ?modified_at () =
-  let now = Datetime.now () in
-  {
-    status;
-    privacy;
-    created_at = Option.value ~default: now created_at;
-    modified_at = Option.value ~default: now modified_at;
-  }
-
-let update_meta ?status ?privacy ?created_at ?modified_at meta = {
-  status = Option.value ~default: meta.status status;
-  privacy = Option.value ~default: meta.privacy privacy;
-  created_at = Option.value ~default: meta.created_at created_at;
-  modified_at = Option.value ~default: meta.modified_at modified_at;
-}
-
-type access = {
-  owner: User.t Id.t;
-}
-[@@deriving make, show, fields, yojson]
-
 type 'a t = {
   id: 'a Id.t;
-  meta: meta;
-  access: access;
+  meta: Meta.t;
+  access: Access.t;
   value: 'a
 }
 [@@deriving show {with_path = false}, fields]
 
 let make' ~id ?meta ~access value =
-  let meta = Option.value ~default: (make_meta ()) meta in
+  let meta = Option.value ~default: (Meta.make ()) meta in
     {id; meta; access; value}
 
 let make ~id ?status ?privacy ?created_at ?modified_at ~owner value =
   make'
     ~id
-    ~meta: (make_meta ?status ?privacy ?created_at ?modified_at ())
-    ~access: (make_access ~owner)
+    ~meta: (Meta.make ?status ?privacy ?created_at ?modified_at ())
+    ~access: (Access.make ~owner)
     value
 
 let id' e = Id.unsafe_coerce (id e)
@@ -66,8 +39,8 @@ let compare _ = compare'
 let to_yojson' value_to_yojson {id = _; meta; access; value} =
   Json.merge_assoc_l [
     value_to_yojson value;
-    meta_to_yojson meta;
-    access_to_yojson access;
+    Meta.to_yojson meta;
+    Access.to_yojson access;
   ]
 
 let to_yojson value_to_yojson entry =
@@ -83,8 +56,8 @@ let of_yojson' id value_of_yojson json =
   let (owner, json) = Json.extract_field "owner" json in
   let access_json = `Assoc [("owner", owner)] in
   let value_json = json in
-  Result.bind (meta_of_yojson meta_json) @@ fun meta ->
-  Result.bind (access_of_yojson access_json) @@ fun access ->
+  Result.bind (Meta.of_yojson meta_json) @@ fun meta ->
+  Result.bind (Access.of_yojson access_json) @@ fun access ->
   Result.bind (value_of_yojson value_json) @@ fun value ->
   Ok {id; meta; access; value}
 

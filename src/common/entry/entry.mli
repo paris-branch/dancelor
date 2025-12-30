@@ -2,7 +2,9 @@ open Nes
 
 (** {2 Module and type aliases} *)
 
+module Access = Access
 module Id = Id
+module Meta = Meta
 module User = User
 
 type 'a id = 'a Id.t
@@ -26,26 +28,10 @@ val make :
   'a ->
   'a t
 
-type meta
-
-val update_meta :
-  ?status: Status.t ->
-  ?privacy: Privacy.t ->
-  ?created_at: Datetime.t ->
-  ?modified_at: Datetime.t ->
-  meta ->
-  meta
-
-type access
-
-val make_access :
-  owner: User.t Id.t ->
-  access
-
 val make' :
   id: 'a Id.t ->
-  ?meta: meta ->
-  access: access ->
+  ?meta: Meta.t ->
+  access: Access.t ->
   'a ->
   'a t
 
@@ -55,13 +41,8 @@ val id : 'a t -> 'a Id.t
 val id' : 'a t -> 'a t Id.t
 val id_as_string : 'a t -> string
 val value : 'a t -> 'a
-val meta : 'a t -> meta
-val access : 'a t -> access
-
-val status : meta -> Status.t
-val privacy : meta -> Privacy.t
-
-val owner : access -> User.t Id.t
+val meta : 'a t -> Meta.t
+val access : 'a t -> Access.t
 
 (** {2 Comparison} *)
 

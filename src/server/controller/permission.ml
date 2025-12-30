@@ -29,7 +29,7 @@ let can_get env entry =
   (* if the entry is public, anyone, otherwise, anyone that is connected *)
   fold_user
     env
-    ~none: (fun () -> Entry.(privacy % meta) entry = Public)
+    ~none: (fun () -> Entry.(Meta.privacy % meta) entry = Public)
     ~some: (fun _user -> true)
 
 (** The rejection of {!assert_can_get}. May be used by external code to behave
