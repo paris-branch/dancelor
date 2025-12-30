@@ -11,11 +11,11 @@ type user_id = user id
 
 type 'value t = {
   id: 'value Id.t;
+  value: 'value;
   meta: Meta.t;
   access: Access.t;
-  value: 'value
 }
-[@@deriving show {with_path = false}, fields]
+[@@deriving show {with_path = false}, fields, yojson]
 
 let make' ~id ?meta ~access value =
   let meta = Option.value ~default: (Meta.make ()) meta in
@@ -36,37 +36,23 @@ let equal _ = equal'
 let compare' e f = Id.compare' (id e) (id f)
 let compare _ = compare'
 
-let to_yojson' value_to_yojson {id = _; meta; access; value} =
-  Json.merge_assoc_l [
-    value_to_yojson value;
-    Meta.to_yojson meta;
-    Access.to_yojson access;
-  ]
+module No_id = struct
+  type 'value t = {
+    value: 'value;
+    meta: Meta.t;
+    access: Access.t;
+  }
+  [@@deriving yojson]
+end
 
-let to_yojson value_to_yojson entry =
-  Json.add_field "id" (Id.to_yojson value_to_yojson entry.id) @@
-    to_yojson' value_to_yojson entry
+let to_yojson_no_id value_to_yojson entry =
+  let {id = _; value; meta; access} = entry in
+  No_id.to_yojson value_to_yojson No_id.{value; meta; access}
 
-let of_yojson' id value_of_yojson json =
-  let (status, json) = Option.value (Json.extract_field_opt "status" json) ~default: (Status.(to_yojson bot), json) in
-  let (privacy, json) = Option.value (Json.extract_field_opt "privacy" json) ~default: (Privacy.(to_yojson default), json) in
-  let (created_at, json) = Json.extract_field "created-at" json in
-  let (modified_at, json) = Json.extract_field "modified-at" json in
-  let meta_json = `Assoc [("status", status); ("privacy", privacy); ("created-at", created_at); ("modified-at", modified_at)] in
-  let (owner, json) = Json.extract_field "owner" json in
-  let access_json = `Assoc [("owner", owner)] in
-  let value_json = json in
-  Result.bind (Meta.of_yojson meta_json) @@ fun meta ->
-  Result.bind (Access.of_yojson access_json) @@ fun access ->
-  Result.bind (value_of_yojson value_json) @@ fun value ->
-  Ok {id; meta; access; value}
-
-let of_yojson value_of_yojson json =
-  match Json.extract_field_opt "id" json with
-  | Some (id, json) ->
-    Result.bind (Id.of_yojson value_of_yojson id) @@ fun id ->
-    of_yojson' id value_of_yojson json
-  | None -> Result.error "missing id"
+let of_yojson_no_id id value_of_yojson yojson =
+  Result.map
+    (fun No_id.{value; meta; access} -> {id; value; meta; access})
+    (No_id.of_yojson value_of_yojson yojson)
 
 module J (A : Madge.JSONABLE) : Madge.JSONABLE with type t = A.t t = struct
   type nonrec t = A.t t

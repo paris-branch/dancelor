@@ -23,7 +23,7 @@ class TestActions():
     self.driver.find_element(By.XPATH, "(//i[contains(@class, 'bi-three-dots-vertical')])[2]").click()
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Show LilyPond')]").click()
     with open("tests/database/version/xzzb-wasm-babe/meta.yaml") as meta_file:
-      [kind, payload] = yaml.safe_load(meta_file)["content"]
+      [kind, payload] = yaml.safe_load(meta_file)["value"]["content"]
       assert (kind == "Monolithic")
       expected = payload["lilypond"]
     shown = self.driver.find_element(By.XPATH, "//pre[contains(text(), 'clef')]").get_attribute("innerHTML")

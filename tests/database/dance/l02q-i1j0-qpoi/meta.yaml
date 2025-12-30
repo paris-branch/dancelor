@@ -1,9 +1,12 @@
-kind: 8 x 32 R
-devisers:
-  - 8h62-3eis-xfem
-modified-at: "2023-12-21T17:11:33"
-created-at: "2023-12-21T17:11:33"
-privacy: public
-names:
-  - The Architect
-owner: lt3h-edgt-ac97
+value:
+  kind: 8 x 32 R
+  devisers:
+    - 8h62-3eis-xfem
+  names:
+    - The Architect
+meta:
+  privacy: public
+  created-at: "2023-12-21T17:11:33"
+  modified-at: "2023-12-21T17:11:33"
+access:
+  owner: lt3h-edgt-ac97

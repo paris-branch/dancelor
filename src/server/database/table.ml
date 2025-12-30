@@ -111,7 +111,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
       Log.debug (fun m -> m "Loading %s %s" _key entry);
       Storage.read_entry_yaml Model._key entry "meta.yaml" >>= fun json ->
       lwt @@
-        match Entry.of_yojson' (Entry.Id.of_string_exn entry) Model.of_yojson json with
+        match Entry.of_yojson_no_id (Entry.Id.of_string_exn entry) Model.of_yojson json with
         | Ok model ->
           GloballyUniqueId.register model ~wrap_any: Model.wrap_any;
           Hashtbl.add table (Entry.id model) model;
@@ -202,7 +202,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
         in
           (false, id, model)
     in
-    let json = Entry.to_yojson' Model.to_yojson model in
+    let json = Entry.to_yojson_no_id Model.to_yojson model in
     Storage.write_entry_yaml Model._key (Entry.Id.to_string id) "meta.yaml" json;%lwt
     Storage.save_changes_on_entry
       ~msg: (spf "%s %s / %s" (if is_create then "create" else "update") Model._key (Entry.Id.to_string id))

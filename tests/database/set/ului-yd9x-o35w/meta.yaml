@@ -1,16 +1,19 @@
-name: Tam Lin Thrice
-conceptors:
-  - uwoe-u6ij-ikgp
-kind: 3x32R
-versions-and-parameters:
-  - - xzzb-wasm-babe
-    - {}
-  - - xzzb-wasm-babe
-    - transposition: 2
-  - - xzzb-wasm-babe
-    - transposition: 7
-order: 1,2,3
-created-at: "2023-05-02T11:16:55+00:00"
-modified-at: "2023-06-25T16:51:15+02:00"
-privacy: public
-owner: lt3h-edgt-ac97
+value:
+  name: Tam Lin Thrice
+  conceptors:
+    - uwoe-u6ij-ikgp
+  kind: 3x32R
+  versions-and-parameters:
+    - - xzzb-wasm-babe
+      - {}
+    - - xzzb-wasm-babe
+      - transposition: 2
+    - - xzzb-wasm-babe
+      - transposition: 7
+  order: 1,2,3
+meta:
+  privacy: public
+  created-at: "2023-05-02T11:16:55+00:00"
+  modified-at: "2023-06-25T16:51:15+02:00"
+access:
+  owner: lt3h-edgt-ac97

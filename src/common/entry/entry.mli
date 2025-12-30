@@ -61,12 +61,13 @@ val compare' : 'value t -> 'value t -> int
 val to_yojson : ('value -> Yojson.Safe.t) -> 'value t -> Yojson.Safe.t
 val of_yojson : (Yojson.Safe.t -> ('value, string) result) -> Yojson.Safe.t -> ('value t, string) result
 
-val to_yojson' : ('value -> Yojson.Safe.t) -> 'value t -> Yojson.Safe.t
-(** Variant of {!to_yojson} that doesn't serialise the id. *)
+val to_yojson_no_id : ('value -> Yojson.Safe.t) -> 'value t -> Yojson.Safe.t
+(** Variant of {!to_yojson} that doesn't serialise the id, for use in the
+    database. *)
 
-val of_yojson' : 'value Id.t -> (Yojson.Safe.t -> ('value, string) result) -> Yojson.Safe.t -> ('value t, string) result
+val of_yojson_no_id : 'value Id.t -> (Yojson.Safe.t -> ('value, string) result) -> Yojson.Safe.t -> ('value t, string) result
 (** Variant of {!of_yojson} that expects the id as an argument instead of in
-    the serialised form. *)
+    the serialised form, for use in the database. *)
 
 module J : functor (M : Madge.JSONABLE) ->
   Madge.JSONABLE with
