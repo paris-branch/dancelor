@@ -4,12 +4,12 @@ module type S = sig
   type predicate = Core.Source.predicate
   type t = Core.Source.t
 
-  val accepts : t -> ModelBuilder.Core.Source.t Entry.t -> float Lwt.t
+  val accepts : t -> ModelBuilder.Core.Source.entry -> float Lwt.t
 
   val existseditor' : Core.Person.t -> t
 
-  val is : ModelBuilder.Core.Source.t Entry.t -> predicate
-  val is' : ModelBuilder.Core.Source.t Entry.t -> t
+  val is : ModelBuilder.Core.Source.entry -> predicate
+  val is' : ModelBuilder.Core.Source.entry -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

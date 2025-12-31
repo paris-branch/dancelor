@@ -34,29 +34,13 @@ let create () =
       ~label: "Username"
       ""
   in
-  let%lwt person_selector =
-    Selector.make
-      ~label: "Person"
-      ~search: (fun slice input ->
-        let%rlwt filter = lwt (Filter.Person.from_string input) in
-        ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
-      )
-      ~unserialise: Model.Person.get
-      ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-      ~make_result: Utils.AnyResult.make_person_result'
-      ~model_name: "person"
-      ~create_dialog_content: PersonEditor.create
-      None
-  in
   let signal =
     RS.bind (Component.signal username_input) @@ fun username ->
-    RS.bind (Component.signal person_selector) @@ fun person ->
-    S.const @@ Ok (Model.User.make ~username ~person ())
+    S.const @@ Ok (Model.User.make ~username ())
   in
   Page.make'
     ~title: (lwt "Create user")
     [Component.html username_input;
-    Component.html person_selector;
     ]
     ~buttons: [
       Utils.Button.make
@@ -69,7 +53,6 @@ let create () =
           let%lwt (user, token) = Madge_client.call_exn Endpoints.Api.(route @@ User Create) user in
           open_token_result_dialog user token;%lwt
           Component.clear username_input;
-          Component.clear person_selector;
           lwt_unit
         )
         ();

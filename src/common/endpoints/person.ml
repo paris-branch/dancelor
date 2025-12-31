@@ -5,11 +5,12 @@ module Filter = FilterBuilder.Core
 
 type (_, _, _) t =
 (* Actions without specific person *)
-| Create : ((Person.t -> 'w), 'w, Person.t Entry.t) t
-| Search : ((Slice.t -> Filter.Person.t -> 'w), 'w, (int * Person.t Entry.t list)) t
+| Create : ((Person.t -> 'w), 'w, Person.entry) t
+| Search : ((Slice.t -> Filter.Person.t -> 'w), 'w, (int * Person.entry list)) t
+| For_user : ((User.t Entry.Id.t -> 'w), 'w, Person.entry option) t
 (* Actions on a specific person *)
-| Get : ((Person.t Entry.Id.t -> 'w), 'w, Person.t Entry.t) t
-| Update : ((Person.t Entry.Id.t -> Person.t -> 'w), 'w, Person.t Entry.t) t
+| Get : ((Person.t Entry.Id.t -> 'w), 'w, Person.entry) t
+| Update : ((Person.t Entry.Id.t -> Person.t -> 'w), 'w, Person.entry) t
 | Delete : ((Person.t Entry.Id.t -> 'w), 'w, unit) t
 [@@deriving madge_wrapped_endpoints]
 
@@ -17,9 +18,10 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     (* Actions without specific person *)
-    | Create -> body "person" (module Person) @@ post (module Entry.J(Person))
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Person) @@ get (module JPair(JInt)(JList(Entry.J(Person))))
+    | Create -> body "person" (module Person) @@ post (module Entry.JPublic(Person))
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Person) @@ get (module JPair(JInt)(JList(Entry.JPublic(Person))))
+    | For_user -> literal "for-user" @@ variable (module Entry.Id.S(User)) @@ get (module JOption(Entry.JPublic(Person)))
     (* Actions on a specific person *)
-    | Get -> variable (module Entry.Id.S(Person)) @@ get (module Entry.J(Person))
-    | Update -> variable (module Entry.Id.S(Person)) @@ body "person" (module Person) @@ put (module Entry.J(Person))
+    | Get -> variable (module Entry.Id.S(Person)) @@ get (module Entry.JPublic(Person))
+    | Update -> variable (module Entry.Id.S(Person)) @@ body "person" (module Person) @@ put (module Entry.JPublic(Person))
     | Delete -> variable (module Entry.Id.S(Person)) @@ delete (module JUnit)

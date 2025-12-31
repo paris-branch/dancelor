@@ -7,7 +7,7 @@ let session_max_age = 43200 (* 43200 seconds = 12 hours *)
 let remember_me_token_max_age = 15552000 (* 15552000 seconds = 6 * 30 days *)
 
 type session = {
-  user: Model.User.t Entry.t option;
+  user: Model.User.entry option;
   expires: Datetime.t;
 }
 [@@deriving fields]

@@ -187,14 +187,20 @@ let header_item =
                       ]
                     else []
                   );
-                  [li [
-                    Utils.Button.make_a
-                      ~label: "My person"
-                      ~icon: "person"
-                      ~dropdown: true
-                      ~href: (S.from' "" (Endpoints.Page.(href Person None) <$> (Entry.id <$> Model.User.person' user)))
-                      ()
-                  ];
+                  [R.li (
+                    S.from' [] @@
+                      match%lwt Madge_client.call_exn Endpoints.Api.(route @@ Person For_user) (Entry.id user) with
+                      | None -> lwt_nil
+                      | Some person ->
+                        lwt [
+                          Utils.Button.make_a
+                            ~label: "My person"
+                            ~icon: "person"
+                            ~dropdown: true
+                            ~href: (S.const (Endpoints.Page.(href Person None) (Entry.id person)))
+                            ()
+                        ]
+                  );
                   li [
                     Utils.Button.make
                       ~label: "Sign out"

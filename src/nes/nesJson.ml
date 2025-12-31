@@ -40,10 +40,9 @@ let int = function
   | `Int i -> Some i
   | _ -> None
 
-let merge_assoc j1 j2 =
-  match (j1, j2) with
-  | `Assoc a1, `Assoc a2 -> `Assoc (a1 @ a2)
-  | _ -> invalid_arg "NesJson.merge_assoc"
+let merge_assoc_l jsons =
+  let get_assoc = function `Assoc a -> a | _ -> invalid_arg "NesJson.merge_assoc" in
+  `Assoc (List.concat (List.map get_assoc jsons))
 
 let keep_fields ks = function
   | `Assoc l ->

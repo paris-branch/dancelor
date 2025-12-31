@@ -4,13 +4,13 @@ module type S = sig
   type predicate = Core.Version.predicate
   type t = Core.Version.t
 
-  val accepts : t -> ModelBuilder.Core.Version.t Entry.t -> float Lwt.t
+  val accepts : t -> ModelBuilder.Core.Version.entry -> float Lwt.t
 
-  val is : ModelBuilder.Core.Version.t Entry.t -> predicate
-  val is' : ModelBuilder.Core.Version.t Entry.t -> t
+  val is : ModelBuilder.Core.Version.entry -> predicate
+  val is' : ModelBuilder.Core.Version.entry -> t
 
-  val tuneis : ModelBuilder.Core.Tune.t Entry.t -> predicate
-  val tuneis' : ModelBuilder.Core.Tune.t Entry.t -> t
+  val tuneis : ModelBuilder.Core.Tune.entry -> predicate
+  val tuneis' : ModelBuilder.Core.Tune.entry -> t
 
   val tune : Core.Tune.t -> predicate
   val tune' : Core.Tune.t -> t
@@ -21,8 +21,8 @@ module type S = sig
   val existssource : Core.Source.t -> predicate
   val existssource' : Core.Source.t -> t
 
-  val memsource : ModelBuilder.Core.Source.t Entry.t -> predicate
-  val memsource' : ModelBuilder.Core.Source.t Entry.t -> t
+  val memsource : ModelBuilder.Core.Source.entry -> predicate
+  val memsource' : ModelBuilder.Core.Source.entry -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

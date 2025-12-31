@@ -4,7 +4,7 @@ type predicate =
   | Is of ModelBuilder.Core.Tune.t Entry.Id.t
   | Name of string
   | NameMatches of string
-  | ExistsComposer of Person.t (** one of the composers of the list passes the filter *)
+  | Exists_composer of Person.t (** one of the composers of the list passes the filter *)
   | Kind of Kind.Base.Filter.t
   | ExistsDance of Dance.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
@@ -14,7 +14,7 @@ type t = predicate Formula.t
 
 let name' = Formula.pred % name
 let namematches' = Formula.pred % namematches
-let existscomposer' = Formula.pred % existscomposer
+let exists_composer' = Formula.pred % exists_composer
 let kind' = Formula.pred % kind
 let existsdance' = Formula.pred % existsdance
 
@@ -25,8 +25,8 @@ let text_formula_converter =
         raw (ok % namematches');
         unary_string ~name: "name" (name, name_val);
         unary_string ~wrap_back: Never ~name: "name-matches" (namematches, namematches_val);
-        unary_lift ~name: "exists-composer" (existscomposer, existscomposer_val) ~converter: Person.text_formula_converter;
-        unary_lift ~name: "by" (existscomposer, existscomposer_val) ~converter: Person.text_formula_converter;
+        unary_lift ~name: "exists-composer" (exists_composer, exists_composer_val) ~converter: Person.text_formula_converter;
+        unary_lift ~name: "by" (exists_composer, exists_composer_val) ~converter: Person.text_formula_converter;
         (* alias for exists-composer; FIXME: make this clearer *)
         unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Base.Filter.text_formula_converter;
         unary_lift ~name: "exists-dance" (existsdance, existsdance_val) ~converter: Dance.text_formula_converter;
@@ -41,11 +41,11 @@ let from_string ?filename input =
 let to_text_formula = TextFormula.of_formula text_formula_converter
 let to_string = TextFormula.to_string % to_text_formula
 
-let is = is % Entry.id
-let is' = Formula.pred % is
+let is x = is @@ Entry.id x
+let is' x = Formula.pred @@ is x
 
-let existscomposeris = existscomposer % Person.is'
-let existscomposeris' = Formula.pred % existscomposeris
+let exists_composer_is x = exists_composer @@ Person.is' x
+let exists_composer_is' x = Formula.pred @@ exists_composer_is x
 
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
@@ -53,7 +53,7 @@ type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
 let optimise =
   let lift {op} f1 f2 =
     match (f1, f2) with
-    | (ExistsComposer f1, ExistsComposer f2) -> some @@ existscomposer (op f1 f2)
+    | (Exists_composer f1, Exists_composer f2) -> some @@ exists_composer (op f1 f2)
     | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
     | (ExistsDance f1, ExistsDance f2) -> some @@ existsdance (op f1 f2)
     | _ -> None
@@ -63,7 +63,7 @@ let optimise =
     ~lift_or: (lift {op = Formula.or_})
     (function
       | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
-      | ExistsComposer pfilter -> existscomposer @@ Person.optimise pfilter
+      | Exists_composer pfilter -> exists_composer @@ Person.optimise pfilter
       | Kind kfilter -> kind @@ Kind.Base.Filter.optimise kfilter
       | ExistsDance dfilter -> existsdance @@ Dance.optimise dfilter
     )

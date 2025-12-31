@@ -42,22 +42,22 @@ let from_string ?filename input =
 let to_text_formula = TextFormula.of_formula text_formula_converter
 let to_string = TextFormula.to_string % to_text_formula
 
-let is = is % Entry.id
-let is' = Formula.pred % is
+let is x = is @@ Entry.id x
+let is' x = Formula.pred @@ is x
 
-let memversion = existsversion % Version.is'
-let memset = existsset % Set.is'
-let memversiondeep = existsversiondeep % Version.is'
-let existstunedeep = existsversiondeep % Version.tune'
-let memtunedeep = existstunedeep % Tune.is'
-let memeditor = existseditor % Person.is'
+let memversion x = existsversion @@ Version.is' x
+let memset x = existsset @@ Set.is' x
+let memversiondeep x = existsversiondeep @@ Version.is' x
+let existstunedeep x = existsversiondeep @@ Version.tune' x
+let memtunedeep x = existstunedeep @@ Tune.is' x
+let memeditor x = existseditor @@ Person.is' x
 
-let memversion' = Formula.pred % memversion
-let memset' = Formula.pred % memset
-let memversiondeep' = Formula.pred % memversiondeep
-let existstunedeep' = Formula.pred % existstunedeep
-let memtunedeep' = Formula.pred % memtunedeep
-let memeditor' = Formula.pred % memeditor
+let memversion' x = Formula.pred @@ memversion x
+let memset' x = Formula.pred @@ memset x
+let memversiondeep' x = Formula.pred @@ memversiondeep x
+let existstunedeep' x = Formula.pred @@ existstunedeep x
+let memtunedeep' x = Formula.pred @@ memtunedeep x
+let memeditor' x = Formula.pred @@ memeditor x
 
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}

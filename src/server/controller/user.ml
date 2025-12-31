@@ -3,6 +3,13 @@ open Common
 
 module Log = (val Logger.create "controller.user": Logs.LOG)
 
+let get env id =
+  match Database.User.get id with
+  | None -> Permission.reject_can_get ()
+  | Some user ->
+    Permission.assert_can_get env user;%lwt
+    lwt user
+
 let status = lwt % Environment.user
 
 let sign_in env username password remember_me =
@@ -35,7 +42,7 @@ let sign_out env =
   | Some user -> Environment.sign_out env user
 
 let create env user =
-  Permission.assert_can_admin env;%lwt
+  Permission.assert_can_admin env @@ fun admin ->
   (* FIXME: A module for usernames that reject malformed ones *)
   (* match Entry.Id.check username with *)
   (* | false -> Madge_server.shortcut_bad_request "The username does not have the right shape." *)
@@ -43,7 +50,7 @@ let create env user =
   let token = uid () in
   let hashed_token = (HashedSecret.make ~clear: token, Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)) in
   let%lwt user = Model.User.update user ~password_reset_token: (const @@ Some hashed_token) in
-  let%lwt user = Database.User.create user in
+  let%lwt user = Database.User.create ~owner: (Entry.id admin) user in
   lwt (user, token)
 
 let reset_password username token password =
@@ -91,6 +98,7 @@ let can_admin env = lwt @@ Permission.can_admin env
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a = fun env endpoint ->
   match endpoint with
+  | Get -> get env
   | Status -> status env
   | SignIn -> sign_in env
   | SignOut -> sign_out env

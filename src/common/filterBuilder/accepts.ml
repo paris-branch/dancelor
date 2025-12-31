@@ -113,7 +113,7 @@ module Make (Model : ModelBuilder.S) = struct
         lwt @@ Formula.interpret_or_l @@ List.map (String.proximity ~char_equal string % NEString.to_string) @@ NEList.to_list @@ Model.Tune.names' tune
       | NameMatches string ->
         lwt @@ Formula.interpret_or_l @@ List.map (String.inclusion_proximity ~char_equal ~needle: string % NEString.to_string) @@ NEList.to_list @@ Model.Tune.names' tune
-      | ExistsComposer pfilter ->
+      | Exists_composer pfilter ->
         let%lwt composers = Model.Tune.composers' tune in
         let%lwt scores = Lwt_list.map_s (accepts_person pfilter) composers in
         lwt (Formula.interpret_or_l scores)

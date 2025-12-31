@@ -11,8 +11,8 @@ let get env id =
     lwt version
 
 let create env version =
-  Permission.assert_can_create env;%lwt
-  Database.Version.create version
+  Permission.assert_can_create env @@ fun user ->
+  Database.Version.create ~owner: (Entry.id user) version
 
 let update env id version =
   Permission.assert_can_update env =<< get env id;%lwt
@@ -93,7 +93,7 @@ let score_list_vs_list words needles =
     end
 
 include Search.Build(struct
-  type value = Model.Version.t Entry.t
+  type value = Model.Version.entry
   type filter = Filter.Version.t
 
   let get_all env =
@@ -174,7 +174,7 @@ let build_snippets env id version_params _rendering_params =
 
 let build_snippets' env version version_params _rendering_params =
   Log.debug (fun m -> m "build_snippets'");
-  Permission.assert_can_create env;%lwt
+  Permission.assert_can_create env @@ fun _ ->
   register_snippets_job ~version_params version
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun env endpoint ->

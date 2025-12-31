@@ -4,24 +4,24 @@ module type S = sig
   type predicate = Core.Tune.predicate
   type t = Core.Tune.t
 
-  val accepts : t -> ModelBuilder.Core.Tune.t Entry.t -> float Lwt.t
+  val accepts : t -> ModelBuilder.Core.Tune.entry -> float Lwt.t
   (** The main function for filters: given a filter and a tune, [accepts]
       returns a float between [0.] and [1.] representing how much the filter
       accepts the tune, [1.] meaning that the tune is fully accepted and [0.]
       meaning that the tune is fully rejected. *)
 
-  val is : ModelBuilder.Core.Tune.t Entry.t -> predicate
-  val is' : ModelBuilder.Core.Tune.t Entry.t -> t
+  val is : ModelBuilder.Core.Tune.entry -> predicate
+  val is' : ModelBuilder.Core.Tune.entry -> t
   (** [is tune] is a filter that matches exactly [tune] and only [tune]. *)
 
   val kind : KindBase.Filter.t -> predicate
   val kind' : KindBase.Filter.t -> t
 
-  val existscomposer : Core.Person.t -> predicate
-  val existscomposer' : Core.Person.t -> t
+  val exists_composer : Core.Person.t -> predicate
+  val exists_composer' : Core.Person.t -> t
 
-  val existscomposeris : ModelBuilder.Core.Person.t Entry.t -> predicate
-  val existscomposeris' : ModelBuilder.Core.Person.t Entry.t -> t
+  val exists_composer_is : ModelBuilder.Core.Person.entry -> predicate
+  val exists_composer_is' : ModelBuilder.Core.Person.entry -> t
 
   val existsdance : Core.Dance.t -> predicate
   val existsdance' : Core.Dance.t -> t

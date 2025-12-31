@@ -29,11 +29,11 @@ let can_get env entry =
   (* if the entry is public, anyone, otherwise, anyone that is connected *)
   fold_user
     env
-    ~none: (fun () -> Entry.(privacy % meta) entry = Public)
+    ~none: (fun () -> Entry.(Meta.privacy % meta) entry = Public)
     ~some: (fun _user -> true)
 
-(** The rejection of {!asert_can_get}. May be used by external code to behave in
-    the exact same way and avoid leaking information. *)
+(** The rejection of {!assert_can_get}. May be used by external code to behave
+    in the exact same way and avoid leaking information. *)
 let reject_can_get () =
   Madge_server.shortcut_not_found "This entry does not exist, or you do not have access to it."
 
@@ -55,16 +55,16 @@ let can_create env =
   (* anyone that is connected *)
   fold_user ~none: (fun () -> false) ~some: (fun _user -> true) env
 
-let assert_can_create env =
-  if can_create env then
-    (
-      Log.debug (fun m -> m "Granting create access to %a." Environment.pp env);
-      lwt_unit
-    )
-  else
-    (
+let assert_can_create env f =
+  fold_user
+    env
+    ~none: (fun () ->
       Log.info (fun m -> m "Refusing create access to %a." Environment.pp env);
       Madge_server.shortcut_forbidden "You do not have permission to create this entry."
+    )
+    ~some: (fun user ->
+      Log.debug (fun m -> m "Granting create access to %a." Environment.pp env);
+      f user
     )
 
 (** {2 Updating} *)
@@ -108,14 +108,19 @@ let assert_can_delete env entry =
 let can_admin =
   fold_user ~none: (const false) ~some: Model.User.admin
 
-let assert_can_admin env =
-  if can_admin env then
-    (
-      Log.debug (fun m -> m "Granting admin access to %a." Environment.pp env);
-      lwt_unit
-    )
-  else
-    (
+let assert_can_admin env f =
+  fold_user
+    env
+    ~none: (fun () ->
       Log.info (fun m -> m "Refusing admin access to %a." Environment.pp env);
       Madge_server.shortcut_forbidden "You do not have permission to administrate this instance."
+    )
+    ~some: (fun user ->
+      if Model.User.admin user then
+        f user
+      else
+        (
+          Log.info (fun m -> m "Refusing admin access to %a." Environment.pp env);
+          Madge_server.shortcut_forbidden "You do not have permission to administrate this instance."
+        )
     )

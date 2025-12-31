@@ -8,12 +8,10 @@ module type Getters = Getters.S
 module type S = Signature.S
 
 module Build (Getters : Getters) : S = struct
-  module Person = struct
-    include Core.Person
-    let get = Getters.get_person
-  end
+  module User = Core.User
+
+  module Person = Builder.Person.Build(Getters)
   module Source = Builder.Source.Build(Getters)
-  module User = Builder.User.Build(Getters)
   module Dance = Builder.Dance.Build(Getters)
   module Tune = Builder.Tune.Build(Getters)
   module Version = Builder.Version.Build(Getters)

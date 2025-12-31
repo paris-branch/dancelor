@@ -37,7 +37,7 @@ val get_opt : k: (t -> 'a option) -> string list -> t -> 'a option
 val string : t -> string option
 val int : t -> int option
 
-val merge_assoc : t -> t -> t
-(** Merge two association JSON values.
+val merge_assoc_l : t list -> t
+(** Merge several association JSON values.
 
     @raise Invalid_argument if the given JSON values are not [`Assoc]. *)

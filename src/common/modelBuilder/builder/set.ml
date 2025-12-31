@@ -6,10 +6,10 @@ module Build (Getters : Getters.S) = struct
   let get = Getters.get_set
 
   let conceptors = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % conceptors
-  let conceptors' = conceptors % Entry.value
+  let conceptors' = conceptors % Entry.value_private_
 
   let dances = Lwt_list.map_p (Lwt.map Option.get % Getters.get_dance) % dances
-  let dances' = dances % Entry.value
+  let dances' = dances % Entry.value_private_
 
   let contents =
     Lwt_list.map_s
@@ -18,13 +18,13 @@ module Build (Getters : Getters.S) = struct
         lwt (version, parameters)
       ) %
       contents
-  let contents' = contents % Entry.value
+  let contents' = contents % Entry.value_private_
 
   let find_context index set =
     let%lwt versions = List.map fst <$> contents set in
     lwt @@ List.findi_context (fun i _ -> i = index) versions
 
-  let find_context' index = find_context index % Entry.value
+  let find_context' index = find_context index % Entry.value_private_
 
   let warnings s =
     let warnings = ref [] in
@@ -54,5 +54,5 @@ module Build (Getters : Getters.S) = struct
     );
     lwt !warnings
 
-  let warnings' = warnings % Entry.value
+  let warnings' = warnings % Entry.value_private_
 end

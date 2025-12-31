@@ -5,68 +5,71 @@ module type S = sig
 
   type t = Core.Set.t
 
+  type access = Entry.Access.private_ [@@deriving yojson]
+  type entry = t Entry.private_
+
   val make :
     name: NEString.t ->
-    ?conceptors: Core.Person.t Entry.t list ->
+    ?conceptors: Core.Person.entry list ->
     kind: Kind.Dance.t ->
-    ?contents: (Core.Version.t Entry.t * Core.VersionParameters.t) list ->
+    ?contents: (Core.Version.entry * Core.VersionParameters.t) list ->
     order: Core.SetOrder.t ->
-    ?dances: Core.Dance.t Entry.t list ->
+    ?dances: Core.Dance.entry list ->
     unit ->
     t
 
   val name : t -> NEString.t
-  val name' : t Entry.t -> NEString.t
+  val name' : entry -> NEString.t
 
-  val conceptors : t -> Core.Person.t Entry.t list Lwt.t
-  val conceptors' : t Entry.t -> Core.Person.t Entry.t list Lwt.t
+  val conceptors : t -> Core.Person.entry list Lwt.t
+  val conceptors' : entry -> Core.Person.entry list Lwt.t
 
   val kind : t -> Kind.Dance.t
-  val kind' : t Entry.t -> Kind.Dance.t
+  val kind' : entry -> Kind.Dance.t
 
-  val contents : t -> (Core.Version.t Entry.t * Core.VersionParameters.t) list Lwt.t
-  val contents' : t Entry.t -> (Core.Version.t Entry.t * Core.VersionParameters.t) list Lwt.t
+  val contents : t -> (Core.Version.entry * Core.VersionParameters.t) list Lwt.t
+  val contents' : entry -> (Core.Version.entry * Core.VersionParameters.t) list Lwt.t
 
   val order : t -> Core.SetOrder.t
-  val order' : t Entry.t -> Core.SetOrder.t
+  val order' : entry -> Core.SetOrder.t
 
   val instructions : t -> string
-  val instructions' : t Entry.t -> string
+  val instructions' : entry -> string
 
-  val dances : t -> Core.Dance.t Entry.t list Lwt.t
-  val dances' : t Entry.t -> Core.Dance.t Entry.t list Lwt.t
+  val dances : t -> Core.Dance.entry list Lwt.t
+  val dances' : entry -> Core.Dance.entry list Lwt.t
 
   val remark : t -> string
-  val remark' : t Entry.t -> string
+  val remark' : entry -> string
 
-  val slug : t -> Entry.Slug.t
-  val slug' : t Entry.t -> Entry.Slug.t
+  val slug : t -> NesSlug.t
+  val slug' : entry -> NesSlug.t
 
-  val find_context : int -> t -> Core.Version.t Entry.t List.context option Lwt.t
-  val find_context' : int -> t Entry.t -> Core.Version.t Entry.t List.context option Lwt.t
+  val find_context : int -> t -> Core.Version.entry List.context option Lwt.t
+  val find_context' : int -> entry -> Core.Version.entry List.context option Lwt.t
   (** Given an indice and a set, find the context around that indice in the
       set. *)
 
   val equal : t -> t -> bool
   (** Structural equality. This is different from entry equality. *)
 
-  val set_contents : (Core.Version.t Entry.t * Core.VersionParameters.t) list -> t -> t
+  val set_contents : (Core.Version.entry * Core.VersionParameters.t) list -> t -> t
 
   (* {2 Warnings} *)
 
   type warning = Core.Set.warning =
     | Empty
-    | Duplicate_tune of Core.Tune.t Entry.t
+    | Duplicate_tune of Core.Tune.entry
 
   type warnings = warning list
 
   val warnings : t -> warnings Lwt.t
-  val warnings' : t Entry.t -> warnings Lwt.t
+  val warnings' : entry -> warnings Lwt.t
 
   (** {2 Magic getter} *)
 
   (** Magic getter. On the client side, this hides an API call, which goes
       through the permissions mechanism. On the server side, this hides a call
       to the database. *)
-  val get : t Entry.Id.t -> t Entry.t option Lwt.t
+  val get : t Entry.Id.t -> entry option Lwt.t
 end

@@ -1,6 +1,6 @@
 open Nes
 
-type 'a t = string
+type 'value t = string
 
 let rem_to_char rem =
   if rem < 10 then

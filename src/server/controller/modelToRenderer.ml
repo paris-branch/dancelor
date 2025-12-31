@@ -51,7 +51,7 @@ let version_to_lilypond_content ~version_params version =
   lwt (content, instructions)
 
 let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) version =
-  let%lwt slug = Entry.Slug.to_string <$> Model.Version.slug version in
+  let%lwt slug = NesSlug.to_string <$> Model.Version.slug version in
   let%lwt name =
     let%lwt default = Model.Version.one_name version in
     lwt @@
@@ -88,7 +88,7 @@ let part_to_renderer_part name =
   Renderer.{name = NEString.to_string name}
 
 let set_to_renderer_set set set_params =
-  let slug = Entry.Slug.to_string @@ Model.Set.slug set in
+  let slug = NesSlug.to_string @@ Model.Set.slug set in
   let name =
     NEString.to_string @@
       Option.value ~default: (Model.Set.name set) (Model.SetParameters.display_name set_params)
@@ -128,7 +128,7 @@ let versions_to_renderer_set versions_and_params set_params =
     in
     lwt @@ Option.fold ~none: name ~some: NEString.to_string (Model.SetParameters.display_name set_params)
   in
-  let slug = Entry.Slug.(to_string % of_string) name in
+  let slug = NesSlug.(to_string % of_string) name in
   let conceptor =
     Option.fold ~none: "" ~some: NEString.to_string (Model.SetParameters.display_conceptor set_params)
   in
@@ -199,7 +199,7 @@ let page_to_renderer_page page book_params =
     Renderer.set <$> set_to_renderer_set' set set_params
 
 let book_to_renderer_book book book_params =
-  let slug = Entry.Slug.to_string @@ Model.Book.slug book in
+  let slug = NesSlug.to_string @@ Model.Book.slug book in
   let title = NEString.to_string @@ Model.Book.title book in
   let%lwt editor = format_persons <$> Model.Book.authors book in
   let%lwt contents =

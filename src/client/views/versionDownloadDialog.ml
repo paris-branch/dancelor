@@ -114,7 +114,7 @@ let open_ version dialog =
                 rendering_params
             in
             let job_registration_promise = copyright_reponse_promise_to_job_registration_promise copyright_response_promise in
-            let slug = Entry.Slug.add_suffix slug ".pdf" in
+            let slug = NesSlug.add_suffix slug ".pdf" in
             Job.run3 slug job_registration_promise
           )
         )

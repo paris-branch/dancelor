@@ -6,7 +6,7 @@ module Filter = FilterBuilder.Core
 type copyright_response_reason =
   | Connected
   | Composer_agrees
-  | Publisher_agrees of Source.t Entry.t
+  | Publisher_agrees of Source.entry
 [@@deriving yojson]
 
 type 'payload copyright_response =
@@ -28,12 +28,12 @@ end
 
 type (_, _, _) t =
 (* Actions without specific version *)
-| Create : ((Version.t -> 'w), 'w, Version.t Entry.t) t
-| Search : ((Slice.t -> Filter.Version.t -> 'w), 'w, (int * Version.t Entry.t list)) t
+| Create : ((Version.t -> 'w), 'w, Version.entry) t
+| Search : ((Slice.t -> Filter.Version.t -> 'w), 'w, (int * Version.entry list)) t
 (* Actions on a specific version *)
-| Get : ((Version.t Entry.Id.t -> 'w), 'w, Version.t Entry.t) t
+| Get : ((Version.t Entry.Id.t -> 'w), 'w, Version.entry) t
 | Content : ((Version.t Entry.Id.t -> 'w), 'w, Version.Content.t copyright_response) t
-| Update : ((Version.t Entry.Id.t -> Version.t -> 'w), 'w, Version.t Entry.t) t
+| Update : ((Version.t Entry.Id.t -> Version.t -> 'w), 'w, Version.entry) t
 | Delete : ((Version.t Entry.Id.t -> 'w), 'w, unit) t
 (* Files related to a version *)
 | BuildSnippets : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Snippet_ids.t Job.registration_response copyright_response) t
@@ -64,12 +64,12 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     (* Actions without specific version *)
-    | Create -> body "version" (module Version) @@ post (module Entry.J(VersionNoLilypond))
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Version) @@ get (module JPair(JInt)(JList(Entry.J(VersionNoLilypond))))
+    | Create -> body "version" (module Version) @@ post (module Entry.JPublic(VersionNoLilypond))
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Version) @@ get (module JPair(JInt)(JList(Entry.JPublic(VersionNoLilypond))))
     (* Actions on a specific version *)
-    | Get -> variable (module Entry.Id.S(Version)) @@ get (module Entry.J(VersionNoLilypond))
+    | Get -> variable (module Entry.Id.S(Version)) @@ get (module Entry.JPublic(VersionNoLilypond))
     | Content -> literal "content" @@ variable (module Entry.Id.S(Version)) @@ get (module Copyright_response(Version.Content))
-    | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module Entry.J(VersionNoLilypond))
+    | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module Entry.JPublic(VersionNoLilypond))
     | Delete -> variable (module Entry.Id.S(Version)) @@ delete (module JUnit)
     (* Files related to a version *)
     | BuildSnippets -> literal "build-snippets" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Copyright_response(Job.Registration_response(Snippet_ids)))

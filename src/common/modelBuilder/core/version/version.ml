@@ -16,7 +16,7 @@ let source_core_have_same_source s1 s2 =
   Entry.Id.equal' s1.source s2.source
 
 type source = {
-  source: Source.t Entry.t;
+  source: Source.entry;
   structure: Structure.t;
   details: string;
 }
@@ -31,10 +31,10 @@ let source_details source = source.details
 let _key = "version"
 
 type t = {
-  tune: Tune.t Entry.Id.t;
+  tune: Tune.t Entry.id;
   key: Music.Key.t;
   sources: source_core list; [@default []]
-  arrangers: Person.t Entry.Id.t list; [@default []]
+  arrangers: Person.t Entry.id list; [@default []]
   remark: string; [@default ""]
   disambiguation: string; [@default ""]
   content: Content.t;
@@ -43,6 +43,10 @@ type t = {
 }
 [@@deriving eq, yojson, make, show {with_path = false}, fields]
 
+type access = Entry.Access.public [@@deriving yojson]
+type entry = t Entry.public
+[@@deriving eq, show, yojson]
+
 let make ~tune ~key ?sources ?arrangers ?remark ?disambiguation ~content () =
   let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in
   let tune = Entry.id tune in
@@ -50,11 +54,11 @@ let make ~tune ~key ?sources ?arrangers ?remark ?disambiguation ~content () =
   let arrangers = Option.map (List.map Entry.id) arrangers in
   make ~tune ~key ?sources ?arrangers ?remark ?disambiguation ~content ()
 
-let tune' = tune % Entry.value
-let key' = key % Entry.value
-let remark' = remark % Entry.value
-let disambiguation' = disambiguation % Entry.value
-let content' = content % Entry.value
+let tune' = tune % Entry.value_public
+let key' = key % Entry.value_public
+let remark' = remark % Entry.value_public
+let disambiguation' = disambiguation % Entry.value_public
+let content' = content % Entry.value_public
 
 let set_content content version =
   {version with content}

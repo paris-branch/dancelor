@@ -1,4 +1,8 @@
-name: The Tam Lin Source
-created-at: "2025-04-12T18:45:27+00:00"
-modified-at: "2025-04-12T18:45:27+00:00"
-privacy: public
+value:
+  name: The Tam Lin Source
+meta:
+  privacy: public
+  created-at: "2025-04-12T18:45:27+00:00"
+  modified-at: "2025-04-12T18:45:27+00:00"
+access:
+  - Public

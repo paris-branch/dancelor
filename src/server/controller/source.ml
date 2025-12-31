@@ -9,8 +9,8 @@ let get env id =
     lwt source
 
 let create env source =
-  Permission.assert_can_create env;%lwt
-  Database.Source.create source
+  Permission.assert_can_create env @@ fun user ->
+  Database.Source.create ~owner: (Entry.id user) source
 
 let update env id source =
   Permission.assert_can_update env =<< get env id;%lwt
@@ -21,7 +21,7 @@ let delete env id =
   Database.Source.delete id
 
 include Search.Build(struct
-  type value = Model.Source.t Entry.t
+  type value = Model.Source.entry
   type filter = Filter.Source.t
 
   let get_all env =

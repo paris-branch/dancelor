@@ -1,32 +1,36 @@
-tune: qdod-ad7l-8gr2
-key: Dm
-disambiguation: Niols's Version
-arrangers:
-  - uwoe-u6ij-ikgp
-sources:
-  - source: 2f8s-90v8-33do
-    structure: AABB
-created-at: "2023-04-04T18:45:27+00:00"
-modified-at: "2023-06-25T16:51:15+02:00"
-privacy: public
-content:
-  - Monolithic
-  - bars: 32
-    structure: AABB
-    lilypond:
-      "\\relative c' <<\n  {\n    \\clef treble\n    \\key d \\minor\n   \
-      \ \\time 4/4\n\n    \\repeat volta 2 {\n      \\partial 8 r8 |\n      a4 d8\
-      \ a f' a, d a |\n      bes4 d8 bes f' bes, d bes |\n      c4 e8 c g' c, e g\
-      \ |\n      f8 e d c d c a g |\n      \\break\n\n      a4 d8 a f' a, d a |\n\
-      \      bes4 d8 bes f' bes, d bes |\n      c4 e8 c g' c, e g |\n      f8 e d\
-      \ c d4.\n    } \\break\n\n    \\repeat volta 2 {\n      a'8 |\n      d8 a a\
-      \ a f a d, a' |\n      d8 a a a f a d, a' |\n      c8 g g g c g e' g, |\n  \
-      \    c8 g g g c[ r c cis] |\n      \\break\n\n      d8 a a a f a d, a' |\n \
-      \     d8 a a a f[ a] d, r |\n      bes8 a bes c d c d e |\n      f8 e d c a[\
-      \ d] d\n    }\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      s8 |\n\
-      \      d1:m | bes | c | d2:m a:m |\n      d1:m | bes | c | a2:m d4.:m\n\n  \
-      \    s8 |\n      d1:m | s | c | s |\n      d1:m | s | g:m | a2:m d4.:m\n   \
-      \ }\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      s8 |\n      s1 |\
-      \ \\parenthesize g:m | s | s |\n      s1 | \\parenthesize g:m | s | s2 s4.\n\
-      \n      s8 |\n      s1 | s | s | s |\n      \\parenthesize bes1 | s | s | s2\
-      \ s4.\n    }\n  }\n>>\n"
+value:
+  tune: qdod-ad7l-8gr2
+  key: Dm
+  disambiguation: Niols's Version
+  arrangers:
+    - uwoe-u6ij-ikgp
+  sources:
+    - source: 2f8s-90v8-33do
+      structure: AABB
+  content:
+    - Monolithic
+    - bars: 32
+      structure: AABB
+      lilypond:
+        "\\relative c' <<\n  {\n    \\clef treble\n    \\key d \\minor\n \
+        \   \\time 4/4\n\n    \\repeat volta 2 {\n      \\partial 8 r8 |\n      a4\
+        \ d8 a f' a, d a |\n      bes4 d8 bes f' bes, d bes |\n      c4 e8 c g' c,\
+        \ e g |\n      f8 e d c d c a g |\n      \\break\n\n      a4 d8 a f' a, d\
+        \ a |\n      bes4 d8 bes f' bes, d bes |\n      c4 e8 c g' c, e g |\n    \
+        \  f8 e d c d4.\n    } \\break\n\n    \\repeat volta 2 {\n      a'8 |\n  \
+        \    d8 a a a f a d, a' |\n      d8 a a a f a d, a' |\n      c8 g g g c g\
+        \ e' g, |\n      c8 g g g c[ r c cis] |\n      \\break\n\n      d8 a a a f\
+        \ a d, a' |\n      d8 a a a f[ a] d, r |\n      bes8 a bes c d c d e |\n \
+        \     f8 e d c a[ d] d\n    }\n  }\n\n  \\new ChordNames {\n    \\chordmode\
+        \ {\n      s8 |\n      d1:m | bes | c | d2:m a:m |\n      d1:m | bes | c |\
+        \ a2:m d4.:m\n\n      s8 |\n      d1:m | s | c | s |\n      d1:m | s | g:m\
+        \ | a2:m d4.:m\n    }\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n  \
+        \    s8 |\n      s1 | \\parenthesize g:m | s | s |\n      s1 | \\parenthesize\
+        \ g:m | s | s2 s4.\n\n      s8 |\n      s1 | s | s | s |\n      \\parenthesize\
+        \ bes1 | s | s | s2 s4.\n    }\n  }\n>>\n"
+meta:
+  privacy: public
+  created-at: "2023-04-04T18:45:27+00:00"
+  modified-at: "2023-06-25T16:51:15+02:00"
+access:
+  - Public

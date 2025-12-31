@@ -86,7 +86,7 @@ let make ?show_logs ?show_audio ?(params = Model.VersionParameters.none) version
     Job.status_signal_from_promise @@
       let%lwt slug = Model.Version.slug' version in
       lwt @@
-      Job.run3 (Entry.Slug.add_suffix slug ".svg") @@
+      Job.run3 (NesSlug.add_suffix slug ".svg") @@
       Job.copyright_reponse_promise_to_job_registration_promise @@
       match%lwt copyright_response_promise with
       | Error err -> lwt_error err
@@ -103,7 +103,7 @@ let make ?show_logs ?show_audio ?(params = Model.VersionParameters.none) version
     Job.status_signal_from_promise @@
       let%lwt slug = Model.Version.slug' version in
       lwt @@
-      Job.run3 (Entry.Slug.add_suffix slug ".ogg") @@
+      Job.run3 (NesSlug.add_suffix slug ".ogg") @@
       Job.copyright_reponse_promise_to_job_registration_promise @@
       match%lwt copyright_response_promise with
       | Error err -> lwt_error err
@@ -135,7 +135,7 @@ let make_preview ?show_logs ?show_audio ?(params = Model.VersionParameters.none)
     Job.status_signal_from_promise @@
       let%lwt slug = Model.Version.slug version in
       lwt @@
-      Job.run3 (Entry.Slug.add_suffix slug ".svg") @@ (
+      Job.run3 (NesSlug.add_suffix slug ".svg") @@ (
         Result.to_option
         <$>
           match%lwt copyright_response_promise with
@@ -148,7 +148,7 @@ let make_preview ?show_logs ?show_audio ?(params = Model.VersionParameters.none)
     Job.status_signal_from_promise @@
       let%lwt slug = Model.Version.slug version in
       lwt @@
-      Job.run3 (Entry.Slug.add_suffix slug ".ogg") @@ (
+      Job.run3 (NesSlug.add_suffix slug ".ogg") @@ (
         Result.to_option
         <$>
           match%lwt copyright_response_promise with
