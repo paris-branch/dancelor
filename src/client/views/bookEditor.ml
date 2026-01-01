@@ -219,22 +219,26 @@ let editor =
         Option.of_string_nonempty
     )
     () ^::
-  Selector.prepare
-    ~label: "Owner"
-    ~model_name: "user"
-    ~make_descr: (lwt % NEString.to_string % Model.User.username')
-    ~make_result: AnyResult.make_user_result'
-    ~search: (fun slice input ->
-      let%rlwt filter = lwt (Filter.User.from_string input) in
-      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
-    )
-    ~unserialise: Model.User.get
-    () ^::
+  Star.prepare_non_empty
+    ~label: "Owners"
+    (
+      Selector.prepare
+        ~label: "Owner"
+        ~model_name: "user"
+        ~make_descr: (lwt % NEString.to_string % Model.User.username')
+        ~make_result: AnyResult.make_user_result'
+        ~search: (fun slice input ->
+          let%rlwt filter = lwt (Filter.User.from_string input) in
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
+        )
+        ~unserialise: Model.User.get
+        ()
+    ) ^::
   nil
 
-let assemble (title, (authors, (date, (contents, (remark, (sources, (scddb_id, (owner, ())))))))) = (
+let assemble (title, (authors, (date, (contents, (remark, (sources, (scddb_id, (owners, ())))))))) = (
   Model.Book.make ~title ~authors ?date ~contents ~remark ~sources ?scddb_id (),
-  Entry.Access.Private.make ~owner: (Entry.id owner)
+  Entry.Access.Private.make ~owners: (NEList.map Entry.id owners)
 )
 
 let submit mode (book, access) =
@@ -253,8 +257,8 @@ let disassemble (book, access) =
   let remark = Model.Book.remark book in
   let%lwt sources = Model.Book.sources book in
   let scddb_id = Model.Book.scddb_id book in
-  let%lwt owner = Option.get <$> (Model.User.get @@ Entry.Access.Private.owner access) in
-  lwt (title, (authors, (date, (contents, (remark, (sources, (scddb_id, (owner, ()))))))))
+  let%lwt owners = NEList.of_list_exn <$> Lwt_list.map_p (fun user -> Option.get <$> Model.User.get user) (NEList.to_list @@ Entry.Access.Private.owners access) in
+  lwt (title, (authors, (date, (contents, (remark, (sources, (scddb_id, (owners, ()))))))))
 
 let create mode =
   MainPage.assert_can_create @@ fun () ->

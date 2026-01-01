@@ -107,7 +107,7 @@ let can_get_private env entry =
     env
     ~none: (const false)
     ~some: (fun user ->
-      Entry.Id.equal' (Entry.id user) (Entry.(Access.Private.owner % access) entry)
+      NEList.exists (Entry.Id.equal' (Entry.id user)) (Entry.(Access.Private.owners % access) entry)
       || Model.User.is_administrator user
     )
 
@@ -123,7 +123,7 @@ let can_update_private env entry =
     env
     ~none: (const false)
     ~some: (fun user ->
-      Entry.Id.equal' (Entry.id user) (Entry.(Access.Private.owner % access) entry)
+      NEList.exists (Entry.Id.equal' (Entry.id user)) (Entry.(Access.Private.owners % access) entry)
       || Model.User.is_administrator user
     )
 

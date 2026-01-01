@@ -9,6 +9,10 @@ val to_list : 'a t -> 'a list
 val of_list : 'a list -> 'a t option
 (** Convert a list to a non-empty list. *)
 
+val of_list_exn : 'a list -> 'a t
+(** Convert a list to a non-empty string, or raise {!Invalid_argument} if the
+    list is empty. *)
+
 val hd : 'a t -> 'a
 (** Get the head of a non-empty list, that is the first element of the list. *)
 
@@ -29,3 +33,4 @@ val is_singleton : 'a t -> bool
 (** Check if the non-empty list contains a single element. *)
 
 val mem : 'a -> 'a t -> bool
+val exists : ('a -> bool) -> 'a t -> bool

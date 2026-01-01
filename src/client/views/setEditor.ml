@@ -93,22 +93,26 @@ let editor =
         Model.SetOrder.of_string_opt
     )
     () ^::
-  Selector.prepare
-    ~label: "Owner"
-    ~model_name: "user"
-    ~make_descr: (lwt % NEString.to_string % Model.User.username')
-    ~make_result: AnyResult.make_user_result'
-    ~search: (fun slice input ->
-      let%rlwt filter = lwt (Filter.User.from_string input) in
-      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
-    )
-    ~unserialise: Model.User.get
-    () ^::
+  Star.prepare_non_empty
+    ~label: "Owners"
+    (
+      Selector.prepare
+        ~label: "Owner"
+        ~model_name: "user"
+        ~make_descr: (lwt % NEString.to_string % Model.User.username')
+        ~make_result: AnyResult.make_user_result'
+        ~search: (fun slice input ->
+          let%rlwt filter = lwt (Filter.User.from_string input) in
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
+        )
+        ~unserialise: Model.User.get
+        ()
+    ) ^::
   nil
 
-let assemble (name, (kind, (conceptors, (contents, (order, (owner, ())))))) = (
+let assemble (name, (kind, (conceptors, (contents, (order, (owners, ())))))) = (
   Model.Set.make ~name ~kind ~conceptors ~contents ~order (),
-  Entry.Access.Private.make ~owner: (Entry.id owner)
+  Entry.Access.Private.make ~owners: (NEList.map Entry.id owners)
 )
 
 let submit mode (set, access) =
@@ -125,8 +129,8 @@ let disassemble (set, access) =
   let%lwt conceptors = Model.Set.conceptors set in
   let%lwt contents = Model.Set.contents set in
   let order = Model.Set.order set in
-  let%lwt owner = Option.get <$> (Model.User.get @@ Entry.Access.Private.owner access) in
-  lwt (name, (kind, (conceptors, (contents, (order, (owner, ()))))))
+  let%lwt owners = NEList.of_list_exn <$> Lwt_list.map_p (fun user -> Option.get <$> Model.User.get user) (NEList.to_list @@ Entry.Access.Private.owners access) in
+  lwt (name, (kind, (conceptors, (contents, (order, (owners, ()))))))
 
 let create mode =
   MainPage.assert_can_create @@ fun () ->
