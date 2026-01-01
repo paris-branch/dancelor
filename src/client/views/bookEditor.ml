@@ -219,19 +219,33 @@ let editor =
         Option.of_string_nonempty
     )
     () ^::
+  Selector.prepare
+    ~label: "Owner"
+    ~model_name: "user"
+    ~make_descr: (lwt % NEString.to_string % Model.User.username')
+    ~make_result: AnyResult.make_user_result'
+    ~search: (fun slice input ->
+      let%rlwt filter = lwt (Filter.User.from_string input) in
+      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
+    )
+    ~unserialise: Model.User.get
+    () ^::
   nil
 
-let assemble (title, (authors, (date, (contents, (remark, (sources, (scddb_id, ()))))))) =
-  Model.Book.make ~title ~authors ?date ~contents ~remark ~sources ?scddb_id ()
+let assemble (title, (authors, (date, (contents, (remark, (sources, (scddb_id, (owner, ())))))))) = (
+  Model.Book.make ~title ~authors ?date ~contents ~remark ~sources ?scddb_id (),
+  Entry.Access.Private.make ~owner: (Entry.id owner)
+)
 
-let submit mode book =
+let submit mode (book, access) =
   match mode with
-  | Editor.Edit prev_book -> Madge_client.call_exn Endpoints.Api.(route @@ Book Update) (Entry.id prev_book) book
-  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Book Create) book
+  | Editor.Edit prev_book -> Madge_client.call_exn Endpoints.Api.(route @@ Book Update) (Entry.id prev_book) book access
+  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Book Create) book access
 
-let unsubmit = lwt % Entry.value
+let unsubmit entry =
+  lwt (Entry.value entry, Entry.access entry)
 
-let disassemble book =
+let disassemble (book, access) =
   let title = Model.Book.title book in
   let%lwt authors = Model.Book.authors book in
   let date = Model.Book.date book in
@@ -239,7 +253,8 @@ let disassemble book =
   let remark = Model.Book.remark book in
   let%lwt sources = Model.Book.sources book in
   let scddb_id = Model.Book.scddb_id book in
-  lwt (title, (authors, (date, (contents, (remark, (sources, (scddb_id, ())))))))
+  let%lwt owner = Option.get <$> (Model.User.get @@ Entry.Access.Private.owner access) in
+  lwt (title, (authors, (date, (contents, (remark, (sources, (scddb_id, (owner, ()))))))))
 
 let create mode =
   MainPage.assert_can_create @@ fun () ->
@@ -254,4 +269,4 @@ let create mode =
     ~submit
     ~unsubmit
     ~disassemble
-    ~check_product: Model.Book.equal
+    ~check_product: (fun (book1, access1) (book2, access2) -> Model.Book.equal book1 book2 && Entry.Access.Private.equal access1 access2)

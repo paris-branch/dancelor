@@ -93,25 +93,40 @@ let editor =
         Model.SetOrder.of_string_opt
     )
     () ^::
+  Selector.prepare
+    ~label: "Owner"
+    ~model_name: "user"
+    ~make_descr: (lwt % NEString.to_string % Model.User.username')
+    ~make_result: AnyResult.make_user_result'
+    ~search: (fun slice input ->
+      let%rlwt filter = lwt (Filter.User.from_string input) in
+      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
+    )
+    ~unserialise: Model.User.get
+    () ^::
   nil
 
-let assemble (name, (kind, (conceptors, (contents, (order, ()))))) =
-  Model.Set.make ~name ~kind ~conceptors ~contents ~order ()
+let assemble (name, (kind, (conceptors, (contents, (order, (owner, ())))))) = (
+  Model.Set.make ~name ~kind ~conceptors ~contents ~order (),
+  Entry.Access.Private.make ~owner: (Entry.id owner)
+)
 
-let submit mode set =
+let submit mode (set, access) =
   match mode with
-  | Editor.Edit prev_set -> Madge_client.call_exn Endpoints.Api.(route @@ Set Update) (Entry.id prev_set) set
-  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Set Create) set
+  | Editor.Edit prev_set -> Madge_client.call_exn Endpoints.Api.(route @@ Set Update) (Entry.id prev_set) set access
+  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Set Create) set access
 
-let unsubmit = lwt % Entry.value
+let unsubmit entry =
+  lwt (Entry.value entry, Entry.access entry)
 
-let disassemble set =
+let disassemble (set, access) =
   let name = Model.Set.name set in
   let kind = Model.Set.kind set in
   let%lwt conceptors = Model.Set.conceptors set in
   let%lwt contents = Model.Set.contents set in
   let order = Model.Set.order set in
-  lwt (name, (kind, (conceptors, (contents, (order, ())))))
+  let%lwt owner = Option.get <$> (Model.User.get @@ Entry.Access.Private.owner access) in
+  lwt (name, (kind, (conceptors, (contents, (order, (owner, ()))))))
 
 let create mode =
   MainPage.assert_can_create @@ fun () ->
@@ -126,4 +141,4 @@ let create mode =
     ~disassemble
     ~format: (Formatters.Set.name' ~link: true)
     ~href: (Endpoints.Page.href_set % Entry.id)
-    ~check_product: Model.Set.equal
+    ~check_product: (fun (set1, access1) (set2, access2) -> Model.Set.equal set1 set2 && Entry.Access.Private.equal access1 access2)

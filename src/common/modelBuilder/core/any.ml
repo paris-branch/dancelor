@@ -106,3 +106,13 @@ let to_entry = function
   | Tune entry -> Entry.unsafe_erase_value_and_access entry
   | Version entry -> Entry.unsafe_erase_value_and_access entry
   | User entry -> Entry.unsafe_erase_value_and_access entry
+
+let to_entry' ~on_public ~on_private = function
+  | Source entry -> on_public (Entry.unsafe_erase_value entry)
+  | Person entry -> on_public (Entry.unsafe_erase_value entry)
+  | Dance entry -> on_public (Entry.unsafe_erase_value entry)
+  | Tune entry -> on_public (Entry.unsafe_erase_value entry)
+  | Version entry -> on_public (Entry.unsafe_erase_value entry)
+  | User entry -> on_public (Entry.unsafe_erase_value entry)
+  | Book entry -> on_private (Entry.unsafe_erase_value entry)
+  | Set entry -> on_private (Entry.unsafe_erase_value entry)

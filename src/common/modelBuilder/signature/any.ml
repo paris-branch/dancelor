@@ -93,6 +93,14 @@ module type S = sig
   val type_of : t -> Type.t
   (** Get the type of an “any” element. *)
 
+  (* FIXME: Not a very good name *)
   val to_entry : t -> (unit, unit) Entry.t
   (** Cast an {!Any.t} to an entry. Of course, the value then needs to be forgotten. *)
+
+  (* FIXME: Not a very good name *)
+  val to_entry' :
+    on_public: ((unit, Entry.Access.public) Entry.t -> 'r) ->
+    on_private: ((unit, Entry.Access.Private.t) Entry.t -> 'r) ->
+    t ->
+    'r
 end

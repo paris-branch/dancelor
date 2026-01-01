@@ -5,7 +5,7 @@ module type S = sig
 
   type t = Core.Set.t
 
-  type access = Entry.Access.private_ [@@deriving yojson]
+  type access = Entry.Access.Private.t [@@deriving yojson]
   type entry = t Entry.private_
 
   val make :

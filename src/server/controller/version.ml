@@ -7,19 +7,19 @@ let get env id =
   match Database.Version.get id with
   | None -> Permission.reject_can_get ()
   | Some version ->
-    Permission.assert_can_get env version;%lwt
+    Permission.assert_can_get_public env version;%lwt
     lwt version
 
 let create env version =
-  Permission.assert_can_create env @@ fun user ->
-  Database.Version.create ~owner: (Entry.id user) version
+  Permission.assert_can_create_public env;%lwt
+  Database.Version.create version Entry.Access.Public
 
 let update env id version =
-  Permission.assert_can_update env =<< get env id;%lwt
-  Database.Version.update id version
+  Permission.assert_can_update_public env =<< get env id;%lwt
+  Database.Version.update id version Entry.Access.Public
 
 let delete env id =
-  Permission.assert_can_delete env =<< get env id;%lwt
+  Permission.assert_can_delete_public env =<< get env id;%lwt
   Database.Version.delete id
 
 (** Additionnally to the low-level permission system, version content is
@@ -98,7 +98,7 @@ include Search.Build(struct
 
   let get_all env =
     let can_get_and_copyright_ok version =
-      (&&) (Permission.can_get env version)
+      (&&) (Permission.can_get_public env version)
       <$> (
           ((<>) Endpoints.Version.Protected)
           <$> with_copyright_check env version (const lwt_unit)
@@ -174,7 +174,7 @@ let build_snippets env id version_params _rendering_params =
 
 let build_snippets' env version version_params _rendering_params =
   Log.debug (fun m -> m "build_snippets'");
-  Permission.assert_can_create env @@ fun _ ->
+  Permission.assert_can_create_public env;%lwt
   register_snippets_job ~version_params version
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun env endpoint ->

@@ -10,8 +10,6 @@ module type Model = sig
 
   type access [@@deriving yojson]
 
-  val make_access : owner: Entry.User.t Entry.Id.t -> access
-
   type entry = (t, access) Entry.t
 
   val wrap_any : entry -> ModelBuilder.Core.Any.t
@@ -41,11 +39,11 @@ module type S = sig
   val get : value Entry.id -> entry option
   val get_all : unit -> entry Seq.t
 
-  val create : owner: Entry.user_id -> value -> entry Lwt.t
-  (** Create a new database entry for the given value. *)
+  val create : value -> access -> entry Lwt.t
+  (** Create a new database entry for the given value, with the given access. *)
 
-  val update : value Entry.id -> value -> entry Lwt.t
-  (** Update an existing database entry with the given value. *)
+  val update : value Entry.id -> value -> access -> entry Lwt.t
+  (** Update an existing database entry with the given value and access. *)
 
   val make_delete :
     (value Entry.id -> reverse_dependencies) ->
@@ -183,23 +181,22 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
 
   let get_all () = Hashtbl.to_seq_values table
 
-  let create_or_update maybe_id model =
+  let create_or_update maybe_id model access =
     let (is_create, id, model) =
       match maybe_id with
-      | Left access ->
+      | None ->
         (* no id: this is a creation *)
         let id = GloballyUniqueId.make () in
         let model = Entry.make ~id ~access model in
           (true, id, model)
-      | Right id ->
+      | Some id ->
         (* an id: this is an update *)
         let old_model = Option.get @@ get id in
         let model =
           Entry.make
             ~id
             ~meta: (Entry.Meta.update ~modified_at: (Datetime.now ()) (Entry.meta old_model))
-            ~access: (Entry.access old_model)
-            (* FIXME: possibility to update access *)
+            ~access
             model
         in
           (false, id, model)
@@ -219,8 +216,8 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
       Hashtbl.replace table id model;
     lwt model
 
-  let create ~owner model = create_or_update (Left (Model.make_access ~owner)) model
-  let update id model = create_or_update (Right id) model
+  let create model access = create_or_update None model access
+  let update id model access = create_or_update (Some id) model access
 
   let dependencies = List.map snd % Model.dependencies
 

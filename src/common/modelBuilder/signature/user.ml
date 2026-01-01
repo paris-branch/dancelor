@@ -38,5 +38,16 @@ module type S = sig
   val remember_me_tokens : t -> (HashedSecret.t * Datetime.t) String.Map.t
   val remember_me_tokens' : entry -> (HashedSecret.t * Datetime.t) String.Map.t
 
-  val admin : entry -> bool
+  (** Whether the user is a database maintainer. *)
+  val is_maintainer : entry -> bool
+
+  (** Whether the user is an administrator. *)
+  val is_administrator : entry -> bool
+
+  (** {2 Magic getter} *)
+
+  (** Magic getter. On the client side, this hides an API call, which goes
+      through the permissions mechanism. On the server side, this hides a call
+      to the database. *)
+  val get : t Entry.Id.t -> entry option Lwt.t
 end

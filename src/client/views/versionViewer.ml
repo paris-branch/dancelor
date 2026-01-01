@@ -200,8 +200,9 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
           ignore
           <$> Madge_client.call_exn
               Endpoints.Api.(route @@ Set Update)
-              (Entry.id set) @@
-              Model.Set.set_contents contents (Entry.value set)
+              (Entry.id set)
+              (Model.Set.set_contents contents (Entry.value set))
+              (Entry.access set)
         )
         [txt "replace the version in set "; Formatters.Set.name' set; txt "."]
     )
@@ -234,8 +235,9 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
           ignore
           <$> Madge_client.call_exn
               Endpoints.Api.(route @@ Book Update)
-              (Entry.id book) @@
-              Model.Book.set_contents contents (Entry.value book)
+              (Entry.id book)
+              (Model.Book.set_contents contents (Entry.value book))
+              (Entry.access book)
         )
         [
           txt "replace the version in book ";

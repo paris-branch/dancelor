@@ -165,7 +165,7 @@ let header_item =
               List.flatten
                 [
                   (
-                    if Model.User.admin user then
+                    if Model.User.is_administrator user then
                       [
                         li [
                           Utils.Button.make_a

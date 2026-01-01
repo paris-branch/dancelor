@@ -5,19 +5,20 @@ let get env id =
   match Database.Set.get id with
   | None -> Permission.reject_can_get ()
   | Some set ->
-    Permission.assert_can_get env set;%lwt
+    Permission.assert_can_get_private env set;%lwt
     lwt set
 
-let create env set =
-  Permission.assert_can_create env @@ fun user ->
-  Database.Set.create ~owner: (Entry.id user) set
+let create env set access =
+  Permission.assert_can_create_private env;%lwt
+  Database.Set.create set access
 
-let update env id set =
-  Permission.assert_can_update env =<< get env id;%lwt
-  Database.Set.update id set
+let update env id set access =
+  let%lwt entry = get env id in
+  Permission.assert_can_update_private env entry;%lwt
+  Database.Set.update id set access
 
 let delete env id =
-  Permission.assert_can_delete env =<< get env id;%lwt
+  Permission.assert_can_delete_private env =<< get env id;%lwt
   Database.Set.delete id
 
 include Search.Build(struct
@@ -25,7 +26,7 @@ include Search.Build(struct
   type filter = Filter.Set.t
 
   let get_all env =
-    Lwt_stream.filter (Permission.can_get env) @@ Lwt_stream.of_seq @@ Database.Set.get_all ()
+    Lwt_stream.filter (Permission.can_get_private env) @@ Lwt_stream.of_seq @@ Database.Set.get_all ()
 
   let optimise_filter = Filter.Set.optimise
   let filter_is_empty = (=) Formula.False

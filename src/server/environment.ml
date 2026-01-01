@@ -67,7 +67,7 @@ let set_user env user =
 (** Helper to update the user in the database. *)
 let database_update_user user f =
   let%lwt new_user = f @@ Entry.value user in
-  ignore <$> Database.User.update (Entry.id user) new_user
+  ignore <$> Database.User.update (Entry.id user) new_user Entry.Access.Public
 
 (* Given an environment, check whether we should log in a user via their
    remember me token. This is meant to be used in {!make}, before returning a

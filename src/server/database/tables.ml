@@ -5,14 +5,12 @@ let id_for key entry : string * unit Entry.Id.t = (key, Entry.Id.unsafe_coerce e
 
 module User = Table.Make(struct
   include ModelBuilder.Core.User
-  let make_access = Entry.Access.make_public_ignore
   let dependencies _ = []
   let wrap_any = ModelBuilder.Core.Any.user
 end)
 
 module Person = Table.Make(struct
   include ModelBuilder.Core.Person
-  let make_access = Entry.Access.make_public_ignore
   let dependencies person =
     List.map (id_for "user") (Option.to_list @@ ModelBuilder.Core.Person.user person)
   let wrap_any = ModelBuilder.Core.Any.person
@@ -20,7 +18,6 @@ end)
 
 module Source = Table.Make(struct
   include ModelBuilder.Core.Source
-  let make_access = Entry.Access.make_public_ignore
   let dependencies source =
     List.map (id_for "person") (ModelBuilder.Core.Source.editors source)
   let wrap_any = ModelBuilder.Core.Any.source
@@ -28,7 +25,6 @@ end)
 
 module Dance = Table.Make(struct
   include ModelBuilder.Core.Dance
-  let make_access = Entry.Access.make_public_ignore
   let dependencies dance =
     List.map (id_for "person") (ModelBuilder.Core.Dance.devisers dance)
   let wrap_any = ModelBuilder.Core.Any.dance
@@ -36,7 +32,6 @@ end)
 
 module Tune = Table.Make(struct
   include ModelBuilder.Core.Tune
-  let make_access = Entry.Access.make_public_ignore
   let dependencies tune =
     List.map (id_for "dance") (ModelBuilder.Core.Tune.dances tune) @
       List.map (id_for "person") (ModelBuilder.Core.Tune.composers tune)
@@ -45,7 +40,6 @@ end)
 
 module Version = Table.Make(struct
   include ModelBuilder.Core.Version
-  let make_access = Entry.Access.make_public_ignore
   let dependencies version =
     [id_for "tune" (ModelBuilder.Core.Version.tune version)] @
     List.map (id_for "source" % (fun ({source; _}: ModelBuilder.Core.Version.source_core) -> source)) (ModelBuilder.Core.Version.sources version) @
@@ -55,7 +49,6 @@ end)
 
 module SetModel = struct
   include ModelBuilder.Core.Set
-  let make_access = Entry.Access.make_private_
   let dependencies set =
     List.map (id_for "version" % fst) (ModelBuilder.Core.Set.contents set) @
     List.map (id_for "person") (ModelBuilder.Core.Set.conceptors set) @
@@ -67,7 +60,6 @@ module Set = Table.Make(SetModel)
 
 module Book = Table.Make(struct
   include ModelBuilder.Core.Book
-  let make_access = Entry.Access.make_private_
   let dependencies book =
     let contents_dependencies =
       List.map
