@@ -3,7 +3,16 @@ open Nes
 module Make (Model : ModelBuilder.S) = struct
   let char_equal = Char.Sensible.equal
 
-  let rec accepts_book filter book =
+  let rec accepts_user filter user =
+    Formula.interpret filter @@ function
+      | Core.User.Is user' ->
+        lwt @@ Formula.interpret_bool @@ Entry.Id.unsafe_equal (Entry.id user) user'
+      | Username string ->
+        lwt @@ String.proximity ~char_equal string @@ NEString.to_string @@ Model.User.username' user
+      | Username_matches string ->
+        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.User.username' user
+
+  and accepts_book filter book =
     Formula.interpret filter @@ function
       | Core.Book.Is book' ->
         lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id book) book'

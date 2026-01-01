@@ -1,4 +1,5 @@
 module type S = sig
+  module User : User.S
   module Source : Source.S
   module Person : Person.S
   module Dance : Dance.S

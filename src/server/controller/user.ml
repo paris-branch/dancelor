@@ -96,6 +96,23 @@ let reset_password username token password =
 let can_create env = lwt @@ Permission.can_create env
 let can_admin env = lwt @@ Permission.can_admin env
 
+include Search.Build(struct
+  type value = Model.User.entry
+  type filter = Filter.User.t
+
+  let get_all env =
+    Lwt_stream.filter (Permission.can_get_public env) @@ Lwt_stream.of_seq @@ Database.User.get_all ()
+
+  let optimise_filter = Filter.User.optimise
+  let filter_is_empty = (=) Formula.False
+  let filter_is_full = (=) Formula.True
+  let filter_accepts = Filter.User.accepts
+  let score_true = Formula.interpret_true
+
+  let tiebreakers =
+    Lwt_list.[increasing (lwt % NEString.to_string % Model.User.username') String.Sensible.compare]
+end)
+
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
@@ -106,3 +123,4 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a 
   | ResetPassword -> reset_password
   | CanCreate -> can_create env
   | CanAdmin -> can_admin env
+  | Search -> search env
