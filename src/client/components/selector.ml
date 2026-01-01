@@ -20,7 +20,7 @@ let prepare_gen (type model)(type access)(type model_validated)
   (const (S.const []): (model, access) Entry.t ->
     Utils.ResultRow.t list S.t))
   ~model_name
-  ~(create_dialog_content : ((model, access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t)
+  ?(create_dialog_content : (((model, access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) option)
   ~(validate : (model, access) Entry.t option -> (model_validated, string) Result.t)
   ~(unvalidate : model_validated -> (model, access) Entry.t option)
   ()
@@ -101,24 +101,29 @@ let prepare_gen (type model)(type access)(type model_validated)
               ~action: (Utils.ResultRow.callback @@ fun () -> lwt @@ quick_search_return (Some result))
               result
           )
-          ~dialog_buttons: [
-            Utils.Button.make
-              ~label: ("Create new " ^ model_name)
-              ~label_processing: ("Creating new " ^ model_name ^ "...")
-              ~icon: "plus-circle"
-              ~classes: ["btn-primary"]
-              ~onclick: (fun () ->
-                quick_search_return
-                <$> Page.open_dialog' @@ fun sub_dialog_return ->
-                  create_dialog_content (
-                    Editor.QuickCreate (
-                      S.value (Search.Quick.text quick_search),
-                      sub_dialog_return
-                    )
+          ~dialog_buttons: (
+            match create_dialog_content with
+            | None -> []
+            | Some create_dialog_content ->
+              [
+                Utils.Button.make
+                  ~label: ("Create new " ^ model_name)
+                  ~label_processing: ("Creating new " ^ model_name ^ "...")
+                  ~icon: "plus-circle"
+                  ~classes: ["btn-primary"]
+                  ~onclick: (fun () ->
+                    quick_search_return
+                    <$> Page.open_dialog' @@ fun sub_dialog_return ->
+                      create_dialog_content (
+                        Editor.QuickCreate (
+                          S.value (Search.Quick.text quick_search),
+                          sub_dialog_return
+                        )
+                      )
                   )
-              )
-              ();
-          ]
+                  ();
+              ]
+          )
       in
       SearchBar.clear @@ Search.Quick.search_bar quick_search;
       flip Option.iter quick_search_result (fun r -> set (Some r));
@@ -171,7 +176,7 @@ let prepare
     ~make_result
     ?make_more_results
     ~model_name
-    ~create_dialog_content
+    ?create_dialog_content
     ()
     : (('model, 'access) Entry.t, 'model Entry.id option) Component.s
   =
@@ -183,7 +188,7 @@ let prepare
     ~make_result
     ?make_more_results
     ~model_name
-    ~create_dialog_content
+    ?create_dialog_content
     ~validate: (Option.to_result ~none: "You must select an element.")
     ~unvalidate: Option.some
     ()
@@ -196,7 +201,7 @@ let make
     ~make_result
     ?make_more_results
     ~model_name
-    ~create_dialog_content
+    ?create_dialog_content
     initial_value
   =
   Component.initialise
@@ -209,7 +214,7 @@ let make
         ~make_result
         ?make_more_results
         ~model_name
-        ~create_dialog_content
+        ?create_dialog_content
         ()
     )
     initial_value
