@@ -52,7 +52,7 @@ type t = {
 }
 [@@deriving eq, make, show {with_path = false}, yojson, fields]
 
-type access = Entry.Access.private_ [@@deriving yojson]
+type access = Entry.Access.Private.t [@@deriving yojson]
 type entry = t Entry.private_
 [@@deriving eq, show, yojson]
 

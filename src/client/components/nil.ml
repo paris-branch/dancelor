@@ -16,7 +16,7 @@ let prepare ?(label = "Nil") () : (unit, unit) Component.s = (module struct
   let focus Nil = ()
   let set Nil () = lwt_unit
   let trigger Nil = ()
-  let clear Nil = ()
+  let clear Nil = lwt_unit
   let inner_html Nil = div []
   let actions Nil = S.const []
 end)

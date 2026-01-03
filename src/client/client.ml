@@ -18,25 +18,25 @@ let dispatch uri =
     | Any -> redirect_any
     | Explore -> (fun query -> Explorer.create ?query ())
     | Book -> (fun context id -> BookViewer.create ?context id)
-    | BookAdd -> BookEditor.create CreateWithLocalStorage
+    | BookAdd -> BookEditor.create Create_with_local_storage
     | BookEdit -> BookEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Book.get)
     | Dance -> (fun context id -> DanceViewer.create ?context id)
-    | DanceAdd -> DanceEditor.create CreateWithLocalStorage
+    | DanceAdd -> DanceEditor.create Create_with_local_storage
     | DanceEdit -> DanceEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Dance.get)
     | Person -> (fun context id -> PersonViewer.create ?context id)
-    | PersonAdd -> PersonEditor.create CreateWithLocalStorage
+    | PersonAdd -> PersonEditor.create Create_with_local_storage
     | PersonEdit -> PersonEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Person.get)
     | Version -> (fun context id -> VersionViewer.create ?context id)
-    | VersionAdd -> VersionEditor.create CreateWithLocalStorage
+    | VersionAdd -> VersionEditor.create Create_with_local_storage
     | VersionEdit -> VersionEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Version.get)
     | Tune -> (fun context id -> TuneViewer.create ?context id)
-    | TuneAdd -> TuneEditor.create CreateWithLocalStorage
+    | TuneAdd -> TuneEditor.create Create_with_local_storage
     | TuneEdit -> TuneEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Tune.get)
     | Set -> (fun context id -> SetViewer.create ?context id)
-    | SetAdd -> SetEditor.create CreateWithLocalStorage
+    | SetAdd -> SetEditor.create Create_with_local_storage
     | SetEdit -> SetEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Set.get)
     | Source -> (fun context id -> SourceViewer.create ?context id)
-    | SourceAdd -> SourceEditor.create CreateWithLocalStorage
+    | SourceAdd -> SourceEditor.create Create_with_local_storage
     | SourceEdit -> SourceEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Source.get)
     | UserCreate -> UserCreator.create ()
     | UserPasswordReset -> UserPasswordResetter.create

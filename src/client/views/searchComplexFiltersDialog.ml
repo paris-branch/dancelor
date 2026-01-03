@@ -376,7 +376,7 @@ let open_ text raws filter =
     ]
     ~buttons: [
       Utils.Button.cancel ~onclick: (fun () -> return text; lwt_unit) ();
-      Utils.Button.clear ~onclick: (fun () -> return "") ();
+      Utils.Button.clear ~onclick: (fun () -> lwt @@ return "") ();
       Utils.Button.make
         ~label: "Apply"
         ~label_processing: "Applying..."

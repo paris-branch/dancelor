@@ -5,19 +5,19 @@ let get env id =
   match Database.Book.get id with
   | None -> Permission.reject_can_get ()
   | Some book ->
-    Permission.assert_can_get env book;%lwt
+    Permission.assert_can_get_private env book;%lwt
     lwt book
 
-let create env book =
-  Permission.assert_can_create env @@ fun user ->
-  Database.Book.create ~owner: (Entry.id user) book
+let create env book access =
+  Permission.assert_can_create_private env;%lwt
+  Database.Book.create book access
 
-let update env id book =
-  Permission.assert_can_update env =<< get env id;%lwt
-  Database.Book.update id book
+let update env id book access =
+  Permission.assert_can_update_private env =<< get env id;%lwt
+  Database.Book.update id book access
 
 let delete env id =
-  Permission.assert_can_delete env =<< get env id;%lwt
+  Permission.assert_can_delete_private env =<< get env id;%lwt
   Database.Book.delete id
 
 include Search.Build(struct
@@ -25,7 +25,7 @@ include Search.Build(struct
   type filter = Filter.Book.t
 
   let get_all env =
-    Lwt_stream.filter (Permission.can_get env) @@ Lwt_stream.of_seq @@ Database.Book.get_all ()
+    Lwt_stream.filter (Permission.can_get_private env) @@ Lwt_stream.of_seq @@ Database.Book.get_all ()
 
   let optimise_filter = Filter.Book.optimise
   let filter_is_empty = (=) Formula.False

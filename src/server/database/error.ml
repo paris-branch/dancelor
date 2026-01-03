@@ -1,30 +1,18 @@
-open Common
-
 type t =
-  | DependencyDoesNotExist of (string * string) * (string * string)
-  | DependencyViolatesStatus of (string * string * Status.t) * (string * string * Status.t)
-  | DependencyViolatesPrivacy of (string * string * Privacy.t) * (string * string * Privacy.t)
-  | EntityHasReverseDependencies of unit
-  | StorageReadOnly
+  | Dependency_does_not_exist of (string * string) * (string * string)
+  | Entity_has_reverse_dependencies of unit
+  | Storage_read_only
 [@@deriving yojson, show {with_path = false}]
 
 exception Exn of t
 
 let status = function
-  | DependencyDoesNotExist _ -> `Internal_server_error
-  | DependencyViolatesStatus _ -> `Internal_server_error
-  | DependencyViolatesPrivacy _ -> `Internal_server_error
-  | EntityHasReverseDependencies _ -> `Bad_request
-  | StorageReadOnly -> `Service_unavailable
+  | Dependency_does_not_exist _ -> `Internal_server_error
+  | Entity_has_reverse_dependencies _ -> `Bad_request
+  | Storage_read_only -> `Service_unavailable
 
 let dependency_does_not_exist ~source ~dependency =
-  DependencyDoesNotExist (source, dependency)
-
-let dependency_violates_status ~source ~dependency =
-  DependencyViolatesStatus (source, dependency)
-
-let dependency_violates_privacy ~source ~dependency =
-  DependencyViolatesPrivacy (source, dependency)
+  Dependency_does_not_exist (source, dependency)
 
 let fail e = raise (Exn e)
 let lwt_fail e = Lwt.fail (Exn e)

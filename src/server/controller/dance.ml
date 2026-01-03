@@ -7,19 +7,19 @@ let get env id =
   match Database.Dance.get id with
   | None -> Permission.reject_can_get ()
   | Some dance ->
-    Permission.assert_can_get env dance;%lwt
+    Permission.assert_can_get_public env dance;%lwt
     lwt dance
 
 let create env dance =
-  Permission.assert_can_create env @@ fun user ->
-  Database.Dance.create ~owner: (Entry.id user) dance
+  Permission.assert_can_create_public env;%lwt
+  Database.Dance.create dance Entry.Access.Public
 
 let update env id dance =
-  Permission.assert_can_update env =<< get env id;%lwt
-  Database.Dance.update id dance
+  Permission.assert_can_update_public env =<< get env id;%lwt
+  Database.Dance.update id dance Entry.Access.Public
 
 let delete env id =
-  Permission.assert_can_delete env =<< get env id;%lwt
+  Permission.assert_can_delete_public env =<< get env id;%lwt
   Database.Dance.delete id
 
 include Search.Build(struct
@@ -27,7 +27,7 @@ include Search.Build(struct
   type filter = Filter.Dance.t
 
   let get_all env =
-    Lwt_stream.filter (Permission.can_get env) @@ Lwt_stream.of_seq @@ Database.Dance.get_all ()
+    Lwt_stream.filter (Permission.can_get_public env) @@ Lwt_stream.of_seq @@ Database.Dance.get_all ()
 
   let optimise_filter = Filter.Dance.optimise
   let filter_is_empty = (=) Formula.False

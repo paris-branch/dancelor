@@ -1,0 +1,15 @@
+value:
+  name: A Private Set
+  conceptors:
+    - uwoe-u6ij-ikgp
+  kind: 3x32R
+  versions-and-parameters: []
+  order: "1"
+meta:
+  created-at: "2023-05-02T11:16:55+00:00"
+  modified-at: "2023-06-25T16:51:15+02:00"
+access:
+  owners:
+    - lt3h-edgt-ac97
+  visibility:
+    - Owners_only

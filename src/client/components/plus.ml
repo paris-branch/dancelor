@@ -61,7 +61,7 @@ module Bundle = struct
     (** Given one value among a tuple, set the whole bundle to empty everywhere,
         except for that one value. *)
 
-    val clear : t -> unit
+    val clear : t -> unit Lwt.t
     (** Clear all the components of the bundle. *)
   end
 
@@ -111,11 +111,11 @@ module Bundle = struct
       Choices.choice' ~value: offset ~checked: (initial_selected = Some offset) [txt A.label] :: B.choices ~offset: (offset + 1) ?initial_selected ()
 
     let set t = function
-      | TupleElt.Zero v -> A.set t.a v;%lwt B.clear t.b; lwt_unit
-      | TupleElt.Succ elt -> A.clear t.a; B.set t.b elt
+      | TupleElt.Zero v -> A.set t.a v;%lwt B.clear t.b;%lwt lwt_unit
+      | TupleElt.Succ elt -> A.clear t.a;%lwt B.set t.b elt
 
     let clear t =
-      A.clear t.a;
+      A.clear t.a;%lwt
       B.clear t.b
   end)
 
@@ -135,7 +135,7 @@ module Bundle = struct
     let inner_html _ _ = invalid_arg "Components.Plus.zero.inner_html"
     let choices ?offset: _ ?initial_selected: _ () = []
     let set _ _ = lwt_unit
-    let clear _ = ()
+    let clear _ = lwt_unit
   end)
 end
 
@@ -219,6 +219,6 @@ let prepare (type value)(type bundled_value)(type state)
     Bundle.set t.bundle v
 
   let clear t =
-    Component.clear t.choices;
+    Component.clear t.choices;%lwt
     Bundle.clear t.bundle
 end)

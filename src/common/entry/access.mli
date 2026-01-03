@@ -1,11 +1,19 @@
+open Nes
+
 type public = Public [@@deriving eq, show, yojson]
 
-type private_ [@@deriving eq, show, yojson]
+module Private : sig
+  type visibility =
+    | Owners_only
+    | Everyone
+    | Select_viewers of User.t Id.t NEList.t
 
-val make_private_ : owner: User.t Id.t -> private_
+  val select_viewers : User.t Id.t NEList.t -> visibility
 
-val make_public_ignore : owner: User.t Id.t -> public
-(** Ignores its arguments and returns {!Public}. This function has the same
-    signature as {!make_private} and can be used in the same places. *)
+  type t [@@deriving eq, show, yojson]
 
-val owner : private_ -> User.t Id.t
+  val make : owners: User.t Id.t NEList.t -> ?visibility: visibility -> unit -> t
+
+  val owners : t -> User.t Id.t NEList.t
+  val visibility : t -> visibility
+end

@@ -1,14 +1,17 @@
 open Nes
 open Madge
+open ModelBuilder.Core
+module Filter = FilterBuilder.Core
 
 (* NOTE: The user model contains passwords and other secret tokens. Even though
    they are heavily hashed, we shouldn't be sending them, so we redact them. *)
 module User = struct
-  type t = ModelBuilder.Core.User.t
+  type t = User.t
   [@@deriving of_yojson]
 
   type proxy = {
     username: NEString.t;
+    role: User.role;
   }
   [@@deriving to_yojson]
 
@@ -17,6 +20,7 @@ module User = struct
        explicitly on all the field names; do not use [; _]! *)
     let {
       username;
+      role;
       password = _;
       password_reset_token = _;
       remember_me_tokens = _;
@@ -25,7 +29,7 @@ module User = struct
       =
       user
     in
-      ({username}: proxy)
+      ({username; role}: proxy)
 
   let to_yojson = proxy_to_yojson % to_proxy
 end
@@ -39,6 +43,8 @@ type (_, _, _) t =
   | SignOut : ('w, 'w, unit) t
   | Create : ((User.t -> 'w), 'w, ModelBuilder.Core.User.entry * string) t
   | ResetPassword : ((string -> string -> string -> 'w), 'w, unit) t
+  | Search : ((Slice.t -> Filter.User.t -> 'w), 'w, (int * (User.t, Entry.Access.public) Entry.t list)) t
+  | Set_omniscience : ((bool -> 'w), 'w, unit) t
 [@@deriving madge_wrapped_endpoints]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
@@ -52,3 +58,5 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | ResetPassword -> literal "reset-password" @@ body "username" (module JString) @@ body "token" (module JString) @@ body "password" (module JString) @@ post (module JUnit)
     | CanCreate -> literal "can-create" @@ post (module JBool)
     | CanAdmin -> literal "can-admin" @@ post (module JBool)
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.User) @@ get (module JPair(JInt)(JList(Entry.JPublic(User))))
+    | Set_omniscience -> literal "set-omniscience" @@ body "value" (module JBool) @@ put (module JUnit)

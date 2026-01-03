@@ -115,7 +115,7 @@ let with_lock (type a) (f : unit -> a Lwt.t) : a Lwt.t =
 
 let check_ro_lock () =
   if Lwt_mutex.is_locked ro_lock then
-    Error.(lwt_fail StorageReadOnly)
+    Error.(lwt_fail Storage_read_only)
   else
     lwt_unit
 

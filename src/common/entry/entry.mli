@@ -19,7 +19,7 @@ type ('value, 'access) t [@@deriving eq, ord, show, yojson]
     instantiated. *)
 
 type 'value public = ('value, Access.public) t [@@deriving eq, ord, show, yojson]
-type 'value private_ = ('value, Access.private_) t [@@deriving eq, ord, show, yojson]
+type 'value private_ = ('value, Access.Private.t) t [@@deriving eq, ord, show, yojson]
 
 val make :
   id: 'value Id.t ->
@@ -77,6 +77,9 @@ module JPrivate : functor (M : Madge.JSONABLE) ->
   type t = M.t private_
 
 (** {2 Advanced use} *)
+
+val unsafe_erase_value : ('value, 'access) t -> (unit, 'access) t
+(** Create an entry with the same id and metadata but holding no value. *)
 
 val unsafe_erase_value_and_access : ('value, 'access) t -> (unit, unit) t
 (** Create an entry with the same id and metadata but holding no value and with

@@ -25,9 +25,9 @@ val (^::):
 (** {2 High-level interface} *)
 
 type ('result, 'state) mode =
-  | QuickEdit of 'state
-  | QuickCreate of string * ('result -> unit)
-  | CreateWithLocalStorage
+  | Quick_edit of 'state
+  | Quick_create of string * ('result -> unit)
+  | Create_with_local_storage
   | Edit of 'result
 [@@deriving variants]
 
@@ -62,11 +62,11 @@ val make_page :
     ['product] to ['result]. Their counterparts also exist: [~unsubmit] and
     [~disassemble].
 
-    [~disassemble] is allowed to raise {!NonConvertible}. *)
+    [~disassemble] is allowed to raise {!Non_convertible}. *)
 
 (** {2 Advanced use} *)
 
-exception NonConvertible
+exception Non_convertible
 (** Exception thrown when trying to edit a model that uses features that the
     editor cannot express. *)
 
@@ -117,7 +117,7 @@ val initialise :
   ('result, 'product, 'value, 'state) t Lwt.t
 
 val page :
-  ?after_save: (unit -> unit) ->
+  ?after_save: (unit -> unit Lwt.t) ->
   ?title_suffix: string ->
   ('result, 'product, 'value, 'state) t ->
   Page.t Lwt.t
@@ -162,4 +162,4 @@ val set :
 
 val clear :
   ('result, 'product, 'value, 'state) t ->
-  unit
+  unit Lwt.t

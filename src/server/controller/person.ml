@@ -5,7 +5,7 @@ let get env id =
   match Database.Person.get id with
   | None -> Permission.reject_can_get ()
   | Some person ->
-    Permission.assert_can_get env person;%lwt
+    Permission.assert_can_get_public env person;%lwt
     lwt person
 
 (** FIXME: This is really the ugliest hack. Basically, we are missing more and
@@ -25,20 +25,20 @@ let for_user env id =
     match Database.Person.get (Entry.id person) with
     | None -> lwt_none
     | Some person ->
-      if Permission.can_get env person then
+      if Permission.can_get_public env person then
         lwt_some person
       else lwt_none
 
 let create env person =
-  Permission.assert_can_create env @@ fun user ->
-  Database.Person.create ~owner: (Entry.id user) person
+  Permission.assert_can_create_public env;%lwt
+  Database.Person.create person Entry.Access.Public
 
 let update env id person =
-  Permission.assert_can_update env =<< get env id;%lwt
-  Database.Person.update id person
+  Permission.assert_can_update_public env =<< get env id;%lwt
+  Database.Person.update id person Entry.Access.Public
 
 let delete env id =
-  Permission.assert_can_delete env =<< get env id;%lwt
+  Permission.assert_can_delete_public env =<< get env id;%lwt
   Database.Person.delete id
 
 include Search.Build(struct
@@ -46,7 +46,7 @@ include Search.Build(struct
   type filter = Filter.Person.t
 
   let get_all env =
-    Lwt_stream.filter (Permission.can_get env) @@ Lwt_stream.of_seq @@ Database.Person.get_all ()
+    Lwt_stream.filter (Permission.can_get_public env) @@ Lwt_stream.of_seq @@ Database.Person.get_all ()
 
   let optimise_filter = Filter.Person.optimise
   let filter_is_empty = (=) Formula.False

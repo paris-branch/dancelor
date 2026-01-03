@@ -7,7 +7,7 @@ let session_max_age = 43200 (* 43200 seconds = 12 hours *)
 let remember_me_token_max_age = 15552000 (* 15552000 seconds = 6 * 30 days *)
 
 type session = {
-  user: Model.User.entry option;
+  user: Model.User.t Entry.id option;
   expires: Datetime.t;
 }
 [@@deriving fields]
@@ -32,13 +32,13 @@ let pp fmt env =
     (
       match !(env.session).user with
       | None -> "<anynomous>"
-      | Some user -> Entry.id_as_string user
+      | Some user -> Entry.Id.to_string user
     )
     env.session_id
     Datetime.pp
     !(env.session).expires
 
-let user = user % (!) % session
+let user env = Option.bind (user (!(env.session))) Database.User.get
 
 let register_response_cookie env cookie =
   env.response_cookies := cookie :: !(env.response_cookies)
@@ -61,13 +61,14 @@ let delete_cookie ?path key headers =
 let sessions : (string, session) Hashtbl.t = Hashtbl.create 8
 
 let set_user env user =
+  let user = Entry.id user in
   env.session := {!(env.session) with user = Some user};
   Hashtbl.replace sessions env.session_id !(env.session)
 
 (** Helper to update the user in the database. *)
 let database_update_user user f =
   let%lwt new_user = f @@ Entry.value user in
-  ignore <$> Database.User.update (Entry.id user) new_user
+  ignore <$> Database.User.update (Entry.id user) new_user Entry.Access.Public
 
 (* Given an environment, check whether we should log in a user via their
    remember me token. This is meant to be used in {!make}, before returning a
@@ -203,3 +204,27 @@ let sign_out env user =
   lwt_unit
 
 let boot_time = Datetime.now ()
+
+type cache_key_session = {
+  user: Model.User.entry option;
+  expires: Datetime.t;
+}
+[@@ocaml.warning "-69"]
+(* NOTE: We disable warning 69, “unused record field”, because the goal is to
+   generate these keys so that they can be hashed or tested for physical
+   equality; we will never use them directly. *)
+
+type cache_key = {
+  session_id: string;
+  session: cache_key_session;
+}
+[@@ocaml.warning "-69"]
+(* NOTE: We disable warning 69, “unused record field”, because the goal is to
+   generate these keys so that they can be hashed or tested for physical
+   equality; we will never use them directly. *)
+
+let cache_key env =
+  let {session_id; session; response_cookies = _} : t = env in
+  let {user; expires} : session = !session in
+  let user = Option.bind user Database.User.get in
+    ({session_id; session = {user; expires}}: cache_key)

@@ -22,14 +22,14 @@ class TestUserAndPermissions():
     utils.default_teardown(self)
 
   def load_entry(self):
-    ## Access the entry page of a private person.
-    self.driver.get("http://localhost:8080/person/wrwk-cz9g-g3wi ")
+    ## Access the entry page of a private set.
+    self.driver.get("http://localhost:8080/set/wrwk-cz9g-g3wi")
 
   def is_404(self):
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Oooops')]")
 
   def is_entry(self):
-    self.driver.find_element(By.XPATH, "//*[contains(text(), 'A Private Person')]")
+    self.driver.find_element(By.XPATH, "//*[contains(text(), 'A Private Set')]")
 
   def sign_in(self, remember_me=False):
     ## Find the “Sign in” button in the header.

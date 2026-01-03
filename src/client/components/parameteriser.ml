@@ -35,7 +35,7 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_value)(t
 
   let initialise (initial_value, initial_params) =
     let%lwt comp = C.initialise initial_value in
-    let%lwt editor = Editor.initialise editor @@ Editor.QuickEdit initial_params in
+    let%lwt editor = Editor.initialise editor @@ Editor.Quick_edit initial_params in
     lwt {comp; editor}
 
   let signal p =
@@ -53,7 +53,7 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_value)(t
     Editor.set p.editor params
 
   let clear p =
-    C.clear p.comp;
+    C.clear p.comp;%lwt
     Editor.clear p.editor
 
   let label = C.label
@@ -89,7 +89,7 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_value)(t
                          to be recorded."
                         comp_descr
                     ];
-                    return ()
+                    lwt @@ return ()
                   )
             )
             ()

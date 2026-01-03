@@ -8,6 +8,23 @@ open Utils
 let (show_preview, set_show_preview) = S.create false
 let flip_show_preview () = set_show_preview (not (S.value show_preview))
 
+type visibility' =
+  | Owners_only
+  | Everyone
+  | Select_viewers of Model.User.entry NEList.t
+
+let visibility'_to_visibility : visibility' -> Entry.Access.Private.visibility = function
+  | Owners_only -> Owners_only
+  | Everyone -> Everyone
+  | Select_viewers users -> Select_viewers (NEList.map Entry.id users)
+
+let visibility_to_visibility' : Entry.Access.Private.visibility -> visibility' Lwt.t = function
+  | Owners_only -> lwt Owners_only
+  | Everyone -> lwt Everyone
+  | Select_viewers users ->
+    let%lwt users = Monadise_lwt.monadise_1_1 NEList.map (Option.get <%> Model.User.get) users in
+    lwt (Select_viewers users)
+
 let versions_and_parameters ?(label = "Versions") () =
   Star.prepare_non_empty
     ~label: "Versions"
@@ -99,7 +116,7 @@ let dance_and_dance_page =
         )
     )
 
-let editor =
+let editor user =
   let open Editor in
   Input.prepare_non_empty
     ~type_: Text
@@ -219,19 +236,77 @@ let editor =
         Option.of_string_nonempty
     )
     () ^::
+  Star.prepare_non_empty
+    ~label: "Owners"
+    ~empty: [user]
+    (
+      Selector.prepare
+        ~label: "Owner"
+        ~model_name: "user"
+        ~make_descr: (lwt % NEString.to_string % Model.User.username')
+        ~make_result: AnyResult.make_user_result'
+        ~search: (fun slice input ->
+          let%rlwt filter = lwt (Filter.User.from_string input) in
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
+        )
+        ~unserialise: Model.User.get
+        ()
+    ) ^::
+  (
+    let open Plus.Bundle in
+    let open Plus.TupleElt in
+    Plus.prepare
+      ~label: "Visibility"
+      ~cast: (function
+        | Zero() -> Owners_only
+        | Succ Zero() -> Everyone
+        | Succ Succ Zero viewers -> Select_viewers viewers
+        | _ -> assert false (* types guarantee this is not reachable *)
+      )
+      ~uncast: (function
+        | Owners_only -> Zero ()
+        | Everyone -> one ()
+        | Select_viewers viewers -> two viewers
+      )
+      (
+        Nil.prepare ~label: "Owners only" () ^::
+        Nil.prepare ~label: "Everyone" () ^::
+        (
+          Star.prepare_non_empty
+            ~label: "Viewers"
+            (
+              Selector.prepare
+                ~label: "Viewer"
+                ~model_name: "user"
+                ~make_descr: (lwt % NEString.to_string % Model.User.username')
+                ~make_result: AnyResult.make_user_result'
+                ~search: (fun slice input ->
+                  let%rlwt filter = lwt (Filter.User.from_string input) in
+                  ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
+                )
+                ~unserialise: Model.User.get
+                ()
+            )
+        ) ^::
+        nil
+      )
+  ) ^::
   nil
 
-let assemble (title, (authors, (date, (contents, (remark, (sources, (scddb_id, ()))))))) =
-  Model.Book.make ~title ~authors ?date ~contents ~remark ~sources ?scddb_id ()
+let assemble (title, (authors, (date, (contents, (remark, (sources, (scddb_id, (owners, (visibility, ()))))))))) = (
+  Model.Book.make ~title ~authors ?date ~contents ~remark ~sources ?scddb_id (),
+  Entry.Access.Private.make ~owners: (NEList.map Entry.id owners) ~visibility: (visibility'_to_visibility visibility) ()
+)
 
-let submit mode book =
+let submit mode (book, access) =
   match mode with
-  | Editor.Edit prev_book -> Madge_client.call_exn Endpoints.Api.(route @@ Book Update) (Entry.id prev_book) book
-  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Book Create) book
+  | Editor.Edit prev_book -> Madge_client.call_exn Endpoints.Api.(route @@ Book Update) (Entry.id prev_book) book access
+  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Book Create) book access
 
-let unsubmit = lwt % Entry.value
+let unsubmit entry =
+  lwt (Entry.value entry, Entry.access entry)
 
-let disassemble book =
+let disassemble (book, access) =
   let title = Model.Book.title book in
   let%lwt authors = Model.Book.authors book in
   let date = Model.Book.date book in
@@ -239,14 +314,17 @@ let disassemble book =
   let remark = Model.Book.remark book in
   let%lwt sources = Model.Book.sources book in
   let scddb_id = Model.Book.scddb_id book in
-  lwt (title, (authors, (date, (contents, (remark, (sources, (scddb_id, ())))))))
+  let%lwt owners = NEList.of_list_exn <$> Lwt_list.map_p (fun user -> Option.get <$> Model.User.get user) (NEList.to_list @@ Entry.Access.Private.owners access) in
+  let%lwt visibility = visibility_to_visibility' @@ Entry.Access.Private.visibility access in
+  lwt (title, (authors, (date, (contents, (remark, (sources, (scddb_id, (owners, (visibility, ())))))))))
 
 let create mode =
+  let%lwt user = Option.map Entry.id <$> Environment.user in
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "book"
     ~icon: "book"
-    editor
+    (editor user)
     ~mode
     ~format: Formatters.Book.title'
     ~href: (Endpoints.Page.href_book % Entry.id)
@@ -254,4 +332,4 @@ let create mode =
     ~submit
     ~unsubmit
     ~disassemble
-    ~check_product: Model.Book.equal
+    ~check_product: (fun (book1, access1) (book2, access2) -> Model.Book.equal book1 book2 && Entry.Access.Private.equal access1 access2)

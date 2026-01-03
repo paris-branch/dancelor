@@ -8,8 +8,10 @@ value:
       - ului-yd9x-o35w
       - {}
 meta:
-  privacy: public
   created-at: "2020-12-03T11:55:36+01:00"
   modified-at: "2023-06-25T16:51:15+02:00"
 access:
-  owner: lt3h-edgt-ac97
+  owners:
+    - lt3h-edgt-ac97
+  visibility:
+    - Everyone

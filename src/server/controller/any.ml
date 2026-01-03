@@ -5,7 +5,10 @@ let get env id =
   match Database.Any.get id with
   | None -> Permission.reject_can_get ()
   | Some any ->
-    Permission.assert_can_get env (Model.Any.to_entry any);%lwt
+    Model.Any.to_entry'
+      any
+      ~on_public: (Permission.assert_can_get_public env)
+      ~on_private: (Permission.assert_can_get_private env);%lwt
     lwt any
 
 (** Given two streams sorted according to the comparison function, produce one

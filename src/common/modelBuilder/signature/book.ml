@@ -30,7 +30,7 @@ module type S = sig
   (** The type of a book. Even if it is known that it is a record, it should never
       be manipulated explicitly. *)
 
-  type access = Entry.Access.private_ [@@deriving yojson]
+  type access = Entry.Access.Private.t [@@deriving yojson]
   type entry = t Entry.private_
 
   val make :

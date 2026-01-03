@@ -1,10 +1,19 @@
+open Nes
+
 type public =
   Public
 [@@deriving eq, show, yojson]
 
-type private_ = {
-  owner: User.t Id.t;
-}
-[@@deriving eq, make, show, fields, yojson]
+module Private = struct
+  type visibility =
+    | Owners_only
+    | Everyone
+    | Select_viewers of User.t Id.t NEList.t
+  [@@deriving eq, show, variants, yojson]
 
-let make_public_ignore ~owner: _ = Public
+  type t = {
+    owners: User.t Id.t NEList.t;
+    visibility: visibility; [@default Owners_only]
+  }
+  [@@deriving eq, make, show, fields, yojson]
+end

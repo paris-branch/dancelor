@@ -6,6 +6,7 @@ let prepare (type value)(type state)
   ~label
   ?make_header
   ?(more_actions = S.const [])
+  ?(empty = [])
   ((module C): (value, state) Component.s)
   : (value list, state list) Component.s
 = (module struct
@@ -14,7 +15,7 @@ let prepare (type value)(type state)
   type value = C.value list
   type state = C.state list [@@deriving yojson]
 
-  let empty = []
+  let empty = empty
   let from_initial_text = List.singleton % C.from_initial_text
 
   let value_to_string _ = lwt "<FIXME star>"
@@ -59,7 +60,7 @@ let prepare (type value)(type state)
 
   let set _ _ = assert false
 
-  let clear l = l.set_components []
+  let clear l = l.set_components <$> Lwt_list.map_p C.initialise empty
 
   let inner_html l = l.inner_html
   let actions _ = more_actions
@@ -140,20 +141,22 @@ let make (type value)(type state)
     ~label
     ?make_header
     ?more_actions
+    ?empty
     (component : (value, state) Component.s)
     (initial_values : state list)
     : (value list, state list) Component.t Lwt.t
   =
-  Component.initialise (prepare ~label ?make_header ?more_actions component) initial_values
+  Component.initialise (prepare ~label ?make_header ?more_actions ?empty component) initial_values
 
 let prepare_non_empty (type value)(type state)
   ~label
   ?make_header
   ?more_actions
+  ?empty
   ((module C): (value, state) Component.s)
   : (value NEList.t, state list) Component.s
 = (module struct
-  include (val (prepare ~label ?make_header ?more_actions (module C)))
+  include (val (prepare ~label ?make_header ?more_actions ?empty (module C)))
   type value = C.value NEList.t
   let value_to_string _ = lwt "<FIXME star>"
   let value_to_state = value_to_state % NEList.to_list
@@ -169,8 +172,9 @@ let make_non_empty (type value)(type state)
     ~label
     ?make_header
     ?more_actions
+    ?empty
     (component : (value, state) Component.s)
     (initial_values : state list)
     : (value NEList.t, state list) Component.t Lwt.t
   =
-  Component.initialise (prepare_non_empty ~label ?make_header ?more_actions component) initial_values
+  Component.initialise (prepare_non_empty ~label ?make_header ?more_actions ?empty component) initial_values

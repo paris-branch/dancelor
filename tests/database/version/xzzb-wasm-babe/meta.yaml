@@ -29,7 +29,6 @@ value:
         \ g:m | s | s2 s4.\n\n      s8 |\n      s1 | s | s | s |\n      \\parenthesize\
         \ bes1 | s | s | s2 s4.\n    }\n  }\n>>\n"
 meta:
-  privacy: public
   created-at: "2023-04-04T18:45:27+00:00"
   modified-at: "2023-06-25T16:51:15+02:00"
 access:

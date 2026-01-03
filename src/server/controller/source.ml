@@ -5,19 +5,19 @@ let get env id =
   match Database.Source.get id with
   | None -> Permission.reject_can_get ()
   | Some source ->
-    Permission.assert_can_get env source;%lwt
+    Permission.assert_can_get_public env source;%lwt
     lwt source
 
 let create env source =
-  Permission.assert_can_create env @@ fun user ->
-  Database.Source.create ~owner: (Entry.id user) source
+  Permission.assert_can_create_public env;%lwt
+  Database.Source.create source Entry.Access.Public
 
 let update env id source =
-  Permission.assert_can_update env =<< get env id;%lwt
-  Database.Source.update id source
+  Permission.assert_can_update_public env =<< get env id;%lwt
+  Database.Source.update id source Entry.Access.Public
 
 let delete env id =
-  Permission.assert_can_delete env =<< get env id;%lwt
+  Permission.assert_can_delete_public env =<< get env id;%lwt
   Database.Source.delete id
 
 include Search.Build(struct
@@ -25,7 +25,7 @@ include Search.Build(struct
   type filter = Filter.Source.t
 
   let get_all env =
-    Lwt_stream.filter (Permission.can_get env) @@ Lwt_stream.of_seq @@ Database.Source.get_all ()
+    Lwt_stream.filter (Permission.can_get_public env) @@ Lwt_stream.of_seq @@ Database.Source.get_all ()
 
   let optimise_filter = Filter.Source.optimise
   let filter_is_empty = (=) Formula.False
@@ -40,7 +40,7 @@ include Search.Build(struct
 end)
 
 let get_cover env id =
-  Permission.assert_can_get env =<< get env id;%lwt
+  Permission.assert_can_get_public env =<< get env id;%lwt
   Database.Source.with_cover id @@ fun fname ->
   let fname = Option.value fname ~default: (Filename.concat !Config.share "no-cover.webp") in
   Madge_server.respond_file ~fname

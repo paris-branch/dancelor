@@ -20,9 +20,11 @@ val make :
   (('model, 'access) Entry.t ->
   Utils.ResultRow.t list S.t) ->
   model_name: string ->
-  create_dialog_content: ((('model, 'access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) ->
+  ?create_dialog_content: ((('model, 'access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) ->
   'model Entry.id option ->
   (('model, 'access) Entry.t, 'model Entry.id option) Component.t Lwt.t
+(** When [?create_dialog_content] is passed, an additional button allows to
+    create a value of this type on the fly. *)
 
 (** {2 Internal use} *)
 
@@ -42,7 +44,7 @@ val prepare :
   (('model, 'access) Entry.t ->
   Utils.ResultRow.t list S.t) ->
   model_name: string ->
-  create_dialog_content: ((('model, 'access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) ->
+  ?create_dialog_content: ((('model, 'access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) ->
   unit ->
   (('model, 'access) Entry.t, 'model Entry.Id.t option) Component.s
 (** Variant of {!make} that only prepares the component. It must still be

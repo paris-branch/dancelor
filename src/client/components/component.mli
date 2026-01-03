@@ -11,7 +11,7 @@ type ('value, 'state) t
 
 val focus : ('value, 'state) t -> unit
 val trigger : ('value, 'state) t -> unit
-val clear : ('value, 'state) t -> unit
+val clear : ('value, 'state) t -> unit Lwt.t
 
 val signal : ('value, 'state) t -> ('value, string) result S.t
 (** Expose the value held by the component. *)
@@ -70,7 +70,7 @@ module type S = sig
   val set : t -> value -> unit Lwt.t
   (** Set the value of the component. *)
 
-  val clear : t -> unit
+  val clear : t -> unit Lwt.t
   (** Clear the component, bringing the state back to {!empty}. *)
 
   val focus : t -> unit

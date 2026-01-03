@@ -122,6 +122,22 @@ let victorise () =
     ~title: "Victorisation"
     [txt "Victorisation in progress. Please wait."]
 
+let set_omniscience enable =
+  let%lwt _ = Madge_client.call Endpoints.Api.(route @@ User Set_omniscience) enable in
+  Utils.Toast.open_
+    ~type_: Forever
+    ~title: "Omniscience"
+    [txtf "Omniscience has been %s. You should reload for it to take effect." (if enable then "enabled" else "disabled")]
+    ~buttons: [
+      Utils.Button.make
+        ~label: "Reload"
+        ~icon: "arrow-clockwise"
+        ~classes: ["btn-primary"]
+        ~onclick: (fun () -> Js_of_ocaml.Dom_html.window##.location##reload; lwt_unit)
+        ();
+    ];
+  lwt_unit
+
 let header_item =
   R.li
     ~a: [
@@ -165,7 +181,7 @@ let header_item =
               List.flatten
                 [
                   (
-                    if Model.User.admin user then
+                    if Model.User.is_administrator' user then
                       [
                         li [
                           Utils.Button.make_a
@@ -182,6 +198,22 @@ let header_item =
                             ~dropdown: true
                             ~onclick: (fun () -> victorise (); lwt_unit)
                             ()
+                        ];
+                        li [
+                          if Model.User.is_omniscient_administrator' user then
+                            Utils.Button.make
+                              ~label: "Disable omniscience"
+                              ~icon: "shield-lock-fill"
+                              ~dropdown: true
+                              ~onclick: (fun () -> set_omniscience false)
+                              ()
+                          else
+                            Utils.Button.make
+                              ~label: "Enable omniscience"
+                              ~icon: "shield-lock"
+                              ~dropdown: true
+                              ~onclick: (fun () -> set_omniscience true)
+                              ()
                         ];
                         li [hr ~a: [a_class ["dropdown-divider"]] ()];
                       ]

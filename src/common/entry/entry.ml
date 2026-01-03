@@ -55,7 +55,7 @@ let of_yojson_no_id id value_of_yojson access_of_yojson yojson =
     (No_id.of_yojson value_of_yojson access_of_yojson yojson)
 
 type 'value public = ('value, Access.public) t [@@deriving eq, show, yojson]
-type 'value private_ = ('value, Access.private_) t [@@deriving eq, show, yojson]
+type 'value private_ = ('value, Access.Private.t) t [@@deriving eq, show, yojson]
 
 let value_public : 'value public -> 'value = value
 let value_private_ : 'value private_ -> 'value = value
@@ -68,9 +68,12 @@ end
 
 module JPrivate (A : Madge.JSONABLE) : Madge.JSONABLE with type t = A.t private_ = struct
   type t = A.t private_
-  let to_yojson = to_yojson A.to_yojson Access.private__to_yojson
-  let of_yojson = of_yojson A.of_yojson Access.private__of_yojson
+  let to_yojson = to_yojson A.to_yojson Access.Private.to_yojson
+  let of_yojson = of_yojson A.of_yojson Access.Private.of_yojson
 end
+
+let unsafe_erase_value {id; meta; access; _} =
+  {id = Id.unsafe_coerce id; meta; access; value = ()}
 
 let unsafe_erase_value_and_access {id; meta; _} =
   {id = Id.unsafe_coerce id; meta; access = (); value = ()}

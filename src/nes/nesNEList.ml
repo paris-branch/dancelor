@@ -3,6 +3,7 @@ type 'a t = L of 'a list [@@deriving eq, show]
 let to_list (L xs) = xs
 
 let of_list = function [] -> None | xs -> Some (L xs)
+let of_list_exn = function [] -> invalid_arg "NEList.of_list_exn" | xs -> L xs
 
 type 'a mylist = 'a list [@@deriving yojson]
 
@@ -24,3 +25,4 @@ let singleton x = L [x]
 let is_singleton (L xs) = match xs with [_] -> true | _ -> false
 
 let mem x (L xs) = List.mem x xs
+let exists f (L xs) = List.exists f xs
