@@ -3,7 +3,7 @@ open Nes
 type role =
   | Normal_user
   | Maintainer
-  | Administrator of {omniscience_enabled: bool}
+  | Administrator of {omniscience: bool}
 [@@deriving eq, yojson, variants, show]
 
 type t = {

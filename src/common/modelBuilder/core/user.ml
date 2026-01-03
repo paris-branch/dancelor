@@ -20,5 +20,5 @@ let is_maintainer' = is_maintainer % Entry.value_public
 let is_administrator user = is_administrator (role user)
 let is_administrator' = is_administrator % Entry.value_public
 
-let is_omniscient_administrator user = match role user with Administrator {omniscience_enabled} -> omniscience_enabled | _ -> false
+let is_omniscient_administrator user = match role user with Administrator {omniscience} -> omniscience | _ -> false
 let is_omniscient_administrator' = is_omniscient_administrator % Entry.value_public

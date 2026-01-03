@@ -90,12 +90,25 @@ let reset_password username token password =
                 password = Some password;
                 password_reset_token = None;
               }
-              Entry.Access.Public;%lwt
-          lwt_unit
+              Entry.Access.Public
         )
 
 let can_create env = lwt @@ Permission.can_create_public env
 let can_admin env = lwt @@ Permission.can_admin env
+
+let set_omniscience env value =
+  Permission.assert_can_admin env @@ fun user ->
+  ignore
+  <$> Database.User.update
+      (Entry.id user)
+      {(Entry.value user) with
+        role = (
+          match Model.User.role' user with
+          | Administrator {omniscience = _} -> Administrator {omniscience = value}
+          | _ -> assert false
+        )
+      }
+      Entry.Access.Public
 
 include Search.Build(struct
   type value = Model.User.entry
@@ -125,3 +138,4 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a 
   | CanCreate -> can_create env
   | CanAdmin -> can_admin env
   | Search -> search env
+  | Set_omniscience -> set_omniscience env
