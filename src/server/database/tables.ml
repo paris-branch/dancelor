@@ -143,12 +143,8 @@ module Initialise = struct
           (
             problems
             |> List.iter @@ function
-                | Error.DependencyDoesNotExist ((from_key, from_id), (to_key, to_id)) ->
+                | Error.Dependency_does_not_exist ((from_key, from_id), (to_key, to_id)) ->
                   Log.warn (fun m -> m "%s / %s refers to %s / %s that does not exist" from_key from_id to_key to_id)
-                | DependencyViolatesStatus ((from_key, from_id, from_status), (to_key, to_id, to_status)) ->
-                  Log.warn (fun m -> m "%s / %s [%a] refers to %s / %s [%a]" from_key from_id Status.pp from_status to_key to_id Status.pp to_status)
-                | DependencyViolatesPrivacy ((from_key, from_id, from_privacy), (to_key, to_id, to_privacy)) ->
-                  Log.warn (fun m -> m "%s / %s [%a] refers to %s / %s [%a]" from_key from_id Privacy.pp from_privacy to_key to_id Privacy.pp to_privacy)
                 | _ -> ()
           );
           match found_problem, problems with

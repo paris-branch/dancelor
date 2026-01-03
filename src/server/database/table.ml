@@ -132,7 +132,7 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
 
   let get id = Hashtbl.find_opt table id
 
-  let list_dependency_problems_for id status privacy dep_key dep_id =
+  let list_dependency_problems_for id dep_key dep_id =
     match GloballyUniqueId.get dep_id with
     | None ->
       [
@@ -140,28 +140,7 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
           ~source: (_key, Entry.Id.to_string id)
           ~dependency: (dep_key, Entry.Id.to_string dep_id)
       ]
-    | Some dep_entry ->
-      let dep_entry = ModelBuilder.Core.Any.to_entry dep_entry in
-      let dep_meta = Entry.meta dep_entry in
-      let dep_status = Entry.Meta.status dep_meta in
-      let dep_privacy = Entry.Meta.privacy dep_meta in
-      (
-        if Status.can_depend status ~on: dep_status then []
-        else
-          [
-            Error.dependency_violates_status
-              ~source: (_key, Entry.Id.to_string id, status)
-              ~dependency: (dep_key, Entry.Id.to_string dep_id, dep_status)
-          ]
-      ) @ (
-        if Privacy.can_depend privacy ~on: dep_privacy then []
-        else
-          [
-            Error.dependency_violates_privacy
-              ~source: (_key, Entry.Id.to_string id, privacy)
-              ~dependency: (dep_key, Entry.Id.to_string dep_id, dep_privacy)
-          ]
-      )
+    | Some _ -> []
 
   let list_dependency_problems () =
     Hashtbl.to_seq_values table
@@ -169,10 +148,8 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
     |> List.fold_left
         (fun problems model ->
           let id = Entry.id model in
-          let status = Entry.(Meta.status % meta) model in
-          let privacy = Entry.(Meta.privacy % meta) model in
           let deps = Model.dependencies @@ Entry.value model in
-          let new_problems = List.map (uncurry @@ list_dependency_problems_for id status privacy) deps in
+          let new_problems = List.map (uncurry @@ list_dependency_problems_for id) deps in
           new_problems
           |> List.flatten
           |> (fun new_problems -> new_problems @ problems)
@@ -236,5 +213,5 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
       Log.warn (fun m ->
         m "Tried to remove %s / %s but it has reverse dependencies, for instance %s / %s" _key (Entry.Id.to_string id) one_key (Entry.Id.to_string one_id)
       );
-      raise (Error.Exn (EntityHasReverseDependencies ()))
+      raise (Error.Exn (Entity_has_reverse_dependencies ()))
 end
