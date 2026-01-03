@@ -12,6 +12,13 @@ let username' = username % Entry.value_public
 let password' = password % Entry.value_public
 let password_reset_token' = password_reset_token % Entry.value_public
 let remember_me_tokens' = remember_me_tokens % Entry.value_public
+let role' = role % Entry.value_public
 
-let is_maintainer _user = false
-let is_administrator user = username' user = NEString.of_string_exn "Niols"
+let is_maintainer user = is_maintainer (role user)
+let is_maintainer' = is_maintainer % Entry.value_public
+
+let is_administrator user = is_administrator (role user)
+let is_administrator' = is_administrator % Entry.value_public
+
+let is_omniscient_administrator user = match role user with Administrator {omniscience_enabled} -> omniscience_enabled | _ -> false
+let is_omniscient_administrator' = is_omniscient_administrator % Entry.value_public

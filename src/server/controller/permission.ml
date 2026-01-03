@@ -48,7 +48,7 @@ let can_create_public env =
   fold_user
     env
     ~none: (const false)
-    ~some: (fun user -> Model.User.is_maintainer user || Model.User.is_administrator user)
+    ~some: (fun user -> Model.User.is_maintainer' user || Model.User.is_administrator' user)
 
 (** Whether the given user can update public elements. Those are only database
     maintainers and administrators. This is the same as {!can_create_public},
@@ -100,7 +100,7 @@ let assert_can_delete_public env entry =
 (** {2 Private elements} *)
 
 (** Whether the given user can get private elements. This is the owners of the
-    entry or an administrator. *)
+    entry or an omniscient administrator. *)
 let can_get_private env entry =
   (* FIXME: a notion of viewers that get to view the entry but not update it *)
   fold_user
@@ -108,7 +108,7 @@ let can_get_private env entry =
     ~none: (const false)
     ~some: (fun user ->
       NEList.exists (Entry.Id.equal' (Entry.id user)) (Entry.(Access.Private.owners % access) entry)
-      || Model.User.is_administrator user
+      || Model.User.is_omniscient_administrator' user
     )
 
 (** Whether the given user can create “private” elements. This is anyone that is
@@ -117,14 +117,14 @@ let can_create_private env =
   fold_user env ~none: (const false) ~some: (const true)
 
 (** Whether the given user can update a specific private element. This is one of
-    the owners of the entry, or an administrator. *)
+    the owners of the entry, or an omniscient administrator. *)
 let can_update_private env entry =
   fold_user
     env
     ~none: (const false)
     ~some: (fun user ->
       NEList.exists (Entry.Id.equal' (Entry.id user)) (Entry.(Access.Private.owners % access) entry)
-      || Model.User.is_administrator user
+      || Model.User.is_omniscient_administrator' user
     )
 
 (** Whether the given user can delete a specific private element. This is one of
@@ -166,7 +166,7 @@ let assert_can_delete_private env entry =
 (** {2 Administrating} *)
 
 let can_admin =
-  fold_user ~none: (const false) ~some: Model.User.is_administrator
+  fold_user ~none: (const false) ~some: Model.User.is_administrator'
 
 let assert_can_admin env f =
   fold_user
@@ -176,7 +176,7 @@ let assert_can_admin env f =
       Madge_server.shortcut_forbidden "You do not have permission to administrate this instance."
     )
     ~some: (fun user ->
-      if Model.User.is_administrator user then
+      if Model.User.is_administrator' user then
         f user
       else
         (

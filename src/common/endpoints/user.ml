@@ -22,6 +22,7 @@ module User = struct
       password = _;
       password_reset_token = _;
       remember_me_tokens = _;
+      role = _;
     }
         : t
       =

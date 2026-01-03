@@ -13,6 +13,7 @@ module type S = sig
     ?password: HashedSecret.t ->
     ?password_reset_token: HashedSecret.t * Datetime.t ->
     ?remember_me_tokens: (HashedSecret.t * Datetime.t) String.Map.t ->
+    ?role: User.role ->
     unit ->
     t
 
@@ -21,6 +22,7 @@ module type S = sig
     ?password: (HashedSecret.t option -> HashedSecret.t option) ->
     ?password_reset_token: ((HashedSecret.t * Datetime.t) option -> (HashedSecret.t * Datetime.t) option) ->
     ?remember_me_tokens: ((HashedSecret.t * Datetime.t) String.Map.t -> (HashedSecret.t * Datetime.t) String.Map.t) ->
+    ?role: (User.role -> User.role) ->
     t ->
     t Lwt.t
 
@@ -38,11 +40,20 @@ module type S = sig
   val remember_me_tokens : t -> (HashedSecret.t * Datetime.t) String.Map.t
   val remember_me_tokens' : entry -> (HashedSecret.t * Datetime.t) String.Map.t
 
+  val role : t -> User.role
+  val role' : entry -> User.role
+
   (** Whether the user is a database maintainer. *)
-  val is_maintainer : entry -> bool
+  val is_maintainer : t -> bool
+  val is_maintainer' : entry -> bool
 
   (** Whether the user is an administrator. *)
-  val is_administrator : entry -> bool
+  val is_administrator : t -> bool
+  val is_administrator' : entry -> bool
+
+  (** Whether the user is an administrator that enabled omniscience. *)
+  val is_omniscient_administrator : t -> bool
+  val is_omniscient_administrator' : entry -> bool
 
   (** {2 Magic getter} *)
 
