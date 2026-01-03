@@ -53,7 +53,7 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_value)(t
     Editor.set p.editor params
 
   let clear p =
-    C.clear p.comp;
+    C.clear p.comp;%lwt
     Editor.clear p.editor
 
   let label = C.label
@@ -89,7 +89,7 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_value)(t
                          to be recorded."
                         comp_descr
                     ];
-                    return ()
+                    lwt @@ return ()
                   )
             )
             ()

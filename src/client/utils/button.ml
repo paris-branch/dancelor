@@ -181,8 +181,9 @@ let clear ~onclick () =
     ~classes: ["btn-warning"]
     ~onclick: (fun () ->
       if Dom_html.window##confirm (Js.string "Clear the editor?") |> Js.to_bool then
-        onclick ();
-      lwt_unit
+        onclick ()
+      else
+        lwt_unit
     )
     ()
 

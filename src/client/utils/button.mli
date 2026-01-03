@@ -55,7 +55,7 @@ val save :
     overridden. *)
 
 val clear :
-  onclick: (unit -> unit) ->
+  onclick: (unit -> unit Lwt.t) ->
   unit ->
   [> Html_types.button] elt
 (** A button specialised in clearing a form. *)

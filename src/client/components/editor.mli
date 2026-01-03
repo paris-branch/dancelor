@@ -117,7 +117,7 @@ val initialise :
   ('result, 'product, 'value, 'state) t Lwt.t
 
 val page :
-  ?after_save: (unit -> unit) ->
+  ?after_save: (unit -> unit Lwt.t) ->
   ?title_suffix: string ->
   ('result, 'product, 'value, 'state) t ->
   Page.t Lwt.t
@@ -162,4 +162,4 @@ val set :
 
 val clear :
   ('result, 'product, 'value, 'state) t ->
-  unit
+  unit Lwt.t

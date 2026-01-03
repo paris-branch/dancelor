@@ -75,7 +75,7 @@ let prepare_gen (type model)(type access)(type model_validated)
 
   let set _ _ = assert false
 
-  let clear s = s.set None
+  let clear s = lwt @@ s.set None
 
   let initialise initial_value =
     let (signal, set) = S.create None in

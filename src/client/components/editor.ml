@@ -93,7 +93,7 @@ let prepare_nosubmit ~key ~icon ~assemble ~disassemble ~check_result ?preview ~f
 type ('result, 'product, 'value, 'state) t = {
   s: ('result, 'product, 'value, 'state) s;
   mode: ('result, 'state) mode;
-  page: (?after_save: (unit -> unit) -> ?title_suffix: string -> unit -> Page.t Lwt.t);
+  page: (?after_save: (unit -> unit Lwt.t) -> ?title_suffix: string -> unit -> Page.t Lwt.t);
   editor: ('value, 'state) Component.t;
 }
 [@@deriving fields]
@@ -156,15 +156,14 @@ let initialise (type result)(type value)(type product)(type state)
         | false -> lwt_none
         | true -> some <$> submit mode product
     in
-    (
-      Option.iter
-        (fun result ->
-          after_save ();
-          f result;
-        )
-        result
-    );
-    lwt_unit
+    Option.fold
+      result
+      ~none: lwt_unit
+      ~some: (fun result ->
+        after_save ();%lwt
+        f result;
+        lwt_unit
+      )
   in
   let save_buttons ?after_save () =
     let button ?label f =

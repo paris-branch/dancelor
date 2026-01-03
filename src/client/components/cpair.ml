@@ -89,7 +89,7 @@ let bundle (type value)(type value1)(type state1)(type value2)(type state2)
     C2.set p.c2 v2
 
   let clear p =
-    C1.clear p.c1;
+    C1.clear p.c1;%lwt
     C2.clear p.c2
 
   let inner_html _ =

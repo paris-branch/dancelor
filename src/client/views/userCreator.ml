@@ -52,8 +52,7 @@ let create () =
           let user = Result.get_ok @@ S.value signal in
           let%lwt (user, token) = Madge_client.call_exn Endpoints.Api.(route @@ User Create) user in
           open_token_result_dialog user token;%lwt
-          Component.clear username_input;
-          lwt_unit
+          Component.clear username_input
         )
         ();
     ]

@@ -55,7 +55,7 @@ let prepare (type value)
 
   let set i x = i.set <$> value_to_state x
 
-  let clear i = i.set ""
+  let clear i = lwt @@ i.set ""
 
   let initialise initial_value =
     let (state, set_immediately) = S.create initial_value in
