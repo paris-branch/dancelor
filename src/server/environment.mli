@@ -45,3 +45,9 @@ val pp : Format.formatter -> t -> unit
 (** Time at which the server started. This is used to inform the client of needs
     to reload the page or the assets. *)
 val boot_time : NesDatetime.t
+
+type cache_key
+
+(** One should not use the environment directly as a cache key, because it does
+    not contain all the information. Use {!cache_key} instead. *)
+val cache_key : t -> cache_key
