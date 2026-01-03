@@ -99,15 +99,19 @@ let assert_can_delete_public env entry =
 
 (** {2 Private elements} *)
 
-(** Whether the given user can get private elements. This is the owners of the
-    entry or an omniscient administrator. *)
+(** Whether the given user can get private elements. This is everyone if the
+    visibility is set like that, or the selected viewers if there are some, or
+    the owners of the entry or an omniscient administrator. *)
 let can_get_private env entry =
-  (* FIXME: a notion of viewers that get to view the entry but not update it *)
-  fold_user
+  let access = Entry.access entry in
+  let visibility = Entry.Access.Private.visibility access in
+  (visibility = Everyone)
+  || fold_user
     env
     ~none: (const false)
     ~some: (fun user ->
-      NEList.exists (Entry.Id.equal' (Entry.id user)) (Entry.(Access.Private.owners % access) entry)
+      NEList.exists (Entry.Id.equal' (Entry.id user)) (Entry.Access.Private.owners access)
+      || (match visibility with Select_viewers viewers -> NEList.exists (Entry.Id.equal' (Entry.id user)) viewers | _ -> false)
       || Model.User.is_omniscient_administrator' user
     )
 
