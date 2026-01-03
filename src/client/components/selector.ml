@@ -115,7 +115,7 @@ let prepare_gen (type model)(type access)(type model_validated)
                     quick_search_return
                     <$> Page.open_dialog' @@ fun sub_dialog_return ->
                       create_dialog_content (
-                        Editor.QuickCreate (
+                        Editor.Quick_create (
                           S.value (Search.Quick.text quick_search),
                           sub_dialog_return
                         )

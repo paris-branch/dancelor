@@ -26,7 +26,7 @@ let nil : (unit, unit) bundle = Bundle (Nil.prepare ())
 
 (* Helpers *)
 
-exception NonConvertible
+exception Non_convertible
 
 let local_storage_key ~key = key ^ "-editor"
 
@@ -47,9 +47,9 @@ let write_local_storage (type value)(type state) ~key (editor : (value, state) C
 (* Mode *)
 
 type ('result, 'state) mode =
-  | QuickEdit of 'state
-  | QuickCreate of string * ('result -> unit)
-  | CreateWithLocalStorage
+  | Quick_edit of 'state
+  | Quick_create of string * ('result -> unit)
+  | Create_with_local_storage
   | Edit of 'result
 [@@deriving variants]
 
@@ -80,7 +80,7 @@ let prepare ~key ~icon ~assemble ~submit ~unsubmit ~disassemble ~check_product ?
     let%lwt value = disassemble product in
     let product' = assemble value in
     if not (check_product product product') then
-      raise NonConvertible;
+      raise Non_convertible;
     lwt value
   in
     {key; icon; assemble; submit; unsubmit; disassemble; preview; format; href; bundle}
@@ -122,9 +122,9 @@ let initialise (type result)(type value)(type product)(type state)
      from the local storage. *)
   let%lwt initial_value =
     match mode with
-    | QuickCreate (initial_text, _) -> lwt @@ Bundle.from_initial_text initial_text
-    | QuickEdit state -> lwt state
-    | CreateWithLocalStorage -> lwt @@ read_local_storage ~key bundle
+    | Quick_create (initial_text, _) -> lwt @@ Bundle.from_initial_text initial_text
+    | Quick_edit state -> lwt state
+    | Create_with_local_storage -> lwt @@ read_local_storage ~key bundle
     | Edit entry -> Bundle.value_to_state <=< disassemble =<< unsubmit entry
   in
 
@@ -136,8 +136,8 @@ let initialise (type result)(type value)(type product)(type state)
      now enable saving the state of the editor when it changes.. *)
   (
     match mode with
-    | QuickCreate _ | QuickEdit _ | Edit _ -> ()
-    | CreateWithLocalStorage ->
+    | Quick_create _ | Quick_edit _ | Edit _ -> ()
+    | Create_with_local_storage ->
       let store = write_local_storage ~key bundle in
       let iter = S.map store @@ Component.state editor in
       (* NOTE: Depending on the promise breaks eventually. Depending on the editor
@@ -194,10 +194,10 @@ let initialise (type result)(type value)(type product)(type state)
       Dom_html.window##.location##.href := Js.string (href result)
     in
     match mode with
-    | QuickCreate (_, on_save) -> [button on_save]
-    | QuickEdit _ -> [button (fun _ -> ())]
+    | Quick_create (_, on_save) -> [button on_save]
+    | Quick_edit _ -> [button (fun _ -> ())]
     | Edit _ -> [button redirect]
-    | CreateWithLocalStorage ->
+    | Create_with_local_storage ->
       [
         button ~label: "Save and stay" show_toast;
         button ~label: "Save and see" redirect;
@@ -211,8 +211,8 @@ let initialise (type result)(type value)(type product)(type state)
         lwt @@
         (
           match mode with
-          | QuickCreate _ | CreateWithLocalStorage -> "Add a " ^ key
-          | QuickEdit _ | Edit _ -> "Edit a " ^ key
+          | Quick_create _ | Create_with_local_storage -> "Add a " ^ key
+          | Quick_edit _ | Edit _ -> "Edit a " ^ key
         ) ^
         title_suffix
       )
