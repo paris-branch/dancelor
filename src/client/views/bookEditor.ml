@@ -116,7 +116,7 @@ let dance_and_dance_page =
         )
     )
 
-let editor =
+let editor user =
   let open Editor in
   Input.prepare_non_empty
     ~type_: Text
@@ -238,6 +238,7 @@ let editor =
     () ^::
   Star.prepare_non_empty
     ~label: "Owners"
+    ~empty: [user]
     (
       Selector.prepare
         ~label: "Owner"
@@ -318,11 +319,12 @@ let disassemble (book, access) =
   lwt (title, (authors, (date, (contents, (remark, (sources, (scddb_id, (owners, (visibility, ())))))))))
 
 let create mode =
+  let%lwt user = Option.map Entry.id <$> Environment.user in
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "book"
     ~icon: "book"
-    editor
+    (editor user)
     ~mode
     ~format: Formatters.Book.title'
     ~href: (Endpoints.Page.href_book % Entry.id)

@@ -24,7 +24,7 @@ let visibility_to_visibility' : Entry.Access.Private.visibility -> visibility' L
     let%lwt users = Monadise_lwt.monadise_1_1 NEList.map (Option.get <%> Model.User.get) users in
     lwt (Select_viewers users)
 
-let editor =
+let editor user =
   let open Editor in
   Input.prepare_non_empty
     ~type_: Text
@@ -112,6 +112,7 @@ let editor =
     () ^::
   Star.prepare_non_empty
     ~label: "Owners"
+    ~empty: [user]
     (
       Selector.prepare
         ~label: "Owner"
@@ -190,12 +191,13 @@ let disassemble (set, access) =
   lwt (name, (kind, (conceptors, (contents, (order, (owners, (visibility, ())))))))
 
 let create mode =
+  let%lwt user = Option.map Entry.id <$> Environment.user in
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "set"
     ~icon: "list-stars"
     ~mode
-    editor
+    (editor user)
     ~assemble
     ~submit
     ~unsubmit
