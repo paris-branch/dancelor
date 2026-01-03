@@ -6,6 +6,7 @@ let choose ~tie first second =
   | Some x, None | None, Some x -> Some x
   | Some x, Some y -> Some (tie x y)
 
+let first = fun x _ -> x
 let second = fun _ y -> y
 
 let return = some

@@ -14,6 +14,9 @@ val choose : tie: ('a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
     is [Some x] and the other is bottom. If they are both [None], [None] is
     returned. If they are both [Some], [tie] is called. *)
 
+val first : 'a -> 'a -> 'a
+(** For {!NesOption.first}'s [tie] argument. Takes the first argument. *)
+
 val second : 'a -> 'a -> 'a
 (** For {!NesOption.choose}'s [tie] argument. Takes the second argument. *)
 

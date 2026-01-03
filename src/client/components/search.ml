@@ -122,7 +122,13 @@ module Search = struct
                             thead
                               ~a: [a_class ["table-primary"]]
                               [
-                                tr [th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"]]
+                                tr [
+                                  th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]];
+                                  th [txt "Name"];
+                                  th [txt "Kind/date"];
+                                  th [txt "By"];
+                                  th []
+                                ]
                               ]
                           )
                       else None
@@ -134,7 +140,13 @@ module Search = struct
                             tfoot
                               ~a: [a_class ["table-primary"]]
                               [
-                                tr [th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"]]
+                                tr [
+                                  th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]];
+                                  th [txt "Name"];
+                                  th [txt "Kind/date"];
+                                  th [txt "By"];
+                                  th []
+                                ]
                               ]
                           )
                       else None

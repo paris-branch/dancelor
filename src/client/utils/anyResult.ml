@@ -238,12 +238,34 @@ let make_result ?classes ?context any =
       ];
   ]
   in
+  let suffix =
+    Model.Any.to_entry'
+      any
+      ~on_public: (fun _entry -> [])
+      ~on_private: (fun entry ->
+        [
+          ResultRow.cell [
+            R.span @@
+            S.from' [] @@
+            let%lwt reason = Option.get <$> Permission.can_get_private entry in
+            let (icon, tooltip) =
+              match reason with
+              | Everyone -> ("globe", "You can see this entry because it is made public by its owner.")
+              | Viewer -> ("unlock", "You can see this entry because its owner marked you as one of its viewers.")
+              | Owner -> ("lock-fill", "You can see this entry because you are its owner.")
+              | Omniscient_administrator -> ("shield-lock-fill", "You can see this entry because you are an administrator, with omniscience enabled.")
+            in
+            lwt [i ~a: [a_class ["bi"; "bi-" ^ icon]; a_title tooltip] []]
+          ]
+        ]
+      )
+  in
   match any with
-  | Source source -> make_source_result ?classes ?context ~prefix source
-  | Person person -> make_person_result ?classes ?context ~prefix person
-  | Dance dance -> make_dance_result ?classes ?context ~prefix dance
-  | Book book -> make_book_result ?classes ?context ~prefix book
-  | Set set -> make_set_result ?classes ?context ~prefix set
-  | Tune tune -> make_tune_result ?classes ?context ~prefix tune
-  | Version version -> make_version_result ?classes ?context ~prefix version
-  | User user -> make_user_result ?classes ?context ~prefix user
+  | Source source -> make_source_result ?classes ?context ~prefix ~suffix source
+  | Person person -> make_person_result ?classes ?context ~prefix ~suffix person
+  | Dance dance -> make_dance_result ?classes ?context ~prefix ~suffix dance
+  | Book book -> make_book_result ?classes ?context ~prefix ~suffix book
+  | Set set -> make_set_result ?classes ?context ~prefix ~suffix set
+  | Tune tune -> make_tune_result ?classes ?context ~prefix ~suffix tune
+  | Version version -> make_version_result ?classes ?context ~prefix ~suffix version
+  | User user -> make_user_result ?classes ?context ~prefix ~suffix user
