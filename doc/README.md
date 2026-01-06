@@ -9,3 +9,5 @@ Welcome to the Dancelor documentation. This directory contains guides to help yo
 - **[Destructured versions](./destructured-versions.md)** – Learn about destructured versions and how to customise their structure when creating sets
 
 - **[Permissions and ownership](./permissions.md)** – Understand how the public catalogue and private workspace work, and who can access what
+
+- **[LilyPond notation](./lilypond-notation.md)** – Learn the notation used to write music in Dancelor
