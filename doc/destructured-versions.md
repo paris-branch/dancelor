@@ -3,7 +3,7 @@
 Destructured versions are entered into Dancelor part by part rather than as a
 single block. This lets you choose how the version should be structured instead
 of being locked into one format. These versions display with a default structure
-when browsing, but you can customize the structure when creating a set.
+when browsing, but you can customise the structure when creating a set.
 
 Take [A Jig So Puzzled] as an example. At first glance, it looks like a regular
 AABC version, but Dancelor notes it's a "destructured version in D, shown here
@@ -23,7 +23,7 @@ set and select your version:
 
 Notice it shows as "destructured" with no bar numbers—just parts "A", "B", and
 "C". That's because Dancelor doesn't yet know what structure you want. Click the
-parameters button to customize this version. Let's say we want ABCBC:
+parameters button to customise this version. Let's say we want ABCBC:
 
 ![](./assets/destructured-versions/parameters-button.png)
 ![](./assets/destructured-versions/parameters-dialog.png)
