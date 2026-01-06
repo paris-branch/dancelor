@@ -11,3 +11,7 @@ Welcome to the Dancelor documentation. This directory contains guides to help yo
 - **[Permissions and ownership](./permissions.md)** – Understand how the public catalogue and private workspace work, and who can access what
 
 - **[LilyPond notation](./lilypond-notation.md)** – Learn the notation used to write music in Dancelor
+
+## For technical people
+
+- **[Contributing](./contributing.md)** – How to set up the development environment, etc.
