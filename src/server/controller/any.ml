@@ -63,9 +63,9 @@ let search' env filter =
   let results =
     lwt_stream_merge_sorted_l (fun (_, s1) (_, s2) -> Float.compare s2 s1) [
       (* NOTE: keep this list's order in sync with Model.Any.Type.compare *)
-      Lwt_stream.map (Pair.map_fst Model.Any.source) (Lwt_stream.of_seq sources);
       Lwt_stream.map (Pair.map_fst Model.Any.person) (Lwt_stream.of_seq persons);
       Lwt_stream.map (Pair.map_fst Model.Any.dance) (Lwt_stream.of_seq dances);
+      Lwt_stream.map (Pair.map_fst Model.Any.source) (Lwt_stream.of_seq sources);
       Lwt_stream.map (Pair.map_fst Model.Any.tune) (Lwt_stream.of_seq tunes);
       Lwt_stream.map (Pair.map_fst Model.Any.version) (Lwt_stream.of_seq versions);
       Lwt_stream.map (Pair.map_fst Model.Any.set) (Lwt_stream.of_seq sets);

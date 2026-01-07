@@ -28,9 +28,9 @@ module Type = struct
 
   let compare t1 t2 =
     let to_int = function
-      | Source -> 0
-      | Person -> 1
-      | Dance -> 2
+      | Person -> 0
+      | Dance -> 1
+      | Source -> 2
       | Tune -> 3
       | Version -> 4
       | Set -> 5
