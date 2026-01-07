@@ -16,7 +16,7 @@ type expr = Expr of string
 let expr_val (Expr s) = s
 
 (** An internal job. This is an actual job, producing potentially several
-    artifacts. A {!JobId.t} corresponds to an {!job_and_file}, which is an
+    artifacts. A {!Job_id.t} corresponds to an {!job_and_file}, which is an
     internal job AND a specific artifact within this job. This allows building
     several things at the same time, while still giving a simple “one job = one
     file” interface to the client. *)
@@ -31,7 +31,7 @@ let (pending_jobs : job Lwt_stream.t), add_pending_job = Lwt_stream.create ()
 
 (** An job and a file within that job. See comment for {!job}. *)
 type job_and_file = {
-  id: JobId.t; (** used to identify a job when communicating with the client *)
+  id: Job_id.t; (** used to identify a job when communicating with the client *)
   job: job;
   file: string;
 }
@@ -39,19 +39,19 @@ type job_and_file = {
 (** NOTE: This needs to be kept in sync with {!job_of_expr} and {!pending_jobs},
     namely each registered {!job_and_file} should point to {!job} that is
     registered in {!job_of_expr}. *)
-let job_and_file_of_id : (JobId.t, job_and_file) Hashtbl.t = Hashtbl.create 8
+let job_and_file_of_id : (Job_id.t, job_and_file) Hashtbl.t = Hashtbl.create 8
 
-let register_job (expr : expr) (file : string) : JobId.t Endpoints.Job.registration_response =
+let register_job (expr : expr) (file : string) : Job_id.t Endpoints.Job.registration_response =
   let job_and_file =
     match Hashtbl.find_opt job_of_expr expr with
     | Some job when not (is_failed !(job.state)) ->
       (*  if there is a job for the same expression, but not necessarily the
           same file, we can just return without starting an actual job; we do
           not do so for failed job in case the failure was transient *)
-      {id = JobId.create (); job; file}
+      {id = Job_id.create (); job; file}
     | _ ->
       (* otherwise, we really do have to register a new job *)
-      let id = JobId.create () in
+      let id = Job_id.create () in
       let job = {expr; state = ref Pending} in
       (* NOTE: we use {!Hashtbl.replace} because {!Hashtbl.add} might keep failed jobs *)
       Hashtbl.replace job_of_expr expr job;
@@ -111,7 +111,7 @@ let get id =
   | Some job_and_file -> lwt job_and_file
 
 let status id =
-  Log.debug (fun m -> m "status %s" (JobId.to_string id));
+  Log.debug (fun m -> m "status %s" (Job_id.to_string id));
   get id >>= fun {job; _} ->
   lwt @@
     match !(job.state) with
@@ -121,7 +121,7 @@ let status id =
     | Succeeded _ -> Succeeded
 
 let file id slug =
-  Log.debug (fun m -> m "file %s %s" (JobId.to_string id) (NesSlug.to_string slug));
+  Log.debug (fun m -> m "file %s %s" (Job_id.to_string id) (NesSlug.to_string slug));
   get id >>= fun {job; file; _} ->
   match !(job.state) with
   | Pending -> Madge_server.shortcut_bad_request "This job is not running yet, you cannot query the file."

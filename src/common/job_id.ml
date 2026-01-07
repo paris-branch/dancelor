@@ -28,5 +28,5 @@ let of_string s =
     None
 
 let of_yojson = function
-  | `String s -> Option.to_result ~none: "JobId.of_yojson" (of_string s)
-  | _ -> Error "JobId.of_yojson"
+  | `String s -> Option.to_result ~none: "Job_id.of_yojson" (of_string s)
+  | _ -> Error "Job_id.of_yojson"

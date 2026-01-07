@@ -20,8 +20,8 @@ let map_copyright_response f = function
 
 module Snippet_ids = struct
   type t = {
-    svg_job_id: JobId.t;
-    ogg_job_id: JobId.t;
+    svg_job_id: Job_id.t;
+    ogg_job_id: Job_id.t;
   }
   [@@deriving yojson]
 end
@@ -37,7 +37,7 @@ type (_, _, _) t =
 | Delete : ((Version.t Entry.Id.t -> 'w), 'w, unit) t
 (* Files related to a version *)
 | BuildSnippets : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Snippet_ids.t Job.registration_response copyright_response) t
-| BuildPdf : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, JobId.t Job.registration_response copyright_response) t
+| BuildPdf : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Job_id.t Job.registration_response copyright_response) t
 (* Files related to an anonymous version *)
 | BuildSnippets' : ((Version.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Snippet_ids.t Job.registration_response) t
 [@@deriving madge_wrapped_endpoints]
@@ -73,6 +73,6 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Delete -> variable (module Entry.Id.S(Version)) @@ delete (module JUnit)
     (* Files related to a version *)
     | BuildSnippets -> literal "build-snippets" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Copyright_response(Job.Registration_response(Snippet_ids)))
-    | BuildPdf -> literal "build-pdf" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Copyright_response(Job.Registration_response(JobId)))
+    | BuildPdf -> literal "build-pdf" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Copyright_response(Job.Registration_response(Job_id)))
     (* Files related to an anonymous version *)
     | BuildSnippets' -> literal "build-snippets" @@ query "version" (module Version) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Job.Registration_response(Snippet_ids))

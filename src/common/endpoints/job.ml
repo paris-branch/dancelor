@@ -18,8 +18,8 @@ module Status = struct
 end
 
 type (_, _, _) t =
-  | Status : (JobId.t -> 'w, 'w, Status.t) t
-  | File : (JobId.t -> NesSlug.t -> 'w, 'w, Void.t) t
+  | Status : (Job_id.t -> 'w, 'w, Status.t) t
+  | File : (Job_id.t -> NesSlug.t -> 'w, 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
 module Registration_response
@@ -32,5 +32,5 @@ end
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
-    | Status -> variable (module JobId) @@ post (module Status)
-    | File -> variable (module JobId) @@ variable (module SSlug) @@ void ()
+    | Status -> variable (module Job_id) @@ post (module Status)
+    | File -> variable (module Job_id) @@ variable (module SSlug) @@ void ()
