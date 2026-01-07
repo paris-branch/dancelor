@@ -14,7 +14,7 @@ let kindDance_to_string_of_string_roundtrip =
           Kind.Dance.to_string k ^
           "\n\nKind again:\n\n  " ^ Kind.Dance.(show (of_string (to_string k)))
         )
-        QCheckGenerators.Kind.Dance.gen
+        QCheck_generators.Kind.Dance.gen
         (fun k -> Kind.Dance.(equal (of_string (to_string k)) k))
     )
 

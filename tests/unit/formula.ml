@@ -1,6 +1,6 @@
 open Common
 
-module Gen = QCheckGenerators
+module Gen = QCheck_generators
 
 let to_string_no_exn ~name ~show ~gen ~to_string =
   QCheck_alcotest.to_alcotest
