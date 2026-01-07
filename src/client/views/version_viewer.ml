@@ -25,7 +25,7 @@ let show_lilypond_dialog version =
         Utils.Button.close' ~return ();
         Utils.Button.make
           ~label: "Copy to clipboard"
-          ~icon: "clipboard"
+          ~icon: (Other Clipboard)
           ~classes: ["btn-primary"]
           ~onclick: (fun _ ->
             let%lwt content = content_promise in
@@ -274,7 +274,7 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
           ~classes: ["btn-primary"]
           ~label: "Proceed"
           ~label_processing: "Proceeding"
-          ~icon: "node-minus"
+          ~icon: (Action Deduplicate)
           ~onclick: (lwt % return % some)
           ();
       ]
@@ -302,7 +302,7 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
       ~buttons: [
         Utils.Button.make_a
           ~label: "Go to other version"
-          ~icon: "music-note-beamed"
+          ~icon: (Model Version)
           ~classes: ["btn-primary"]
           ~href: (S.const @@ Endpoints.Page.href_version (Entry.id other_version))
           ();
@@ -365,26 +365,26 @@ let create ?context id =
             [
               Utils.Button.make
                 ~label: "Download PDF"
-                ~icon: "file-pdf"
+                ~icon: (Other File_pdf)
                 ~dropdown: true
                 ~onclick: (fun _ -> ignore <$> Version_download_dialog.create_and_open version)
                 ();
               Utils.Button.make
                 ~label: "Show LilyPond"
                 ~label_processing: "Showing LilyPond..."
-                ~icon: "file-music"
+                ~icon: (Other File_lilypond)
                 ~dropdown: true
                 ~onclick: (fun () -> show_lilypond_dialog version)
                 ();
               Utils.Button.make_a
                 ~label: "Edit"
-                ~icon: "pencil-square"
+                ~icon: (Action Edit)
                 ~href: (S.const @@ Endpoints.Page.(href Version_edit) id)
                 ~dropdown: true
                 ();
               Utils.Button.make_a
                 ~label: "Edit tune"
-                ~icon: "pencil-square"
+                ~icon: (Action Edit)
                 ~href: (S.const @@ Endpoints.Page.(href Tune_edit) (Entry.id tune))
                 ~dropdown: true
                 ();
@@ -394,7 +394,7 @@ let create ?context id =
                 ();
               Utils.Button.make
                 ~label: "De-duplicate"
-                ~icon: "node-minus"
+                ~icon: (Action Deduplicate)
                 ~dropdown: true
                 ~classes: ["btn-warning"]
                 ~onclick: (deduplication_dialog ~version ~other_versions_promise)

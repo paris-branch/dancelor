@@ -53,7 +53,7 @@ let make_and_render ?context ~this_page any_lwt =
         div ~a: [a_class ["col-auto"; "text-start"; "p-0"]] [
           Utils.Button.make
             ~classes: ["btn-secondary"; "placeholder"]
-            ~icon: "arrow-left"
+            ~icon: (Action Move_left)
             ~disabled: (S.const true)
             ();
         ];
@@ -65,17 +65,17 @@ let make_and_render ?context ~this_page any_lwt =
           [
             Utils.Button.make
               ~classes: ["btn-secondary"; "placeholder"]
-              ~icon: "arrow-counterclockwise"
+              ~icon: (Action Back)
               ~disabled: (S.const true)
               ();
             Utils.Button.make
               ~classes: ["btn-warning"; "placeholder"]
-              ~icon: "eraser"
+              ~icon: (Action Clear)
               ~disabled: (S.const true)
               ();
             Utils.Button.make
               ~classes: ["btn-secondary"; "ms-1"; "placeholder"]
-              ~icon: "arrow-right"
+              ~icon: (Action Move_right)
               ~disabled: (S.const true)
               ();
           ];
@@ -89,7 +89,7 @@ let make_and_render ?context ~this_page any_lwt =
           div ~a: [a_class ["col-auto"; "text-start"; "p-0"]] [
             Utils.Button.make_a
               ~classes: ["btn-secondary"]
-              ~icon: "arrow-left"
+              ~icon: (Action Move_left)
               ~disabled: (S.const @@ Option.is_none previous)
               ~tooltip: "Go to the previous element in the context."
               ~href: (S.const @@ Option.fold ~none: "" ~some: (Endpoints.Page.href_any_full ~context: (neighbour_context ~left: true context)) previous)
@@ -118,21 +118,21 @@ let make_and_render ?context ~this_page any_lwt =
             [
               Utils.Button.make_a
                 ~classes: ["btn-secondary"]
-                ~icon: "arrow-counterclockwise"
+                ~icon: (Action Back)
                 ~tooltip: "Go back to the parent page, be it a search, a set, \
                            or anything else."
                 ~href: (S.const parent_href)
                 ();
               Utils.Button.make_a
                 ~classes: ["btn-warning"]
-                ~icon: "eraser"
+                ~icon: (Action Clear)
                 ~tooltip: "Reload the current page without the context. This will get \
                            rid of this banner and of the side links."
                 ~href: (S.const this_page)
                 ();
               Utils.Button.make_a
                 ~classes: ["btn-secondary"; "ms-1"]
-                ~icon: "arrow-right"
+                ~icon: (Action Move_right)
                 ~disabled: (S.const @@ Option.is_none next)
                 ~tooltip: "Go to the next element in the context."
                 ~href: (S.const @@ Option.fold ~none: "" ~some: (Endpoints.Page.href_any_full ~context: (neighbour_context ~left: false context)) next)

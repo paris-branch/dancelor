@@ -23,7 +23,8 @@ let disassemble params =
 let e =
   Editor.prepare_nosubmit
     ~key: "set parameters"
-    ~icon: "fixme"
+    ~icon: (Other Bug)
+    (* FIXME: unused? *)
     editor
     ~assemble
     ~disassemble

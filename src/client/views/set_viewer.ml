@@ -35,13 +35,13 @@ let create ?context id =
         [
           Utils.Button.make
             ~label: "Download PDF"
-            ~icon: "file-pdf"
+            ~icon: (Other File_pdf)
             ~onclick: (fun _ -> ignore <$> Set_download_dialog.create_and_open set)
             ~dropdown: true
             ();
           Utils.Button.make_a
             ~label: "Edit"
-            ~icon: "pencil-square"
+            ~icon: (Action Edit)
             ~href: (S.const @@ Endpoints.Page.(href Set_edit) id)
             ~dropdown: true
             ();

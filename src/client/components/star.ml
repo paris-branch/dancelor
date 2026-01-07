@@ -75,7 +75,7 @@ let prepare (type value)(type state)
       Utils.Button.make
         ~label: ("Add a " ^ String.lowercase_ascii C.label)
         ~label_processing: ("Adding a " ^ String.lowercase_ascii C.label)
-        ~icon: "plus-circle"
+        ~icon: (Action Add)
         ~classes: ["btn-light"]
         ~onclick: (fun () ->
           let%lwt component = C.initialise C.empty in
@@ -108,19 +108,19 @@ let prepare (type value)(type state)
                     (
                       S.const [
                         Utils.Button.make
-                          ~icon: "trash"
+                          ~icon: (Action Delete)
                           ~tooltip: ("Remove this " ^ String.lowercase_ascii C.label ^ " from the list. It cannot be recovered.")
                           ~classes: ["btn-warning"]
                           ~onclick: (fun _ -> set_components @@ List.remove n @@ S.value components; lwt_unit)
                           ();
                         Utils.Button.make
-                          ~icon: "arrow-down"
+                          ~icon: (Action Move_down)
                           ~tooltip: ("Move this " ^ String.lowercase_ascii C.label ^ " down in the list.")
                           ~classes: (["btn-outline-secondary"] @ (if n = last_index then ["disabled"] else []))
                           ~onclick: (fun _ -> set_components @@ List.swap n (n + 1) @@ S.value components; lwt_unit)
                           ();
                         Utils.Button.make
-                          ~icon: "arrow-up"
+                          ~icon: (Action Move_up)
                           ~tooltip: ("Move this " ^ String.lowercase_ascii C.label ^ " up in the list.")
                           ~classes: (["btn"; "btn-outline-secondary"] @ (if n = 0 then ["disabled"] else []))
                           ~onclick: (fun _ -> set_components @@ List.swap (n - 1) n @@ S.value components; lwt_unit)

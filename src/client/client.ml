@@ -77,7 +77,7 @@ let () =
       ~buttons: [
         Utils.Button.make
           ~label: "Reload"
-          ~icon: "arrow-clockwise"
+          ~icon: (Other Reload)
           ~classes: ["btn-primary"]
           ~onclick: (fun () -> Js_of_ocaml.Dom_html.window##.location##reload; lwt_unit)
           ();

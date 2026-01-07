@@ -118,7 +118,7 @@ let create mode =
   Main_page.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "tune"
-    ~icon: "music-note-list"
+    ~icon: (Model Tune)
     editor
     ~mode
     ~format: (Formatters.Tune.name' ~link: true)

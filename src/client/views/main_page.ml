@@ -36,7 +36,7 @@ let open_quick_search () =
       Button.make
         ~label: "Explore"
         ~label_processing: "Opening explorer..."
-        ~icon: "zoom-in"
+        ~icon: (Action Search_more)
         ~badge: "↵"
         ~classes: ["btn-primary"]
         ~onclick: (fun () -> quick_search_to_explorer (S.value @@ Components.Search.Quick.text quick_search))
@@ -63,7 +63,7 @@ let nav_item_explore =
             List.map
               (fun (icon, key, label) ->
                 let href = S.const @@ Endpoints.Page.(href Explore) @@ some @@ Text_formula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
-                li [Button.make_a ~label ~icon: (Icon.model_to_string icon) ~href ~dropdown: true ()]
+                li [Button.make_a ~label ~icon: (Model icon) ~href ~dropdown: true ()]
               )
               [
                 (Icon.Source, "source", "Sources");
@@ -94,7 +94,7 @@ let nav_item_create =
               let open Endpoints.Page in
               List.map
                 (fun (icon, href, label) ->
-                  li [Button.make_a ~label ~icon: (Icon.model_to_string icon) ~href: (S.const href) ~dropdown: true ()]
+                  li [Button.make_a ~label ~icon: (Model icon) ~href: (S.const href) ~dropdown: true ()]
                 )
                 [
                   (Icon.Source, href Source_add, "Source");
@@ -131,7 +131,7 @@ let header =
               img ~a: [a_height 60] ~src: "/logo.svg" ~alt: "Dancelor" ();
             ];
           Button.make
-            ~icon: "search"
+            ~icon: (Action Search)
             ~classes: ["btn-light"; "me-2"; "d-block"; "d-sm-none"]
             ~onclick: (Lwt.map ignore % open_quick_search)
             ();
@@ -156,7 +156,7 @@ let header =
             ];
           Button.make
             ~label: "Search"
-            ~icon: "search"
+            ~icon: (Action Search)
             ~badge: "/"
             ~classes: ["btn-light"; "ms-2"; "d-none"; "d-sm-block"]
             ~onclick: (Lwt.map ignore % open_quick_search)
@@ -204,7 +204,7 @@ let footer =
           Button.make
             ~label: "Report an issue"
             ~label_processing: "Reporting..."
-            ~icon: "bug"
+            ~icon: (Other Bug)
             ~classes: ["btn-light"; "my-1"]
             ~onclick: (fun () ->
               ignore <$> Issue_report.open_dialog @@ get_uri ()

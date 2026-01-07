@@ -34,7 +34,7 @@ let create ?query () =
           Utils.Button.make
             ~label: "Filter"
             ~label_processing: "Filtering..."
-            ~icon: "filter"
+            ~icon: (Other Filter)
             ~classes: ["btn-primary"]
             ~onclick: (fun () ->
               let search_text = S.value @@ Search_bar.text @@ Search.search_bar search in

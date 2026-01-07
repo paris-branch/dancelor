@@ -4,12 +4,65 @@ type access =
   | Viewer
   | Owner
   | Omniscient_administrator
+  | Non_omniscient_administrator
 
 let access_to_string = function
   | Everyone -> "globe"
   | Viewer -> "eye"
   | Owner -> "unlock-fill" (* FIXME: unlock2-fill would be better but requires Bootstrap icons 1.13.1 *)
   | Omniscient_administrator -> "shield-lock-fill"
+  | Non_omniscient_administrator -> "shield-lock"
+
+(** Type for action-specific icons. *)
+type action =
+  | Add
+  | Apply
+  | Back
+  | Clear
+  | Close_or_cancel
+  | Deduplicate
+  | Delete
+  | Download
+  | Edit
+  | Hide
+  | Magic
+  | Move_down
+  | Move_left
+  | Move_right
+  | Move_up
+  | Parameterise
+  | Save
+  | See_outside (** eg. go to SCDDB *)
+  | Share
+  | Show
+  | Search
+  | Search_more
+  | Stop
+
+let action_to_string = function
+  | Add -> "plus-circle"
+  | Apply -> "check-circle"
+  | Back -> "arrow-counterclockwise"
+  | Clear -> "eraser"
+  | Close_or_cancel -> "x-lg"
+  | Deduplicate -> "node-minus"
+  | Delete -> "trash"
+  | Download -> "download"
+  | Edit -> "pencil-square"
+  | Hide -> "eye-slash"
+  | Magic -> "magic"
+  | Move_down -> "arrow-down"
+  | Move_left -> "arrow-left"
+  | Move_right -> "arrow-right"
+  | Move_up -> "arrow-up"
+  | Parameterise -> "toggles"
+  | Save -> "save"
+  | See_outside -> "box-arrow-up-right"
+  | Share -> "share"
+  | Show -> "eye"
+  | Search -> "search"
+  | Search_more -> "zoom-in"
+  | Stop -> "stop-circle"
 
 (** Type for alert-specific icons. *)
 type alert =
@@ -56,17 +109,34 @@ let model_to_string = function
 
 (** Type for other icons. *)
 type other =
+  | Actions
+  | Bug
+  | Clipboard
+  | Filter
   | GitHub
   | Help
-  | Search
+  | Sign_in
+  | Sign_out
+  | Reload
+  | File_lilypond
+  | File_pdf
 
 let other_to_string = function
+  | Actions -> "three-dots-vertical"
+  | Bug -> "bug"
+  | Clipboard -> "clipboard"
+  | Filter -> "filter"
   | GitHub -> "github"
+  | File_lilypond -> "file-music"
+  | File_pdf -> "file-pdf"
   | Help -> "question-circle"
-  | Search -> "search"
+  | Sign_in -> "box-arrow-in-right"
+  | Sign_out -> "box-arrow-right"
+  | Reload -> "arrow-clockwise"
 
 type t =
   | Access of access
+  | Action of action
   | Alert of alert
   | Job of job
   | Model of model
@@ -74,6 +144,7 @@ type t =
 
 let to_string = function
   | Access icon -> access_to_string icon
+  | Action icon -> action_to_string icon
   | Alert icon -> alert_to_string icon
   | Job icon -> job_to_string icon
   | Model icon -> model_to_string icon

@@ -380,7 +380,7 @@ let open_ text raws filter =
       Utils.Button.make
         ~label: "Apply"
         ~label_processing: "Applying..."
-        ~icon: "check-circle"
+        ~icon: (Action Apply)
         ~classes: ["btn-primary"]
         ~onclick: (fun () -> return (Filter.Any.to_pretty_string @@ S.value new_filter); lwt_unit)
         ()

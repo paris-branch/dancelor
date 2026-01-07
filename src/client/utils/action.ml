@@ -18,7 +18,7 @@ let delete ~onclick ~model () =
         lwt_unit
       | Error e -> raise (Madge_client.Error e)
     )
-    ~icon: "trash"
+    ~icon: (Action Delete)
     ~label: "Delete"
     ~dropdown: true
     ()
@@ -26,7 +26,7 @@ let delete ~onclick ~model () =
 let scddb type_ id =
   Button.make_a
     ~label: "See on SCDDB"
-    ~icon: "box-arrow-up-right"
+    ~icon: (Action See_outside)
     ~href: (S.const @@ Uri.to_string @@ Common.SCDDB.entry_uri type_ id)
     ~dropdown: true
     ()

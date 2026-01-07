@@ -1,6 +1,7 @@
 (** {1 A fully featured editor}*)
 
 open Html
+open Utils
 
 (** {2 Bundle of components}
 
@@ -33,7 +34,7 @@ type ('result, 'state) mode =
 
 val make_page :
   key: string ->
-  icon: string ->
+  icon: Icon.t ->
   assemble: ('value -> 'product) ->
   submit: (('result, 'state) mode -> 'product -> 'result Lwt.t) ->
   unsubmit: ('result -> 'product Lwt.t) ->
@@ -82,7 +83,7 @@ type ('result, 'product, 'value, 'state) s
 
 val prepare :
   key: string ->
-  icon: string ->
+  icon: Icon.t ->
   assemble: ('value -> 'product) ->
   submit: (('result, 'state) mode -> 'product -> 'result Lwt.t) ->
   unsubmit: ('result -> 'product Lwt.t) ->
@@ -96,7 +97,7 @@ val prepare :
 
 val prepare_nosubmit :
   key: string ->
-  icon: string ->
+  icon: Icon.t ->
   assemble: ('value -> 'result) ->
   disassemble: ('result -> 'value Lwt.t) ->
   check_result: ('result -> 'result -> bool) ->

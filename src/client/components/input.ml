@@ -151,7 +151,7 @@ let prepare (type value)
             [
               Utils.Button.make
                 ~classes: ["btn-info"]
-                ~icon: "magic"
+                ~icon: (Action Magic)
                 ~tooltip: "Fill the content of this input with the default template."
                 ~onclick: (fun _ -> i.set template; lwt_unit)
                 ();
@@ -161,7 +161,7 @@ let prepare (type value)
         [
           Utils.Button.make
             ~classes: ["btn-warning"]
-            ~icon: "eraser"
+            ~icon: (Action Clear)
             ~tooltip: "Clear the content of this input. It cannot be recovered."
             ~onclick: (fun _ -> i.set ""; lwt_unit)
             ();

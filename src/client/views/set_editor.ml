@@ -96,8 +96,8 @@ let editor user =
           ()
       in
       flip S.map show_preview @@ function
-        | true -> [flip_show_preview_button ~icon: "eye"]
-        | false -> [flip_show_preview_button ~icon: "eye-slash"]
+        | true -> [flip_show_preview_button ~icon: (Action Show)]
+        | false -> [flip_show_preview_button ~icon: (Action Hide)]
     ) ^::
   Input.prepare
     ~type_: Text
@@ -195,7 +195,7 @@ let create mode =
   Main_page.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "set"
-    ~icon: "list-stars"
+    ~icon: (Model Set)
     ~mode
     (editor user)
     ~assemble

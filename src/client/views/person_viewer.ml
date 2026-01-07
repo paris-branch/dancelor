@@ -19,7 +19,7 @@ let create ?context id =
       lwt @@
       [Utils.Button.make_a
         ~label: "Edit"
-        ~icon: "pencil-square"
+        ~icon: (Action Edit)
         ~href: (S.const @@ Endpoints.Page.(href Person_edit) id)
         ~dropdown: true
         ();

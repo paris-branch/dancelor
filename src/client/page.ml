@@ -59,7 +59,7 @@ let render p =
               | Some share ->
                 [
                   Utils.Button.make
-                    ~icon: "share"
+                    ~icon: (Action Share)
                     ~classes: ["btn-primary"]
                     ~onclick: (fun _ ->
                       Utils.write_to_clipboard @@ Utils.href_any_for_sharing share;
@@ -76,7 +76,7 @@ let render p =
             | actions ->
               [
                 Utils.Button.make
-                  ~icon: "three-dots-vertical"
+                  ~icon: (Other Actions)
                   ~classes: ["btn-secondary"]
                   ~more_a: [a_user_data "bs-toggle" "dropdown"]
                   ();
@@ -94,13 +94,13 @@ let render p =
           S.const @@
             match p.share with
             | None -> []
-            | Some _ -> [Utils.Button.make ~icon: "share" ()]
+            | Some _ -> [Utils.Button.make ~icon: (Action Share) ()]
         )
         (
           S.from' [] @@
           flip Lwt.map actions_promise @@ function
           | [] -> []
-          | _ -> [Utils.Button.make ~icon: "three-dots-vertical" ()]
+          | _ -> [Utils.Button.make ~icon: (Other Actions) ()]
         )
     )
   in

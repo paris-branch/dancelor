@@ -44,7 +44,7 @@ let create mode =
   Main_page.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "person"
-    ~icon: "person"
+    ~icon: (Model Person)
     editor
     ~mode
     ~assemble

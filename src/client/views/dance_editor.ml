@@ -110,7 +110,7 @@ let create mode =
   Main_page.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "dance"
-    ~icon: "person-arms-up"
+    ~icon: (Model Dance)
     ~mode
     editor
     ~format: (Formatters.Dance.name' ~link: true)

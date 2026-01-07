@@ -74,7 +74,7 @@ let open_sign_in_dialog () =
         Utils.Button.make
           ~label: "Sign in"
           ~label_processing: "Signing in..."
-          ~icon: "box-arrow-in-right"
+          ~icon: (Other Sign_in)
           ~classes: ["btn-primary"]
           ~disabled: (S.map Option.is_none request_signal)
           ~onclick: (fun () ->
@@ -131,7 +131,7 @@ let set_omniscience enable =
     ~buttons: [
       Utils.Button.make
         ~label: "Reload"
-        ~icon: "arrow-clockwise"
+        ~icon: (Other Reload)
         ~classes: ["btn-primary"]
         ~onclick: (fun () -> Js_of_ocaml.Dom_html.window##.location##reload; lwt_unit)
         ();
@@ -153,7 +153,7 @@ let header_item =
       S.from' [
         Utils.Button.make
           ~label: "Sign in"
-          ~icon: "box-arrow-in-right"
+          ~icon: (Other Sign_in)
           ~classes: ["disabled"; "placeholder"]
           ()
       ] @@
@@ -162,7 +162,7 @@ let header_item =
         [
           Utils.Button.make
             ~label: "Sign in"
-            ~icon: "box-arrow-in-right"
+            ~icon: (Other Sign_in)
             ~classes: ["text-white"]
             ~onclick: open_sign_in_dialog
             ()
@@ -171,7 +171,7 @@ let header_item =
         [
           Utils.Button.make
             ~label: (NEString.to_string @@ Model.User.username' user)
-            ~icon: Utils.Icon.(to_string @@ Model User)
+            ~icon: (Model User)
             ~classes: ["text-white"; "dropdown-toggle"]
             ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
             ();
@@ -186,7 +186,7 @@ let header_item =
                         li [
                           Utils.Button.make_a
                             ~label: "Create user"
-                            ~icon: "plus-circle"
+                            ~icon: (Action Add)
                             ~dropdown: true
                             ~href: (S.const @@ Endpoints.Page.(href User_create))
                             ()
@@ -194,7 +194,7 @@ let header_item =
                         li [
                           Utils.Button.make
                             ~label: "Victorise"
-                            ~icon: "stop-circle"
+                            ~icon: (Action Stop)
                             ~dropdown: true
                             ~onclick: (fun () -> victorise (); lwt_unit)
                             ()
@@ -203,14 +203,14 @@ let header_item =
                           if Model.User.is_omniscient_administrator' user then
                             Utils.Button.make
                               ~label: "Disable omniscience"
-                              ~icon: "shield-lock-fill"
+                              ~icon: (Access Omniscient_administrator)
                               ~dropdown: true
                               ~onclick: (fun () -> set_omniscience false)
                               ()
                           else
                             Utils.Button.make
                               ~label: "Enable omniscience"
-                              ~icon: "shield-lock"
+                              ~icon: (Access Non_omniscient_administrator)
                               ~dropdown: true
                               ~onclick: (fun () -> set_omniscience true)
                               ()
@@ -227,7 +227,7 @@ let header_item =
                         lwt [
                           Utils.Button.make_a
                             ~label: "My person"
-                            ~icon: "person"
+                            ~icon: (Model Person)
                             ~dropdown: true
                             ~href: (S.const (Endpoints.Page.(href Person None) (Entry.id person)))
                             ()
@@ -236,7 +236,7 @@ let header_item =
                   li [
                     Utils.Button.make
                       ~label: "Sign out"
-                      ~icon: "box-arrow-right"
+                      ~icon: (Other Sign_out)
                       ~dropdown: true
                       ~onclick: sign_out
                       ()

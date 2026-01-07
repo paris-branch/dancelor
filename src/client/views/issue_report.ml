@@ -90,7 +90,7 @@ let open_dialog page =
         Utils.Button.make
           ~label: "Report"
           ~label_processing: "Reporting..."
-          ~icon: "bug"
+          ~icon: (Other Bug)
           ~classes: ["btn-primary"]
           ~disabled: (S.map Option.is_none request_signal)
           ~onclick: (fun () ->
