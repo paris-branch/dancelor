@@ -41,7 +41,7 @@ let disassemble person =
   lwt (name, (scddb_id, ()))
 
 let create mode =
-  MainPage.assert_can_create @@ fun () ->
+  Main_page.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "person"
     ~icon: "person"

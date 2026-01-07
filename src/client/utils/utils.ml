@@ -3,8 +3,8 @@ open Common
 
 open Js_of_ocaml
 
-module AnyResult = AnyResult
-module ResultRow = ResultRow
+module Any_result = Any_result
+module Result_row = Result_row
 module Icon = Icon
 module Alert = Alert
 module Button = Button

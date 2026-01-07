@@ -33,15 +33,15 @@ let versions_and_parameters ?(label = "Versions") () =
         (
           Selector.prepare
             ~make_descr: (Lwt.map NEString.to_string % Model.Version.one_name')
-            ~make_result: AnyResult.make_version_result'
+            ~make_result: Any_result.make_version_result'
             ~make_more_results: (fun version ->
               flip S.map show_preview @@ function
-                | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSnippets.make ~show_audio: false version]]]
+                | true -> [Utils.Result_row.make [Utils.Result_row.cell ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
                 | false -> []
             )
             ~label
             ~model_name: "version"
-            ~create_dialog_content: VersionEditor.create
+            ~create_dialog_content: Version_editor.create
             ~search: (fun slice input ->
               let%rlwt filter = lwt (Filter.Version.from_string input) in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
@@ -49,7 +49,7 @@ let versions_and_parameters ?(label = "Versions") () =
             ~unserialise: Model.Version.get
             ()
         )
-        VersionParametersEditor.e
+        Version_parameters_editor.e
     )
 
 let set_and_parameters ?(label = "Set") () =
@@ -57,15 +57,15 @@ let set_and_parameters ?(label = "Set") () =
     (
       Selector.prepare
         ~make_descr: (lwt % NEString.to_string % Model.Set.name')
-        ~make_result: AnyResult.make_set_result'
+        ~make_result: Any_result.make_set_result'
         ~make_more_results: (fun set ->
           flip S.map show_preview @@ function
-            | true -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])]
+            | true -> [Utils.Result_row.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])]
             | false -> []
         )
         ~label
         ~model_name: "set"
-        ~create_dialog_content: SetEditor.create
+        ~create_dialog_content: Set_editor.create
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.Set.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
@@ -73,7 +73,7 @@ let set_and_parameters ?(label = "Set") () =
         ~unserialise: Model.Set.get
         ()
     )
-    SetParametersEditor.e
+    Set_parameters_editor.e
 
 let dance_and_dance_page =
   let open Plus.Bundle in
@@ -82,10 +82,10 @@ let dance_and_dance_page =
     (
       Selector.prepare
         ~make_descr: (lwt % NEString.to_string % Model.Dance.one_name')
-        ~make_result: AnyResult.make_dance_result'
+        ~make_result: Any_result.make_dance_result'
         ~label: "Dance"
         ~model_name: "dance"
-        ~create_dialog_content: DanceEditor.create
+        ~create_dialog_content: Dance_editor.create
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.Dance.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
@@ -134,9 +134,9 @@ let editor user =
         )
         ~unserialise: Model.Person.get
         ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: AnyResult.make_person_result'
+        ~make_result: Any_result.make_person_result'
         ~model_name: "person"
-        ~create_dialog_content: PersonEditor.create
+        ~create_dialog_content: Person_editor.create
         ()
     ) ^::
   Input.prepare
@@ -212,10 +212,10 @@ let editor user =
     (
       Selector.prepare
         ~make_descr: (lwt % NEString.to_string % Model.Source.name')
-        ~make_result: AnyResult.make_source_result'
+        ~make_result: Any_result.make_source_result'
         ~label: "Source"
         ~model_name: "source"
-        ~create_dialog_content: SourceEditor.create
+        ~create_dialog_content: Source_editor.create
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.Source.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
@@ -244,7 +244,7 @@ let editor user =
         ~label: "Owner"
         ~model_name: "user"
         ~make_descr: (lwt % NEString.to_string % Model.User.username')
-        ~make_result: AnyResult.make_user_result'
+        ~make_result: Any_result.make_user_result'
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.User.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
@@ -279,7 +279,7 @@ let editor user =
                 ~label: "Viewer"
                 ~model_name: "user"
                 ~make_descr: (lwt % NEString.to_string % Model.User.username')
-                ~make_result: AnyResult.make_user_result'
+                ~make_result: Any_result.make_user_result'
                 ~search: (fun slice input ->
                   let%rlwt filter = lwt (Filter.User.from_string input) in
                   ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
@@ -320,7 +320,7 @@ let disassemble (book, access) =
 
 let create mode =
   let%lwt user = Option.map Entry.id <$> Environment.user in
-  MainPage.assert_can_create @@ fun () ->
+  Main_page.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "book"
     ~icon: "book"

@@ -4,11 +4,11 @@ open Model
 open Html
 
 let create ?context id =
-  MainPage.madge_call_or_404 (Dance Get) id @@ fun dance ->
+  Main_page.madge_call_or_404 (Dance Get) id @@ fun dance ->
   Page.make'
     ~parent_title: "Dance"
     ~before_title: [
-      Components.ContextLinks.make_and_render
+      Components.Context_links.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_dance id)
         (lwt @@ Any.dance dance);

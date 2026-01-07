@@ -4,11 +4,11 @@ open Model
 open Html
 
 let create ?context id =
-  MainPage.madge_call_or_404 (Source Get) id @@ fun source ->
+  Main_page.madge_call_or_404 (Source Get) id @@ fun source ->
   Page.make'
     ~parent_title: "Source"
     ~before_title: [
-      Components.ContextLinks.make_and_render
+      Components.Context_links.make_and_render
         (* FIXME: doesn't need to take an [Lwt.t] anymore? *)
         ?context
         ~this_page: (Endpoints.Page.href_source id)

@@ -46,7 +46,7 @@ let table_contents ~this_id contents =
     let next_index = ref 0 in
     List.map
       (fun page ->
-        match Components.ContextLinks.book_page_to_any page with
+        match Components.Context_links.book_page_to_any page with
         | None -> (-1, page)
         | Some _ -> let index = !next_index in incr next_index; (index, page)
       )
@@ -78,7 +78,7 @@ let table_contents ~this_id contents =
               match page with
               | Book.Part title ->
                 (
-                  Utils.ResultRow.(
+                  Utils.Result_row.(
                     to_clickable_row @@
                       make [
                         cell [txt "Part"];
@@ -175,11 +175,11 @@ let table_contents ~this_id contents =
 open Html
 
 let create ?context id =
-  MainPage.madge_call_or_404 (Book Get) id @@ fun book ->
+  Main_page.madge_call_or_404 (Book Get) id @@ fun book ->
   Page.make'
     ~parent_title: "Book"
     ~before_title: [
-      Components.ContextLinks.make_and_render
+      Components.Context_links.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_book id)
         (lwt @@ Any.book book);
@@ -192,7 +192,7 @@ let create ?context id =
       [Utils.Button.make
         ~label: "Download PDF"
         ~icon: "file-pdf"
-        ~onclick: (fun _ -> ignore <$> BookDownloadDialog.create_and_open book)
+        ~onclick: (fun _ -> ignore <$> Book_download_dialog.create_and_open book)
         ~dropdown: true
         ();
       Utils.Button.make_a

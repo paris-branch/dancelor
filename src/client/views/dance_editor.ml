@@ -38,9 +38,9 @@ let editor =
         )
         ~unserialise: Model.Person.get
         ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: AnyResult.make_person_result'
+        ~make_result: Any_result.make_person_result'
         ~model_name: "person"
-        ~create_dialog_content: PersonEditor.create
+        ~create_dialog_content: Person_editor.create
         ()
     ) ^::
   Input.prepare_option
@@ -107,7 +107,7 @@ let disassemble dance =
   lwt (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ())))))))
 
 let create mode =
-  MainPage.assert_can_create @@ fun () ->
+  Main_page.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "dance"
     ~icon: "person-arms-up"

@@ -4,11 +4,11 @@ open Model
 open Html
 
 let create ?context id =
-  MainPage.madge_call_or_404 (Tune Get) id @@ fun tune ->
+  Main_page.madge_call_or_404 (Tune Get) id @@ fun tune ->
   Page.make'
     ~parent_title: "Tune"
     ~before_title: [
-      Components.ContextLinks.make_and_render
+      Components.Context_links.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_tune id)
         (lwt @@ Any.tune tune);

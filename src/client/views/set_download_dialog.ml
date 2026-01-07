@@ -3,7 +3,7 @@ open Common
 open Html
 open Model
 
-(* REVIEW: This is close to `VersionDownloadDialog.t`; there is room for
+(* REVIEW: This is close to `Version_download_dialog.t`; there is room for
    factorisation here. *)
 type t = {
   choice_rows: Html_types.div elt list;
@@ -14,7 +14,7 @@ let lift_version_parameters every_version =
   Set_parameters.make ~every_version ()
 
 let create () =
-  let%lwt version_dialog = VersionDownloadDialog.create () in
+  let%lwt version_dialog = Version_download_dialog.create () in
   let%lwt headers_choices =
     Components.Choices.(
       make_radios
@@ -45,7 +45,7 @@ let create () =
       ];
   }
 
-(* REVIEW: This is extremely close to `VersionDownloadDialog.render` (apart for
+(* REVIEW: This is extremely close to `Version_download_dialog.render` (apart for
    one line and one type, really); there is room for factorisation here. *)
 let open_ set dialog =
   Page.open_dialog @@ fun return ->
@@ -58,7 +58,7 @@ let open_ set dialog =
         ~onclick: (fun () ->
           let (set_params, rendering_params) = S.value dialog.parameters_signal in
           return None;
-          VersionDownloadDialog.open_pdf_generation_dialog (
+          Version_download_dialog.open_pdf_generation_dialog (
             Job.run
               (NesSlug.add_suffix (Set.slug' set) ".pdf")
               Endpoints.Api.(route @@ Set Build_pdf)

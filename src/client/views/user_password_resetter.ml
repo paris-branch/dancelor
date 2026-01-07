@@ -50,7 +50,7 @@ let create username token =
           Madge_client.call_exn Endpoints.Api.(route @@ User Reset_password) username token (Result.get_ok @@ S.value password);%lwt
           Utils.Toast.open_ ~title: "Password reset" [txt "Your password has been reset successfully. You may now try to sign in."];
           Dom_html.window##.history##replaceState "fixme-the-state" (Js.string "") (Js.some (Js.string "/"));
-          MainPage.load_sleep_raise (Index.create ());%lwt
+          Main_page.load_sleep_raise (Index.create ());%lwt
           lwt_unit
         )
         ();

@@ -47,10 +47,10 @@ let editor user =
     (
       Selector.prepare
         ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: AnyResult.make_person_result'
+        ~make_result: Any_result.make_person_result'
         ~label: "Conceptor"
         ~model_name: "person"
-        ~create_dialog_content: PersonEditor.create
+        ~create_dialog_content: Person_editor.create
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.Person.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
@@ -65,15 +65,15 @@ let editor user =
         (
           Selector.prepare
             ~make_descr: (Lwt.map NEString.to_string % Model.Version.one_name')
-            ~make_result: AnyResult.make_version_result'
+            ~make_result: Any_result.make_version_result'
             ~make_more_results: (fun version ->
               flip S.map show_preview @@ function
-                | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSnippets.make ~show_audio: false version]]]
+                | true -> [Utils.Result_row.make [Utils.Result_row.cell ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
                 | false -> []
             )
             ~label: "Version"
             ~model_name: "version"
-            ~create_dialog_content: VersionEditor.create
+            ~create_dialog_content: Version_editor.create
             ~search: (fun slice input ->
               let%rlwt filter = lwt (Filter.Version.from_string input) in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
@@ -82,7 +82,7 @@ let editor user =
             ()
         )
         (
-          VersionParametersEditor.e
+          Version_parameters_editor.e
         )
     )
     ~more_actions: (
@@ -118,7 +118,7 @@ let editor user =
         ~label: "Owner"
         ~model_name: "user"
         ~make_descr: (lwt % NEString.to_string % Model.User.username')
-        ~make_result: AnyResult.make_user_result'
+        ~make_result: Any_result.make_user_result'
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.User.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
@@ -153,7 +153,7 @@ let editor user =
                 ~label: "Viewer"
                 ~model_name: "user"
                 ~make_descr: (lwt % NEString.to_string % Model.User.username')
-                ~make_result: AnyResult.make_user_result'
+                ~make_result: Any_result.make_user_result'
                 ~search: (fun slice input ->
                   let%rlwt filter = lwt (Filter.User.from_string input) in
                   ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
@@ -192,7 +192,7 @@ let disassemble (set, access) =
 
 let create mode =
   let%lwt user = Option.map Entry.id <$> Environment.user in
-  MainPage.assert_can_create @@ fun () ->
+  Main_page.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "set"
     ~icon: "list-stars"

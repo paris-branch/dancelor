@@ -26,7 +26,7 @@ let open_token_result_dialog user token =
       ~buttons: [Utils.Button.ok' ~return ()]
 
 let create () =
-  MainPage.assert_can_admin @@ fun () ->
+  Main_page.assert_can_admin @@ fun () ->
   let%lwt username_input =
     Input.make_non_empty
       ~type_: Text

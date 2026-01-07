@@ -41,7 +41,7 @@ let open_quick_search () =
         ~onclick: (fun () -> quick_search_to_explorer (S.value @@ Components.Search.Quick.text quick_search))
         ();
     ]
-    ~make_result: (fun ~context result -> Utils.AnyResult.make_result ~context result)
+    ~make_result: (fun ~context result -> Utils.Any_result.make_result ~context result)
     quick_search
 
 let nav_item_explore =
@@ -149,7 +149,7 @@ let header =
                   S.all @@ [
                     S.const [nav_item_explore];
                     S.from' [] nav_item_create;
-                    S.const [UserHeader.header_item];
+                    S.const [User_header.header_item];
                   ]
                 );
             ];
@@ -279,14 +279,14 @@ let madge_call_or_404 endpoint arg f =
   try%lwt
     f =<< Madge_client.call_exn Endpoints.Api.(route @@ endpoint) arg
   with
-    | Madge_client.(Error (Http {status; _})) -> OooopsViewer.create status
+    | Madge_client.(Error (Http {status; _})) -> Oooops_viewer.create status
 
 let assert_can_create f =
   match%lwt Permission.can_create () with
   | true -> f ()
-  | false -> OooopsViewer.create `Forbidden
+  | false -> Oooops_viewer.create `Forbidden
 
 let assert_can_admin f =
   match%lwt Permission.can_admin () with
   | true -> f ()
-  | false -> OooopsViewer.create `Forbidden
+  | false -> Oooops_viewer.create `Forbidden

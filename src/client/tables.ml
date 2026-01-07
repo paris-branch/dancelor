@@ -5,7 +5,7 @@ open Model
 open Html
 
 let clickable_row ?href ?onclick cells =
-  Utils.ResultRow.(to_clickable_row @@ make ?href ?onclick (List.map lcell cells))
+  Utils.Result_row.(to_clickable_row @@ make ?href ?onclick (List.map lcell cells))
 
 let map_table ~header list fun_ =
   div

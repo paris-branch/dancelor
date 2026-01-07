@@ -84,7 +84,7 @@ let make
   in
 
   (* FIXME: This looks awfully like {!Input.render}. We should probably
-     build {!SearchBar} on top of that. *)
+     build {!Search_bar} on top of that. *)
   let bar_html =
     input
       ~a: (

@@ -7,7 +7,7 @@ type 'p pagination_mode =
 
 type 'result t
 
-val search_bar : 'result t -> 'result SearchBar.t
+val search_bar : 'result t -> 'result Search_bar.t
 
 val make :
   ?initial_input: string ->
@@ -20,7 +20,7 @@ val make :
   'result t
 
 val render :
-  make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Utils.ResultRow.t) ->
+  make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Utils.Result_row.t) ->
   ?attached_buttons: [< Html_types.div_content_fun >`I `Input] elt list ->
   ?show_table_headers: bool ->
   'result t ->
@@ -31,7 +31,7 @@ module Quick : sig
 
   val text : 'result t -> string S.t
 
-  val search_bar : 'result t -> 'result SearchBar.t
+  val search_bar : 'result t -> 'result Search_bar.t
 
   val make :
     search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
@@ -43,7 +43,7 @@ module Quick : sig
     return: ('dialog_result option -> unit) ->
     dialog_title: string Lwt.t ->
     ?dialog_buttons: Html_types.div_content_fun elt list ->
-    make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Utils.ResultRow.t) ->
+    make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Utils.Result_row.t) ->
     'result t ->
     Page.t Lwt.t
 end

@@ -181,10 +181,10 @@ let editor =
   let open Editor in
   Selector.prepare
     ~make_descr: (lwt % NEString.to_string % Model.Tune.one_name')
-    ~make_result: AnyResult.make_tune_result'
+    ~make_result: Any_result.make_tune_result'
     ~label: "Tune"
     ~model_name: "tune"
-    ~create_dialog_content: TuneEditor.create
+    ~create_dialog_content: Tune_editor.create
     ~search: (fun slice input ->
       let%rlwt filter = lwt (Filter.Tune.from_string input) in
       ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) slice filter
@@ -207,10 +207,10 @@ let editor =
     (
       Selector.prepare
         ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: AnyResult.make_person_result'
+        ~make_result: Any_result.make_person_result'
         ~label: "Arranger"
         ~model_name: "person"
-        ~create_dialog_content: PersonEditor.create
+        ~create_dialog_content: Person_editor.create
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.Person.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
@@ -233,10 +233,10 @@ let editor =
         (
           Selector.prepare
             ~make_descr: (lwt % NEString.to_string % Model.Source.name')
-            ~make_result: AnyResult.make_source_result'
+            ~make_result: Any_result.make_source_result'
             ~label: "Source"
             ~model_name: "source"
-            ~create_dialog_content: SourceEditor.create
+            ~create_dialog_content: Source_editor.create
             ~search: (fun slice input ->
               let%rlwt filter = lwt (Filter.Source.from_string input) in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
@@ -278,7 +278,7 @@ let preview version =
   <$> Page.open_dialog @@ fun return ->
     Page.make'
       ~title: (lwt "Preview")
-      [Components.VersionSnippets.make_preview ~show_logs: true version]
+      [Components.Version_snippets.make_preview ~show_logs: true version]
       ~buttons: [
         Button.cancel' ~return ();
         Button.save ~onclick: (fun () -> return (Some ()); lwt_unit) ();
@@ -316,7 +316,7 @@ let disassemble version =
    nice to bring it back. *)
 
 let create mode =
-  MainPage.assert_can_create @@ fun () ->
+  Main_page.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "version"
     ~icon: "music-note-beamed"

@@ -1,4 +1,4 @@
-(** {1 SearchBar} *)
+(** {1 Search_bar} *)
 
 open Nes
 open Js_of_ocaml_tyxml.Tyxml_js

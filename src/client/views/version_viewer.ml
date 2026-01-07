@@ -331,7 +331,7 @@ let deduplication_dialog ~version ~other_versions_promise () =
       ]
 
 let create ?context id =
-  MainPage.madge_call_or_404 (Version Get) id @@ fun version ->
+  Main_page.madge_call_or_404 (Version Get) id @@ fun version ->
   let%lwt tune = Model.Version.tune' version in
   let other_versions_promise =
     snd
@@ -349,7 +349,7 @@ let create ?context id =
   Page.make'
     ~parent_title: "Version"
     ~before_title: [
-      Components.ContextLinks.make_and_render
+      Components.Context_links.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_version id)
         (lwt @@ Any.version version);
@@ -367,7 +367,7 @@ let create ?context id =
                 ~label: "Download PDF"
                 ~icon: "file-pdf"
                 ~dropdown: true
-                ~onclick: (fun _ -> ignore <$> VersionDownloadDialog.create_and_open version)
+                ~onclick: (fun _ -> ignore <$> Version_download_dialog.create_and_open version)
                 ();
               Utils.Button.make
                 ~label: "Show LilyPond"
@@ -454,8 +454,8 @@ let create ?context id =
           ];
           (
             match Model.Version.content' version with
-            | Monolithic _ -> Components.VersionSnippets.make version
-            | Destructured {default_structure; _} -> Components.VersionSnippets.make version ~params: (Model.Version_parameters.make ~structure: default_structure ());
+            | Monolithic _ -> Components.Version_snippets.make version
+            | Destructured {default_structure; _} -> Components.Version_snippets.make version ~params: (Model.Version_parameters.make ~structure: default_structure ());
           )
         ];
       );

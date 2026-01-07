@@ -4,7 +4,7 @@ open Model
 open Html
 open Components
 
-(* REVIEW: This is close to `VersionDownloadDialog.t`; there is room for
+(* REVIEW: This is close to `Version_download_dialog.t`; there is room for
    factorisation here. *)
 type t = {
   choice_rows: Html_types.div elt list;
@@ -15,7 +15,7 @@ let lift_set_parameters every_set =
   Book_parameters.make ~every_set ()
 
 let create () =
-  let%lwt set_dialog = SetDownloadDialog.create () in
+  let%lwt set_dialog = Set_download_dialog.create () in
   let%lwt booklet_choices =
     Choices.(
       make_radios
@@ -42,7 +42,7 @@ let create () =
       ]
   }
 
-(* REVIEW: This is extremely close to `VersionDownloadDialog.render` (apart for
+(* REVIEW: This is extremely close to `Version_download_dialog.render` (apart for
    one line and one type, really); there is room for factorisation here. *)
 let open_ book dialog =
   Page.open_dialog @@ fun return ->
@@ -55,7 +55,7 @@ let open_ book dialog =
         ~onclick: (fun () ->
           let (book_params, rendering_params) = S.value dialog.parameters_signal in
           return None;
-          VersionDownloadDialog.open_pdf_generation_dialog (
+          Version_download_dialog.open_pdf_generation_dialog (
             Job.run
               (NesSlug.add_suffix (Book.slug' book) ".pdf")
               Endpoints.Api.(route @@ Book Build_pdf)

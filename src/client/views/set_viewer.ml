@@ -4,11 +4,11 @@ open Model
 open Html
 
 let create ?context id =
-  MainPage.madge_call_or_404 (Set Get) id @@ fun set ->
+  Main_page.madge_call_or_404 (Set Get) id @@ fun set ->
   Page.make'
     ~parent_title: "Set"
     ~before_title: [
-      Components.ContextLinks.make_and_render
+      Components.Context_links.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_set id)
         (lwt @@ Any.set set);
@@ -36,7 +36,7 @@ let create ?context id =
           Utils.Button.make
             ~label: "Download PDF"
             ~icon: "file-pdf"
-            ~onclick: (fun _ -> ignore <$> SetDownloadDialog.create_and_open set)
+            ~onclick: (fun _ -> ignore <$> Set_download_dialog.create_and_open set)
             ~dropdown: true
             ();
           Utils.Button.make_a
@@ -100,7 +100,7 @@ let create ?context id =
                             version
                         ];
                       ];
-                      Components.VersionSnippets.make ~show_audio: false ~params version;
+                      Components.Version_snippets.make ~show_audio: false ~params version;
                     ]
               )
               contents

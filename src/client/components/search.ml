@@ -12,7 +12,7 @@ module Search = struct
 
   type 'result t = {
     pagination: Pagination.t pagination_mode;
-    search_bar: 'result SearchBar.t;
+    search_bar: 'result Search_bar.t;
     min_characters: int;
   }
   [@@deriving fields]
@@ -33,7 +33,7 @@ module Search = struct
       | FixedSlice slice -> FixedSlice slice
     in
     let search_bar =
-      SearchBar.make
+      Search_bar.make
         ~search
         ~slice: (slice pagination)
         ~on_number_of_entries: (set_number_of_entries % some)
@@ -75,7 +75,7 @@ module Search = struct
             ~a: [a_class ["input-group"; "mb-3"]]
             (
               [i ~a: [a_class ["input-group-text"; "bi"; "bi-search"]] [];
-              SearchBar.html t.search_bar;
+              Search_bar.html t.search_bar;
               ] @
                 attached_buttons
             )
@@ -84,7 +84,7 @@ module Search = struct
           (* Info or alert box, eg. to inform that one needs to type. *)
           R.div
             (
-              flip S.map (SearchBar.state t.search_bar) @@ function
+              flip S.map (Search_bar.state t.search_bar) @@ function
                 | NoResults -> [div ~a: [a_class ["alert"; "alert-warning"]] [txt "Your search returned no results."]]
                 | Errors error -> [div ~a: [a_class ["alert"; "alert-danger"]] [txt error]]
                 | StartTyping -> [div ~a: [a_class ["alert"; "alert-info"]] [txt "Start typing to search."]]
@@ -98,7 +98,7 @@ module Search = struct
             ~a: [
               R.a_class
                 (
-                  flip S.map (SearchBar.state t.search_bar) @@ function
+                  flip S.map (Search_bar.state t.search_bar) @@ function
                     | Results _ when show_table_headers -> ["my-4"]
                     | Results _ -> []
                     | _ -> ["d-none"]
@@ -154,12 +154,12 @@ module Search = struct
                     [
                       R.tbody
                         (
-                          flip S.map (S.Pair.pair (fst @@ slice t.pagination) (SearchBar.state t.search_bar))
+                          flip S.map (S.Pair.pair (fst @@ slice t.pagination) (Search_bar.state t.search_bar))
                             @@ fun (_, state) ->
                             match state with
                             | Results results ->
-                              let context = S.map Common.Endpoints.Page.in_search @@ SearchBar.text t.search_bar in
-                              List.map Utils.(ResultRow.to_clickable_row % (make_result ~context)) results
+                              let context = S.map Common.Endpoints.Page.in_search @@ Search_bar.text t.search_bar in
+                              List.map Utils.(Result_row.to_clickable_row % (make_result ~context)) results
                             | _ -> []
                         )
                     ];
@@ -177,7 +177,7 @@ module Search = struct
           div
             ~a: [
               R.a_class (
-                flip S.map (SearchBar.state t.search_bar) @@ function
+                flip S.map (Search_bar.state t.search_bar) @@ function
                   | Searching -> ["my-4"]
                   | _ -> ["d-none"]
               )
@@ -203,7 +203,7 @@ module Quick = struct
 
   let search_bar quick_search = search_bar quick_search.search
 
-  let text quick_search = SearchBar.text @@ Search.search_bar quick_search.search
+  let text quick_search = Search_bar.text @@ Search.search_bar quick_search.search
 
   let make
     ~search
@@ -228,7 +228,7 @@ module Quick = struct
     =
     Page.make'
       ~title: dialog_title
-      ~on_load: (fun () -> SearchBar.focus @@ Search.search_bar quick_search.search)
+      ~on_load: (fun () -> Search_bar.focus @@ Search.search_bar quick_search.search)
       [Search.render
         ~make_result
         ~show_table_headers: false
