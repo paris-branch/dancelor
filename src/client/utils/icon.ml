@@ -1,21 +1,32 @@
+(** Type for alert-specific icons. *)
+type alert =
+  | Info
+  | Warning
+  | Danger
+
+let alert_to_string = function
+  | Info -> "info-circle"
+  | Warning -> "exclamation-triangle"
+  | Danger -> "exclamation-diamond"
+
+(** Type for job-specific icons. *)
+type job =
+  | Registering (** aka uploading *)
+  | Pending
+  | Running
+
+let job_to_string = function
+  | Registering -> "cloud-upload"
+  | Pending -> "hourglass-bottom"
+  | Running -> "cpu"
+
 type t =
-(* alerts *)
-| Info_circle (** for info alerts *)
-| Exclamation_triangle (** for warning alerts *)
-| Exclamation_diamond (** for danger alerts *)
-(* others *)
-| Cloud_upload (** to show upload *)
-| Hourglass_bottom (** to show wait *)
-| Cpu (** to show computation *)
+  | Alert of alert
+  | Job of job
 
 let to_string = function
-  | Info_circle -> "info-circle"
-  | Exclamation_triangle -> "exclamation-triangle"
-  | Exclamation_diamond -> "exclamation-diamond"
-  (* others *)
-  | Cloud_upload -> "cloud-upload"
-  | Hourglass_bottom -> "hourglass-bottom"
-  | Cpu -> "cpu"
+  | Alert icon -> alert_to_string icon
+  | Job icon -> job_to_string icon
 
 let html icon =
   let open Html in
