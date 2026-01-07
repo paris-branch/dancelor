@@ -80,7 +80,7 @@ module Kind = struct
     let gen = Gen.(pair nat Base.gen)
 
     module Filter = struct
-      type predicate = [%import: Common.Kind.Version.Filter.predicate [@with Common.KindBase.Filter.t := Base.Filter.t;]
+      type predicate = [%import: Common.Kind.Version.Filter.predicate [@with Common.Kind_base.Filter.t := Base.Filter.t;]
       ]
       [@@deriving qcheck2]
 
@@ -108,7 +108,7 @@ module Kind = struct
             ]
 
     module Filter = struct
-      type predicate = [%import: Common.Kind.Dance.Filter.predicate [@with Common.KindVersion.Filter.t := Version.Filter.t;]
+      type predicate = [%import: Common.Kind.Dance.Filter.predicate [@with Common.Kind_version.Filter.t := Version.Filter.t;]
       ]
       [@@deriving qcheck2]
 

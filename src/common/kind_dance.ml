@@ -1,9 +1,9 @@
 open Nes
 
-include KindDanceType
+include Kind_dance_type
 
 let rec pp ppf = function
-  | Version version_kind -> fpf ppf "%s" (KindVersion.to_string version_kind)
+  | Version version_kind -> fpf ppf "%s" (Kind_version.to_string version_kind)
   | Add (kind1, kind2) -> fpf ppf "%a + %a" pp kind1 pp kind2
   | Mul (n, kind) ->
     (match kind with Add _ -> fpf ppf "%d x (%a)" | _ -> fpf ppf "%d x %a")
@@ -16,9 +16,9 @@ let to_string kind =
 
 let of_string_opt s =
   try
-    Some (KindDanceParser.main KindDanceLexer.token (Lexing.from_string s))
+    Some (Kind_dance_parser.main Kind_dance_lexer.token (Lexing.from_string s))
   with
-    | KindDanceParser.Error | KindDanceLexer.UnexpectedCharacter _ -> None
+    | Kind_dance_parser.Error | Kind_dance_lexer.UnexpectedCharacter _ -> None
 
 let of_string s =
   match of_string_opt s with Some k -> k | None -> failwith "Kind.Dance.of_string"
@@ -48,7 +48,7 @@ let of_yojson = function
   | _ -> Error "Dancelor_common.Model.Kind.of_yojson: not a JSON string"
 
 let rec to_pretty_string = function
-  | Version vkind -> KindVersion.to_pretty_string vkind
+  | Version vkind -> Kind_version.to_pretty_string vkind
   | Add (kind1, kind2) -> spf "%s + %s" (to_pretty_string kind1) (to_pretty_string kind2)
   | Mul (n, kind) ->
     (match kind with Add _ -> spf "%d x (%s)" | _ -> spf "%d x %s")
@@ -81,11 +81,11 @@ module Filter = struct
   type predicate =
     | Is of t
     | Simple
-    | Version of KindVersion.Filter.t
+    | Version of Kind_version.Filter.t
   [@@deriving eq, show {with_path = false}, yojson, variants]
 
-  let base = version % KindVersion.Filter.base'
-  let baseIs = version % KindVersion.Filter.baseIs'
+  let base = version % Kind_version.Filter.base'
+  let baseIs = version % Kind_version.Filter.baseIs'
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]
@@ -107,7 +107,7 @@ module Filter = struct
       | Version vfilter ->
         Formula.interpret_and_l
         <$> Lwt_list.map_s
-            (KindVersion.Filter.accepts vfilter)
+            (Kind_version.Filter.accepts vfilter)
             (version_kinds kind)
 
   let text_formula_converter =
@@ -126,13 +126,13 @@ module Filter = struct
                     (of_string_opt string)
                 );
               nullary ~name: "simple" Simple;
-              unary_lift ~name: "version" (version, version_val) ~converter: KindVersion.Filter.text_formula_converter;
+              unary_lift ~name: "version" (version, version_val) ~converter: Kind_version.Filter.text_formula_converter;
               unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "dance kind";
             ]
         )
         (
           (* Version kind converter, lifted to dance kinds; lose in case of tiebreak. *)
-          map version KindVersion.Filter.text_formula_converter
+          map version Kind_version.Filter.text_formula_converter
         )
     )
 
@@ -154,6 +154,6 @@ module Filter = struct
       ~lift_or: (lift {op = Formula.or_})
       (function
         | (Is _ as p) | (Simple as p) -> p
-        | Version vfilter -> version @@ KindVersion.Filter.optimise vfilter
+        | Version vfilter -> version @@ Kind_version.Filter.optimise vfilter
       )
 end

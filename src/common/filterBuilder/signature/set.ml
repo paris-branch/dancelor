@@ -15,8 +15,8 @@ module type S = sig
   val existsconceptor : Core.Person.t -> predicate
   val existsconceptor' : Core.Person.t -> t
 
-  val kind : KindDance.Filter.t -> predicate
-  val kind' : KindDance.Filter.t -> t
+  val kind : Kind.Dance.Filter.t -> predicate
+  val kind' : Kind.Dance.Filter.t -> t
 
   val memversion : ModelBuilder.Core.Version.entry -> predicate
   val memversion' : ModelBuilder.Core.Version.entry -> t

@@ -10,8 +10,8 @@ module type S = sig
   val is : ModelBuilder.Core.Dance.entry -> predicate
   val is' : ModelBuilder.Core.Dance.entry -> t
 
-  val kind : KindDance.Filter.t -> predicate
-  val kind' : KindDance.Filter.t -> t
+  val kind : Kind.Dance.Filter.t -> predicate
+  val kind' : Kind.Dance.Filter.t -> t
 
   val existsdeviser : Core.Person.t -> predicate
   val existsdeviser' : Core.Person.t -> t

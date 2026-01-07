@@ -14,8 +14,8 @@ module type S = sig
   val is' : ModelBuilder.Core.Tune.entry -> t
   (** [is tune] is a filter that matches exactly [tune] and only [tune]. *)
 
-  val kind : KindBase.Filter.t -> predicate
-  val kind' : KindBase.Filter.t -> t
+  val kind : Kind.Base.Filter.t -> predicate
+  val kind' : Kind.Base.Filter.t -> t
 
   val exists_composer : Core.Person.t -> predicate
   val exists_composer' : Core.Person.t -> t

@@ -49,9 +49,9 @@ let build_pdf env id set_params rendering_params =
     in
     let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Set.conceptors' set in
     let subjects =
-      match KindDance.to_simple @@ Model.Set.kind' set with
+      match Kind.Dance.to_simple @@ Model.Set.kind' set with
       | None -> ["Medley"]
-      | Some (n, bars, base) -> [KindBase.to_pretty_string ~capitalised: true base; spf "%dx%d" n bars]
+      | Some (n, bars, base) -> [Kind.Base.to_pretty_string ~capitalised: true base; spf "%dx%d" n bars]
     in
     lwt Renderer.{title; authors; subjects}
   in

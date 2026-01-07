@@ -2,7 +2,7 @@ open Nes
 
 (** {1 Version Kind} *)
 
-type t = int * KindBase.t
+type t = int * Kind_base.t
 [@@deriving eq, show]
 (** The kind of a version. For instance, [32R]. *)
 
@@ -30,12 +30,12 @@ module Filter : sig
     | BarsGe of int
     | BarsLt of int
     | BarsLe of int
-    | Base of KindBase.Filter.t
+    | Base of Kind_base.Filter.t
 
   val is : version_kind -> predicate
-  val base : KindBase.Filter.t -> predicate
+  val base : Kind_base.Filter.t -> predicate
 
-  val baseIs : KindBase.t -> predicate
+  val baseIs : Kind_base.t -> predicate
 
   type t = predicate Formula.t
   [@@deriving eq, show, yojson]
@@ -43,9 +43,9 @@ module Filter : sig
   val accepts : t -> version_kind -> float Lwt.t
 
   val is' : version_kind -> t
-  val base' : KindBase.Filter.t -> t
+  val base' : Kind_base.Filter.t -> t
 
-  val baseIs' : KindBase.t -> t
+  val baseIs' : Kind_base.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

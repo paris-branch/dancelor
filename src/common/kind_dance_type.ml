@@ -1,5 +1,5 @@
 type t =
-  | Version of KindVersion.t
+  | Version of Kind_version.t
   | Add of t * t
   | Mul of int * t
 [@@deriving show {with_path = false}]
@@ -12,7 +12,7 @@ let rec normalise = function
 
 let rec equal k1 k2 =
   match (k1, k2) with
-  | Version k1, Version k2 -> KindVersion.equal k1 k2
+  | Version k1, Version k2 -> Kind_version.equal k1 k2
   | Add (k11, k12), Add (k21, k22) -> equal k11 k21 && equal k12 k22
   | Mul (n1, k1), Mul (n2, k2) -> n1 = n2 && equal k1 k2
   | _ -> false

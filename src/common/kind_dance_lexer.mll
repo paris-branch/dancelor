@@ -1,5 +1,5 @@
 {
-  open KindDanceParser
+  open Kind_dance_parser
 
   exception UnexpectedCharacter of char
 }

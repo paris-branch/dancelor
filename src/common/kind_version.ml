@@ -1,10 +1,10 @@
 open Nes
 
-type t = int * KindBase.t
+type t = int * Kind_base.t
 [@@deriving eq, show {with_path = false}]
 
 let to_string (repeats, base) =
-  spf "%d %s" repeats (KindBase.to_string base)
+  spf "%d %s" repeats (Kind_base.to_string base)
 
 let of_string s =
   let s = NesString.remove_char ' ' s in
@@ -12,14 +12,14 @@ let of_string s =
     ssf
       s
       "%d%[a-zA-Z]"
-      (fun repeats base -> (repeats, KindBase.of_string base))
+      (fun repeats base -> (repeats, Kind_base.of_string base))
   with
     | End_of_file | Scanf.Scan_failure _ ->
       try
         ssf
           s
           "%[a-zA-Z]%d"
-          (fun base repeats -> (repeats, KindBase.of_string base))
+          (fun base repeats -> (repeats, Kind_base.of_string base))
       with
         | End_of_file | Scanf.Scan_failure _ ->
           invalid_arg "Dancelor_common.Model.Kind.version_of_string"
@@ -65,7 +65,7 @@ let of_yojson = function
   | _ -> Error "Dancelor_common.Model.Kind.version_of_yojson: not a JSON string"
 
 let to_pretty_string (repeats, base) =
-  spf "%d %s" repeats (KindBase.to_pretty_string ~capitalised: true base)
+  spf "%d %s" repeats (Kind_base.to_pretty_string ~capitalised: true base)
 
 (* Filters  *)
 
@@ -80,10 +80,10 @@ module Filter = struct
     | BarsGe of int
     | BarsLt of int
     | BarsLe of int
-    | Base of KindBase.Filter.t
+    | Base of Kind_base.Filter.t
   [@@deriving eq, show {with_path = false}, yojson, variants]
 
-  let baseIs = base % KindBase.Filter.is'
+  let baseIs = base % Kind_base.Filter.is'
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]
@@ -117,7 +117,7 @@ module Filter = struct
         lwt (Formula.interpret_bool (bars <= bars'))
       | Base bfilter ->
         let (_bars, bkind) = kind in
-        KindBase.Filter.accepts bfilter bkind
+        Kind_base.Filter.accepts bfilter bkind
 
   let text_formula_converter =
     TextFormulaConverter.(
@@ -140,12 +140,12 @@ module Filter = struct
               unary_int ~name: "bars-lt" (barslt, barslt_val);
               unary_int ~name: "bars-le" (barsle, barsle_val);
               unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "version kind";
-              unary_lift ~wrap_back: NotPred ~name: "base" (base, base_val) ~converter: KindBase.Filter.text_formula_converter;
+              unary_lift ~wrap_back: NotPred ~name: "base" (base, base_val) ~converter: Kind_base.Filter.text_formula_converter;
             ]
         )
         (
           (* Base kind converter, lifted to version kinds *)
-          map base KindBase.Filter.text_formula_converter
+          map base Kind_base.Filter.text_formula_converter
         )
     )
 
@@ -174,6 +174,6 @@ module Filter = struct
         | (BarsLt _ as p)
         | (BarsLe _ as p) ->
           p
-        | Base bfilter -> base @@ KindBase.Filter.optimise bfilter
+        | Base bfilter -> base @@ Kind_base.Filter.optimise bfilter
       )
 end
