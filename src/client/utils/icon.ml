@@ -54,17 +54,30 @@ let model_to_string = function
   | Book -> "book"
   | User -> "person-circle"
 
+(** Type for other icons. *)
+type other =
+  | GitHub
+  | Help
+  | Search
+
+let other_to_string = function
+  | GitHub -> "github"
+  | Help -> "question-circle"
+  | Search -> "search"
+
 type t =
   | Access of access
   | Alert of alert
   | Job of job
   | Model of model
+  | Other of other
 
 let to_string = function
   | Access icon -> access_to_string icon
   | Alert icon -> alert_to_string icon
   | Job icon -> job_to_string icon
   | Model icon -> model_to_string icon
+  | Other icon -> other_to_string icon
 
 (** Generate HTML for the given icon. One can optionally pass extra HTML
     [?classes] or a [?tooltip] that is shown when hovering on the icon. *)

@@ -198,7 +198,7 @@ let footer =
               a_target "_blank";
             ]
             [
-              i ~a: [a_class ["bi"; "bi-github"]] [];
+              Icon.html (Other GitHub);
               txt "paris-branch/dancelor";
             ];
           Button.make
