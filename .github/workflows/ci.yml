@@ -39,15 +39,15 @@ jobs:
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build Dancelor's Nix package
-        run: nix build .#packages.x86_64-linux.dancelor -vL --no-link
+        run: nix build .#packages.x86_64-linux.dancelor --print-build-logs --no-link
 
       - name: Build API documentation
-        run: nix build .#packages.x86_64-linux.documentation -vL --out-link api-doc
+        run: nix build .#packages.x86_64-linux.documentation --print-build-logs --out-link api-doc
 
       - name: Run renderer smoke tests
         run: |
-          nix build .#checks.x86_64-linux.renderer-tune-snippets -vL --no-link
-          nix build .#checks.x86_64-linux.renderer-book-pdf -vL --no-link
+          nix build .#checks.x86_64-linux.renderer-tune-snippets --print-build-logs --no-link
+          nix build .#checks.x86_64-linux.renderer-book-pdf --print-build-logs --no-link
 
       ## NOTE: The following is the dirtiest hack: because integration tests are
       ## very flaky, we just run them a bunch of times in a row.
@@ -57,7 +57,7 @@ jobs:
           for i in $(seq 5); do
             echo
             echo "====================================== [ Run $i ] ======================================"
-            if nix build .#checks.x86_64-linux.integration -vL --no-link; then
+            if nix build .#checks.x86_64-linux.integration --print-build-logs --no-link; then
               success=true
               break
             fi
@@ -107,7 +107,7 @@ jobs:
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build Nix development Shell
-        run: nix build .#devShells.x86_64-linux.default -vL --no-link
+        run: nix build .#devShells.x86_64-linux.default --print-build-logs --no-link
 
       - name: Build Dancelor in development Shell
         run: nix develop --command dune build
@@ -155,4 +155,4 @@ jobs:
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Run pre-commit checks
-        run: nix build .#checks.x86_64-linux.pre-commit -vL --no-link
+        run: nix build .#checks.x86_64-linux.pre-commit --print-build-logs --no-link
