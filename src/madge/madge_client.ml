@@ -3,8 +3,8 @@ include Madge
 
 type error =
   | Http of {request: Request.t; status: Cohttp.Code.status_code; message: string}
-  | ServerUnreachable of {request: Request.t; status: Cohttp.Code.status_code}
-  | BodyUnserialisation of {body: string; message: string}
+  | Server_unreachable of {request: Request.t; status: Cohttp.Code.status_code}
+  | Body_unserialisation of {body: string; message: string}
 
 exception Error of error
 
@@ -21,7 +21,7 @@ let call_retry ?(retry = true) (request : Request.t) : (Response.t, error) resul
     if List.mem (Cohttp.Code.code_of_status status) [0; 502; 503; 504] then
       (
         if attempt >= max_attempts then
-          Lwt.return_error @@ ServerUnreachable {request; status}
+          Lwt.return_error @@ Server_unreachable {request; status}
         else
           let delay = (2. ** (float_of_int attempt) +. Random.float 2.) /. 8. in
           Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt
@@ -36,7 +36,7 @@ let call_retry ?(retry = true) (request : Request.t) : (Response.t, error) resul
 let batch_delay = 0.01 (* 10 ms *)
 
 type batch_state =
-  | GatheringBatch of (Request.t * (Response.t, error) result Lwt.u) list
+  | Gathering_batch of (Request.t * (Response.t, error) result Lwt.u) list
   | Idle
 
 let batch_state = ref Idle
@@ -62,12 +62,12 @@ type response_list = Response.t list
 let process_batch () =
   match !batch_state with
   | Idle -> assert false
-  | GatheringBatch [(request, resolver)] ->
+  | Gathering_batch [(request, resolver)] ->
     batch_state := Idle;
     let%lwt response = call_retry request in
     Lwt.wakeup_later resolver response;
     lwt_unit
-  | GatheringBatch batch ->
+  | Gathering_batch batch ->
     batch_state := Idle;
     let (requests, resolvers) = List.split (List.rev batch) in
     with_request
@@ -77,9 +77,9 @@ let process_batch () =
         | Error error ->
           let batch_error =
             match error with
-            | ServerUnreachable details -> ServerUnreachable details
+            | Server_unreachable details -> Server_unreachable details
             | Http {request; status; message} -> Http {request; status; message = "Batched request: " ^ message}
-            | BodyUnserialisation {body; message} -> BodyUnserialisation {body; message = "Batched request: " ^ message}
+            | Body_unserialisation {body; message} -> Body_unserialisation {body; message = "Batched request: " ^ message}
           in
           List.iter (fun resolver -> Lwt.wakeup_later resolver (Result.Error batch_error)) resolvers;
           lwt_unit
@@ -99,10 +99,10 @@ let call_batch (request : Request.t) : (Response.t, error) result Lwt.t =
   batch_state :=
     (
       match !batch_state with
-      | GatheringBatch batch -> GatheringBatch (batch_elem :: batch)
+      | Gathering_batch batch -> Gathering_batch (batch_elem :: batch)
       | Idle ->
         Lwt.async (fun () -> Js_of_ocaml_lwt.Lwt_js.sleep batch_delay;%lwt process_batch ());
-        GatheringBatch [batch_elem]
+        Gathering_batch [batch_elem]
     );
   promise
 
@@ -130,18 +130,18 @@ let call_gen
         Lwt.return_ok @@ Yojson.Safe.from_string body
       with
         | Yojson.Json_error message ->
-          Lwt.return_error @@ BodyUnserialisation {body; message = "not JSON: " ^ message}
+          Lwt.return_error @@ Body_unserialisation {body; message = "not JSON: " ^ message}
     in
     if Cohttp.(Code.(is_success (code_of_status status))) then
       (
         match R.of_yojson json_body with
-        | Error message -> Lwt.return_error @@ BodyUnserialisation {body; message}
+        | Error message -> Lwt.return_error @@ Body_unserialisation {body; message}
         | Ok body -> Lwt.return_ok body
       )
     else
       (
         match error_response_of_yojson json_body with
-        | Error message -> Lwt.return_error @@ BodyUnserialisation {body; message = "expected an error, but " ^ message}
+        | Error message -> Lwt.return_error @@ Body_unserialisation {body; message = "expected an error, but " ^ message}
         | Ok {message} -> Lwt.return_error @@ Http {request; status; message}
       )
 

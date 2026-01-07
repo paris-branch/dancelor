@@ -12,7 +12,7 @@ module type Model = sig
 
   type entry = (t, access) Entry.t
 
-  val wrap_any : entry -> ModelBuilder.Core.Any.t
+  val wrap_any : entry -> Model_builder.Core.Any.t
 
   val _key : string
 end
@@ -21,7 +21,7 @@ end
 
 type 'value database_state = ('value Entry.id, 'value) Hashtbl.t
 
-type reverse_dependencies = ReverseDependencies of (string * unit Entry.id) list
+type reverse_dependencies = Reverse_dependencies of (string * unit Entry.id) list
 (** A type for reverse dependencies. *)
 
 module type S = sig
@@ -51,7 +51,7 @@ module type S = sig
     unit Lwt.t
   (** Given a function that computes reverse dependencies, make a function that
       deletes an existing database entry if it is safe to do so. It throws
-      {!Error.EntityHasReverseDependencies} otherwise. *)
+      {!Error.Entity_has_reverse_dependencies} otherwise. *)
 
   val dependencies : value -> unit Entry.id list
   (** Pass {!Model.dependencies} through. *)
@@ -61,24 +61,24 @@ end
 
 (** {2 Global id uniqueness} *)
 
-module GloballyUniqueId : sig
+module Globally_unique_id : sig
     val make : unit -> 'any Entry.Id.t
     (** Make a globally unique id. This does not register the id as already
         existing, and therefore there is a chance, by calling this function
         several times consecutively, that it returns the same id. *)
 
     val register :
-      wrap_any: (('value, 'access) Entry.t -> ModelBuilder.Core.Any.t) ->
+      wrap_any: (('value, 'access) Entry.t -> Model_builder.Core.Any.t) ->
       ('value, 'access) Entry.t ->
       unit
     (** Register an entry in the global id table. This is used to ensure that
         ids are globally unique across all tables. *)
 
-    val get : 'any Entry.Id.t -> ModelBuilder.Core.Any.t option
+    val get : 'any Entry.Id.t -> Model_builder.Core.Any.t option
     (** Given an id, try to find the corresponding model in the global table. *)
   end
 = struct
-  let all_ids_table : (unit Entry.Id.t, ModelBuilder.Core.Any.t) Hashtbl.t = Hashtbl.create 8
+  let all_ids_table : (unit Entry.Id.t, Model_builder.Core.Any.t) Hashtbl.t = Hashtbl.create 8
 
   let rec make () =
     let id = Entry.Id.make () in
@@ -118,7 +118,7 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
       lwt @@
         match Entry.of_yojson_no_id (Entry.Id.of_string_exn entry) Model.of_yojson Model.access_of_yojson json with
         | Ok model ->
-          GloballyUniqueId.register model ~wrap_any: Model.wrap_any;
+          Globally_unique_id.register model ~wrap_any: Model.wrap_any;
           Hashtbl.add table (Entry.id model) model;
           Log.debug (fun m -> m "Loaded %s %s" _key entry);
         | Error msg ->
@@ -133,7 +133,7 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
   let get id = Hashtbl.find_opt table id
 
   let list_dependency_problems_for id dep_key dep_id =
-    match GloballyUniqueId.get dep_id with
+    match Globally_unique_id.get dep_id with
     | None ->
       [
         Error.dependency_does_not_exist
@@ -163,7 +163,7 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
       match maybe_id with
       | None ->
         (* no id: this is a creation *)
-        let id = GloballyUniqueId.make () in
+        let id = Globally_unique_id.make () in
         let model = Entry.make ~id ~access model in
           (true, id, model)
       | Some id ->
@@ -186,7 +186,7 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
       (Entry.Id.to_string id);%lwt
     if is_create then
       (
-        GloballyUniqueId.register model ~wrap_any: Model.wrap_any;
+        Globally_unique_id.register model ~wrap_any: Model.wrap_any;
         Hashtbl.add table id model
       )
     else
@@ -201,7 +201,7 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
   let make_delete reverse_dependencies_of = fun id ->
     let rev_deps = reverse_dependencies_of id in
     match rev_deps with
-    | ReverseDependencies [] ->
+    | Reverse_dependencies [] ->
       Storage.delete_entry Model._key (Entry.Id.to_string id);%lwt
       Storage.save_changes_on_entry
         ~msg: (spf "delete %s / %s" Model._key (Entry.Id.to_string id))
@@ -209,7 +209,7 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
         (Entry.Id.to_string id);%lwt
       Hashtbl.remove table id;
       lwt_unit
-    | ReverseDependencies ((one_key, one_id) :: _) ->
+    | Reverse_dependencies ((one_key, one_id) :: _) ->
       Log.warn (fun m ->
         m "Tried to remove %s / %s but it has reverse dependencies, for instance %s / %s" _key (Entry.Id.to_string id) one_key (Entry.Id.to_string one_id)
       );

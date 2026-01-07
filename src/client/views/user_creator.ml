@@ -1,0 +1,58 @@
+open Nes
+open Common
+open Components
+open Html
+
+type status = Match | Dont_match
+
+let open_token_result_dialog user token =
+  ignore
+  <$> Page.open_dialog @@ fun return ->
+    Page.make'
+      ~title: (lwt "Created user")
+      [p [
+        txt "User ";
+        txt (Entry.id_as_string user);
+        txt " was created successfully. Pass them the following link: ";
+      ];
+      p [
+        let href = Endpoints.Page.(href User_password_reset) (NEString.to_string @@ Model.User.username' user) token in
+        a ~a: [a_href href] [txt href]
+      ];
+      p [
+        txt " for them to create a password.";
+      ];
+      ]
+      ~buttons: [Utils.Button.ok' ~return ()]
+
+let create () =
+  Main_page.assert_can_admin @@ fun () ->
+  let%lwt username_input =
+    Input.make_non_empty
+      ~type_: Text
+      ~placeholder: "JeanMilligan"
+      ~label: "Username"
+      ""
+  in
+  let signal =
+    RS.bind (Component.signal username_input) @@ fun username ->
+    S.const @@ Ok (Model.User.make ~username ())
+  in
+  Page.make'
+    ~title: (lwt "Create user")
+    [Component.html username_input;
+    ]
+    ~buttons: [
+      Utils.Button.make
+        ~label: "Create user"
+        ~label_processing: "Creating user..."
+        ~classes: ["btn-primary"]
+        ~disabled: (S.map Result.is_error signal)
+        ~onclick: (fun () ->
+          let user = Result.get_ok @@ S.value signal in
+          let%lwt (user, token) = Madge_client.call_exn Endpoints.Api.(route @@ User Create) user in
+          open_token_result_dialog user token;%lwt
+          Component.clear username_input
+        )
+        ();
+    ]

@@ -25,11 +25,11 @@ let create ?query () =
   in
   Page.make'
     ~title: (lwt "Explore")
-    ~on_load: (fun () -> SearchBar.focus @@ Search.search_bar search)
+    ~on_load: (fun () -> Search_bar.focus @@ Search.search_bar search)
     [
       Search.render
         search
-        ~make_result: (fun ~context result -> Utils.AnyResult.make_result ~context result)
+        ~make_result: (fun ~context result -> Utils.Any_result.make_result ~context result)
         ~attached_buttons: [
           Utils.Button.make
             ~label: "Filter"
@@ -37,15 +37,15 @@ let create ?query () =
             ~icon: "filter"
             ~classes: ["btn-primary"]
             ~onclick: (fun () ->
-              let search_text = S.value @@ SearchBar.text @@ Search.search_bar search in
-              let%lwt text = SearchComplexFiltersDialog.open_ search_text in
+              let search_text = S.value @@ Search_bar.text @@ Search.search_bar search in
+              let%lwt text = Search_complex_filters_dialog.open_ search_text in
               Option.iter
                 (fun text ->
                   let text = text ^ " " in
                   let bar = Search.search_bar search in
-                  SearchBar.set_text bar text;
+                  Search_bar.set_text bar text;
                   update_uri text;
-                  SearchBar.focus bar
+                  Search_bar.focus bar
                 )
                 text;
               lwt_unit

@@ -10,15 +10,15 @@ let prepare_gen (type model)(type access)(type model_validated)
   ~make_descr
   ~(make_result :
     ?classes: string list ->
-    ?action: Utils.ResultRow.action ->
-    ?prefix: Utils.ResultRow.cell list ->
-    ?suffix: Utils.ResultRow.cell list ->
+    ?action: Utils.Result_row.action ->
+    ?prefix: Utils.Result_row.cell list ->
+    ?suffix: Utils.Result_row.cell list ->
     (model, access) Entry.t ->
-    Utils.ResultRow.t
+    Utils.Result_row.t
   )
   ?(make_more_results =
   (const (S.const []): (model, access) Entry.t ->
-    Utils.ResultRow.t list S.t))
+    Utils.Result_row.t list S.t))
   ~model_name
   ?(create_dialog_content : (((model, access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) option)
   ~(validate : (model, access) Entry.t option -> (model_validated, string) Result.t)
@@ -98,7 +98,7 @@ let prepare_gen (type model)(type access)(type model_validated)
           ~dialog_title: (lwt label)
           ~make_result: (fun ~context: _ result ->
             make_result
-              ~action: (Utils.ResultRow.callback @@ fun () -> lwt @@ quick_search_return (Some result))
+              ~action: (Utils.Result_row.callback @@ fun () -> lwt @@ quick_search_return (Some result))
               result
           )
           ~dialog_buttons: (
@@ -125,7 +125,7 @@ let prepare_gen (type model)(type access)(type model_validated)
               ]
           )
       in
-      SearchBar.clear @@ Search.Quick.search_bar quick_search;
+      Search_bar.clear @@ Search.Quick.search_bar quick_search;
       flip Option.iter quick_search_result (fun r -> set (Some r));
       lwt_unit
     in
@@ -155,12 +155,12 @@ let prepare_gen (type model)(type access)(type model_validated)
               div ~a: [a_class ["rounded-2"; "border"; "w-100"; "px-2"; "py-1"]] [
                 tablex
                   ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"]]
-                  [tbody (List.map Utils.ResultRow.to_clickable_row [make_result model])];
+                  [tbody (List.map Utils.Result_row.to_clickable_row [make_result model])];
               ];
               div ~a: [a_class ["row"; "m-0"; "overflow-hidden"]] [
                 tablex
                   ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"; "col"]]
-                  [R.tbody (S.map (List.map Utils.ResultRow.to_clickable_row) (make_more_results model))];
+                  [R.tbody (S.map (List.map Utils.Result_row.to_clickable_row) (make_more_results model))];
               ]
             ]
       )

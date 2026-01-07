@@ -60,7 +60,7 @@ let or_l = function
 
 let pred value = Pred value
 
-let unPred = function Pred p -> Some p | _ -> None
+let pred_val = function Pred p -> Some p | _ -> None
 
 let interpret_false = 0.
 let interpret_true = 1.
@@ -124,9 +124,9 @@ let rec disjuncts = function
   | Or (f1, f2) -> disjuncts f1 @ disjuncts f2
   | f -> [f]
 
-let unCnf f =
-  let unDisj f = List.(all_some @@ map unPred (disjuncts f)) in
-  List.(all_some @@ map unDisj (conjuncts f))
+let cnf_val f =
+  let disj_val f = List.(all_some @@ map pred_val (disjuncts f)) in
+  List.(all_some @@ map disj_val (conjuncts f))
 
 let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise_predicate formula =
   let rec optimise_head = function

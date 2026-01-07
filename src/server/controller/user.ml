@@ -131,11 +131,11 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a 
   match endpoint with
   | Get -> get env
   | Status -> status env
-  | SignIn -> sign_in env
-  | SignOut -> sign_out env
+  | Sign_in -> sign_in env
+  | Sign_out -> sign_out env
   | Create -> create env
-  | ResetPassword -> reset_password
-  | CanCreate -> can_create env
-  | CanAdmin -> can_admin env
+  | Reset_password -> reset_password
+  | Can_create -> can_create env
+  | Can_admin -> can_admin env
   | Search -> search env
   | Set_omniscience -> set_omniscience env

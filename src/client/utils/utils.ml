@@ -3,8 +3,8 @@ open Common
 
 open Js_of_ocaml
 
-module AnyResult = AnyResult
-module ResultRow = ResultRow
+module Any_result = Any_result
+module Result_row = Result_row
 module Icon = Icon
 module Alert = Alert
 module Button = Button
@@ -92,5 +92,5 @@ let quick_explorer_links' model_lwt links =
 
 let href_any_for_sharing any =
   let current = Uri.of_string (Js.to_string Dom_html.window##.location##.href) in
-  let path = Endpoints.Page.(href Any) @@ Entry.id @@ ModelBuilder.Core.Any.to_entry any in
+  let path = Endpoints.Page.(href Any) @@ Entry.id @@ Model_builder.Core.Any.to_entry any in
   Uri.to_string @@ Uri.with_query (Uri.with_path current path) []

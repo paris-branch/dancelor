@@ -1,3 +1,3 @@
-module Base = KindBase
-module Version = KindVersion
-module Dance = KindDance
+module Base = Kind_base
+module Version = Kind_version
+module Dance = Kind_dance

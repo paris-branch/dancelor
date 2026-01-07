@@ -4,88 +4,88 @@ open Common
 let id_for key entry : string * unit Entry.Id.t = (key, Entry.Id.unsafe_coerce entry)
 
 module User = Table.Make(struct
-  include ModelBuilder.Core.User
+  include Model_builder.Core.User
   let dependencies _ = []
-  let wrap_any = ModelBuilder.Core.Any.user
+  let wrap_any = Model_builder.Core.Any.user
 end)
 
 module Person = Table.Make(struct
-  include ModelBuilder.Core.Person
+  include Model_builder.Core.Person
   let dependencies person =
-    List.map (id_for "user") (Option.to_list @@ ModelBuilder.Core.Person.user person)
-  let wrap_any = ModelBuilder.Core.Any.person
+    List.map (id_for "user") (Option.to_list @@ Model_builder.Core.Person.user person)
+  let wrap_any = Model_builder.Core.Any.person
 end)
 
 module Source = Table.Make(struct
-  include ModelBuilder.Core.Source
+  include Model_builder.Core.Source
   let dependencies source =
-    List.map (id_for "person") (ModelBuilder.Core.Source.editors source)
-  let wrap_any = ModelBuilder.Core.Any.source
+    List.map (id_for "person") (Model_builder.Core.Source.editors source)
+  let wrap_any = Model_builder.Core.Any.source
 end)
 
 module Dance = Table.Make(struct
-  include ModelBuilder.Core.Dance
+  include Model_builder.Core.Dance
   let dependencies dance =
-    List.map (id_for "person") (ModelBuilder.Core.Dance.devisers dance)
-  let wrap_any = ModelBuilder.Core.Any.dance
+    List.map (id_for "person") (Model_builder.Core.Dance.devisers dance)
+  let wrap_any = Model_builder.Core.Any.dance
 end)
 
 module Tune = Table.Make(struct
-  include ModelBuilder.Core.Tune
+  include Model_builder.Core.Tune
   let dependencies tune =
-    List.map (id_for "dance") (ModelBuilder.Core.Tune.dances tune) @
-      List.map (id_for "person") (ModelBuilder.Core.Tune.composers tune)
-  let wrap_any = ModelBuilder.Core.Any.tune
+    List.map (id_for "dance") (Model_builder.Core.Tune.dances tune) @
+      List.map (id_for "person") (Model_builder.Core.Tune.composers tune)
+  let wrap_any = Model_builder.Core.Any.tune
 end)
 
 module Version = Table.Make(struct
-  include ModelBuilder.Core.Version
+  include Model_builder.Core.Version
   let dependencies version =
-    [id_for "tune" (ModelBuilder.Core.Version.tune version)] @
-    List.map (id_for "source" % (fun ({source; _}: ModelBuilder.Core.Version.source_core) -> source)) (ModelBuilder.Core.Version.sources version) @
-    List.map (id_for "person") (ModelBuilder.Core.Version.arrangers version)
-  let wrap_any = ModelBuilder.Core.Any.version
+    [id_for "tune" (Model_builder.Core.Version.tune version)] @
+    List.map (id_for "source" % (fun ({source; _}: Model_builder.Core.Version.source_core) -> source)) (Model_builder.Core.Version.sources version) @
+    List.map (id_for "person") (Model_builder.Core.Version.arrangers version)
+  let wrap_any = Model_builder.Core.Any.version
 end)
 
-module SetModel = struct
-  include ModelBuilder.Core.Set
+module Set_model = struct
+  include Model_builder.Core.Set
   let dependencies set =
-    List.map (id_for "version" % fst) (ModelBuilder.Core.Set.contents set) @
-    List.map (id_for "person") (ModelBuilder.Core.Set.conceptors set) @
-    List.map (id_for "dance") (ModelBuilder.Core.Set.dances set)
-  let wrap_any = ModelBuilder.Core.Any.set
+    List.map (id_for "version" % fst) (Model_builder.Core.Set.contents set) @
+    List.map (id_for "person") (Model_builder.Core.Set.conceptors set) @
+    List.map (id_for "dance") (Model_builder.Core.Set.dances set)
+  let wrap_any = Model_builder.Core.Any.set
 end
 
-module Set = Table.Make(SetModel)
+module Set = Table.Make(Set_model)
 
 module Book = Table.Make(struct
-  include ModelBuilder.Core.Book
+  include Model_builder.Core.Book
   let dependencies book =
     let contents_dependencies =
       List.map
         (function
-          | ModelBuilder.Core.Book.Page.Part _ -> []
-          | ModelBuilder.Core.Book.Page.Dance (dance, page_dance) ->
+          | Model_builder.Core.Book.Page.Part _ -> []
+          | Model_builder.Core.Book.Page.Dance (dance, page_dance) ->
             let page_dance_dependencies =
               match page_dance with
-              | ModelBuilder.Core.Book.Page.DanceOnly -> []
-              | ModelBuilder.Core.Book.Page.DanceVersions versions_and_params ->
+              | Model_builder.Core.Book.Page.Dance_only -> []
+              | Model_builder.Core.Book.Page.Dance_versions versions_and_params ->
                 List.map (id_for "version" % fst) (NEList.to_list versions_and_params)
-              | ModelBuilder.Core.Book.Page.DanceSet (set, _) ->
+              | Model_builder.Core.Book.Page.Dance_set (set, _) ->
                 [id_for "set" set]
             in
               (id_for "dance" dance :: page_dance_dependencies)
-          | ModelBuilder.Core.Book.Page.Versions versions_and_params ->
+          | Model_builder.Core.Book.Page.Versions versions_and_params ->
             List.map (id_for "version" % fst) (NEList.to_list versions_and_params)
-          | ModelBuilder.Core.Book.Page.Set (set, _) ->
+          | Model_builder.Core.Book.Page.Set (set, _) ->
             [id_for "set" set]
         )
-        (ModelBuilder.Core.Book.contents book)
+        (Model_builder.Core.Book.contents book)
     in
-    List.map (id_for "source") (ModelBuilder.Core.Book.sources book) @
-    List.map (id_for "person") (ModelBuilder.Core.Book.authors book) @
+    List.map (id_for "source") (Model_builder.Core.Book.sources book) @
+    List.map (id_for "person") (Model_builder.Core.Book.authors book) @
     List.flatten contents_dependencies
-  let wrap_any = ModelBuilder.Core.Any.book
+  let wrap_any = Model_builder.Core.Any.book
 end)
 
 module Storage = Storage
@@ -103,7 +103,7 @@ let tables : (module Table.S)list = [
 
 let reverse_dependencies_of (id : 'any Entry.Id.t) : Table.reverse_dependencies =
   let id = Entry.Id.unsafe_coerce id in
-  ReverseDependencies (
+  Reverse_dependencies (
     List.concat_map
       (fun (module T : Table.S) ->
         List.of_seq @@

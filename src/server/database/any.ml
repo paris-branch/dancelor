@@ -1,1 +1,1 @@
-let get = Table.GloballyUniqueId.get
+let get = Table.Globally_unique_id.get

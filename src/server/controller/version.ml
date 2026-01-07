@@ -128,7 +128,7 @@ let build_pdf env id version_params rendering_params =
   with_copyright_check env version @@ fun () ->
   (* never show the headers for a simple version *)
   let rendering_params =
-    RenderingParameters.update
+    Rendering_parameters.update
       ~show_headers: (const (some false))
       rendering_params
   in
@@ -137,33 +137,33 @@ let build_pdf env id version_params rendering_params =
     let title =
       NEString.to_string @@
         Option.value
-          (Model.VersionParameters.display_name version_params)
+          (Model.Version_parameters.display_name version_params)
           ~default: (Model.Tune.one_name' tune)
     in
-    let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Tune.composers' tune in
-    let subjects = [KindBase.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
+    let%lwt authors = Model_to_renderer.format_persons_list <$> Model.Tune.composers' tune in
+    let subjects = [Kind.Base.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
     lwt Renderer.{title; authors; subjects}
   in
-  let set_params = Model.SetParameters.make ?display_name: (Model.VersionParameters.display_name version_params) () in
-  let version_params = Model.VersionParameters.set_display_name (NEString.of_string_exn " ") version_params in
-  let%lwt set = ModelToRenderer.versions_to_renderer_set' (NEList.singleton (version, version_params)) set_params in
-  let%lwt book_pdf_arg = ModelToRenderer.renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata in
+  let set_params = Model.Set_parameters.make ?display_name: (Model.Version_parameters.display_name version_params) () in
+  let version_params = Model.Version_parameters.set_display_name (NEString.of_string_exn " ") version_params in
+  let%lwt set = Model_to_renderer.versions_to_renderer_set' (NEList.singleton (version, version_params)) set_params in
+  let%lwt book_pdf_arg = Model_to_renderer.renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata in
   lwt @@ uncurry Job.register_job @@ Renderer.make_book_pdf book_pdf_arg
 
 (** For use in {!Routine}. *)
 let render_snippets ?version_params version =
-  let%lwt tune = ModelToRenderer.version_to_renderer_tune ?version_params version in
+  let%lwt tune = Model_to_renderer.version_to_renderer_tune ?version_params version in
   lwt @@ Renderer.make_tune_snippets tune
 
 let register_snippets_job ?version_params version =
-  let%lwt tune = ModelToRenderer.version_to_renderer_tune ?version_params version in
+  let%lwt tune = Model_to_renderer.version_to_renderer_tune ?version_params version in
   let svg_job = Renderer.make_tune_svg tune in
   let ogg_job = Renderer.make_tune_ogg tune in
   lwt @@
     match (uncurry Job.register_job svg_job, uncurry Job.register_job ogg_job) with
-    | AlreadySucceeded svg_job_id, AlreadySucceeded ogg_job_id -> Endpoints.Job.AlreadySucceeded Endpoints.Version.Snippet_ids.{svg_job_id; ogg_job_id}
-    | Registered svg_job_id, AlreadySucceeded ogg_job_id -> Registered {svg_job_id; ogg_job_id}
-    | AlreadySucceeded svg_job_id, Registered ogg_job_id -> Registered {svg_job_id; ogg_job_id}
+    | Already_succeeded svg_job_id, Already_succeeded ogg_job_id -> Endpoints.Job.Already_succeeded Endpoints.Version.Snippet_ids.{svg_job_id; ogg_job_id}
+    | Registered svg_job_id, Already_succeeded ogg_job_id -> Registered {svg_job_id; ogg_job_id}
+    | Already_succeeded svg_job_id, Registered ogg_job_id -> Registered {svg_job_id; ogg_job_id}
     | Registered svg_job_id, Registered ogg_job_id -> Registered {svg_job_id; ogg_job_id}
 
 let build_snippets env id version_params _rendering_params =
@@ -185,6 +185,6 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t ->
   | Create -> create env
   | Update -> update env
   | Delete -> delete env
-  | BuildPdf -> build_pdf env
-  | BuildSnippets -> build_snippets env
-  | BuildSnippets' -> build_snippets' env
+  | Build_pdf -> build_pdf env
+  | Build_snippets -> build_snippets env
+  | Build_snippets' -> build_snippets' env

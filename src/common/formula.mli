@@ -58,7 +58,7 @@ val conjuncts : 'p t -> 'p t list
 (** Returns all the conjuncts of the given formula. [and_l (conjuncts f) = f].
     The returned list is never empty. *)
 
-val unCnf : 'p t -> 'p list list option
+val cnf_val : 'p t -> 'p list list option
 (** Given a formula in conjunctive normal form (CNF), return said CNF. Otherwise
     return [None]. This function {i does not} compute the CNF. *)
 

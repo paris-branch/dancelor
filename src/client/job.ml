@@ -21,21 +21,21 @@ let run' slug promise =
   Lwt_stream.(concat % return_lwt) @@
   match%lwt promise with
   | Error error -> raise (Madge_client.Error error)
-  | Ok Endpoints.Job.AlreadySucceeded jobId ->
-    lwt @@ Lwt_stream.return (Succeeded (Endpoints.Api.(href @@ Job File) jobId slug))
-  | Ok Endpoints.Job.Registered jobId ->
+  | Ok Endpoints.Job.Already_succeeded job_id ->
+    lwt @@ Lwt_stream.return (Succeeded (Endpoints.Api.(href @@ Job File) job_id slug))
+  | Ok Endpoints.Job.Registered job_id ->
     let first_time = ref true in
     lwt @@
     Lwt_stream.from_next @@ fun () ->
     (* the very first time, do not wait *)
     if !first_time then (first_time := false; lwt_unit) else Js_of_ocaml_lwt.Lwt_js.sleep 3.;%lwt
-    let%lwt status = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) jobId in
+    let%lwt status = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) job_id in
     lwt @@
       match status with
       | Pending -> Lwt_stream.Next Pending
       | Running logs -> Lwt_stream.Next (Running logs)
       | Failed logs -> Lwt_stream.Next (Failed logs)
-      | Succeeded -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) jobId slug))
+      | Succeeded -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) job_id slug))
 
 (** Run a job, and return a signal that contains its status. *)
 let run slug route =
@@ -48,21 +48,21 @@ let run3 slug promise =
   Lwt_stream.(concat % return_lwt) @@
   match%lwt promise with
   | None -> assert false
-  | Some Endpoints.Job.AlreadySucceeded jobId ->
-    lwt @@ Lwt_stream.return (Succeeded (Endpoints.Api.(href @@ Job File) jobId slug))
-  | Some Endpoints.Job.Registered jobId ->
+  | Some Endpoints.Job.Already_succeeded job_id ->
+    lwt @@ Lwt_stream.return (Succeeded (Endpoints.Api.(href @@ Job File) job_id slug))
+  | Some Endpoints.Job.Registered job_id ->
     let first_time = ref true in
     lwt @@
     Lwt_stream.from_next @@ fun () ->
     (* the very first time, do not wait *)
     if !first_time then (first_time := false; lwt_unit) else Js_of_ocaml_lwt.Lwt_js.sleep 3.;%lwt
-    let%lwt status = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) jobId in
+    let%lwt status = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) job_id in
     lwt @@
       match status with
       | Pending -> Lwt_stream.Next Pending
       | Running logs -> Lwt_stream.Next (Running logs)
       | Failed logs -> Lwt_stream.Next (Failed logs)
-      | Succeeded -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) jobId slug))
+      | Succeeded -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) job_id slug))
 
 let copyright_reponse_promise_to_job_registration_promise copyright_response_promise =
   match%lwt copyright_response_promise with
@@ -106,7 +106,7 @@ let show_live_status ~on_succeeded status_signal =
   flip S.map status_signal @@ function
     | Registering ->
       [
-        Utils.Alert.make ~level: Info ~icon: CloudUpload [
+        Utils.Alert.make ~level: Info ~icon: Cloud_upload [
           txt
             "The document generation job is being sent to the server.";
         ];
@@ -116,7 +116,7 @@ let show_live_status ~on_succeeded status_signal =
       [
         Utils.Alert.make
           ~level: Info
-          ~icon: HourglassBottom
+          ~icon: Hourglass_bottom
           [
             txt
               "The document generation job is pending, that is it has been \

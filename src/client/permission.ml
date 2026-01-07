@@ -2,10 +2,10 @@ open Nes
 open Common
 
 let can_create () =
-  Madge_client.call_exn Endpoints.Api.(route @@ User CanCreate)
+  Madge_client.call_exn Endpoints.Api.(route @@ User Can_create)
 
 let can_admin () =
-  Madge_client.call_exn Endpoints.Api.(route @@ User CanAdmin)
+  Madge_client.call_exn Endpoints.Api.(route @@ User Can_admin)
 
 type can_get_private =
   | Everyone (** everyone can see this entry *)
