@@ -250,12 +250,12 @@ let make_result ?classes ?context any =
             let%lwt reason = Option.get <$> Permission.can_get_private entry in
             let (icon, tooltip) =
               match reason with
-              | Everyone -> ("globe", "You can see this entry because it is made public by its owner.")
-              | Viewer -> ("unlock", "You can see this entry because its owner marked you as one of its viewers.")
-              | Owner -> ("lock-fill", "You can see this entry because you are its owner.")
-              | Omniscient_administrator -> ("shield-lock-fill", "You can see this entry because you are an administrator, with omniscience enabled.")
+              | Everyone -> (Icon.(Access Everyone), "You can see this entry because it is made public by its owner.")
+              | Viewer -> (Icon.(Access Viewer), "You can see this entry because its owner marked you as one of its viewers.")
+              | Owner -> (Icon.(Access Owner), "You can see this entry because you are its owner.")
+              | Omniscient_administrator -> (Icon.(Access Omniscient_administrator), "You can see this entry because you are an administrator, with omniscience enabled.")
             in
-            lwt [i ~a: [a_class ["bi"; "bi-" ^ icon]; a_title tooltip] []]
+            lwt [Icon.html ~tooltip icon]
           ]
         ]
       )

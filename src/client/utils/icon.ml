@@ -1,3 +1,16 @@
+(** Type for access-specific icons. *)
+type access =
+  | Everyone
+  | Viewer
+  | Owner
+  | Omniscient_administrator
+
+let access_to_string = function
+  | Everyone -> "globe"
+  | Viewer -> "unlock"
+  | Owner -> "lock-fill"
+  | Omniscient_administrator -> "shield-lock-fill"
+
 (** Type for alert-specific icons. *)
 type alert =
   | Info
@@ -21,10 +34,12 @@ let job_to_string = function
   | Running -> "cpu"
 
 type t =
+  | Access of access
   | Alert of alert
   | Job of job
 
 let to_string = function
+  | Access icon -> access_to_string icon
   | Alert icon -> alert_to_string icon
   | Job icon -> job_to_string icon
 
