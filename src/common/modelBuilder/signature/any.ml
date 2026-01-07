@@ -76,12 +76,12 @@ module type S = sig
     val to_string : t -> string
     (** Convert a type to a string, eg [to_string Person = "Person"]. *)
 
-    exception NotAType of string
+    exception Not_a_type of string
     (** See {!of_string}. *)
 
     val of_string : string -> t
     (** Convert a string to a type, eg. [of_string "person" = Person]. If the
-        string is not a valid representation of a type, raises {!NotAType}. *)
+        string is not a valid representation of a type, raises {!Not_a_type}. *)
 
     val of_string_opt : string -> t option
     (** Option equivalent of {!of_string}. *)

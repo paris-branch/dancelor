@@ -66,7 +66,7 @@ module Type = struct
     | Version -> "Version"
     | User -> "User"
 
-  exception NotAType of string
+  exception Not_a_type of string
 
   let of_string str =
     match String.lowercase_ascii str with
@@ -78,13 +78,13 @@ module Type = struct
     | "tune" -> Tune
     | "version" -> Version
     | "user" -> User
-    | _ -> raise (NotAType str)
+    | _ -> raise (Not_a_type str)
 
   let of_string_opt str =
     try
       Some (of_string str)
     with
-      | NotAType _ -> None
+      | Not_a_type _ -> None
 end
 
 let type_of = function
