@@ -12,7 +12,7 @@ type (_, _, _) t =
 | Update : ((Set.t Entry.Id.t -> Set.t -> Entry.Access.Private.t -> 'w), 'w, Set.entry) t
 | Delete : ((Set.t Entry.Id.t -> 'w), 'w, unit) t
 (* Files related to a set *)
-| BuildPdf : ((Set.t Entry.Id.t -> SetParameters.t -> RenderingParameters.t -> 'w), 'w, Job_id.t Job.registration_response) t
+| BuildPdf : ((Set.t Entry.Id.t -> SetParameters.t -> Rendering_parameters.t -> 'w), 'w, Job_id.t Job.registration_response) t
 [@@deriving madge_wrapped_endpoints]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
@@ -26,4 +26,4 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Update -> variable (module Entry.Id.S(Set)) @@ body "set" (module Set) @@ body "access" (module Entry.Access.Private) @@ put (module Entry.JPrivate(Set))
     | Delete -> variable (module Entry.Id.S(Set)) @@ delete (module JUnit)
     (* Files related to a set *)
-    | BuildPdf -> literal "build-pdf" @@ variable (module Entry.Id.S(Set)) @@ query "parameters" (module SetParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Job.Registration_response(Job_id))
+    | BuildPdf -> literal "build-pdf" @@ variable (module Entry.Id.S(Set)) @@ query "parameters" (module SetParameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Job.Registration_response(Job_id))

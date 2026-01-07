@@ -8,7 +8,7 @@ open Components
    factorisation here. *)
 type t = {
   choice_rows: Html_types.div elt list;
-  parameters_signal: (BookParameters.t * RenderingParameters.t) React.signal;
+  parameters_signal: (BookParameters.t * Rendering_parameters.t) React.signal;
 }
 
 let lift_set_parameters every_set =
@@ -34,11 +34,11 @@ let create () =
     );
     parameters_signal =
     S.merge
-      (Pair.map2 BookParameters.compose RenderingParameters.compose)
-      (BookParameters.none, RenderingParameters.none)
+      (Pair.map2 BookParameters.compose Rendering_parameters.compose)
+      (BookParameters.none, Rendering_parameters.none)
       [
         S.map (Pair.map_fst lift_set_parameters) set_dialog.parameters_signal;
-        S.map (Pair.snoc RenderingParameters.none % Option.value ~default: BookParameters.none % Option.join % Result.to_option) (Component.signal booklet_choices);
+        S.map (Pair.snoc Rendering_parameters.none % Option.value ~default: BookParameters.none % Option.join % Result.to_option) (Component.signal booklet_choices);
       ]
   }
 

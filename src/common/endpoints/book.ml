@@ -12,7 +12,7 @@ type (_, _, _) t =
 | Update : ((Book.t Entry.Id.t -> Book.t -> Entry.Access.Private.t -> 'w), 'w, Book.entry) t
 | Delete : ((Book.t Entry.Id.t -> 'w), 'w, unit) t
 (* Files related to a book *)
-| BuildPdf : ((Book.t Entry.Id.t -> BookParameters.t -> RenderingParameters.t -> 'w), 'w, Job_id.t Job.registration_response) t
+| BuildPdf : ((Book.t Entry.Id.t -> BookParameters.t -> Rendering_parameters.t -> 'w), 'w, Job_id.t Job.registration_response) t
 [@@deriving madge_wrapped_endpoints]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
@@ -26,4 +26,4 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Update -> variable (module Entry.Id.S(Book)) @@ body "book" (module Book) @@ body "access" (module Entry.Access.Private) @@ put (module Entry.JPrivate(Book))
     | Delete -> variable (module Entry.Id.S(Book)) @@ delete (module JUnit)
     (* Files related to a set *)
-    | BuildPdf -> literal "build-pdf" @@ variable (module Entry.Id.S(Book)) @@ query "parameters" (module BookParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Job.Registration_response(Job_id))
+    | BuildPdf -> literal "build-pdf" @@ variable (module Entry.Id.S(Book)) @@ query "parameters" (module BookParameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Job.Registration_response(Job_id))

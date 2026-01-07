@@ -128,7 +128,7 @@ let build_pdf env id version_params rendering_params =
   with_copyright_check env version @@ fun () ->
   (* never show the headers for a simple version *)
   let rendering_params =
-    RenderingParameters.update
+    Rendering_parameters.update
       ~show_headers: (const (some false))
       rendering_params
   in

@@ -7,7 +7,7 @@ open Model
    factorisation here. *)
 type t = {
   choice_rows: Html_types.div elt list;
-  parameters_signal: (SetParameters.t * RenderingParameters.t) React.signal;
+  parameters_signal: (SetParameters.t * Rendering_parameters.t) React.signal;
 }
 
 let lift_version_parameters every_version =
@@ -25,7 +25,7 @@ let create () =
             [txt "No"]
             ~value: (
               SetParameters.none,
-              RenderingParameters.make ~show_headers: false ()
+              Rendering_parameters.make ~show_headers: false ()
             );
         ]
     )
@@ -35,9 +35,9 @@ let create () =
       Components.Component.html headers_choices
     ];
     parameters_signal =
-    let no_parameters = (SetParameters.none, RenderingParameters.none) in
+    let no_parameters = (SetParameters.none, Rendering_parameters.none) in
     S.merge
-      (Pair.map2 SetParameters.compose RenderingParameters.compose)
+      (Pair.map2 SetParameters.compose Rendering_parameters.compose)
       no_parameters
       [
         S.map (Pair.map_fst lift_version_parameters) version_dialog.parameters_signal;

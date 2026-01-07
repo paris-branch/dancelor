@@ -74,7 +74,7 @@ let make ?show_logs ?show_audio ?(params = Model.VersionParameters.none) version
       Endpoints.Api.(route @@ Version BuildSnippets)
       (Entry.id version)
       params
-      RenderingParameters.none
+      Rendering_parameters.none
   in
   let is_protected_promise =
     match%lwt copyright_response_promise with
@@ -129,7 +129,7 @@ let make_preview ?show_logs ?show_audio ?(params = Model.VersionParameters.none)
       Endpoints.Api.(route @@ Version BuildSnippets')
       version
       params
-      RenderingParameters.none
+      Rendering_parameters.none
   in
   let svg_status_signal =
     Job.status_signal_from_promise @@

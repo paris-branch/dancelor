@@ -7,7 +7,7 @@ open Components
 
 type t = {
   choice_rows: Html_types.div elt list;
-  parameters_signal: (VersionParameters.t * RenderingParameters.t) React.signal;
+  parameters_signal: (VersionParameters.t * Rendering_parameters.t) React.signal;
 }
 
 (* TODO: Unicode flat in the rendering *)
@@ -23,13 +23,13 @@ let create () =
             [txt "B♭"]
             ~value: (
               VersionParameters.make ~transposition: (Transposition.from_semitones 2) (),
-              RenderingParameters.make ~instruments: "Bb instruments" ()
+              Rendering_parameters.make ~instruments: "Bb instruments" ()
             );
           choice'
             [txt "E♭"]
             ~value: (
               VersionParameters.make ~transposition: (Transposition.from_semitones (-3)) (),
-              RenderingParameters.make ~instruments: "Eb instruments" ()
+              Rendering_parameters.make ~instruments: "Eb instruments" ()
             );
         ]
     )
@@ -44,16 +44,16 @@ let create () =
             [txt @@ Music.Clef.(to_symbol Bass)]
             ~value: (
               VersionParameters.make ~clef: Bass ~transposition: (Transposition.from_semitones (-12)) (),
-              RenderingParameters.make ~clef: "bass clef" ()
+              Rendering_parameters.make ~clef: "bass clef" ()
             );
         ]
     )
   in
   (* A signal containing the composition of all the parameters. *)
   let parameters_signal =
-    let no_parameters = (VersionParameters.none, RenderingParameters.none) in
+    let no_parameters = (VersionParameters.none, Rendering_parameters.none) in
     S.merge
-      (Pair.map2 VersionParameters.compose RenderingParameters.compose)
+      (Pair.map2 VersionParameters.compose Rendering_parameters.compose)
       no_parameters
       [
         S.map (Option.value ~default: no_parameters % Option.join % Result.to_option) (Component.signal key_choices);

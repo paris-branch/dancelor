@@ -217,11 +217,11 @@ let grab_renderer_book_pdf_args rendering_params =
     String.concat ", " ~last: " and " @@
       List.flatten
         [
-          Option.to_list (RenderingParameters.instruments rendering_params);
-          Option.to_list (RenderingParameters.clef rendering_params);
+          Option.to_list (Rendering_parameters.instruments rendering_params);
+          Option.to_list (Rendering_parameters.clef rendering_params);
         ]
   in
-  let headers = Option.value ~default: true @@ RenderingParameters.show_headers rendering_params in
+  let headers = Option.value ~default: true @@ Rendering_parameters.show_headers rendering_params in
     (specificity, headers)
 
 let renderer_book_to_renderer_book_pdf_arg (book : Renderer.book) rendering_params pdf_metadata =
