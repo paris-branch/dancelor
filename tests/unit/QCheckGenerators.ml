@@ -6,7 +6,7 @@ module Id = struct
   let gen _ =
     let open Gen in
     (* generate 11 digits in base 36 *)
-    flatten_l (List.init 11 (fun _ -> int_range 0 35)) >>= fun digits ->
+    flatten_list (List.init 11 (fun _ -> int_range 0 35)) >>= fun digits ->
     (* add the checksum digit in front *)
     let digits = ((36 - ((List.fold_left (+) 0 digits) mod 36)) mod 36) :: digits in
     (* turn the digits into alphanumerals *)

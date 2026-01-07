@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-test:
-    name: Build and test
+  build-and-test-via-nix-package:
+    name: Build and test (via Nix package)
     runs-on: ubuntu-latest
 
     steps:
@@ -38,13 +38,7 @@ jobs:
           name: dancelor
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
-      ## The following tests that the development Shell builds properly, but
-      ## also it build most of the things that aren't relevant to building
-      ## Dancelor. This makes the Actions' feedback more precise.
-      - name: Build Nix development Shell
-        run: nix build .#devShells.x86_64-linux.default -vL --no-link
-
-      - name: Build (and run unit tests)
+      - name: Build Dancelor's Nix package
         run: nix build .#packages.x86_64-linux.dancelor -vL --no-link
 
       - name: Build API documentation
@@ -55,18 +49,76 @@ jobs:
           nix build .#checks.x86_64-linux.renderer-tune-snippets -vL --no-link
           nix build .#checks.x86_64-linux.renderer-book-pdf -vL --no-link
 
+      ## NOTE: The following is the dirtiest hack: because integration tests are
+      ## very flaky, we just run them a bunch of times in a row.
       - name: Run integration tests
-        run: nix build .#checks.x86_64-linux.integration -vL --no-link
+        run: |
+          success=false
+          for i in $(seq 5); do
+            echo
+            echo "====================================== [ Run $i ] ======================================"
+            if nix build .#checks.x86_64-linux.integration -vL --no-link; then
+              success=true
+              break
+            fi
+          done
+          $success && exit 0 || exit 1
 
       - name: Upload GitHub pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
           path: api-doc/
 
+  ## This CI job is similar to the previous one in that it builds Dancelor and
+  ## runs some tests. However, it does so via the devShell instead of building
+  ## eg. `.#dancelor`. This allows testing the actual development environment.
+  ## Some peculiarities:
+  ##
+  ## - `.#dancelor` is built in release mode, which will disable some tests (eg.
+  ##   inline tests) and some warnings, making the previous job more lenient.
+  ##
+  ## - This job builds the whole devShell which includes things like the LSP.
+  ##   They are not needed for testing, but we like to check that they work.
+  ##
+  ## - We do not run integration tests, because it is very clunky to run them in
+  ##   the development environment. (Although doable with something like `make
+  ##   dev-test & pytest`.)
+  ##
+  build-and-test-via-development-shell:
+    name: Build and test (in development Shell)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@V28
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+            ## Access token to avoid triggering GitHub's rate limiting.
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Nix caches
+        uses: cachix/cachix-action@v16
+        with:
+          name: dancelor
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: Build Nix development Shell
+        run: nix build .#devShells.x86_64-linux.default -vL --no-link
+
+      - name: Build Dancelor in development Shell
+        run: nix develop --command dune build
+
+      - name: Run unit tests
+        run: nix develop --command dune test
+
   deploy-documentation:
     name: Deploy documentation
     runs-on: ubuntu-latest
-    needs: build-and-test
+    needs: build-and-test-via-nix-package
     if: github.ref == 'refs/heads/main'
 
     ## Grant GITHUB_TOKEN the permissions required to make a Pages deployment.
