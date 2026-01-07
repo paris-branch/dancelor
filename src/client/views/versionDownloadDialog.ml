@@ -108,7 +108,7 @@ let open_ version dialog =
           open_pdf_generation_dialog (
             let copyright_response_promise =
               Madge_client.call
-                Endpoints.Api.(route @@ Version BuildPdf)
+                Endpoints.Api.(route @@ Version Build_pdf)
                 (Entry.id version)
                 version_params
                 rendering_params

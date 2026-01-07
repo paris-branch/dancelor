@@ -66,4 +66,4 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Set.t -> a =
   | Create -> create env
   | Update -> update env
   | Delete -> delete env
-  | BuildPdf -> build_pdf env
+  | Build_pdf -> build_pdf env

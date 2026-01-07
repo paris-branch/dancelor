@@ -64,7 +64,7 @@ let register_job (expr : expr) (file : string) : Job_id.t Endpoints.Job.registra
      new job, but will often happen with cache hits. it saves one network call
      by allowing the client to request the file immediately *)
   match !(job_and_file.job.state) with
-  | Succeeded _ -> AlreadySucceeded job_and_file.id
+  | Succeeded _ -> Already_succeeded job_and_file.id
   | _ -> Registered job_and_file.id
 
 let run_job job =

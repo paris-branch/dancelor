@@ -4,7 +4,7 @@ open Madge
 (** Abstract type of the response to a registration endpoint, parametrised
     by the payload. *)
 type 'payload registration_response =
-  | AlreadySucceeded of 'payload (** for when the job is cached and has already succeeded; avoids an extra call to check the status *)
+  | Already_succeeded of 'payload (** for when the job is cached and has already succeeded; avoids an extra call to check the status *)
   | Registered of 'payload (** the job has been registered (whether it happened right now or already before) *)
 [@@deriving yojson]
 

@@ -61,7 +61,7 @@ let open_ set dialog =
           VersionDownloadDialog.open_pdf_generation_dialog (
             Job.run
               (NesSlug.add_suffix (Set.slug' set) ".pdf")
-              Endpoints.Api.(route @@ Set BuildPdf)
+              Endpoints.Api.(route @@ Set Build_pdf)
               (Entry.id set)
               set_params
               rendering_params

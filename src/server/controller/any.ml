@@ -88,4 +88,4 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Any.t -> a =
   match endpoint with
   | Get -> get env
   | Search -> search env
-  | SearchContext -> search_context env
+  | Search_context -> search_context env

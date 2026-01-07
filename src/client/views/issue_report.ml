@@ -69,7 +69,7 @@ let open_dialog page =
     RS.bind (Component.signal title_input) @@ fun title ->
     RS.bind (Component.signal description_input) @@ fun description ->
     RS.bind (Component.signal source) @@ fun source ->
-    RS.pure Endpoints.IssueReport.Request.{reporter; page; source_is_dancelor = source; title; description}
+    RS.pure Endpoints.Issue_report.Request.{reporter; page; source_is_dancelor = source; title; description}
   in
   let%lwt response =
     Page.open_dialog @@ fun return ->
@@ -98,7 +98,7 @@ let open_dialog page =
               (S.value request_signal)
               ~none: lwt_unit
               ~some: (fun request ->
-                let%lwt response = Madge_client.call_exn Endpoints.Api.(route ReportIssue) request in
+                let%lwt response = Madge_client.call_exn Endpoints.Api.(route Report_issue) request in
                 return @@ Some response;
                 lwt_unit
               )

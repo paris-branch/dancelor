@@ -36,10 +36,10 @@ type (_, _, _) t =
 | Update : ((Version.t Entry.Id.t -> Version.t -> 'w), 'w, Version.entry) t
 | Delete : ((Version.t Entry.Id.t -> 'w), 'w, unit) t
 (* Files related to a version *)
-| BuildSnippets : ((Version.t Entry.Id.t -> Version_parameters.t -> Rendering_parameters.t -> 'w), 'w, Snippet_ids.t Job.registration_response copyright_response) t
-| BuildPdf : ((Version.t Entry.Id.t -> Version_parameters.t -> Rendering_parameters.t -> 'w), 'w, Job_id.t Job.registration_response copyright_response) t
+| Build_snippets : ((Version.t Entry.Id.t -> Version_parameters.t -> Rendering_parameters.t -> 'w), 'w, Snippet_ids.t Job.registration_response copyright_response) t
+| Build_pdf : ((Version.t Entry.Id.t -> Version_parameters.t -> Rendering_parameters.t -> 'w), 'w, Job_id.t Job.registration_response copyright_response) t
 (* Files related to an anonymous version *)
-| BuildSnippets' : ((Version.t -> Version_parameters.t -> Rendering_parameters.t -> 'w), 'w, Snippet_ids.t Job.registration_response) t
+| Build_snippets' : ((Version.t -> Version_parameters.t -> Rendering_parameters.t -> 'w), 'w, Snippet_ids.t Job.registration_response) t
 [@@deriving madge_wrapped_endpoints]
 
 (* NOTE: The version model contains its LilyPond content. This is a big string
@@ -72,7 +72,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module Entry.JPublic(VersionNoLilypond))
     | Delete -> variable (module Entry.Id.S(Version)) @@ delete (module JUnit)
     (* Files related to a version *)
-    | BuildSnippets -> literal "build-snippets" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module Version_parameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Copyright_response(Job.Registration_response(Snippet_ids)))
-    | BuildPdf -> literal "build-pdf" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module Version_parameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Copyright_response(Job.Registration_response(Job_id)))
+    | Build_snippets -> literal "build-snippets" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module Version_parameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Copyright_response(Job.Registration_response(Snippet_ids)))
+    | Build_pdf -> literal "build-pdf" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module Version_parameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Copyright_response(Job.Registration_response(Job_id)))
     (* Files related to an anonymous version *)
-    | BuildSnippets' -> literal "build-snippets" @@ query "version" (module Version) @@ query "parameters" (module Version_parameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Job.Registration_response(Snippet_ids))
+    | Build_snippets' -> literal "build-snippets" @@ query "version" (module Version) @@ query "parameters" (module Version_parameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Job.Registration_response(Snippet_ids))

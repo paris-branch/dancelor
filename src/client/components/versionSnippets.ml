@@ -71,7 +71,7 @@ let make_gen
 let make ?show_logs ?show_audio ?(params = Model.Version_parameters.none) version =
   let copyright_response_promise =
     Madge_client.call
-      Endpoints.Api.(route @@ Version BuildSnippets)
+      Endpoints.Api.(route @@ Version Build_snippets)
       (Entry.id version)
       params
       Rendering_parameters.none
@@ -94,7 +94,7 @@ let make ?show_logs ?show_audio ?(params = Model.Version_parameters.none) versio
         lwt_ok @@
           Endpoints.Version.map_copyright_response
             (function
-              | Endpoints.Job.AlreadySucceeded snippet_ids -> Endpoints.Job.AlreadySucceeded snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
+              | Endpoints.Job.Already_succeeded snippet_ids -> Endpoints.Job.Already_succeeded snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
               | Registered snippet_ids -> Registered snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
             )
             copyright_response
@@ -111,7 +111,7 @@ let make ?show_logs ?show_audio ?(params = Model.Version_parameters.none) versio
         lwt_ok @@
           Endpoints.Version.map_copyright_response
             (function
-              | Endpoints.Job.AlreadySucceeded snippet_ids -> Endpoints.Job.AlreadySucceeded snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
+              | Endpoints.Job.Already_succeeded snippet_ids -> Endpoints.Job.Already_succeeded snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
               | Registered snippet_ids -> Registered snippet_ids.Endpoints.Version.Snippet_ids.ogg_job_id
             )
             copyright_response
@@ -126,7 +126,7 @@ let make ?show_logs ?show_audio ?(params = Model.Version_parameters.none) versio
 let make_preview ?show_logs ?show_audio ?(params = Model.Version_parameters.none) version =
   let copyright_response_promise =
     Madge_client.call
-      Endpoints.Api.(route @@ Version BuildSnippets')
+      Endpoints.Api.(route @@ Version Build_snippets')
       version
       params
       Rendering_parameters.none
@@ -140,7 +140,7 @@ let make_preview ?show_logs ?show_audio ?(params = Model.Version_parameters.none
         <$>
           match%lwt copyright_response_promise with
           | Error err -> lwt_error err
-          | Ok Endpoints.Job.AlreadySucceeded snippet_ids -> lwt_ok @@ Endpoints.Job.AlreadySucceeded snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
+          | Ok Endpoints.Job.Already_succeeded snippet_ids -> lwt_ok @@ Endpoints.Job.Already_succeeded snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
           | Ok Registered snippet_ids -> lwt_ok @@ Endpoints.Job.Registered snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
       )
   in
@@ -153,7 +153,7 @@ let make_preview ?show_logs ?show_audio ?(params = Model.Version_parameters.none
         <$>
           match%lwt copyright_response_promise with
           | Error err -> lwt_error err
-          | Ok Endpoints.Job.AlreadySucceeded snippet_ids -> lwt_ok @@ Endpoints.Job.AlreadySucceeded snippet_ids.Endpoints.Version.Snippet_ids.ogg_job_id
+          | Ok Endpoints.Job.Already_succeeded snippet_ids -> lwt_ok @@ Endpoints.Job.Already_succeeded snippet_ids.Endpoints.Version.Snippet_ids.ogg_job_id
           | Ok Registered snippet_ids -> lwt_ok @@ Endpoints.Job.Registered snippet_ids.Endpoints.Version.Snippet_ids.ogg_job_id
       )
   in

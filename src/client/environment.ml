@@ -10,7 +10,7 @@ let start_ping_routine () =
   let boot_time = ref None in
   let rec ping () =
     let old_boot_time = !boot_time in
-    let%lwt response = Madge_client.call ~retry: false Endpoints.Api.(route BootTime) in
+    let%lwt response = Madge_client.call ~retry: false Endpoints.Api.(route Boot_time) in
     (
       match response with
       | Ok new_boot_time ->

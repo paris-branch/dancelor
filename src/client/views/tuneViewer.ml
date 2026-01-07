@@ -21,7 +21,7 @@ let create ?context id =
       [Utils.Button.make_a
         ~label: "Edit"
         ~icon: "pencil-square"
-        ~href: (S.const @@ Endpoints.Page.(href TuneEdit) id)
+        ~href: (S.const @@ Endpoints.Page.(href Tune_edit) id)
         ~dropdown: true
         ();
       Utils.Action.delete

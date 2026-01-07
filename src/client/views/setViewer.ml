@@ -42,7 +42,7 @@ let create ?context id =
           Utils.Button.make_a
             ~label: "Edit"
             ~icon: "pencil-square"
-            ~href: (S.const @@ Endpoints.Page.(href SetEdit) id)
+            ~href: (S.const @@ Endpoints.Page.(href Set_edit) id)
             ~dropdown: true
             ();
           Utils.Action.delete
@@ -81,7 +81,7 @@ let create ?context id =
             let%lwt contents = Set.contents' set in
             Lwt_list.mapi_p
               (fun index (version, params) ->
-                let context = Endpoints.Page.inset id index in
+                let context = Endpoints.Page.in_set id index in
                 lwt @@
                   div
                     ~a: [a_class ["mt-4"]]

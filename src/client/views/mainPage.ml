@@ -96,13 +96,13 @@ let nav_item_create =
                   li [Utils.Button.make_a ~label ~icon ~href: (S.const href) ~dropdown: true ()]
                 )
                 [
-                  ("archive", href SourceAdd, "Source");
-                  ("person", href PersonAdd, "Person");
-                  ("person-arms-up", href DanceAdd, "Dance");
-                  ("music-note-list", href TuneAdd, "Tune");
-                  ("music-note-beamed", href VersionAdd, "Version");
-                  ("list-stars", href SetAdd, "Set");
-                  ("book", href BookAdd, "Book");
+                  ("archive", href Source_add, "Source");
+                  ("person", href Person_add, "Person");
+                  ("person-arms-up", href Dance_add, "Dance");
+                  ("music-note-list", href Tune_add, "Tune");
+                  ("music-note-beamed", href Version_add, "Version");
+                  ("list-stars", href Set_add, "Set");
+                  ("book", href Book_add, "Book");
                 ]
             );
         ]
@@ -206,7 +206,7 @@ let footer =
             ~icon: "bug"
             ~classes: ["btn-light"; "my-1"]
             ~onclick: (fun () ->
-              ignore <$> IssueReport.open_dialog @@ get_uri ()
+              ignore <$> Issue_report.open_dialog @@ get_uri ()
             )
             ()
         ];

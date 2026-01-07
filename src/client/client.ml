@@ -18,28 +18,28 @@ let dispatch uri =
     | Any -> redirect_any
     | Explore -> (fun query -> Explorer.create ?query ())
     | Book -> (fun context id -> BookViewer.create ?context id)
-    | BookAdd -> BookEditor.create Create_with_local_storage
-    | BookEdit -> BookEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Book.get)
+    | Book_add -> BookEditor.create Create_with_local_storage
+    | Book_edit -> BookEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Book.get)
     | Dance -> (fun context id -> DanceViewer.create ?context id)
-    | DanceAdd -> DanceEditor.create Create_with_local_storage
-    | DanceEdit -> DanceEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Dance.get)
+    | Dance_add -> DanceEditor.create Create_with_local_storage
+    | Dance_edit -> DanceEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Dance.get)
     | Person -> (fun context id -> PersonViewer.create ?context id)
-    | PersonAdd -> PersonEditor.create Create_with_local_storage
-    | PersonEdit -> PersonEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Person.get)
+    | Person_add -> PersonEditor.create Create_with_local_storage
+    | Person_edit -> PersonEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Person.get)
     | Version -> (fun context id -> VersionViewer.create ?context id)
-    | VersionAdd -> VersionEditor.create Create_with_local_storage
-    | VersionEdit -> VersionEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Version.get)
+    | Version_add -> VersionEditor.create Create_with_local_storage
+    | Version_edit -> VersionEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Version.get)
     | Tune -> (fun context id -> TuneViewer.create ?context id)
-    | TuneAdd -> TuneEditor.create Create_with_local_storage
-    | TuneEdit -> TuneEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Tune.get)
+    | Tune_add -> TuneEditor.create Create_with_local_storage
+    | Tune_edit -> TuneEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Tune.get)
     | Set -> (fun context id -> SetViewer.create ?context id)
-    | SetAdd -> SetEditor.create Create_with_local_storage
-    | SetEdit -> SetEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Set.get)
+    | Set_add -> SetEditor.create Create_with_local_storage
+    | Set_edit -> SetEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Set.get)
     | Source -> (fun context id -> SourceViewer.create ?context id)
-    | SourceAdd -> SourceEditor.create Create_with_local_storage
-    | SourceEdit -> SourceEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Source.get)
-    | UserCreate -> UserCreator.create ()
-    | UserPasswordReset -> UserPasswordResetter.create
+    | Source_add -> SourceEditor.create Create_with_local_storage
+    | Source_edit -> SourceEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Source.get)
+    | User_create -> UserCreator.create ()
+    | User_password_reset -> UserPasswordResetter.create
   in
   let madge_match_apply_all : Page.t Lwt.t Endpoints.Page.wrapped' list -> (unit -> Page.t Lwt.t) option =
     List.map_first_some @@ fun (Endpoints.Page.W' endpoint) ->

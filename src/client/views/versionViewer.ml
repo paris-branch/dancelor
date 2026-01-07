@@ -379,13 +379,13 @@ let create ?context id =
               Utils.Button.make_a
                 ~label: "Edit"
                 ~icon: "pencil-square"
-                ~href: (S.const @@ Endpoints.Page.(href VersionEdit) id)
+                ~href: (S.const @@ Endpoints.Page.(href Version_edit) id)
                 ~dropdown: true
                 ();
               Utils.Button.make_a
                 ~label: "Edit tune"
                 ~icon: "pencil-square"
-                ~href: (S.const @@ Endpoints.Page.(href TuneEdit) (Entry.id tune))
+                ~href: (S.const @@ Endpoints.Page.(href Tune_edit) (Entry.id tune))
                 ~dropdown: true
                 ();
               Utils.Action.delete

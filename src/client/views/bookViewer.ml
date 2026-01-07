@@ -73,7 +73,7 @@ let table_contents ~this_id contents =
         (
           List.map
             (fun (index, page) ->
-              let context = Endpoints.Page.inbook this_id index in
+              let context = Endpoints.Page.in_book this_id index in
               (* on non-viewable pages, index = -1 *)
               match page with
               | Book.Part title ->
@@ -198,7 +198,7 @@ let create ?context id =
       Utils.Button.make_a
         ~label: "Edit"
         ~icon: "pencil-square"
-        ~href: (S.const @@ Endpoints.Page.(href BookEdit) id)
+        ~href: (S.const @@ Endpoints.Page.(href Book_edit) id)
         ~dropdown: true
         ();
       Utils.Action.delete

@@ -37,12 +37,12 @@ end
 type (_, _, _) t =
   | Get : ((User.t Entry.Id.t -> 'w), 'w, ModelBuilder.Core.User.entry) t
   | Status : ('w, 'w, ModelBuilder.Core.User.entry option) t
-  | CanCreate : ('w, 'w, bool) t
-  | CanAdmin : ('w, 'w, bool) t
-  | SignIn : ((string -> string -> bool -> 'w), 'w, ModelBuilder.Core.User.entry option) t
-  | SignOut : ('w, 'w, unit) t
+  | Can_create : ('w, 'w, bool) t
+  | Can_admin : ('w, 'w, bool) t
+  | Sign_in : ((string -> string -> bool -> 'w), 'w, ModelBuilder.Core.User.entry option) t
+  | Sign_out : ('w, 'w, unit) t
   | Create : ((User.t -> 'w), 'w, ModelBuilder.Core.User.entry * string) t
-  | ResetPassword : ((string -> string -> string -> 'w), 'w, unit) t
+  | Reset_password : ((string -> string -> string -> 'w), 'w, unit) t
   | Search : ((Slice.t -> Filter.User.t -> 'w), 'w, (int * (User.t, Entry.Access.public) Entry.t list)) t
   | Set_omniscience : ((bool -> 'w), 'w, unit) t
 [@@deriving madge_wrapped_endpoints]
@@ -52,11 +52,11 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   function
     | Get -> variable (module Entry.Id.S(User)) @@ get (module Entry.JPublic(User))
     | Status -> literal "status" @@ post (module JOption(Entry.JPublic(User)))
-    | SignIn -> literal "sign-in" @@ body "username" (module JString) @@ body "password" (module JString) @@ body "remember-me" (module JBool) @@ post (module JOption(Entry.JPublic(User)))
-    | SignOut -> literal "sign-out" @@ post (module JUnit)
+    | Sign_in -> literal "sign-in" @@ body "username" (module JString) @@ body "password" (module JString) @@ body "remember-me" (module JBool) @@ post (module JOption(Entry.JPublic(User)))
+    | Sign_out -> literal "sign-out" @@ post (module JUnit)
     | Create -> literal "create" @@ body "user" (module User) @@ post (module JPair(Entry.JPublic(User))(JString))
-    | ResetPassword -> literal "reset-password" @@ body "username" (module JString) @@ body "token" (module JString) @@ body "password" (module JString) @@ post (module JUnit)
-    | CanCreate -> literal "can-create" @@ post (module JBool)
-    | CanAdmin -> literal "can-admin" @@ post (module JBool)
+    | Reset_password -> literal "reset-password" @@ body "username" (module JString) @@ body "token" (module JString) @@ body "password" (module JString) @@ post (module JUnit)
+    | Can_create -> literal "can-create" @@ post (module JBool)
+    | Can_admin -> literal "can-admin" @@ post (module JBool)
     | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.User) @@ get (module JPair(JInt)(JList(Entry.JPublic(User))))
     | Set_omniscience -> literal "set-omniscience" @@ body "value" (module JBool) @@ put (module JUnit)

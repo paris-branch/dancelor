@@ -1,7 +1,7 @@
 open Nes
 open Common
 
-open Endpoints.IssueReport
+open Endpoints.Issue_report
 open Request
 
 include Endpoints.Page.MakeDescribe(Model)

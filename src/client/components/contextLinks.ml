@@ -13,28 +13,28 @@ let book_page_to_any = function
 (** Given an element and a context, find the total number of elements, the
     previous element, the index of the given element and the next element. *)
 let get_neighbours any = function
-  | Endpoints.Page.InSearch query ->
+  | Endpoints.Page.In_search query ->
     (* TODO: Unify with [Explorer.search]. *)
     let filter = Result.get_ok (Filter.Any.from_string query) in
     let%lwt (total, previous, index, next) =
-      Madge_client.call_exn Endpoints.Api.(route @@ Any SearchContext) filter any
+      Madge_client.call_exn Endpoints.Api.(route @@ Any Search_context) filter any
     in
     lwt List.{total; previous; index; next; element = any}
-  | Endpoints.Page.InSet (set, index) ->
+  | Endpoints.Page.In_set (set, index) ->
     let%lwt set = Option.get <$> Set.get set in
     let%lwt context = Option.get <$> Set.find_context' index set in
     assert (any = Any.Version context.element);
     lwt @@ List.map_context Any.version context
-  | Endpoints.Page.InBook (book, index) ->
+  | Endpoints.Page.In_book (book, index) ->
     let%lwt book = Option.get <$> Book.get book in
     let%lwt contents = Book.contents' book in
     let viewable_content = List.filter_map book_page_to_any contents in
     lwt @@ Option.get @@ List.findi_context (fun i _ -> i = index) viewable_content
 
 let neighbour_context ~left = function
-  | Endpoints.Page.InSearch query -> Endpoints.Page.InSearch query
-  | Endpoints.Page.InSet (id, index) -> Endpoints.Page.InSet (id, index + if left then (-1) else 1)
-  | Endpoints.Page.InBook (id, index) -> Endpoints.Page.InBook (id, index + if left then (-1) else 1)
+  | Endpoints.Page.In_search query -> Endpoints.Page.In_search query
+  | Endpoints.Page.In_set (id, index) -> Endpoints.Page.In_set (id, index + if left then (-1) else 1)
+  | Endpoints.Page.In_book (id, index) -> Endpoints.Page.In_book (id, index + if left then (-1) else 1)
 
 let make_and_render ?context ~this_page any_lwt =
   Option.fold
@@ -44,9 +44,9 @@ let make_and_render ?context ~this_page any_lwt =
       let parent_href =
         let open Endpoints.Page in
         match context with
-        | InSearch query -> href Explore (Some query)
-        | InSet (id, _) -> href_set id
-        | InBook (id, _) -> href_book id
+        | In_search query -> href Explore (Some query)
+        | In_set (id, _) -> href_set id
+        | In_book (id, _) -> href_book id
       in
       let parent_a content = a ~a: [a_href parent_href] content in
       let context_links_placeholder = [
@@ -101,14 +101,14 @@ let make_and_render ?context ~this_page any_lwt =
               (
                 let open Endpoints.Page in
                 match context with
-                | InSearch "" ->
+                | In_search "" ->
                   lwt [txt "all the entries"]
-                | InSearch query ->
+                | In_search query ->
                   lwt [txt "search for: "; parent_a [txt query]]
-                | InSet (id, _) ->
+                | In_set (id, _) ->
                   let%lwt name = Set.name' % Option.get <$> Set.get id in
                   lwt [txt "set: "; parent_a [txt @@ NEString.to_string name]]
-                | InBook (id, _) ->
+                | In_book (id, _) ->
                   let%lwt name = Book.title' % Option.get <$> Book.get id in
                   lwt [txt "book: "; parent_a [txt @@ NEString.to_string name]]
               );

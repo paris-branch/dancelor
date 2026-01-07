@@ -58,7 +58,7 @@ let open_ book dialog =
           VersionDownloadDialog.open_pdf_generation_dialog (
             Job.run
               (NesSlug.add_suffix (Book.slug' book) ".pdf")
-              Endpoints.Api.(route @@ Book BuildPdf)
+              Endpoints.Api.(route @@ Book Build_pdf)
               (Entry.id book)
               book_params
               rendering_params

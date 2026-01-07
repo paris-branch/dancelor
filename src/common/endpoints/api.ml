@@ -13,9 +13,9 @@ module Endpoints = struct
     | Any : ('a, 'w, 'r) Any.t -> ('a, 'w, 'r) t
     | User : ('a, 'w, 'r) User.t -> ('a, 'w, 'r) t
     | Job : ('a, 'w, 'r) Job.t -> ('a, 'w, 'r) t
-    | ReportIssue : (IssueReport.request -> 'w, 'w, IssueReport.response) t
+    | Report_issue : (Issue_report.request -> 'w, 'w, Issue_report.response) t
     | Victor : ('w, 'w, Void.t) t
-    | BootTime : ('w, 'w, Datetime.t) t
+    | Boot_time : ('w, 'w, Datetime.t) t
   [@@deriving madge_wrapped_endpoints]
 end
 include Endpoints
@@ -36,9 +36,9 @@ include Madge.Make_endpoints(struct
       | Any endpoint -> literal "any" @@ Any.route endpoint
       | User endpoint -> literal "user" @@ User.route endpoint
       | Job endpoint -> literal "job" @@ Job.route endpoint
-      | ReportIssue -> literal "issue" @@ literal "report" @@ query "request" (module IssueReport.Request) @@ post (module IssueReport.Response)
+      | Report_issue -> literal "issue" @@ literal "report" @@ query "request" (module Issue_report.Request) @@ post (module Issue_report.Response)
       | Victor -> literal "victor" @@ void ()
-      | BootTime -> literal "boot-time" @@ get (module Datetime)
+      | Boot_time -> literal "boot-time" @@ get (module Datetime)
 end)
 
 let href : type a r. (a, string, r) t -> a = fun endpoint ->

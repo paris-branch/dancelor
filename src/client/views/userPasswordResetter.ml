@@ -47,7 +47,7 @@ let create username token =
         ~classes: ["btn-primary"]
         ~disabled: (S.map Result.is_error password)
         ~onclick: (fun () ->
-          Madge_client.call_exn Endpoints.Api.(route @@ User ResetPassword) username token (Result.get_ok @@ S.value password);%lwt
+          Madge_client.call_exn Endpoints.Api.(route @@ User Reset_password) username token (Result.get_ok @@ S.value password);%lwt
           Utils.Toast.open_ ~title: "Password reset" [txt "Your password has been reset successfully. You may now try to sign in."];
           Dom_html.window##.history##replaceState "fixme-the-state" (Js.string "") (Js.some (Js.string "/"));
           MainPage.load_sleep_raise (Index.create ());%lwt
