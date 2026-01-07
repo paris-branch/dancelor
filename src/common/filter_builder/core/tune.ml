@@ -1,7 +1,7 @@
 open Nes
 
 type predicate =
-  | Is of ModelBuilder.Core.Tune.t Entry.Id.t
+  | Is of Model_builder.Core.Tune.t Entry.Id.t
   | Name of string
   | Name_matches of string
   | Exists_composer of Person.t (** one of the composers of the list passes the filter *)

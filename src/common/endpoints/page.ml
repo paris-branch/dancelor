@@ -1,7 +1,7 @@
 (** {1 Client Router} *)
 
 open Nes
-open ModelBuilder
+open Model_builder
 
 (** Context in which a page might exist. TODO: I wonder whether it'd be possible
     to simply use [page] here, having pages carry a “parent” [page option]. *)
@@ -112,7 +112,7 @@ let href_any_full ?context any =
   | Tune tune -> href_tune ?context (Entry.id tune)
   | User _ -> assert false (* FIXME: user visualisation page *)
 
-module MakeDescribe (Model : ModelBuilder.S) = struct
+module MakeDescribe (Model : Model_builder.S) = struct
   let describe = fun uri ->
     let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
       | Index -> lwt_none

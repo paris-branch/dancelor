@@ -1,6 +1,6 @@
 open Nes
 open Common
-include ModelBuilder.Build(struct
+include Model_builder.Build(struct
   let get_user = lwt % Database.User.get
   let get_book = lwt % Database.Book.get
   let get_dance = lwt % Database.Dance.get

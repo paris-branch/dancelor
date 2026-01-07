@@ -1,7 +1,7 @@
 open Nes
 
 type predicate =
-  | Is of ModelBuilder.Core.Book.t Entry.Id.t
+  | Is of Model_builder.Core.Book.t Entry.Id.t
   | Title of string
   | Title_matches of string
   | Exists_version of Version.t

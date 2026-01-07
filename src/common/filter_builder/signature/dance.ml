@@ -5,10 +5,10 @@ module type S = sig
   type t = Core.Dance.t
   [@@deriving eq, show]
 
-  val accepts : t -> ModelBuilder.Core.Dance.entry -> float Lwt.t
+  val accepts : t -> Model_builder.Core.Dance.entry -> float Lwt.t
 
-  val is : ModelBuilder.Core.Dance.entry -> predicate
-  val is' : ModelBuilder.Core.Dance.entry -> t
+  val is : Model_builder.Core.Dance.entry -> predicate
+  val is' : Model_builder.Core.Dance.entry -> t
 
   val kind : Kind.Dance.Filter.t -> predicate
   val kind' : Kind.Dance.Filter.t -> t

@@ -3,7 +3,7 @@
 module Core = Core
 module type S = Signature.S
 
-module Build (Model : ModelBuilder.S) : S = struct
+module Build (Model : Model_builder.S) : S = struct
   module Accepts = Accepts.Make(Model)
 
   module User = struct

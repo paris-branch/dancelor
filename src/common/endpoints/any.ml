@@ -1,7 +1,7 @@
 open Nes
 open Madge
-open ModelBuilder.Core
-module Filter = FilterBuilder.Core
+open Model_builder.Core
+module Filter = Filter_builder.Core
 
 type (_, _, _) t =
   | Get : (unit Entry.Id.t -> 'w, 'w, Any.t) t

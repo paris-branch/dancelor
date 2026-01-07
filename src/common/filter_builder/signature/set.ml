@@ -4,10 +4,10 @@ module type S = sig
   type predicate = Core.Set.predicate
   type t = Core.Set.t
 
-  val accepts : t -> ModelBuilder.Core.Set.entry -> float Lwt.t
+  val accepts : t -> Model_builder.Core.Set.entry -> float Lwt.t
 
-  val is : ModelBuilder.Core.Set.entry -> predicate
-  val is' : ModelBuilder.Core.Set.entry -> t
+  val is : Model_builder.Core.Set.entry -> predicate
+  val is' : Model_builder.Core.Set.entry -> t
 
   val exists_version : Core.Version.t -> predicate
   val exists_version' : Core.Version.t -> t
@@ -18,8 +18,8 @@ module type S = sig
   val kind : Kind.Dance.Filter.t -> predicate
   val kind' : Kind.Dance.Filter.t -> t
 
-  val memversion : ModelBuilder.Core.Version.entry -> predicate
-  val memversion' : ModelBuilder.Core.Version.entry -> t
+  val memversion : Model_builder.Core.Version.entry -> predicate
+  val memversion' : Model_builder.Core.Version.entry -> t
 
   val text_formula_converter : predicate Text_formula_converter.t
   val from_text_formula : Text_formula.t -> (t, string) Result.t

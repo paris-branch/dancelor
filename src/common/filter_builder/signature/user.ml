@@ -4,10 +4,10 @@ module type S = sig
   type predicate = Core.User.predicate
   type t = Core.User.t
 
-  val accepts : t -> ModelBuilder.Core.User.entry -> float Lwt.t
+  val accepts : t -> Model_builder.Core.User.entry -> float Lwt.t
 
-  val is : ModelBuilder.Core.User.entry -> predicate
-  val is' : ModelBuilder.Core.User.entry -> t
+  val is : Model_builder.Core.User.entry -> predicate
+  val is' : Model_builder.Core.User.entry -> t
 
   val text_formula_converter : predicate Text_formula_converter.t
   val from_text_formula : Text_formula.t -> (t, string) Result.t

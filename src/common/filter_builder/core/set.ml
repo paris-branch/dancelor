@@ -1,7 +1,7 @@
 open Nes
 
 type predicate =
-  | Is of ModelBuilder.Core.Set.t Entry.Id.t
+  | Is of Model_builder.Core.Set.t Entry.Id.t
   | Name of string
   | Name_matches of string
   | Exists_conceptor of Person.t (** conceptor is defined and passes the filter *)

@@ -6,7 +6,7 @@ open Nes
    and we would rather avoid that. *)
 type predicate =
   | Raw of string
-  | Type of ModelBuilder.Core.Any.Type.t
+  | Type of Model_builder.Core.Any.Type.t
   (* lifting predicates: *)
   | Source of Source.t
   | Person of Person.t
@@ -49,7 +49,7 @@ let make_text_formula_converter ?(human = false) () =
           [
             raw (ok % raw');
             unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
-            unary_raw ~name: "type" (type_, type__val) ~cast: (ModelBuilder.Core.Any.Type.of_string_opt, ModelBuilder.Core.Any.Type.to_string) ~type_: "valid type";
+            unary_raw ~name: "type" (type_, type__val) ~cast: (Model_builder.Core.Any.Type.of_string_opt, Model_builder.Core.Any.Type.to_string) ~type_: "valid type";
             unary_lift ~name: "source" (source, source_val) ~converter: Source.text_formula_converter ~wrap_back;
             unary_lift ~name: "person" (person, person_val) ~converter: Person.text_formula_converter ~wrap_back;
             unary_lift ~name: "dance" (dance, dance_val) ~converter: Dance.text_formula_converter ~wrap_back;
@@ -86,15 +86,15 @@ let to_string = Text_formula.to_string % Text_formula.of_formula text_formula_co
 let type_based_cleanup =
   (* Returns the types of objects matched by a predicate. *)
   let types_of_predicate = function
-    | Raw _ -> ModelBuilder.Core.Any.Type.Set.all
-    | Type type_ -> ModelBuilder.Core.Any.Type.Set.singleton type_
-    | Source _ -> ModelBuilder.Core.Any.Type.Set.singleton Source
-    | Person _ -> ModelBuilder.Core.Any.Type.Set.singleton Person
-    | Dance _ -> ModelBuilder.Core.Any.Type.Set.singleton Dance
-    | Book _ -> ModelBuilder.Core.Any.Type.Set.singleton Book
-    | Set _ -> ModelBuilder.Core.Any.Type.Set.singleton Set
-    | Tune _ -> ModelBuilder.Core.Any.Type.Set.singleton Tune
-    | Version _ -> ModelBuilder.Core.Any.Type.Set.singleton Version
+    | Raw _ -> Model_builder.Core.Any.Type.Set.all
+    | Type type_ -> Model_builder.Core.Any.Type.Set.singleton type_
+    | Source _ -> Model_builder.Core.Any.Type.Set.singleton Source
+    | Person _ -> Model_builder.Core.Any.Type.Set.singleton Person
+    | Dance _ -> Model_builder.Core.Any.Type.Set.singleton Dance
+    | Book _ -> Model_builder.Core.Any.Type.Set.singleton Book
+    | Set _ -> Model_builder.Core.Any.Type.Set.singleton Set
+    | Tune _ -> Model_builder.Core.Any.Type.Set.singleton Tune
+    | Version _ -> Model_builder.Core.Any.Type.Set.singleton Version
   in
   let open Formula in
   (* Given a maximal set of possible types [t] and a formula, refine the
@@ -102,11 +102,11 @@ let type_based_cleanup =
      types are a subset of [t]. The returned formula does not contain
      predicates that would clash with [t]. *)
   let rec refine_types_and_cleanup t = function
-    | False -> (ModelBuilder.Core.Any.Type.Set.empty, False)
+    | False -> (Model_builder.Core.Any.Type.Set.empty, False)
     | True -> (t, True)
     | Not f ->
       (* REVIEW: Not 100% of this [Type.Set.comp t] argument. *)
-      Pair.map (ModelBuilder.Core.Any.Type.Set.diff t) not @@ refine_types_and_cleanup (ModelBuilder.Core.Any.Type.Set.comp t) f
+      Pair.map (Model_builder.Core.Any.Type.Set.diff t) not @@ refine_types_and_cleanup (Model_builder.Core.Any.Type.Set.comp t) f
     | And (f1, f2) ->
       (* Refine [t] on [f1], the refine it again while cleaning up [f2],
          then come back and clean up [f1]. *)
@@ -117,12 +117,12 @@ let type_based_cleanup =
     | Or (f1, f2) ->
       let (t1, f1) = refine_types_and_cleanup t f1 in
       let (t2, f2) = refine_types_and_cleanup t f2 in
-        (ModelBuilder.Core.Any.Type.Set.union t1 t2, or_ f1 f2)
+        (Model_builder.Core.Any.Type.Set.union t1 t2, or_ f1 f2)
     | Pred p ->
-      let ts = ModelBuilder.Core.Any.Type.Set.inter (types_of_predicate p) t in
-        (ts, if ModelBuilder.Core.Any.Type.Set.is_empty ts then False else Pred p)
+      let ts = Model_builder.Core.Any.Type.Set.inter (types_of_predicate p) t in
+        (ts, if Model_builder.Core.Any.Type.Set.is_empty ts then False else Pred p)
   in
-  snd % refine_types_and_cleanup ModelBuilder.Core.Any.Type.Set.all
+  snd % refine_types_and_cleanup Model_builder.Core.Any.Type.Set.all
 
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
@@ -192,7 +192,7 @@ let to_pretty_string =
 let specialise ~from_text_formula ~type_ ~unLift =
   Formula.convert @@ function
     | Raw str -> Result.get_ok (from_text_formula (Text_formula.raw' str))
-    | Type t when ModelBuilder.Core.Any.Type.equal t type_ -> Formula.true_
+    | Type t when Model_builder.Core.Any.Type.equal t type_ -> Formula.true_
     | Type _ -> Formula.false_
     | pred -> Option.value (unLift pred) ~default: Formula.false_
 

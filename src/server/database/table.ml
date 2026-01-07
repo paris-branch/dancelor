@@ -12,7 +12,7 @@ module type Model = sig
 
   type entry = (t, access) Entry.t
 
-  val wrap_any : entry -> ModelBuilder.Core.Any.t
+  val wrap_any : entry -> Model_builder.Core.Any.t
 
   val _key : string
 end
@@ -68,17 +68,17 @@ module GloballyUniqueId : sig
         several times consecutively, that it returns the same id. *)
 
     val register :
-      wrap_any: (('value, 'access) Entry.t -> ModelBuilder.Core.Any.t) ->
+      wrap_any: (('value, 'access) Entry.t -> Model_builder.Core.Any.t) ->
       ('value, 'access) Entry.t ->
       unit
     (** Register an entry in the global id table. This is used to ensure that
         ids are globally unique across all tables. *)
 
-    val get : 'any Entry.Id.t -> ModelBuilder.Core.Any.t option
+    val get : 'any Entry.Id.t -> Model_builder.Core.Any.t option
     (** Given an id, try to find the corresponding model in the global table. *)
   end
 = struct
-  let all_ids_table : (unit Entry.Id.t, ModelBuilder.Core.Any.t) Hashtbl.t = Hashtbl.create 8
+  let all_ids_table : (unit Entry.Id.t, Model_builder.Core.Any.t) Hashtbl.t = Hashtbl.create 8
 
   let rec make () =
     let id = Entry.Id.make () in

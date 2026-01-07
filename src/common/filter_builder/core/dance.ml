@@ -1,7 +1,7 @@
 open Nes
 
 type predicate =
-  | Is of ModelBuilder.Core.Dance.t Entry.id
+  | Is of Model_builder.Core.Dance.t Entry.id
   | Name of string
   | Name_matches of string
   | Kind of Kind.Dance.Filter.t

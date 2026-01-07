@@ -1,28 +1,25 @@
 open Nes
 
 type predicate =
-  | Is of ModelBuilder.Core.Source.t Entry.id
-  | Name of string
-  | Name_matches of string
-  | Exists_editor of Person.t
+  | Is of Model_builder.Core.User.t Entry.id
+  | Username of string
+  | Username_matches of string
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
 [@@deriving eq, show {with_path = false}, yojson]
 
-let name' = Formula.pred % name
-let name_matches' = Formula.pred % name_matches
-let exists_editor' = Formula.pred % exists_editor
+let username' = Formula.pred % username
+let username_matches' = Formula.pred % username_matches
 
 let text_formula_converter =
   Text_formula_converter.(
     make
       [
-        raw (ok % name_matches');
-        unary_string ~name: "name" (name, name_val);
-        unary_string ~name: "name-matches" (name_matches, name_matches_val);
+        raw (ok % username_matches');
+        unary_string ~name: "username" (username, username_val);
+        unary_string ~name: "username-matches" (username_matches, username_matches_val);
         unary_id ~name: "is" (is, is_val);
-        unary_lift ~name: "exists-editor" (exists_editor, exists_editor_val) ~converter: Person.text_formula_converter;
       ]
   )
 
@@ -38,5 +35,4 @@ let is' x = Formula.pred @@ is x
 
 let optimise =
   Formula.optimise @@ function
-    | (Is _ as p) | (Name _ as p) | (Name_matches _ as p) -> p
-    | Exists_editor pfilter -> exists_editor @@ Person.optimise pfilter
+    | (Is _ as p) | (Username _ as p) | (Username_matches _ as p) -> p

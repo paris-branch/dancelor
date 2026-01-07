@@ -4,21 +4,21 @@ module type S = sig
   type predicate = Core.Book.predicate
   type t = Core.Book.t
 
-  val accepts : t -> ModelBuilder.Core.Book.entry -> float Lwt.t
+  val accepts : t -> Model_builder.Core.Book.entry -> float Lwt.t
 
   val exists_editor' : Core.Person.t -> t
 
-  val memversion : ModelBuilder.Core.Version.entry -> predicate
-  val memversion' : ModelBuilder.Core.Version.entry -> t
+  val memversion : Model_builder.Core.Version.entry -> predicate
+  val memversion' : Model_builder.Core.Version.entry -> t
 
-  val memset : ModelBuilder.Core.Set.entry -> predicate
-  val memset' : ModelBuilder.Core.Set.entry -> t
+  val memset : Model_builder.Core.Set.entry -> predicate
+  val memset' : Model_builder.Core.Set.entry -> t
 
-  val memtunedeep' : ModelBuilder.Core.Tune.entry -> t
+  val memtunedeep' : Model_builder.Core.Tune.entry -> t
   (** Matches if the given tune appears in any version at any depth in the book,
       that is directly in the book or in a set of the book. *)
 
-  val memversiondeep' : ModelBuilder.Core.Version.entry -> t
+  val memversiondeep' : Model_builder.Core.Version.entry -> t
   (** Matches if the given version appears at any depth in the book, that is
       directly in the book or in a set of the book. *)
 

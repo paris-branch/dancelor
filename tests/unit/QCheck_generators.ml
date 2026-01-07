@@ -126,43 +126,43 @@ module Model = struct
      first argument. *)
 
   module Source = struct
-    type t = Common.ModelBuilder.Core.Source.t
+    type t = Common.Model_builder.Core.Source.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Person = struct
-    type t = Common.ModelBuilder.Core.Person.t
+    type t = Common.Model_builder.Core.Person.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Dance = struct
-    type t = Common.ModelBuilder.Core.Dance.t
+    type t = Common.Model_builder.Core.Dance.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Tune = struct
-    type t = Common.ModelBuilder.Core.Tune.t
+    type t = Common.Model_builder.Core.Tune.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Version = struct
-    type t = Common.ModelBuilder.Core.Version.t
+    type t = Common.Model_builder.Core.Version.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Set = struct
-    type t = Common.ModelBuilder.Core.Set.t
+    type t = Common.Model_builder.Core.Set.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Book = struct
-    type t = Common.ModelBuilder.Core.Book.t
+    type t = Common.Model_builder.Core.Book.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Any = struct
     module Type = struct
-      type t = [%import: Common.ModelBuilder.Core.Any.Type.t [@with Common.Formula.t := Formula.t;]
+      type t = [%import: Common.Model_builder.Core.Any.Type.t [@with Common.Formula.t := Formula.t;]
       ]
       [@@deriving qcheck2]
     end
@@ -171,126 +171,126 @@ end
 
 module Filter = struct
   module Person = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Person.predicate [@with Common.Entry.Id.t := Id.t;
+    type predicate = [%import: Common.Filter_builder.Core.Person.predicate [@with Common.Entry.Id.t := Id.t;
       Common.Entry.id := Id.t;
-      Common.ModelBuilder.Core.Person.t := Model.Person.t;
+      Common.Model_builder.Core.Person.t := Model.Person.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.FilterBuilder.Core.Person.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Common.Filter_builder.Core.Person.t [@with Common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
 
   module Source = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Source.predicate [@with Common.Entry.Id.t := Id.t;
+    type predicate = [%import: Common.Filter_builder.Core.Source.predicate [@with Common.Entry.Id.t := Id.t;
       Common.Entry.id := Id.t;
-      Common.ModelBuilder.Core.Source.t := Model.Source.t;
-      Common__FilterBuilder__Core.Person.t := Person.t;
+      Common.Model_builder.Core.Source.t := Model.Source.t;
+      Common__Filter_builder__Core.Person.t := Person.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.FilterBuilder.Core.Source.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Common.Filter_builder.Core.Source.t [@with Common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
 
   module Dance = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Dance.predicate [@with Common.Entry.Id.t := Id.t;
+    type predicate = [%import: Common.Filter_builder.Core.Dance.predicate [@with Common.Entry.Id.t := Id.t;
       Common.Entry.id := Id.t;
-      Common.ModelBuilder.Core.Dance.t := Model.Dance.t;
+      Common.Model_builder.Core.Dance.t := Model.Dance.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-      Common__FilterBuilder__Core.Person.t := Person.t;
+      Common__Filter_builder__Core.Person.t := Person.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.FilterBuilder.Core.Dance.t [@with Common.Formula.t := Formula.t]
+    type t = [%import: Common.Filter_builder.Core.Dance.t [@with Common.Formula.t := Formula.t]
     ]
     [@@deriving qcheck2]
   end
 
   module Tune = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Tune.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.ModelBuilder.Core.Tune.t := Model.Tune.t;
-      Common.ModelBuilder.Core.Dance.t := Model.Dance.t;
+    type predicate = [%import: Common.Filter_builder.Core.Tune.predicate [@with Common.Entry.Id.t := Id.t;
+      Common.Model_builder.Core.Tune.t := Model.Tune.t;
+      Common.Model_builder.Core.Dance.t := Model.Dance.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
-      Common__FilterBuilder__Core.Person.t := Person.t;
-      Common__FilterBuilder__Core.Dance.t := Dance.t;
+      Common__Filter_builder__Core.Person.t := Person.t;
+      Common__Filter_builder__Core.Dance.t := Dance.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.FilterBuilder.Core.Tune.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Common.Filter_builder.Core.Tune.t [@with Common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
 
   module Version = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Version.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.ModelBuilder.Core.Version.t := Model.Version.t;
+    type predicate = [%import: Common.Filter_builder.Core.Version.predicate [@with Common.Entry.Id.t := Id.t;
+      Common.Model_builder.Core.Version.t := Model.Version.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
-      Common__FilterBuilder__Core.Source.t := Source.t;
-      Common__FilterBuilder__Core.Person.t := Person.t;
-      Common__FilterBuilder__Core.Dance.t := Dance.t;
-      Common__FilterBuilder__Core.Tune.t := Tune.t;
+      Common__Filter_builder__Core.Source.t := Source.t;
+      Common__Filter_builder__Core.Person.t := Person.t;
+      Common__Filter_builder__Core.Dance.t := Dance.t;
+      Common__Filter_builder__Core.Tune.t := Tune.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.FilterBuilder.Core.Version.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Common.Filter_builder.Core.Version.t [@with Common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
 
   module Set = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Set.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.ModelBuilder.Core.Set.t := Model.Set.t;
+    type predicate = [%import: Common.Filter_builder.Core.Set.predicate [@with Common.Entry.Id.t := Id.t;
+      Common.Model_builder.Core.Set.t := Model.Set.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-      Common__FilterBuilder__Core.Person.t := Person.t;
-      Common__FilterBuilder__Core.Version.t := Version.t;
+      Common__Filter_builder__Core.Person.t := Person.t;
+      Common__Filter_builder__Core.Version.t := Version.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.FilterBuilder.Core.Set.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Common.Filter_builder.Core.Set.t [@with Common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
 
   module Book = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Book.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.ModelBuilder.Core.Book.t := Model.Book.t;
+    type predicate = [%import: Common.Filter_builder.Core.Book.predicate [@with Common.Entry.Id.t := Id.t;
+      Common.Model_builder.Core.Book.t := Model.Book.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-      Common__FilterBuilder__Core.Person.t := Person.t;
-      Common__FilterBuilder__Core.Version.t := Version.t;
-      Common__FilterBuilder__Core.Set.t := Set.t;
+      Common__Filter_builder__Core.Person.t := Person.t;
+      Common__Filter_builder__Core.Version.t := Version.t;
+      Common__Filter_builder__Core.Set.t := Set.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.FilterBuilder.Core.Book.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Common.Filter_builder.Core.Book.t [@with Common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
 
   module Any = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Any.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.ModelBuilder.Core.Any.Type.t := Model.Any.Type.t;
+    type predicate = [%import: Common.Filter_builder.Core.Any.predicate [@with Common.Entry.Id.t := Id.t;
+      Common.Model_builder.Core.Any.Type.t := Model.Any.Type.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-      Common__FilterBuilder__Core.Source.t := Source.t;
-      Common__FilterBuilder__Core.Person.t := Person.t;
-      Common__FilterBuilder__Core.Dance.t := Dance.t;
-      Common__FilterBuilder__Core.Book.t := Book.t;
-      Common__FilterBuilder__Core.Set.t := Set.t;
-      Common__FilterBuilder__Core.Tune.t := Tune.t;
-      Common__FilterBuilder__Core.Version.t := Version.t;
+      Common__Filter_builder__Core.Source.t := Source.t;
+      Common__Filter_builder__Core.Person.t := Person.t;
+      Common__Filter_builder__Core.Dance.t := Dance.t;
+      Common__Filter_builder__Core.Book.t := Book.t;
+      Common__Filter_builder__Core.Set.t := Set.t;
+      Common__Filter_builder__Core.Tune.t := Tune.t;
+      Common__Filter_builder__Core.Version.t := Version.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.FilterBuilder.Core.Any.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Common.Filter_builder.Core.Any.t [@with Common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end

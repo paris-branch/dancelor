@@ -1,7 +1,7 @@
 open Nes
 
 type predicate =
-  | Is of ModelBuilder.Core.Version.t Entry.Id.t
+  | Is of Model_builder.Core.Version.t Entry.Id.t
   | Tune of Tune.t
   | Key of Music.Key.t
   | Exists_source of Source.t

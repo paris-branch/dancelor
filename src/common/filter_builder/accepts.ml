@@ -1,6 +1,6 @@
 open Nes
 
-module Make (Model : ModelBuilder.S) = struct
+module Make (Model : Model_builder.S) = struct
   let char_equal = Char.Sensible.equal
 
   let rec accepts_user filter user =

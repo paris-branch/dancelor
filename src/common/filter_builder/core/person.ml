@@ -1,7 +1,7 @@
 open Nes
 
 type predicate =
-  | Is of ModelBuilder.Core.Person.t Entry.id
+  | Is of Model_builder.Core.Person.t Entry.id
   | Name of string
   | Name_matches of string
 [@@deriving eq, show {with_path = false}, yojson, variants]

@@ -3,7 +3,7 @@ module type S = sig
 
   type predicate = Core.Any.predicate =
     | Raw of string
-    | Type of ModelBuilder.Core.Any.Type.t
+    | Type of Model_builder.Core.Any.Type.t
     (* lifting predicates: *)
     | Source of Core.Source.t
     | Person of Core.Person.t
@@ -28,8 +28,8 @@ module type S = sig
   (** A filter containing raw strings, semantically equivalent to the
       disjunction of the [raw] cases of all the other models. *)
 
-  val type_ : ModelBuilder.Core.Any.Type.t -> predicate
-  val type_' : ModelBuilder.Core.Any.Type.t -> t
+  val type_ : Model_builder.Core.Any.Type.t -> predicate
+  val type_' : Model_builder.Core.Any.Type.t -> t
   (** A filter that asserts that the element has the given type. *)
 
   val source : Core.Source.t -> predicate
