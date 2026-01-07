@@ -54,7 +54,7 @@ let create ?context id =
       Utils.quick_explorer_links'
         (lwt tune)
         [
-          ("sets containing this tune", Filter.(Any.set' % Set.existsversion' % Version.tuneis'));
+          ("sets containing this tune", Filter.(Any.set' % Set.exists_version' % Version.tuneis'));
           ("books containing this tune", Filter.(Any.book' % Book.memtunedeep'));
         ];
       div

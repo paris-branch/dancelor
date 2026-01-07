@@ -18,8 +18,8 @@ module type S = sig
   val key : Music.Key.t -> predicate
   val key' : Music.Key.t -> t
 
-  val existssource : Core.Source.t -> predicate
-  val existssource' : Core.Source.t -> t
+  val exists_source : Core.Source.t -> predicate
+  val exists_source' : Core.Source.t -> t
 
   val memsource : ModelBuilder.Core.Source.entry -> predicate
   val memsource' : ModelBuilder.Core.Source.entry -> t

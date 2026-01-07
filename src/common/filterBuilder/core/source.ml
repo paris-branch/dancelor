@@ -3,26 +3,26 @@ open Nes
 type predicate =
   | Is of ModelBuilder.Core.Source.t Entry.id
   | Name of string
-  | NameMatches of string
-  | ExistsEditor of Person.t
+  | Name_matches of string
+  | Exists_editor of Person.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
 [@@deriving eq, show {with_path = false}, yojson]
 
 let name' = Formula.pred % name
-let nameMatches' = Formula.pred % namematches
-let existseditor' = Formula.pred % existseditor
+let name_matches' = Formula.pred % name_matches
+let exists_editor' = Formula.pred % exists_editor
 
 let text_formula_converter =
   Text_formula_converter.(
     make
       [
-        raw (ok % nameMatches');
+        raw (ok % name_matches');
         unary_string ~name: "name" (name, name_val);
-        unary_string ~name: "name-matches" (namematches, namematches_val);
+        unary_string ~name: "name-matches" (name_matches, name_matches_val);
         unary_id ~name: "is" (is, is_val);
-        unary_lift ~name: "exists-editor" (existseditor, existseditor_val) ~converter: Person.text_formula_converter;
+        unary_lift ~name: "exists-editor" (exists_editor, exists_editor_val) ~converter: Person.text_formula_converter;
       ]
   )
 
@@ -38,5 +38,5 @@ let is' x = Formula.pred @@ is x
 
 let optimise =
   Formula.optimise @@ function
-    | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
-    | ExistsEditor pfilter -> existseditor @@ Person.optimise pfilter
+    | (Is _ as p) | (Name _ as p) | (Name_matches _ as p) -> p
+    | Exists_editor pfilter -> exists_editor @@ Person.optimise pfilter

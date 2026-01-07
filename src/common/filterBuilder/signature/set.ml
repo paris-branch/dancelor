@@ -9,11 +9,11 @@ module type S = sig
   val is : ModelBuilder.Core.Set.entry -> predicate
   val is' : ModelBuilder.Core.Set.entry -> t
 
-  val existsversion : Core.Version.t -> predicate
-  val existsversion' : Core.Version.t -> t
+  val exists_version : Core.Version.t -> predicate
+  val exists_version' : Core.Version.t -> t
 
-  val existsconceptor : Core.Person.t -> predicate
-  val existsconceptor' : Core.Person.t -> t
+  val exists_conceptor : Core.Person.t -> predicate
+  val exists_conceptor' : Core.Person.t -> t
 
   val kind : Kind.Dance.Filter.t -> predicate
   val kind' : Kind.Dance.Filter.t -> t

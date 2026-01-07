@@ -3,34 +3,34 @@ open Nes
 type predicate =
   | Is of ModelBuilder.Core.Book.t Entry.Id.t
   | Title of string
-  | TitleMatches of string
-  | ExistsVersion of Version.t
-  | ExistsSet of Set.t
-  | ExistsVersionDeep of Version.t
-  | ExistsEditor of Person.t
+  | Title_matches of string
+  | Exists_version of Version.t
+  | Exists_set of Set.t
+  | Exists_version_deep of Version.t
+  | Exists_editor of Person.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
 [@@deriving eq, show {with_path = false}, yojson]
 
 let title' = Formula.pred % title
-let titlematches' = Formula.pred % titlematches
-let existsversion' = Formula.pred % existsversion
-let existsset' = Formula.pred % existsset
-let existsversiondeep' = Formula.pred % existsversiondeep
-let existseditor' = Formula.pred % existseditor
+let title_matches' = Formula.pred % title_matches
+let exists_version' = Formula.pred % exists_version
+let exists_set' = Formula.pred % exists_set
+let exists_version_deep' = Formula.pred % exists_version_deep
+let exists_editor' = Formula.pred % exists_editor
 
 let text_formula_converter =
   Text_formula_converter.(
     make
       [
-        raw (ok % titlematches');
+        raw (ok % title_matches');
         unary_string ~name: "title" (title, title_val);
-        unary_string ~name: "title-matches" (titlematches, titlematches_val);
-        unary_lift ~name: "exists-version" (existsversion, existsversion_val) ~converter: Version.text_formula_converter;
-        unary_lift ~name: "exists-set" (existsset, existsset_val) ~converter: Set.text_formula_converter;
-        unary_lift ~name: "exists-version-deep" (existsversiondeep, existsversiondeep_val) ~converter: Version.text_formula_converter;
-        unary_lift ~name: "exists-editor" (existseditor, existseditor_val) ~converter: Person.text_formula_converter;
+        unary_string ~name: "title-matches" (title_matches, title_matches_val);
+        unary_lift ~name: "exists-version" (exists_version, exists_version_val) ~converter: Version.text_formula_converter;
+        unary_lift ~name: "exists-set" (exists_set, exists_set_val) ~converter: Set.text_formula_converter;
+        unary_lift ~name: "exists-version-deep" (exists_version_deep, exists_version_deep_val) ~converter: Version.text_formula_converter;
+        unary_lift ~name: "exists-editor" (exists_editor, exists_editor_val) ~converter: Person.text_formula_converter;
         unary_id ~name: "is" (is, is_val);
       ]
   )
@@ -45,12 +45,12 @@ let to_string = Text_formula.to_string % to_text_formula
 let is x = is @@ Entry.id x
 let is' x = Formula.pred @@ is x
 
-let memversion x = existsversion @@ Version.is' x
-let memset x = existsset @@ Set.is' x
-let memversiondeep x = existsversiondeep @@ Version.is' x
-let existstunedeep x = existsversiondeep @@ Version.tune' x
+let memversion x = exists_version @@ Version.is' x
+let memset x = exists_set @@ Set.is' x
+let memversiondeep x = exists_version_deep @@ Version.is' x
+let existstunedeep x = exists_version_deep @@ Version.tune' x
 let memtunedeep x = existstunedeep @@ Tune.is' x
-let memeditor x = existseditor @@ Person.is' x
+let memeditor x = exists_editor @@ Person.is' x
 
 let memversion' x = Formula.pred @@ memversion x
 let memset' x = Formula.pred @@ memset x
@@ -65,9 +65,9 @@ type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
 let optimise =
   let lift {op} f1 f2 =
     match (f1, f2) with
-    | (ExistsVersion f1, ExistsVersion f2) -> some @@ existsversion (op f1 f2)
-    | (ExistsSet f1, ExistsSet f2) -> some @@ existsset (op f1 f2)
-    | (ExistsVersionDeep f1, ExistsVersionDeep f2) -> some @@ existsversiondeep (op f1 f2)
+    | (Exists_version f1, Exists_version f2) -> some @@ exists_version (op f1 f2)
+    | (Exists_set f1, Exists_set f2) -> some @@ exists_set (op f1 f2)
+    | (Exists_version_deep f1, Exists_version_deep f2) -> some @@ exists_version_deep (op f1 f2)
     | _ -> None
   in
   Formula.optimise
@@ -76,10 +76,10 @@ let optimise =
     (function
       | (Is _ as p)
       | (Title _ as p)
-      | (TitleMatches _ as p) ->
+      | (Title_matches _ as p) ->
         p
-      | ExistsVersion vfilter -> existsversion @@ Version.optimise vfilter
-      | ExistsSet sfilter -> existsset @@ Set.optimise sfilter
-      | ExistsVersionDeep vfilter -> existsversiondeep @@ Version.optimise vfilter
-      | ExistsEditor pfilter -> existseditor @@ Person.optimise pfilter
+      | Exists_version vfilter -> exists_version @@ Version.optimise vfilter
+      | Exists_set sfilter -> exists_set @@ Set.optimise sfilter
+      | Exists_version_deep vfilter -> exists_version_deep @@ Version.optimise vfilter
+      | Exists_editor pfilter -> exists_editor @@ Person.optimise pfilter
     )

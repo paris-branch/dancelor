@@ -508,9 +508,9 @@ let create ?context id =
       Utils.quick_explorer_links
         [
           ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memversion') version);
-          ("sets containing this tune", Filter.(Any.set' % Set.existsversion' % Version.tuneis') <$> Model.Version.tune' version);
+          ("sets containing this tune", Filter.(Any.set' % Set.exists_version' % Version.tuneis') <$> Model.Version.tune' version);
           ("books containing this version", lwt @@ Filter.(Any.book' % Book.memversiondeep') version);
-          ("books containing this tune", Filter.(Any.book' % Book.existsversiondeep' % Version.tuneis') <$> Model.Version.tune' version);
+          ("books containing this tune", Filter.(Any.book' % Book.exists_version_deep' % Version.tuneis') <$> Model.Version.tune' version);
         ];
       div
         ~a: [a_class ["section"]]

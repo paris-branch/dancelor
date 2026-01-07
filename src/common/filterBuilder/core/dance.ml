@@ -3,29 +3,29 @@ open Nes
 type predicate =
   | Is of ModelBuilder.Core.Dance.t Entry.id
   | Name of string
-  | NameMatches of string
+  | Name_matches of string
   | Kind of Kind.Dance.Filter.t
-  | ExistsDeviser of Person.t (** deviser is defined and passes the filter *)
+  | Exists_deviser of Person.t (** deviser is defined and passes the filter *)
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
 [@@deriving eq, show {with_path = false}, yojson]
 
 let name' = Formula.pred % name
-let namematches' = Formula.pred % namematches
+let name_matches' = Formula.pred % name_matches
 let kind' = Formula.pred % kind
-let existsdeviser' = Formula.pred % existsdeviser
+let exists_deviser' = Formula.pred % exists_deviser
 
 let text_formula_converter =
   Text_formula_converter.(
     make
       [
-        raw (ok % namematches');
+        raw (ok % name_matches');
         unary_string ~name: "name" (name, name_val);
-        unary_string ~name: "name-matches" (namematches, namematches_val);
+        unary_string ~name: "name-matches" (name_matches, name_matches_val);
         unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Dance.Filter.text_formula_converter;
-        unary_lift ~name: "exists-deviser" (existsdeviser, existsdeviser_val) ~converter: Person.text_formula_converter;
-        unary_lift ~name: "by" (existsdeviser, existsdeviser_val) ~converter: Person.text_formula_converter;
+        unary_lift ~name: "exists-deviser" (exists_deviser, exists_deviser_val) ~converter: Person.text_formula_converter;
+        unary_lift ~name: "by" (exists_deviser, exists_deviser_val) ~converter: Person.text_formula_converter;
         (* alias for deviser; FIXME: make this clearer *)
         unary_id ~name: "is" (is, is_val);
       ]
@@ -48,14 +48,14 @@ let optimise =
   let lift {op} f1 f2 =
     match (f1, f2) with
     | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
-    | (ExistsDeviser f1, ExistsDeviser f2) -> some @@ existsdeviser (op f1 f2)
+    | (Exists_deviser f1, Exists_deviser f2) -> some @@ exists_deviser (op f1 f2)
     | _ -> None
   in
   Formula.optimise
     ~lift_and: (lift {op = Formula.and_})
     ~lift_or: (lift {op = Formula.or_})
     (function
-      | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
+      | (Is _ as p) | (Name _ as p) | (Name_matches _ as p) -> p
       | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter
-      | ExistsDeviser pfilter -> existsdeviser @@ Person.optimise pfilter
+      | Exists_deviser pfilter -> exists_deviser @@ Person.optimise pfilter
     )

@@ -23,8 +23,8 @@ module type S = sig
   val exists_composer_is : ModelBuilder.Core.Person.entry -> predicate
   val exists_composer_is' : ModelBuilder.Core.Person.entry -> t
 
-  val existsdance : Core.Dance.t -> predicate
-  val existsdance' : Core.Dance.t -> t
+  val exists_dance : Core.Dance.t -> predicate
+  val exists_dance' : Core.Dance.t -> t
 
   val text_formula_converter : predicate Text_formula_converter.t
   (** Converter from text formulas to formulas on tunes. *)

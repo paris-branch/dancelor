@@ -18,9 +18,9 @@ module Make (Model : ModelBuilder.S) = struct
         lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id book) book'
       | Title string ->
         lwt @@ String.proximity ~char_equal string @@ NEString.to_string @@ Model.Book.title' book
-      | TitleMatches string ->
+      | Title_matches string ->
         lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Book.title' book
-      | ExistsVersion vfilter ->
+      | Exists_version vfilter ->
         let%lwt content = Model.Book.contents' book in
         let versions =
           List.concat_map
@@ -32,7 +32,7 @@ module Make (Model : ModelBuilder.S) = struct
             content
         in
         Formula.interpret_exists (accepts_version vfilter) versions
-      | ExistsSet sfilter ->
+      | Exists_set sfilter ->
         let%lwt content = Model.Book.contents' book in
         let%lwt sets =
           Lwt_list.filter_map_s
@@ -43,14 +43,14 @@ module Make (Model : ModelBuilder.S) = struct
             content
         in
         Formula.interpret_exists (accepts_set sfilter) sets
-      | ExistsVersionDeep vfilter ->
+      | Exists_version_deep vfilter ->
         (* recursive call to check the compound formula *)
         flip accepts_book book @@
           Formula.or_l
-            Core.[Formula.pred (Book.ExistsVersion vfilter);
-            Formula.pred (Book.ExistsSet (Set.existsversion' vfilter));
+            Core.[Formula.pred (Book.Exists_version vfilter);
+            Formula.pred (Book.Exists_set (Set.exists_version' vfilter));
             ]
-      | ExistsEditor pfilter ->
+      | Exists_editor pfilter ->
         let%lwt editors = Model.Book.authors' book in
         Formula.interpret_exists (accepts_person pfilter) editors
 
@@ -60,11 +60,11 @@ module Make (Model : ModelBuilder.S) = struct
         lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id dance) dance'
       | Name string ->
         lwt @@ Formula.interpret_or_l @@ List.map (String.proximity ~char_equal string % NEString.to_string) @@ NEList.to_list @@ Model.Dance.names' dance
-      | NameMatches string ->
+      | Name_matches string ->
         lwt @@ Formula.interpret_or_l @@ List.map (String.inclusion_proximity ~char_equal ~needle: string % NEString.to_string) @@ NEList.to_list @@ Model.Dance.names' dance
       | Kind kfilter ->
         Kind.Dance.Filter.accepts kfilter @@ Model.Dance.kind' dance
-      | ExistsDeviser pfilter ->
+      | Exists_deviser pfilter ->
         let%lwt devisers = Model.Dance.devisers' dance in
         let%lwt scores = Lwt_list.map_s (accepts_person pfilter) devisers in
         lwt (Formula.interpret_or_l scores)
@@ -75,7 +75,7 @@ module Make (Model : ModelBuilder.S) = struct
         lwt @@ Formula.interpret_bool @@ Entry.Id.unsafe_equal (Entry.id person) person'
       | Name string ->
         lwt @@ String.proximity ~char_equal string @@ NEString.to_string @@ Model.Person.name' person
-      | NameMatches string ->
+      | Name_matches string ->
         lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Person.name' person
 
   and accepts_set filter set =
@@ -84,13 +84,13 @@ module Make (Model : ModelBuilder.S) = struct
         lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id set) set'
       | Name string ->
         lwt @@ String.proximity ~char_equal string @@ NEString.to_string @@ Model.Set.name' set
-      | NameMatches string ->
+      | Name_matches string ->
         lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Set.name' set
-      | ExistsConceptor pfilter ->
+      | Exists_conceptor pfilter ->
         let%lwt conceptors = Model.Set.conceptors' set in
         let%lwt scores = Lwt_list.map_s (accepts_person pfilter) conceptors in
         lwt (Formula.interpret_or_l scores)
-      | ExistsVersion vfilter ->
+      | Exists_version vfilter ->
         let%lwt contents = Model.Set.contents' set in
         Formula.interpret_exists (accepts_version vfilter % fst) contents
       | Kind kfilter ->
@@ -105,12 +105,12 @@ module Make (Model : ModelBuilder.S) = struct
           Formula.interpret_or
             (String.proximity ~char_equal string @@ NEString.to_string @@ Model.Source.name' source)
             (Option.fold ~none: Formula.interpret_false ~some: (String.proximity ~char_equal string % NEString.to_string) (Model.Source.short_name' source))
-      | NameMatches string ->
+      | Name_matches string ->
         lwt @@
           Formula.interpret_or
             (String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Source.name' source)
             (Option.fold ~none: Formula.interpret_false ~some: (String.inclusion_proximity ~char_equal ~needle: string % NEString.to_string) (Model.Source.short_name' source))
-      | ExistsEditor pfilter ->
+      | Exists_editor pfilter ->
         let%lwt editors = Model.Source.editors' source in
         Formula.interpret_exists (accepts_person pfilter) editors
 
@@ -120,7 +120,7 @@ module Make (Model : ModelBuilder.S) = struct
         lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id tune) tune'
       | Name string ->
         lwt @@ Formula.interpret_or_l @@ List.map (String.proximity ~char_equal string % NEString.to_string) @@ NEList.to_list @@ Model.Tune.names' tune
-      | NameMatches string ->
+      | Name_matches string ->
         lwt @@ Formula.interpret_or_l @@ List.map (String.inclusion_proximity ~char_equal ~needle: string % NEString.to_string) @@ NEList.to_list @@ Model.Tune.names' tune
       | Exists_composer pfilter ->
         let%lwt composers = Model.Tune.composers' tune in
@@ -128,7 +128,7 @@ module Make (Model : ModelBuilder.S) = struct
         lwt (Formula.interpret_or_l scores)
       | Kind kfilter ->
         Kind.Base.Filter.accepts kfilter @@ Model.Tune.kind' tune
-      | ExistsDance dfilter ->
+      | Exists_dance dfilter ->
         let%lwt dances = Model.Tune.dances' tune in
         let%lwt scores = Lwt_list.map_s (accepts_dance dfilter) dances in
         lwt (Formula.interpret_or_l scores)
@@ -142,7 +142,7 @@ module Make (Model : ModelBuilder.S) = struct
         accepts_tune tfilter tune
       | Key key' ->
         lwt @@ Formula.interpret_bool (Model.Version.key' version = key')
-      | ExistsSource sfilter ->
+      | Exists_source sfilter ->
         let%lwt sources = List.map (fun {Model.Version.source; _} -> source) <$> Model.Version.sources' version in
         Formula.interpret_exists (accepts_source sfilter) sources
 end

@@ -6,7 +6,7 @@ module type S = sig
 
   val accepts : t -> ModelBuilder.Core.Book.entry -> float Lwt.t
 
-  val existseditor' : Core.Person.t -> t
+  val exists_editor' : Core.Person.t -> t
 
   val memversion : ModelBuilder.Core.Version.entry -> predicate
   val memversion' : ModelBuilder.Core.Version.entry -> t
@@ -23,7 +23,7 @@ module type S = sig
       directly in the book or in a set of the book. *)
 
   val existstunedeep' : Core.Tune.t -> t
-  val existsversiondeep' : Core.Version.t -> t
+  val exists_version_deep' : Core.Version.t -> t
 
   val text_formula_converter : predicate Text_formula_converter.t
   val from_text_formula : Text_formula.t -> (t, string) Result.t
