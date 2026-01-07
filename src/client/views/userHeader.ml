@@ -116,7 +116,7 @@ let victorise () =
     try%lwt
       ignore <$> Madge_client.call ~retry: false Endpoints.Api.(route Victor)
     with
-      | Madge_client.(Error (ServerUnreachable _)) -> lwt_unit
+      | Madge_client.(Error (Server_unreachable _)) -> lwt_unit
   );
   Utils.Toast.open_
     ~title: "Victorisation"

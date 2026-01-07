@@ -107,7 +107,7 @@ let () =
                   "” and did not handle it gracefully. If the error persists, please \
                contact your administrator or file a bug report.";
               ]
-          | Madge_client.(Error (ServerUnreachable {request; status})) ->
+          | Madge_client.(Error (Server_unreachable {request; status})) ->
             Utils.Toast.open_
               ~type_: Forever
               ~title: "Server unreachable"
