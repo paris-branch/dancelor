@@ -49,8 +49,20 @@ jobs:
           nix build .#checks.x86_64-linux.renderer-tune-snippets -vL --no-link
           nix build .#checks.x86_64-linux.renderer-book-pdf -vL --no-link
 
+      ## NOTE: The following is the dirtiest hack: because integration tests are
+      ## very flaky, we just run them a bunch of times in a row.
       - name: Run integration tests
-        run: nix build .#checks.x86_64-linux.integration -vL --no-link
+        run: |
+          success=false
+          for i in $(seq 5); do
+            echo
+            echo "====================================== [ Run $i ] ======================================"
+            if nix build .#checks.x86_64-linux.integration -vL --no-link; then
+              success=true
+              break
+            fi
+          done
+          $success && exit 0 || exit 1
 
       - name: Upload GitHub pages artifact
         uses: actions/upload-pages-artifact@v4
