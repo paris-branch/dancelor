@@ -5,11 +5,11 @@ open Js_of_ocaml_tyxml.Tyxml_js
 
 (** Abstraction of the possible states of the search bar. *)
 type 'result state =
-  | StartTyping (** when the user has not typed anything yet *)
-  | ContinueTyping (** when the user has not typed enough yet *)
+  | Start_typing (** when the user has not typed anything yet *)
+  | Continue_typing (** when the user has not typed enough yet *)
   | Searching (** when the user has typed enough and we are waiting for the results *)
-  | NoResults (** when the search returned no results *)
-  | Results of 'result list (** when the search returned results; guaranteed to be non empty; otherwise [NoResults] *)
+  | No_results (** when the search returned no results *)
+  | Results of 'result list (** when the search returned results; guaranteed to be non empty; otherwise [No_results] *)
   | Errors of string (** when the search returned an error *)
 
 type 'result t

@@ -184,11 +184,11 @@ let page_to_renderer_page page book_params =
         Model.Set_parameters.compose every_set_params dance_params
       in
       match dance_page with
-      | DanceOnly ->
+      | Dance_only ->
         Renderer.set <$> dance_to_renderer_set dance_params
-      | DanceVersions versions_and_params ->
+      | Dance_versions versions_and_params ->
         Renderer.set <$> versions_to_renderer_set' versions_and_params dance_params
-      | DanceSet (set, set_params) ->
+      | Dance_set (set, set_params) ->
         let set_params = Model.Set_parameters.compose set_params dance_params in
         Renderer.set <$> set_to_renderer_set' set set_params
     )

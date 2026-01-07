@@ -4,11 +4,11 @@ open Html
 module Search = struct
   type 'p pagination_mode =
     | Pagination of 'p
-    | FixedSlice of Slice.t
+    | Fixed_slice of Slice.t
 
   let slice = function
     | Pagination p -> (Pagination.slice p, (fun () -> Pagination.reset p))
-    | FixedSlice s -> (S.const s, Fun.const ())
+    | Fixed_slice s -> (S.const s, Fun.const ())
 
   type 'result t = {
     pagination: Pagination.t pagination_mode;
@@ -30,7 +30,7 @@ module Search = struct
     let pagination =
       match pagination_mode with
       | Pagination() -> Pagination (Pagination.create ~entries_per_page: 25 ~number_of_entries)
-      | FixedSlice slice -> FixedSlice slice
+      | Fixed_slice slice -> Fixed_slice slice
     in
     let search_bar =
       Search_bar.make
@@ -85,10 +85,10 @@ module Search = struct
           R.div
             (
               flip S.map (Search_bar.state t.search_bar) @@ function
-                | NoResults -> [div ~a: [a_class ["alert"; "alert-warning"]] [txt "Your search returned no results."]]
+                | No_results -> [div ~a: [a_class ["alert"; "alert-warning"]] [txt "Your search returned no results."]]
                 | Errors error -> [div ~a: [a_class ["alert"; "alert-danger"]] [txt error]]
-                | StartTyping -> [div ~a: [a_class ["alert"; "alert-info"]] [txt "Start typing to search."]]
-                | ContinueTyping -> [div ~a: [a_class ["alert"; "alert-info"]] [txt (spf "Type at least %s characters." (Int.to_english_string t.min_characters))]]
+                | Start_typing -> [div ~a: [a_class ["alert"; "alert-info"]] [txt "Start typing to search."]]
+                | Continue_typing -> [div ~a: [a_class ["alert"; "alert-info"]] [txt (spf "Type at least %s characters." (Int.to_english_string t.min_characters))]]
                 | _ -> []
             )
         );
@@ -108,7 +108,7 @@ module Search = struct
               (
                 match t.pagination with
                 | Pagination p -> Pagination.render ~is_below: false p
-                | FixedSlice _ -> div []
+                | Fixed_slice _ -> div []
               );
               div
                 ~a: [a_class ["table-responsive"]]
@@ -167,7 +167,7 @@ module Search = struct
               (
                 match t.pagination with
                 | Pagination p -> Pagination.render ~is_below: true p
-                | FixedSlice _ -> div []
+                | Fixed_slice _ -> div []
               )
             ]
         );
@@ -186,11 +186,11 @@ module Search = struct
               [
               match t.pagination with
               | Pagination _ -> Pagination.placeholder ~is_below: false ()
-              | FixedSlice _ -> div []] @
+              | Fixed_slice _ -> div []] @
               Tables.placeholder ~show_thead: show_table_headers ~show_tfoot: show_table_headers () @ [
                 match t.pagination with
                 | Pagination _ -> Pagination.placeholder ~is_below: true ()
-                | FixedSlice _ -> div []
+                | Fixed_slice _ -> div []
               ]
             )
         );
@@ -213,7 +213,7 @@ module Quick = struct
     search =
     Search.make
       ~search
-      ~pagination_mode: (FixedSlice (Slice.make ~start: 0 ~end_excl: 20 ()))
+      ~pagination_mode: (Fixed_slice (Slice.make ~start: 0 ~end_excl: 20 ()))
       ~min_characters: 3
       ?on_enter
       ();

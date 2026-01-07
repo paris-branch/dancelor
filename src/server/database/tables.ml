@@ -68,10 +68,10 @@ module Book = Table.Make(struct
           | ModelBuilder.Core.Book.Page.Dance (dance, page_dance) ->
             let page_dance_dependencies =
               match page_dance with
-              | ModelBuilder.Core.Book.Page.DanceOnly -> []
-              | ModelBuilder.Core.Book.Page.DanceVersions versions_and_params ->
+              | ModelBuilder.Core.Book.Page.Dance_only -> []
+              | ModelBuilder.Core.Book.Page.Dance_versions versions_and_params ->
                 List.map (id_for "version" % fst) (NEList.to_list versions_and_params)
-              | ModelBuilder.Core.Book.Page.DanceSet (set, _) ->
+              | ModelBuilder.Core.Book.Page.Dance_set (set, _) ->
                 [id_for "set" set]
             in
               (id_for "dance" dance :: page_dance_dependencies)
@@ -103,7 +103,7 @@ let tables : (module Table.S)list = [
 
 let reverse_dependencies_of (id : 'any Entry.Id.t) : Table.reverse_dependencies =
   let id = Entry.Id.unsafe_coerce id in
-  ReverseDependencies (
+  Reverse_dependencies (
     List.concat_map
       (fun (module T : Table.S) ->
         List.of_seq @@

@@ -224,8 +224,8 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
           let contents =
             List.map
               (function
-                | Model.Book.Dance (dance, DanceVersions versions_and_params) ->
-                  Model.Book.Dance (dance, Model.Book.DanceVersions (NEList.map replace_version_and_params versions_and_params))
+                | Model.Book.Dance (dance, Dance_versions versions_and_params) ->
+                  Model.Book.Dance (dance, Model.Book.Dance_versions (NEList.map replace_version_and_params versions_and_params))
                 | Model.Book.Versions versions_and_params ->
                   Model.Book.Versions (NEList.map replace_version_and_params versions_and_params)
                 | page -> page

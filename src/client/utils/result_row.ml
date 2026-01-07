@@ -2,7 +2,7 @@ open Nes
 open React
 
 type action =
-  | NoAction
+  | No_action
   | Link of string S.t
   | Callback of (unit -> unit Lwt.t)
 [@@deriving variants]
@@ -43,7 +43,7 @@ type t = {
 let make ?(classes = []) ?action ?href ?onclick cells =
   let action =
     match (action, href, onclick) with
-    | (None, None, None) -> NoAction
+    | (None, None, None) -> No_action
     | (Some a, None, None) -> a
     | (None, Some href, None) -> Link (S.const href)
     | (None, None, Some onclick) -> Callback onclick
@@ -70,7 +70,7 @@ let icon_row ?classes ?action icon message =
 let to_clickable_row t =
   let open Html in
   match t.action with
-  | NoAction ->
+  | No_action ->
     tr
       ~a: [a_class t.classes]
       (
@@ -118,6 +118,6 @@ let to_clickable_row t =
 let run_action row =
   let open Js_of_ocaml in
   match row.action with
-  | NoAction -> lwt_unit
+  | No_action -> lwt_unit
   | Link href -> Dom_html.window##.location##.href := Js.string (S.value href); lwt_unit
   | Callback f -> f ()

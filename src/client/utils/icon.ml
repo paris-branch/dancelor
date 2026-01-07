@@ -1,20 +1,20 @@
 type t =
 (* alerts *)
-| InfoCircle (** for info alerts *)
-| ExclamationTriangle (** for warning alerts *)
-| ExclamationDiamond (** for danger alerts *)
+| Info_circle (** for info alerts *)
+| Exclamation_triangle (** for warning alerts *)
+| Exclamation_diamond (** for danger alerts *)
 (* others *)
-| CloudUpload (** to show upload *)
-| HourglassBottom (** to show wait *)
+| Cloud_upload (** to show upload *)
+| Hourglass_bottom (** to show wait *)
 | Cpu (** to show computation *)
 
 let to_string = function
-  | InfoCircle -> "info-circle"
-  | ExclamationTriangle -> "exclamation-triangle"
-  | ExclamationDiamond -> "exclamation-diamond"
+  | Info_circle -> "info-circle"
+  | Exclamation_triangle -> "exclamation-triangle"
+  | Exclamation_diamond -> "exclamation-diamond"
   (* others *)
-  | CloudUpload -> "cloud-upload"
-  | HourglassBottom -> "hourglass-bottom"
+  | Cloud_upload -> "cloud-upload"
+  | Hourglass_bottom -> "hourglass-bottom"
   | Cpu -> "cpu"
 
 let html icon =

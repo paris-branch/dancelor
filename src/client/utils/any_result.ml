@@ -206,7 +206,7 @@ let make_user_result ?classes ?context ?prefix ?suffix user =
   ignore context;
   make_user_result'
     ?classes
-    ~action: NoAction
+    ~action: No_action
     (* FIXME: make a user href *)
     (* Result_row.link @@ *)
     (*   Option.fold *)

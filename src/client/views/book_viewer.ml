@@ -86,7 +86,7 @@ let table_contents ~this_id contents =
                       ]
                   )
                 )
-              | Book.Dance (dance, DanceOnly) ->
+              | Book.Dance (dance, Dance_only) ->
                 (
                   let href = Endpoints.Page.href_dance ~context @@ Entry.id dance in
                   Tables.clickable_row ~href [
@@ -96,7 +96,7 @@ let table_contents ~this_id contents =
                     lwt [];
                   ]
                 )
-              | Book.Dance (dance, DanceVersions versions_and_params) ->
+              | Book.Dance (dance, Dance_versions versions_and_params) ->
                 (
                   Tables.clickable_row [
                     lwt [
@@ -116,7 +116,7 @@ let table_contents ~this_id contents =
                     lwt [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]
                   ]
                 )
-              | Book.Dance (dance, DanceSet (set, params)) ->
+              | Book.Dance (dance, Dance_set (set, params)) ->
                 (
                   let href = Endpoints.Page.href_set ~context @@ Entry.id set in
                   Tables.clickable_row ~href [

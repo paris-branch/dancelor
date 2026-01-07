@@ -25,7 +25,7 @@ module Make (Model : ModelBuilder.S) = struct
         let versions =
           List.concat_map
             (function
-              | Model.Book.Versions versions_and_params | Model.Book.Dance (_, DanceVersions versions_and_params) ->
+              | Model.Book.Versions versions_and_params | Model.Book.Dance (_, Dance_versions versions_and_params) ->
                 NEList.(to_list % map fst) versions_and_params
               | _ -> []
             )
@@ -37,7 +37,7 @@ module Make (Model : ModelBuilder.S) = struct
         let%lwt sets =
           Lwt_list.filter_map_s
             (function
-              | Model.Book.Set (s, _) | Model.Book.Dance (_, DanceSet (s, _)) -> lwt_some s
+              | Model.Book.Set (s, _) | Model.Book.Dance (_, Dance_set (s, _)) -> lwt_some s
               | _ -> lwt_none
             )
             content

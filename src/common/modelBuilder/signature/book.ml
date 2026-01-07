@@ -10,9 +10,9 @@ module type S = sig
   (** {2 Types} *)
 
   type page_dance = Core.Book.page_dance =
-    | DanceOnly
-    | DanceVersions of (Core.Version.entry * Core.Version_parameters.t) NEList.t
-    | DanceSet of Core.Set.entry * Core.Set_parameters.t
+    | Dance_only
+    | Dance_versions of (Core.Version.entry * Core.Version_parameters.t) NEList.t
+    | Dance_set of Core.Set.entry * Core.Set_parameters.t
   [@@deriving variants]
 
   type page = Core.Book.page =

@@ -98,15 +98,15 @@ let dance_and_dance_page =
       Plus.prepare
         ~label: "Dance page"
         ~cast: (function
-          | Zero() -> Model.Book.DanceOnly
-          | Succ Zero versions_and_params -> Model.Book.DanceVersions versions_and_params
-          | Succ Succ Zero (set, params) -> Model.Book.DanceSet (set, params)
+          | Zero() -> Model.Book.Dance_only
+          | Succ Zero versions_and_params -> Model.Book.Dance_versions versions_and_params
+          | Succ Succ Zero (set, params) -> Model.Book.Dance_set (set, params)
           | _ -> assert false (* types guarantee this is not reachable *)
         )
         ~uncast: (function
-          | Model.Book.DanceOnly -> Zero ()
-          | Model.Book.DanceVersions versions_and_params -> one versions_and_params
-          | Model.Book.DanceSet (set, params) -> two (set, params)
+          | Model.Book.Dance_only -> Zero ()
+          | Model.Book.Dance_versions versions_and_params -> one versions_and_params
+          | Model.Book.Dance_set (set, params) -> two (set, params)
         )
         (
           Nil.prepare ~label: "Dance only" () ^::

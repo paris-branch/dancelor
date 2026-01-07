@@ -3,7 +3,7 @@ open Html
 
 type 'p pagination_mode =
   | Pagination of 'p
-  | FixedSlice of Slice.t
+  | Fixed_slice of Slice.t
 
 type 'result t
 

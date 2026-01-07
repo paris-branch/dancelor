@@ -2,17 +2,17 @@ open Nes
 open Common
 open Html
 
-type sign_in_dialog_status = DontKnow | Invalid
+type sign_in_dialog_status = Dont_know | Invalid
 
 let open_sign_in_dialog () =
   let open Components in
-  let (status_signal, set_status_signal) = S.create DontKnow in
+  let (status_signal, set_status_signal) = S.create Dont_know in
   let%lwt username_input =
     Input.make
       ~type_: Text
       ~label: "Username"
       ~placeholder: "JeanMilligan"
-      ~oninput: (fun _ -> set_status_signal DontKnow)
+      ~oninput: (fun _ -> set_status_signal Dont_know)
       ~serialise: Fun.id
       ~validate: (fun username ->
         S.bind status_signal @@ fun status ->
@@ -21,7 +21,7 @@ let open_sign_in_dialog () =
           else
             match status with
             | Invalid -> Error "Invalid username or password."
-            | DontKnow -> Ok username
+            | Dont_know -> Ok username
       )
       ""
   in
@@ -30,7 +30,7 @@ let open_sign_in_dialog () =
       ~type_: Password
       ~label: "Password"
       ~placeholder: "1234567"
-      ~oninput: (fun _ -> set_status_signal DontKnow)
+      ~oninput: (fun _ -> set_status_signal Dont_know)
       ~serialise: Fun.id
       ~validate: (fun password ->
         S.bind status_signal @@ fun status ->
@@ -38,7 +38,7 @@ let open_sign_in_dialog () =
           match password, status with
           | "", _ -> Error "The password cannot be empty."
           | _, Invalid -> Error "Invalid username or password."
-          | _, DontKnow -> Ok password
+          | _, Dont_know -> Ok password
       )
       ""
   in
@@ -82,7 +82,7 @@ let open_sign_in_dialog () =
               (S.value request_signal)
               ~none: lwt_unit
               ~some: (fun (username, password, remember_me) ->
-                set_status_signal DontKnow;
+                set_status_signal Dont_know;
                 match%lwt Madge_client.call_exn Endpoints.Api.(route @@ User Sign_in) username password remember_me with
                 | None -> set_status_signal Invalid; lwt_unit
                 | Some _ -> return (Some ()); lwt_unit

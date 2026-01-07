@@ -6,9 +6,9 @@ let level_to_bootstrap_class = function
   | Danger -> "alert-danger"
 
 let level_to_default_bootstrap_icon = function
-  | Info -> Icon.InfoCircle
-  | Warning -> Icon.ExclamationTriangle
-  | Danger -> Icon.ExclamationDiamond
+  | Info -> Icon.Info_circle
+  | Warning -> Icon.Exclamation_triangle
+  | Danger -> Icon.Exclamation_diamond
 
 let make ~level ?icon content =
   let open Html in

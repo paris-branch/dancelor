@@ -19,13 +19,13 @@ module Build (Getters : Getters.S) = struct
           let%lwt dance = Option.get <$> Getters.get_dance dance in
           let%lwt page_dance =
             match page_dance with
-            | Core.Book.Page.DanceOnly -> lwt DanceOnly
-            | Core.Book.Page.DanceVersions versions_and_params ->
+            | Core.Book.Page.Dance_only -> lwt Dance_only
+            | Core.Book.Page.Dance_versions versions_and_params ->
               let%lwt versions_and_params = NEList.map_lwt_p (Pair.map_fst_lwt (Option.get <%> Getters.get_version)) versions_and_params in
-              lwt @@ DanceVersions versions_and_params
-            | Core.Book.Page.DanceSet (set, parameters) ->
+              lwt @@ Dance_versions versions_and_params
+            | Core.Book.Page.Dance_set (set, parameters) ->
               let%lwt set = Option.get <$> Getters.get_set set in
-              lwt @@ DanceSet (set, parameters)
+              lwt @@ Dance_set (set, parameters)
           in
           lwt (Dance (dance, page_dance))
         | Core.Book.Page.Versions versions_and_params ->
@@ -71,11 +71,11 @@ module Build (Getters : Getters.S) = struct
       Lwt_list.filter_map_p
         (function
           | Part _
-          | Dance (_, DanceOnly)
-          | Dance (_, DanceVersions _)
+          | Dance (_, Dance_only)
+          | Dance (_, Dance_versions _)
           | Versions _ ->
             lwt_none
-          | Dance (_, DanceSet (set, _))
+          | Dance (_, Dance_set (set, _))
           | Set (set, _) ->
             lwt_some set
         )
@@ -159,7 +159,7 @@ module Build (Getters : Getters.S) = struct
       let%lwt contents = contents' book in
       Lwt_list.filter_map_s
         (function
-          | Dance (dance, DanceSet (set, _)) ->
+          | Dance (dance, Dance_set (set, _)) ->
             if Core.Dance.kind' dance <> Core.Set.kind' set then
               lwt_some (Set_dance_kind_mismatch (set, dance))
             else
@@ -191,13 +191,13 @@ module Build (Getters : Getters.S) = struct
       let%lwt dance = Option.get <$> Getters.get_dance dance in
       let%lwt page_dance =
         match page_dance with
-        | Core.Book.Page.DanceOnly -> lwt DanceOnly
-        | Core.Book.Page.DanceVersions versions_and_params ->
+        | Core.Book.Page.Dance_only -> lwt Dance_only
+        | Core.Book.Page.Dance_versions versions_and_params ->
           let%lwt versions_and_params = NEList.map_lwt_p (Pair.map_fst_lwt (Option.get <%> Getters.get_version)) versions_and_params in
-          lwt @@ DanceVersions versions_and_params
-        | Core.Book.Page.DanceSet (set, params) ->
+          lwt @@ Dance_versions versions_and_params
+        | Core.Book.Page.Dance_set (set, params) ->
           let%lwt set = Option.get <$> Getters.get_set set in
-          lwt @@ DanceSet (set, params)
+          lwt @@ Dance_set (set, params)
       in
       lwt @@ Dance (dance, page_dance)
     | Core.Book.Page.Versions versions_and_params ->

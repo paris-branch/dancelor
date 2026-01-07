@@ -4,10 +4,10 @@ open Js_of_ocaml_lwt
 open Html
 
 type 'result state =
-  | StartTyping
-  | ContinueTyping
+  | Start_typing
+  | Continue_typing
   | Searching
-  | NoResults
+  | No_results
   | Results of 'result list
   | Errors of string
 
@@ -56,9 +56,9 @@ let make
       (
         S.const @@
           if text = "" then
-            StartTyping
+            Start_typing
           else
-            ContinueTyping
+            Continue_typing
       )
     else
       (
@@ -77,7 +77,7 @@ let make
           | Some Error messages ->
             Errors messages
           | Some Ok (_, []) ->
-            NoResults
+            No_results
           | Some Ok (total, results) ->
             on_number_of_entries total; Results results
       )

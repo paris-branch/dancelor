@@ -21,7 +21,7 @@ end
 
 type 'value database_state = ('value Entry.id, 'value) Hashtbl.t
 
-type reverse_dependencies = ReverseDependencies of (string * unit Entry.id) list
+type reverse_dependencies = Reverse_dependencies of (string * unit Entry.id) list
 (** A type for reverse dependencies. *)
 
 module type S = sig
@@ -201,7 +201,7 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
   let make_delete reverse_dependencies_of = fun id ->
     let rev_deps = reverse_dependencies_of id in
     match rev_deps with
-    | ReverseDependencies [] ->
+    | Reverse_dependencies [] ->
       Storage.delete_entry Model._key (Entry.Id.to_string id);%lwt
       Storage.save_changes_on_entry
         ~msg: (spf "delete %s / %s" Model._key (Entry.Id.to_string id))
@@ -209,7 +209,7 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
         (Entry.Id.to_string id);%lwt
       Hashtbl.remove table id;
       lwt_unit
-    | ReverseDependencies ((one_key, one_id) :: _) ->
+    | Reverse_dependencies ((one_key, one_id) :: _) ->
       Log.warn (fun m ->
         m "Tried to remove %s / %s but it has reverse dependencies, for instance %s / %s" _key (Entry.Id.to_string id) one_key (Entry.Id.to_string one_id)
       );

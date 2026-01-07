@@ -24,12 +24,12 @@ type version_kind = t
 module Filter : sig
   type predicate =
     | Is of t
-    | BarsEq of int
-    | BarsNe of int
-    | BarsGt of int
-    | BarsGe of int
-    | BarsLt of int
-    | BarsLe of int
+    | Bars_eq of int
+    | Bars_ne of int
+    | Bars_gt of int
+    | Bars_ge of int
+    | Bars_lt of int
+    | Bars_le of int
     | Base of Kind_base.Filter.t
 
   val is : version_kind -> predicate
