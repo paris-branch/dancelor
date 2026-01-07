@@ -11,7 +11,7 @@ val name :
 
 val name' :
   ?link: bool ->
-  ?params: Model.SetParameters.t ->
+  ?params: Model.Set_parameters.t ->
   Model.Set.entry ->
   [> Html_types.span] elt
 (** Variant of {!name} taking an {!Entry.t}. Because this is an entry, we can
@@ -25,7 +25,7 @@ val tunes' :
 
 val conceptors' :
   ?short: bool ->
-  ?params: Model.SetParameters.t ->
+  ?params: Model.Set_parameters.t ->
   Model.Set.entry ->
   [> Html_types.span] elt
 (** Variant of {!conceptors} taking an {!Entry.t}. *)

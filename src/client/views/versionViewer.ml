@@ -168,15 +168,15 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
     if Entry.equal' a_version this_version then
       (
         other_version,
-        Model.VersionParameters.compose
+        Model.Version_parameters.compose
           (
             (* if [this_version] is monolithic, then it comes
                with a specific structure, and this information
                was used when making the set, so we keep it as a
                version parameter to the updated set *)
             match Model.Version.content' this_version with
-            | Monolithic {structure; _} -> Model.VersionParameters.make ~structure ()
-            | _ -> Model.VersionParameters.none
+            | Monolithic {structure; _} -> Model.Version_parameters.make ~structure ()
+            | _ -> Model.Version_parameters.none
           )
           a_version_params (* existing parameters take precedence *)
       )
@@ -455,7 +455,7 @@ let create ?context id =
           (
             match Model.Version.content' version with
             | Monolithic _ -> Components.VersionSnippets.make version
-            | Destructured {default_structure; _} -> Components.VersionSnippets.make version ~params: (Model.VersionParameters.make ~structure: default_structure ());
+            | Destructured {default_structure; _} -> Components.VersionSnippets.make version ~params: (Model.Version_parameters.make ~structure: default_structure ());
           )
         ];
       );

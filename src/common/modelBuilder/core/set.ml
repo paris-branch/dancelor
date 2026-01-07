@@ -6,8 +6,8 @@ type t = {
   name: NEString.t;
   conceptors: Person.t Entry.id list; [@default []]
   kind: Kind.Dance.t;
-  contents: (Version.t Entry.id * VersionParameters.t) list; [@key "versions-and-parameters"] [@default []]
-  order: SetOrder.t;
+  contents: (Version.t Entry.id * Version_parameters.t) list; [@key "versions-and-parameters"] [@default []]
+  order: Set_order.t;
   instructions: string; [@default ""]
   dances: Dance.t Entry.id list; [@default []]
   remark: string; [@default ""]

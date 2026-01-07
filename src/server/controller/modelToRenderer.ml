@@ -16,7 +16,7 @@ let format_persons =
 
 let version_to_lilypond_content ~version_params version =
   (* get a LilyPond from the potentially-destructured content *)
-  let structure = Model.VersionParameters.structure version_params in
+  let structure = Model.Version_parameters.structure version_params in
   let%lwt content = Model.Version.content_lilypond ?structure version in
   let instructions =
     (* if the version is destructured, and the user asked for a structure, but
@@ -34,7 +34,7 @@ let version_to_lilypond_content ~version_params version =
   in
   (* update the clef *)
   let content =
-    match Model.VersionParameters.clef version_params with
+    match Model.Version_parameters.clef version_params with
     | None -> content
     | Some clef_parameter ->
       let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
@@ -43,14 +43,14 @@ let version_to_lilypond_content ~version_params version =
   (* add transposition *)
   let content =
     let source = Music.Key.pitch @@ Model.Version.key version in
-    let target = Transposition.target_pitch ~source @@ Option.value ~default: Transposition.identity @@ Model.VersionParameters.transposition version_params in
+    let target = Transposition.target_pitch ~source @@ Option.value ~default: Transposition.identity @@ Model.Version_parameters.transposition version_params in
     let (source, target) = Pair.map_both Music.Pitch.to_lilypond_string (source, target) in
     spf "\\transpose %s %s { %s }" source target content
   in
   (* done *)
   lwt (content, instructions)
 
-let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) version =
+let version_to_renderer_tune ?(version_params = Model.Version_parameters.none) version =
   let%lwt slug = NesSlug.to_string <$> Model.Version.slug version in
   let%lwt name =
     let%lwt default = Model.Version.one_name version in
@@ -58,7 +58,7 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
     NEString.to_string @@
     Option.value
       ~default
-      (Model.VersionParameters.display_name version_params)
+      (Model.Version_parameters.display_name version_params)
   in
   let%lwt composer =
     let%lwt none = format_persons <$> (Model.Tune.composers' =<< Model.Version.tune version) in
@@ -66,18 +66,18 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
       Option.fold
         ~none
         ~some: NEString.to_string
-        (Model.VersionParameters.display_composer version_params)
+        (Model.Version_parameters.display_composer version_params)
   in
   let%lwt (content, instructions) = version_to_lilypond_content ~version_params version in
   let instructions = Option.value instructions ~default: "" in
-  let first_bar = Model.VersionParameters.first_bar' version_params in
+  let first_bar = Model.Version_parameters.first_bar' version_params in
   let%lwt tune = Model.Version.tune version in
   let kind = Model.Tune.kind' tune in
   let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
   let chords_kind = Kind.Base.to_pretty_string ~capitalised: false kind in
   let show_bar_numbers =
     Model.Version.(Content.is_monolithic @@ content version)
-    || Model.VersionParameters.structure version_params <> None
+    || Model.Version_parameters.structure version_params <> None
   in
   lwt Renderer.{slug; name; instructions; composer; content; first_bar; tempo_unit; tempo_value; chords_kind; show_bar_numbers}
 
@@ -91,7 +91,7 @@ let set_to_renderer_set set set_params =
   let slug = NesSlug.to_string @@ Model.Set.slug set in
   let name =
     NEString.to_string @@
-      Option.value ~default: (Model.Set.name set) (Model.SetParameters.display_name set_params)
+      Option.value ~default: (Model.Set.name set) (Model.Set_parameters.display_name set_params)
   in
   let%lwt conceptor =
     let%lwt conceptors = Model.Set.conceptors set in
@@ -100,17 +100,17 @@ let set_to_renderer_set set set_params =
       | [] -> ""
       | _ -> "Set by " ^ format_persons conceptors
     in
-    lwt @@ Option.fold ~none ~some: NEString.to_string (Model.SetParameters.display_conceptor set_params)
+    lwt @@ Option.fold ~none ~some: NEString.to_string (Model.Set_parameters.display_conceptor set_params)
   in
   let kind =
     let none = Kind.Dance.to_pretty_string @@ Model.Set.kind set in
-    Option.fold ~none ~some: NEString.to_string (Model.SetParameters.display_kind set_params)
+    Option.fold ~none ~some: NEString.to_string (Model.Set_parameters.display_kind set_params)
   in
-  let every_version_params = Model.SetParameters.every_version set_params in
+  let every_version_params = Model.Set_parameters.every_version set_params in
   let%lwt contents =
     Lwt_list.map_s
       (fun (version, version_params) ->
-        let version_params = Model.VersionParameters.compose every_version_params version_params in
+        let version_params = Model.Version_parameters.compose every_version_params version_params in
         version_to_renderer_tune' version ~version_params
       )
     =<< Model.Set.contents set
@@ -126,11 +126,11 @@ let versions_to_renderer_set versions_and_params set_params =
       String.concat ", " ~last: " and "
       <$> Lwt_list.map_s (NEString.to_string <%> Model.Version.one_name % fst) (NEList.to_list versions_and_params)
     in
-    lwt @@ Option.fold ~none: name ~some: NEString.to_string (Model.SetParameters.display_name set_params)
+    lwt @@ Option.fold ~none: name ~some: NEString.to_string (Model.Set_parameters.display_name set_params)
   in
   let slug = NesSlug.(to_string % of_string) name in
   let conceptor =
-    Option.fold ~none: "" ~some: NEString.to_string (Model.SetParameters.display_conceptor set_params)
+    Option.fold ~none: "" ~some: NEString.to_string (Model.Set_parameters.display_conceptor set_params)
   in
   let kind = "" in
   let%lwt contents =
@@ -153,7 +153,7 @@ let dance_to_renderer_set set_params =
     set_params
 
 let page_to_renderer_page page book_params =
-  let every_set_params = Model.BookParameters.every_set book_params in
+  let every_set_params = Model.Book_parameters.every_set book_params in
   match page with
   | Model.Book.Part title ->
     lwt @@ Renderer.part @@ part_to_renderer_part title
@@ -178,10 +178,10 @@ let page_to_renderer_page page book_params =
             | Some false -> ""
           )
         in
-        lwt @@ Model.SetParameters.make ~display_name ~display_conceptor ~display_kind ()
+        lwt @@ Model.Set_parameters.make ~display_name ~display_conceptor ~display_kind ()
       in
       let dance_params =
-        Model.SetParameters.compose every_set_params dance_params
+        Model.Set_parameters.compose every_set_params dance_params
       in
       match dance_page with
       | DanceOnly ->
@@ -189,13 +189,13 @@ let page_to_renderer_page page book_params =
       | DanceVersions versions_and_params ->
         Renderer.set <$> versions_to_renderer_set' versions_and_params dance_params
       | DanceSet (set, set_params) ->
-        let set_params = Model.SetParameters.compose set_params dance_params in
+        let set_params = Model.Set_parameters.compose set_params dance_params in
         Renderer.set <$> set_to_renderer_set' set set_params
     )
   | Model.Book.Versions versions_and_params ->
     Renderer.set <$> versions_to_renderer_set' versions_and_params every_set_params
   | Model.Book.Set (set, set_params) ->
-    let set_params = Model.SetParameters.compose set_params every_set_params in
+    let set_params = Model.Set_parameters.compose set_params every_set_params in
     Renderer.set <$> set_to_renderer_set' set set_params
 
 let book_to_renderer_book book book_params =
@@ -206,7 +206,7 @@ let book_to_renderer_book book book_params =
     Lwt_list.map_s (fun page -> page_to_renderer_page page book_params)
     =<< Model.Book.contents book
   in
-  let simple = Option.value ~default: false @@ Model.BookParameters.simple book_params in
+  let simple = Option.value ~default: false @@ Model.Book_parameters.simple book_params in
   lwt Renderer.{slug; title; editor; contents; simple}
 
 let book_to_renderer_book' book book_params =

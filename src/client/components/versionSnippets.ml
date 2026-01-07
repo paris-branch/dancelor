@@ -68,7 +68,7 @@ let make_gen
     );
   ]
 
-let make ?show_logs ?show_audio ?(params = Model.VersionParameters.none) version =
+let make ?show_logs ?show_audio ?(params = Model.Version_parameters.none) version =
   let copyright_response_promise =
     Madge_client.call
       Endpoints.Api.(route @@ Version BuildSnippets)
@@ -123,7 +123,7 @@ let make ?show_logs ?show_audio ?(params = Model.VersionParameters.none) version
     svg_status_signal
     ogg_status_signal
 
-let make_preview ?show_logs ?show_audio ?(params = Model.VersionParameters.none) version =
+let make_preview ?show_logs ?show_audio ?(params = Model.Version_parameters.none) version =
   let copyright_response_promise =
     Madge_client.call
       Endpoints.Api.(route @@ Version BuildSnippets')

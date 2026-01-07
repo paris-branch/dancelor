@@ -103,11 +103,11 @@ let editor user =
     ~type_: Text
     ~label: "Order"
     ~placeholder: "eg. 1,2,3,4,2,3,4,1"
-    ~serialise: Model.SetOrder.to_string
+    ~serialise: Model.Set_order.to_string
     ~validate: (
       S.const %
         Option.to_result ~none: "Not a valid order." %
-        Model.SetOrder.of_string_opt
+        Model.Set_order.of_string_opt
     )
     () ^::
   Star.prepare_non_empty

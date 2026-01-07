@@ -7,11 +7,11 @@ open Model
    factorisation here. *)
 type t = {
   choice_rows: Html_types.div elt list;
-  parameters_signal: (SetParameters.t * Rendering_parameters.t) React.signal;
+  parameters_signal: (Set_parameters.t * Rendering_parameters.t) React.signal;
 }
 
 let lift_version_parameters every_version =
-  SetParameters.make ~every_version ()
+  Set_parameters.make ~every_version ()
 
 let create () =
   let%lwt version_dialog = VersionDownloadDialog.create () in
@@ -24,7 +24,7 @@ let create () =
           choice'
             [txt "No"]
             ~value: (
-              SetParameters.none,
+              Set_parameters.none,
               Rendering_parameters.make ~show_headers: false ()
             );
         ]
@@ -35,9 +35,9 @@ let create () =
       Components.Component.html headers_choices
     ];
     parameters_signal =
-    let no_parameters = (SetParameters.none, Rendering_parameters.none) in
+    let no_parameters = (Set_parameters.none, Rendering_parameters.none) in
     S.merge
-      (Pair.map2 SetParameters.compose Rendering_parameters.compose)
+      (Pair.map2 Set_parameters.compose Rendering_parameters.compose)
       no_parameters
       [
         S.map (Pair.map_fst lift_version_parameters) version_dialog.parameters_signal;

@@ -10,13 +10,13 @@ module Self = struct
     display_name: NEString.t option; [@default None] [@key "display-name"]
     display_conceptor: NEString.t option; [@default None] [@key "display-conceptor"]
     display_kind: NEString.t option; [@default None] [@key "display-kind"]
-    every_version: VersionParameters.t [@default VersionParameters.none] [@key "every-version"]
+    every_version: Version_parameters.t [@default Version_parameters.none] [@key "every-version"]
   }
   [@@deriving eq, make, show {with_path = false}, yojson, fields]
 end
 include Self
 
-(* FIXME: see remark in VersionParameters *)
+(* FIXME: see remark in Version_parameters *)
 let make ?display_name ?display_conceptor ?display_kind ?every_version () =
   make ~display_name ~display_conceptor ~display_kind ?every_version ()
 
@@ -32,5 +32,5 @@ let compose first second = {
   display_name = Option.(choose ~tie: second) first.display_name second.display_name;
   display_conceptor = Option.(choose ~tie: second) first.display_conceptor second.display_conceptor;
   display_kind = Option.(choose ~tie: second) first.display_kind second.display_kind;
-  every_version = VersionParameters.compose first.every_version second.every_version
+  every_version = Version_parameters.compose first.every_version second.every_version
 }

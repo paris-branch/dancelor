@@ -137,15 +137,15 @@ let build_pdf env id version_params rendering_params =
     let title =
       NEString.to_string @@
         Option.value
-          (Model.VersionParameters.display_name version_params)
+          (Model.Version_parameters.display_name version_params)
           ~default: (Model.Tune.one_name' tune)
     in
     let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Tune.composers' tune in
     let subjects = [Kind.Base.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
     lwt Renderer.{title; authors; subjects}
   in
-  let set_params = Model.SetParameters.make ?display_name: (Model.VersionParameters.display_name version_params) () in
-  let version_params = Model.VersionParameters.set_display_name (NEString.of_string_exn " ") version_params in
+  let set_params = Model.Set_parameters.make ?display_name: (Model.Version_parameters.display_name version_params) () in
+  let version_params = Model.Version_parameters.set_display_name (NEString.of_string_exn " ") version_params in
   let%lwt set = ModelToRenderer.versions_to_renderer_set' (NEList.singleton (version, version_params)) set_params in
   let%lwt book_pdf_arg = ModelToRenderer.renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata in
   lwt @@ uncurry Job.register_job @@ Renderer.make_book_pdf book_pdf_arg

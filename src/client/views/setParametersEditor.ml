@@ -14,10 +14,10 @@ let editor =
     nil
 
 let assemble (display_name, ()) =
-  Model.SetParameters.make ?display_name ()
+  Model.Set_parameters.make ?display_name ()
 
 let disassemble params =
-  let display_name = Model.SetParameters.display_name params in
+  let display_name = Model.Set_parameters.display_name params in
   lwt (display_name, ())
 
 let e =
@@ -27,8 +27,8 @@ let e =
     editor
     ~assemble
     ~disassemble
-    ~check_result: Model.SetParameters.equal
+    ~check_result: Model.Set_parameters.equal
     ~format: (fun _ -> assert false)
     ~href: (fun _ -> assert false)
 
-let empty_value () = Editor.result_to_state e Model.SetParameters.none
+let empty_value () = Editor.result_to_state e Model.Set_parameters.none

@@ -27,7 +27,7 @@ val disambiguation' :
 val name_disambiguation_and_sources' :
   ?name_link: bool ->
   ?context: Endpoints.Page.context ->
-  ?params: Model.VersionParameters.t ->
+  ?params: Model.Version_parameters.t ->
   Model.Version.entry ->
   [> Html_types.span] elt
 (** Variant of {!name_disambiguation_and_sources} taking an {!Entry.t}. Because
@@ -42,7 +42,7 @@ val disambiguation_and_sources' :
 val composer_and_arranger' :
   ?short: bool ->
   ?arranger_links: bool ->
-  ?params: Model.VersionParameters.t ->
+  ?params: Model.Version_parameters.t ->
   Model.Version.entry ->
   [> Html_types.span] elt
 (** Variant of {!composer_and_arranger} taking an {!Entry.t}. *)
@@ -77,7 +77,7 @@ val names' :
 
 val names_disambiguations_and_sources' :
   ?name_links: bool ->
-  (Model.Version.entry * Model.VersionParameters.t) NEList.t ->
+  (Model.Version.entry * Model.Version_parameters.t) NEList.t ->
   [> Html_types.span] elt
 (** Variant of {!names_disambiguations_and_sources} taking {!Entry.t}. Because
     they are entries, we can additionnally have links on the names. *)
@@ -85,6 +85,6 @@ val names_disambiguations_and_sources' :
 val composers_and_arrangers' :
   ?short: bool ->
   ?arranger_links: bool ->
-  (Model.Version.entry * Model.VersionParameters.t) NEList.t ->
+  (Model.Version.entry * Model.Version_parameters.t) NEList.t ->
   [> Html_types.span] elt
 (** Variant of {!composers_and_arrangers} taking {!Entry.t}. *)

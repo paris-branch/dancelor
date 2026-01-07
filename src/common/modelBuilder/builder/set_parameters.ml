@@ -1,3 +1,3 @@
 module Build (Getters : Getters.S) = struct
-  include Core.VersionParameters
+  include Core.Set_parameters
 end

@@ -18,11 +18,11 @@ module Build (Getters : Getters) : S = struct
   module Dance = Builder.Dance.Build(Getters)
   module Tune = Builder.Tune.Build(Getters)
   module Version = Builder.Version.Build(Getters)
-  module VersionParameters = Builder.VersionParameters.Build(Getters)
+  module Version_parameters = Builder.Version_parameters.Build(Getters)
   module Set = Builder.Set.Build(Getters)
-  module SetOrder = Core.SetOrder
-  module SetParameters = Builder.SetParameters.Build(Getters)
+  module Set_order = Core.Set_order
+  module Set_parameters = Builder.Set_parameters.Build(Getters)
   module Book = Builder.Book.Build(Getters)
-  module BookParameters = Core.BookParameters
+  module Book_parameters = Core.Book_parameters
   module Any = Builder.Any.Build(Getters)
 end

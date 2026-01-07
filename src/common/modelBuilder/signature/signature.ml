@@ -5,11 +5,11 @@ module type S = sig
   module Dance : Dance.S
   module Tune : Tune.S
   module Version : Version.S
-  module VersionParameters : VersionParameters.S
+  module Version_parameters : Version_parameters.S
   module Set : Set.S
-  module SetOrder : SetOrder.S
-  module SetParameters : SetParameters.S
+  module Set_order : Set_order.S
+  module Set_parameters : Set_parameters.S
   module Book : Book.S
-  module BookParameters : BookParameters.S
+  module Book_parameters : Book_parameters.S
   module Any : Any.S
 end

@@ -5,7 +5,7 @@ module type S = sig
 
   open Nes
 
-  type t = Core.VersionParameters.t
+  type t = Core.Version_parameters.t
 
   val make :
     ?transposition: Transposition.t ->

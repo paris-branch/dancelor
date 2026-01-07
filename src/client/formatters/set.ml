@@ -11,13 +11,13 @@ let works set =
 
 let works' = works % Entry.value
 
-let display_name ?(params = Model.SetParameters.none) () =
-  match Model.SetParameters.display_name params with
+let display_name ?(params = Model.Set_parameters.none) () =
+  match Model.Set_parameters.display_name params with
   | None -> []
   | Some display_name -> [txt " [as “"; txt (NEString.to_string display_name); txt "”]"]
 
-let display_conceptor ?(params = Model.SetParameters.none) () =
-  match Model.SetParameters.display_conceptor params with
+let display_conceptor ?(params = Model.Set_parameters.none) () =
+  match Model.Set_parameters.display_conceptor params with
   | None -> []
   | Some display_conceptor -> [txt " [as “"; txt (NEString.to_string display_conceptor); txt "”]"]
 

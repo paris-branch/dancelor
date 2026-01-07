@@ -8,11 +8,11 @@ open Components
    factorisation here. *)
 type t = {
   choice_rows: Html_types.div elt list;
-  parameters_signal: (BookParameters.t * Rendering_parameters.t) React.signal;
+  parameters_signal: (Book_parameters.t * Rendering_parameters.t) React.signal;
 }
 
 let lift_set_parameters every_set =
-  BookParameters.make ~every_set ()
+  Book_parameters.make ~every_set ()
 
 let create () =
   let%lwt set_dialog = SetDownloadDialog.create () in
@@ -22,7 +22,7 @@ let create () =
         ~label: "Mode"
         [
           choice' [txt "Normal"] ~checked: true;
-          choice' [txt "Simple"] ~value: (BookParameters.make ~simple: true ());
+          choice' [txt "Simple"] ~value: (Book_parameters.make ~simple: true ());
         ]
     )
   in
@@ -34,11 +34,11 @@ let create () =
     );
     parameters_signal =
     S.merge
-      (Pair.map2 BookParameters.compose Rendering_parameters.compose)
-      (BookParameters.none, Rendering_parameters.none)
+      (Pair.map2 Book_parameters.compose Rendering_parameters.compose)
+      (Book_parameters.none, Rendering_parameters.none)
       [
         S.map (Pair.map_fst lift_set_parameters) set_dialog.parameters_signal;
-        S.map (Pair.snoc Rendering_parameters.none % Option.value ~default: BookParameters.none % Option.join % Result.to_option) (Component.signal booklet_choices);
+        S.map (Pair.snoc Rendering_parameters.none % Option.value ~default: Book_parameters.none % Option.join % Result.to_option) (Component.signal booklet_choices);
       ]
   }
 

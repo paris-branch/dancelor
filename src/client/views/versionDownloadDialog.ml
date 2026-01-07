@@ -7,7 +7,7 @@ open Components
 
 type t = {
   choice_rows: Html_types.div elt list;
-  parameters_signal: (VersionParameters.t * Rendering_parameters.t) React.signal;
+  parameters_signal: (Version_parameters.t * Rendering_parameters.t) React.signal;
 }
 
 (* TODO: Unicode flat in the rendering *)
@@ -22,13 +22,13 @@ let create () =
           choice'
             [txt "B♭"]
             ~value: (
-              VersionParameters.make ~transposition: (Transposition.from_semitones 2) (),
+              Version_parameters.make ~transposition: (Transposition.from_semitones 2) (),
               Rendering_parameters.make ~instruments: "Bb instruments" ()
             );
           choice'
             [txt "E♭"]
             ~value: (
-              VersionParameters.make ~transposition: (Transposition.from_semitones (-3)) (),
+              Version_parameters.make ~transposition: (Transposition.from_semitones (-3)) (),
               Rendering_parameters.make ~instruments: "Eb instruments" ()
             );
         ]
@@ -43,7 +43,7 @@ let create () =
           choice'
             [txt @@ Music.Clef.(to_symbol Bass)]
             ~value: (
-              VersionParameters.make ~clef: Bass ~transposition: (Transposition.from_semitones (-12)) (),
+              Version_parameters.make ~clef: Bass ~transposition: (Transposition.from_semitones (-12)) (),
               Rendering_parameters.make ~clef: "bass clef" ()
             );
         ]
@@ -51,9 +51,9 @@ let create () =
   in
   (* A signal containing the composition of all the parameters. *)
   let parameters_signal =
-    let no_parameters = (VersionParameters.none, Rendering_parameters.none) in
+    let no_parameters = (Version_parameters.none, Rendering_parameters.none) in
     S.merge
-      (Pair.map2 VersionParameters.compose Rendering_parameters.compose)
+      (Pair.map2 Version_parameters.compose Rendering_parameters.compose)
       no_parameters
       [
         S.map (Option.value ~default: no_parameters % Option.join % Result.to_option) (Component.signal key_choices);

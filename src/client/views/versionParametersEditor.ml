@@ -42,14 +42,14 @@ let editor =
   nil
 
 let assemble (display_name, (display_composer, (structure, (first_bar, (transposition, ()))))) =
-  Model.VersionParameters.make ?display_name ?display_composer ?structure ?first_bar ?transposition ()
+  Model.Version_parameters.make ?display_name ?display_composer ?structure ?first_bar ?transposition ()
 
 let disassemble params =
-  let display_name = Model.VersionParameters.display_name params in
-  let display_composer = Model.VersionParameters.display_composer params in
-  let structure = Model.VersionParameters.structure params in
-  let first_bar = Model.VersionParameters.first_bar params in
-  let transposition = Model.VersionParameters.transposition params in
+  let display_name = Model.Version_parameters.display_name params in
+  let display_composer = Model.Version_parameters.display_composer params in
+  let structure = Model.Version_parameters.structure params in
+  let first_bar = Model.Version_parameters.first_bar params in
+  let transposition = Model.Version_parameters.transposition params in
   lwt (display_name, (display_composer, (structure, (first_bar, (transposition, ())))))
 
 let e =
@@ -59,8 +59,8 @@ let e =
     editor
     ~assemble
     ~disassemble
-    ~check_result: Model.VersionParameters.equal
+    ~check_result: Model.Version_parameters.equal
     ~format: (fun _ -> assert false)
     ~href: (fun _ -> assert false)
 
-let empty_value () = Editor.result_to_state e Model.VersionParameters.none
+let empty_value () = Editor.result_to_state e Model.Version_parameters.none

@@ -12,8 +12,8 @@ module type S = sig
     name: NEString.t ->
     ?conceptors: Core.Person.entry list ->
     kind: Kind.Dance.t ->
-    ?contents: (Core.Version.entry * Core.VersionParameters.t) list ->
-    order: Core.SetOrder.t ->
+    ?contents: (Core.Version.entry * Core.Version_parameters.t) list ->
+    order: Core.Set_order.t ->
     ?dances: Core.Dance.entry list ->
     unit ->
     t
@@ -27,11 +27,11 @@ module type S = sig
   val kind : t -> Kind.Dance.t
   val kind' : entry -> Kind.Dance.t
 
-  val contents : t -> (Core.Version.entry * Core.VersionParameters.t) list Lwt.t
-  val contents' : entry -> (Core.Version.entry * Core.VersionParameters.t) list Lwt.t
+  val contents : t -> (Core.Version.entry * Core.Version_parameters.t) list Lwt.t
+  val contents' : entry -> (Core.Version.entry * Core.Version_parameters.t) list Lwt.t
 
-  val order : t -> Core.SetOrder.t
-  val order' : entry -> Core.SetOrder.t
+  val order : t -> Core.Set_order.t
+  val order' : entry -> Core.Set_order.t
 
   val instructions : t -> string
   val instructions' : entry -> string
@@ -53,7 +53,7 @@ module type S = sig
   val equal : t -> t -> bool
   (** Structural equality. This is different from entry equality. *)
 
-  val set_contents : (Core.Version.entry * Core.VersionParameters.t) list -> t -> t
+  val set_contents : (Core.Version.entry * Core.Version_parameters.t) list -> t -> t
 
   (* {2 Warnings} *)
 

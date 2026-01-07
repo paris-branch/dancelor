@@ -3,29 +3,29 @@ open Nes
 module Page = struct
   type dance =
     | DanceOnly
-    | DanceVersions of (Version.t Entry.id * VersionParameters.t) NEList.t
-    | DanceSet of Set.t Entry.id * SetParameters.t
+    | DanceVersions of (Version.t Entry.id * Version_parameters.t) NEList.t
+    | DanceSet of Set.t Entry.id * Set_parameters.t
   [@@deriving eq, show {with_path = false}, yojson]
 
   type t =
     | Part of NEString.t
     | Dance of Dance.t Entry.id * dance
-    | Versions of (Version.t Entry.Id.t * VersionParameters.t) NEList.t
-    | Set of Set.t Entry.Id.t * SetParameters.t
+    | Versions of (Version.t Entry.Id.t * Version_parameters.t) NEList.t
+    | Set of Set.t Entry.Id.t * Set_parameters.t
   [@@deriving eq, show {with_path = false}, yojson]
 end
 
 type page_dance =
   | DanceOnly
-  | DanceVersions of (Version.entry * VersionParameters.t) NEList.t
-  | DanceSet of Set.entry * SetParameters.t
+  | DanceVersions of (Version.entry * Version_parameters.t) NEList.t
+  | DanceSet of Set.entry * Set_parameters.t
 [@@deriving show {with_path = false}, variants]
 
 type page =
   | Part of NEString.t
   | Dance of Dance.entry * page_dance
-  | Versions of (Version.entry * VersionParameters.t) NEList.t
-  | Set of Set.entry * SetParameters.t
+  | Versions of (Version.entry * Version_parameters.t) NEList.t
+  | Set of Set.entry * Set_parameters.t
 [@@deriving show {with_path = false}, variants]
 
 let page_dance_to_page_dance_core : page_dance -> Page.dance = function

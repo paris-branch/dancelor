@@ -45,7 +45,7 @@ let build_pdf env id set_params rendering_params =
   let%lwt pdf_metadata =
     let title =
       NEString.to_string @@
-        Option.value (Model.SetParameters.display_name set_params) ~default: (Model.Set.name' set)
+        Option.value (Model.Set_parameters.display_name set_params) ~default: (Model.Set.name' set)
     in
     let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Set.conceptors' set in
     let subjects =

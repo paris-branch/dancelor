@@ -76,7 +76,7 @@ let name_gen version_gen =
 let name = name_gen % Either.left
 let name' ?(link = true) ?context version = name_gen @@ Right (version, link, context)
 
-let name_disambiguation_and_sources_gen ?(params = Model.VersionParameters.none) version =
+let name_disambiguation_and_sources_gen ?(params = Model.Version_parameters.none) version =
   let the_version = match version with Right (version, _, _) -> Entry.value version | Left version -> version in
   let disambiguation_and_sources_block =
     let version =
@@ -87,17 +87,17 @@ let name_disambiguation_and_sources_gen ?(params = Model.VersionParameters.none)
     disambiguation_and_sources_internal version
   in
   let display_name_block =
-    match Model.VersionParameters.display_name params with
+    match Model.Version_parameters.display_name params with
     | None -> []
     | Some display_name -> [txtf " [as “%s”]" (NEString.to_string display_name)]
   in
   let structure_block =
-    match Model.VersionParameters.structure params with
+    match Model.Version_parameters.structure params with
     | None -> []
     | Some structure -> [txtf " [play %s]" (NEString.to_string @@ Model.Version.Structure.to_string structure)]
   in
   let transposition_block =
-    match Model.VersionParameters.transposition params with
+    match Model.Version_parameters.transposition params with
     | None -> []
     | Some transposition ->
       let key =
@@ -113,7 +113,7 @@ let name_disambiguation_and_sources_gen ?(params = Model.VersionParameters.none)
 let name_disambiguation_and_sources' ?(name_link = true) ?context ?params version =
   name_disambiguation_and_sources_gen ?params @@ Right (version, name_link, context)
 
-let composer_and_arranger ?(short = false) ?arranger_links ?(params = Model.VersionParameters.none) version =
+let composer_and_arranger ?(short = false) ?arranger_links ?(params = Model.Version_parameters.none) version =
   with_span_placeholder @@
     let%lwt composer_block = Tune.composers' ~short <$> Model.Version.tune version in
     let%lwt arranger_block =
@@ -128,7 +128,7 @@ let composer_and_arranger ?(short = false) ?arranger_links ?(params = Model.Vers
           ]
     in
     let display_composer_block =
-      match Model.VersionParameters.display_composer params with
+      match Model.Version_parameters.display_composer params with
       | None -> []
       | Some display_composer -> [txt " [as “"; txt (NEString.to_string display_composer); txt "”]"]
     in

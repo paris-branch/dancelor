@@ -20,7 +20,7 @@ let create ?context id =
         [
           txt ((Kind.Dance.to_pretty_string % Set.kind') set);
           txt " — Play ";
-          txt ((SetOrder.to_pretty_string % Set.order') set);
+          txt ((Set_order.to_pretty_string % Set.order') set);
         ];
       (
         with_span_placeholder @@

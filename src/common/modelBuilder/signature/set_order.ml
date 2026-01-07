@@ -1,5 +1,5 @@
 module type S = sig
-  type component = Core.SetOrder.component =
+  type component = Core.Set_order.component =
     | External of int
     | Internal of int
 

@@ -4,11 +4,11 @@ module type S = sig
       This module defines parameters that make sense at the level of a book. This
       includes set parameters (which include version parameters) as well. *)
 
-  type t = Core.BookParameters.t
+  type t = Core.Book_parameters.t
 
   val make :
     ?simple: bool ->
-    ?every_set: Core.SetParameters.t ->
+    ?every_set: Core.Set_parameters.t ->
     unit ->
     t
 
@@ -17,7 +17,7 @@ module type S = sig
   val simple : t -> bool option
   (** FIXME: Find a better name for this option. *)
 
-  val every_set : t -> Core.SetParameters.t
+  val every_set : t -> Core.Set_parameters.t
 
   val compose : t -> t -> t
 end
