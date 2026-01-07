@@ -47,7 +47,7 @@ let build_pdf env id set_params rendering_params =
       NEString.to_string @@
         Option.value (Model.Set_parameters.display_name set_params) ~default: (Model.Set.name' set)
     in
-    let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Set.conceptors' set in
+    let%lwt authors = Model_to_renderer.format_persons_list <$> Model.Set.conceptors' set in
     let subjects =
       match Kind.Dance.to_simple @@ Model.Set.kind' set with
       | None -> ["Medley"]
@@ -55,8 +55,8 @@ let build_pdf env id set_params rendering_params =
     in
     lwt Renderer.{title; authors; subjects}
   in
-  let%lwt set = ModelToRenderer.set_to_renderer_set' set set_params in
-  let%lwt book_pdf_arg = ModelToRenderer.renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata in
+  let%lwt set = Model_to_renderer.set_to_renderer_set' set set_params in
+  let%lwt book_pdf_arg = Model_to_renderer.renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata in
   lwt @@ uncurry Job.register_job @@ Renderer.make_book_pdf book_pdf_arg
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Set.t -> a = fun env endpoint ->

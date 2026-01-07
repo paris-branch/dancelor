@@ -140,23 +140,23 @@ let build_pdf env id version_params rendering_params =
           (Model.Version_parameters.display_name version_params)
           ~default: (Model.Tune.one_name' tune)
     in
-    let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Tune.composers' tune in
+    let%lwt authors = Model_to_renderer.format_persons_list <$> Model.Tune.composers' tune in
     let subjects = [Kind.Base.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
     lwt Renderer.{title; authors; subjects}
   in
   let set_params = Model.Set_parameters.make ?display_name: (Model.Version_parameters.display_name version_params) () in
   let version_params = Model.Version_parameters.set_display_name (NEString.of_string_exn " ") version_params in
-  let%lwt set = ModelToRenderer.versions_to_renderer_set' (NEList.singleton (version, version_params)) set_params in
-  let%lwt book_pdf_arg = ModelToRenderer.renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata in
+  let%lwt set = Model_to_renderer.versions_to_renderer_set' (NEList.singleton (version, version_params)) set_params in
+  let%lwt book_pdf_arg = Model_to_renderer.renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata in
   lwt @@ uncurry Job.register_job @@ Renderer.make_book_pdf book_pdf_arg
 
 (** For use in {!Routine}. *)
 let render_snippets ?version_params version =
-  let%lwt tune = ModelToRenderer.version_to_renderer_tune ?version_params version in
+  let%lwt tune = Model_to_renderer.version_to_renderer_tune ?version_params version in
   lwt @@ Renderer.make_tune_snippets tune
 
 let register_snippets_job ?version_params version =
-  let%lwt tune = ModelToRenderer.version_to_renderer_tune ?version_params version in
+  let%lwt tune = Model_to_renderer.version_to_renderer_tune ?version_params version in
   let svg_job = Renderer.make_tune_svg tune in
   let ogg_job = Renderer.make_tune_ogg tune in
   lwt @@
