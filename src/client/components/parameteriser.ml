@@ -67,7 +67,7 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_value)(t
       (
         S.const [
           Utils.Button.make
-            ~icon: "toggles"
+            ~icon: (Action Parameterise)
             ~classes: ["btn-outline-secondary"]
             ~tooltip: "Edit parameters"
             ~onclick: (fun () ->

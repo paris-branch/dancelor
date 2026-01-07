@@ -1,5 +1,6 @@
 open Nes
 open Html
+open Utils
 
 module Search = struct
   type 'p pagination_mode =
@@ -74,7 +75,7 @@ module Search = struct
           div
             ~a: [a_class ["input-group"; "mb-3"]]
             (
-              [i ~a: [a_class ["input-group-text"; "bi"; "bi-search"]] [];
+              [Icon.html ~classes: ["input-group-text"] (Action Search);
               Search_bar.html t.search_bar;
               ] @
                 attached_buttons
@@ -159,7 +160,7 @@ module Search = struct
                             match state with
                             | Results results ->
                               let context = S.map Common.Endpoints.Page.in_search @@ Search_bar.text t.search_bar in
-                              List.map Utils.(Result_row.to_clickable_row % (make_result ~context)) results
+                              List.map (Result_row.to_clickable_row % make_result ~context) results
                             | _ -> []
                         )
                     ];
@@ -234,7 +235,5 @@ module Quick = struct
         ~show_table_headers: false
         quick_search.search;
       ]
-      ~buttons: (
-        Utils.Button.cancel' ~return () :: dialog_buttons
-      )
+      ~buttons: (Button.cancel' ~return () :: dialog_buttons)
 end

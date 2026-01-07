@@ -217,15 +217,18 @@ let make_user_result ?classes ?context ?prefix ?suffix user =
     ?suffix
     user
 
-let any_type_to_bi = function
-  | Any.Type.Source -> "bi-archive"
-  | Person -> "bi-person"
-  | Dance -> "bi-person-arms-up"
-  | Tune -> "bi-music-note-list"
-  | Version -> "bi-music-note-beamed"
-  | Set -> "bi-list-stars"
-  | Book -> "bi-book"
-  | User -> "bi-person-circle"
+let any_type_to_icon any =
+  Icon.Model (
+    match (any : Any.Type.t) with
+    | Source -> Source
+    | Person -> Person
+    | Dance -> Dance
+    | Tune -> Tune
+    | Version -> Version
+    | Set -> Set
+    | Book -> Book
+    | User -> User
+  )
 
 let make_result ?classes ?context any =
   let type_ = Any.type_of any in
@@ -233,32 +236,38 @@ let make_result ?classes ?context any =
     Result_row.cell
       ~a: [a_class ["text-nowrap"]]
       [
-        i ~a: [a_class ["bi"; any_type_to_bi type_]] [];
+        Icon.html (any_type_to_icon type_);
         span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt " "; txt (Any.Type.to_string type_)];
       ];
   ]
   in
   let suffix =
-    Model.Any.to_entry'
-      any
-      ~on_public: (fun _entry -> [])
-      ~on_private: (fun entry ->
-        [
-          Result_row.cell [
+    let tooltip_everyone =
+      "You can see this entry because it is an always-public entry (eg. a person \
+       or a tune), or because it was made public by its owner."
+    in
+    [
+      Result_row.cell [
+        Model.Any.to_entry'
+          any
+          ~on_public: (fun _entry ->
+            span [Icon.html Icon.(Access Everyone) ~tooltip: tooltip_everyone]
+          )
+          ~on_private: (fun entry ->
             R.span @@
             S.from' [] @@
             let%lwt reason = Option.get <$> Permission.can_get_private entry in
             let (icon, tooltip) =
               match reason with
-              | Everyone -> ("globe", "You can see this entry because it is made public by its owner.")
-              | Viewer -> ("unlock", "You can see this entry because its owner marked you as one of its viewers.")
-              | Owner -> ("lock-fill", "You can see this entry because you are its owner.")
-              | Omniscient_administrator -> ("shield-lock-fill", "You can see this entry because you are an administrator, with omniscience enabled.")
+              | Everyone -> (Icon.(Access Everyone), tooltip_everyone)
+              | Viewer -> (Icon.(Access Viewer), "You can see this entry because its owner marked you as one of its viewers.")
+              | Owner -> (Icon.(Access Owner), "You can see this entry because you are (one of) its owners.")
+              | Omniscient_administrator -> (Icon.(Access Omniscient_administrator), "You can see this entry because you are an administrator, with omniscience enabled. You would not be able to access it without that.")
             in
-            lwt [i ~a: [a_class ["bi"; "bi-" ^ icon]; a_title tooltip] []]
-          ]
-        ]
-      )
+            lwt [Icon.html ~tooltip icon]
+          )
+      ]
+    ]
   in
   match any with
   | Source source -> make_source_result ?classes ?context ~prefix ~suffix source

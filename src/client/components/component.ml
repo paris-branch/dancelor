@@ -62,7 +62,7 @@ let html'
         label ~a: [a_class ["col"]] [txt C.label];
         R.div ~a: [a_class ["col-auto"]] (
           flip S.map (C.actions c) @@ function
-            | [] -> [Utils.Button.make ~classes: ["invisible"] ~icon: "plus-circle" ()] (* for spacing *)
+            | [] -> [Utils.Button.make ~classes: ["invisible"] ~icon: (Action Add) ()] (* for spacing *)
             | actions -> actions
         );
       ];

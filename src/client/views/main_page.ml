@@ -2,6 +2,7 @@ open Nes
 open Common
 open Js_of_ocaml
 open Html
+open Utils
 
 let set_title title =
   Dom_html.document##.title :=
@@ -32,23 +33,23 @@ let open_quick_search () =
     ~return
     ~dialog_title: (lwt "Quick search")
     ~dialog_buttons: [
-      Utils.Button.make
+      Button.make
         ~label: "Explore"
         ~label_processing: "Opening explorer..."
-        ~icon: "zoom-in"
+        ~icon: (Action Search_more)
         ~badge: "↵"
         ~classes: ["btn-primary"]
         ~onclick: (fun () -> quick_search_to_explorer (S.value @@ Components.Search.Quick.text quick_search))
         ();
     ]
-    ~make_result: (fun ~context result -> Utils.Any_result.make_result ~context result)
+    ~make_result: (fun ~context result -> Any_result.make_result ~context result)
     quick_search
 
 let nav_item_explore =
   li
     ~a: [a_class ["nav-item"; "dropdown"]]
     [
-      Utils.Button.make
+      Button.make
         ~label: "Explore"
         ~classes: ["text-white"; "dropdown-toggle"]
         ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
@@ -56,22 +57,22 @@ let nav_item_explore =
       ul
         ~a: [a_class ["dropdown-menu"]]
         (
-          [li [Utils.Button.make_a ~label: "All" ~href: (S.const @@ Endpoints.Page.(href Explore) None) ~dropdown: true ()];
+          [li [Button.make_a ~label: "All" ~href: (S.const @@ Endpoints.Page.(href Explore) None) ~dropdown: true ()];
           li [hr ~a: [a_class ["dropdown-divider"]] ()];
           ] @
             List.map
               (fun (icon, key, label) ->
                 let href = S.const @@ Endpoints.Page.(href Explore) @@ some @@ Text_formula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
-                li [Utils.Button.make_a ~label ~icon ~href ~dropdown: true ()]
+                li [Button.make_a ~label ~icon: (Model icon) ~href ~dropdown: true ()]
               )
               [
-                ("archive", "source", "Sources");
-                ("person", "person", "Persons");
-                ("person-arms-up", "dance", "Dances");
-                ("music-note-list", "tune", "Tunes");
-                ("music-note-beamed", "version", "Versions");
-                ("list-stars", "set", "Sets");
-                ("book", "book", "Books");
+                (Icon.Source, "source", "Sources");
+                (Icon.Person, "person", "Persons");
+                (Icon.Dance, "dance", "Dances");
+                (Icon.Tune, "tune", "Tunes");
+                (Icon.Version, "version", "Versions");
+                (Icon.Set, "set", "Sets");
+                (Icon.Book, "book", "Books");
               ]
         );
     ]
@@ -82,7 +83,7 @@ let nav_item_create =
       li
         ~a: [a_class ["nav-item"; "dropdown"]]
         [
-          Utils.Button.make
+          Button.make
             ~label: "Add"
             ~classes: ["text-white"; "dropdown-toggle"]
             ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
@@ -93,16 +94,16 @@ let nav_item_create =
               let open Endpoints.Page in
               List.map
                 (fun (icon, href, label) ->
-                  li [Utils.Button.make_a ~label ~icon ~href: (S.const href) ~dropdown: true ()]
+                  li [Button.make_a ~label ~icon: (Model icon) ~href: (S.const href) ~dropdown: true ()]
                 )
                 [
-                  ("archive", href Source_add, "Source");
-                  ("person", href Person_add, "Person");
-                  ("person-arms-up", href Dance_add, "Dance");
-                  ("music-note-list", href Tune_add, "Tune");
-                  ("music-note-beamed", href Version_add, "Version");
-                  ("list-stars", href Set_add, "Set");
-                  ("book", href Book_add, "Book");
+                  (Icon.Source, href Source_add, "Source");
+                  (Icon.Person, href Person_add, "Person");
+                  (Icon.Dance, href Dance_add, "Dance");
+                  (Icon.Tune, href Tune_add, "Tune");
+                  (Icon.Version, href Version_add, "Version");
+                  (Icon.Set, href Set_add, "Set");
+                  (Icon.Book, href Book_add, "Book");
                 ]
             );
         ]
@@ -129,8 +130,8 @@ let header =
             [
               img ~a: [a_height 60] ~src: "/logo.svg" ~alt: "Dancelor" ();
             ];
-          Utils.Button.make
-            ~icon: "search"
+          Button.make
+            ~icon: (Action Search)
             ~classes: ["btn-light"; "me-2"; "d-block"; "d-sm-none"]
             ~onclick: (Lwt.map ignore % open_quick_search)
             ();
@@ -153,9 +154,9 @@ let header =
                   ]
                 );
             ];
-          Utils.Button.make
+          Button.make
             ~label: "Search"
-            ~icon: "search"
+            ~icon: (Action Search)
             ~badge: "/"
             ~classes: ["btn-light"; "ms-2"; "d-none"; "d-sm-block"]
             ~onclick: (Lwt.map ignore % open_quick_search)
@@ -165,11 +166,11 @@ let header =
 
 (* Add an event listener to open the quick search by pressing '/'. *)
 let add_slash_quick_search_event_listener () =
-  Utils.add_target_event_listener
+  add_target_event_listener
     Dom_html.window
     Dom_html.Event.keydown
     (fun event target ->
-      if not (Utils.is_input target) && event##.keyCode = 191 then (* slash *)
+      if not (is_input target) && event##.keyCode = 191 then (* slash *)
         (Lwt.async (Lwt.map ignore % open_quick_search); Js._false)
       else
         Js._true
@@ -197,13 +198,13 @@ let footer =
               a_target "_blank";
             ]
             [
-              i ~a: [a_class ["bi"; "bi-github"]] [];
+              Icon.html (Other GitHub);
               txt "paris-branch/dancelor";
             ];
-          Utils.Button.make
+          Button.make
             ~label: "Report an issue"
             ~label_processing: "Reporting..."
-            ~icon: "bug"
+            ~icon: (Other Bug)
             ~classes: ["btn-light"; "my-1"]
             ~onclick: (fun () ->
               ignore <$> Issue_report.open_dialog @@ get_uri ()

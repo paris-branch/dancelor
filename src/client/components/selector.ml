@@ -64,7 +64,7 @@ let prepare_gen (type model)(type access)(type model_validated)
         [
           Utils.Button.make
             ~classes: ["btn-warning"]
-            ~icon: "eraser"
+            ~icon: (Action Clear)
             ~tooltip: "Clear the selection. It cannot be recovered."
             ~onclick: (fun _ -> s.set None; lwt_unit)
             ();
@@ -109,7 +109,7 @@ let prepare_gen (type model)(type access)(type model_validated)
                 Utils.Button.make
                   ~label: ("Create new " ^ model_name)
                   ~label_processing: ("Creating new " ^ model_name ^ "...")
-                  ~icon: "plus-circle"
+                  ~icon: (Action Add)
                   ~classes: ["btn-primary"]
                   ~onclick: (fun () ->
                     quick_search_return
@@ -146,7 +146,7 @@ let prepare_gen (type model)(type access)(type model_validated)
               div
                 ~a: [a_class ["btn-group"; "w-100"]]
                 [
-                  Utils.Button.make_icon "search" ~classes: ["btn-light"];
+                  Utils.Button.make_icon (Action Search) ~classes: ["btn-light"];
                   select_button;
                 ];
             ]

@@ -3,7 +3,7 @@ open Html
 val make :
   ?label: string ->
   ?label_processing: string ->
-  ?icon: string ->
+  ?icon: Icon.t ->
   ?badge: string ->
   ?tooltip: string ->
   ?dropdown: bool ->
@@ -24,7 +24,7 @@ val make :
 val make_a :
   ?label: string ->
   ?label_processing: string ->
-  ?icon: string ->
+  ?icon: Icon.t ->
   ?badge: string ->
   ?tooltip: string ->
   ?disabled: bool S.t ->
@@ -40,7 +40,7 @@ val make_a :
 
 val make_icon :
   ?classes: string list ->
-  string ->
+  Icon.t ->
   [> Html_types.button] elt
 (** Make a fake button showing an icon. Sometimes useful in button groups. *)
 

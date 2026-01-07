@@ -1,6 +1,7 @@
 open Js_of_ocaml
 open Nes
 open Html
+open Utils
 
 (* Bundles *)
 
@@ -57,7 +58,7 @@ type ('result, 'state) mode =
 
 type ('result, 'product, 'value, 'state) s = {
   key: string;
-  icon: string;
+  icon: Icon.t;
   assemble: ('value -> 'product);
   submit: (('result, 'state) mode -> 'product -> 'result Lwt.t);
   unsubmit: ('result -> 'product Lwt.t);
@@ -167,21 +168,21 @@ let initialise (type result)(type value)(type product)(type state)
   in
   let save_buttons ?after_save () =
     let button ?label f =
-      Utils.Button.save
+      Button.save
         ?label
         ~disabled: (S.map Result.is_error (Component.signal editor))
         ~onclick: (fun () -> save ?after_save f)
         ()
     in
     let show_toast result =
-      Utils.Toast.open_
+      Toast.open_
         ~title: (String.capitalize_ascii key ^ " created")
         [txt ("The " ^ key ^ " ");
         format result;
         txt " has been created successfully.";
         ]
         ~buttons: [
-          Utils.Button.make_a
+          Button.make_a
             ~label: ("Go to " ^ key)
             ~icon
             ~classes: ["btn-primary"]
@@ -218,7 +219,7 @@ let initialise (type result)(type value)(type product)(type state)
       ~on_load: (fun () -> Component.focus editor)
       [Component.inner_html editor]
       ~buttons: (
-        Utils.Button.clear
+        Button.clear
           ~onclick: (fun () -> Component.clear editor)
           () :: save_buttons ?after_save ()
       )

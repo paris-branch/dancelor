@@ -93,7 +93,7 @@ let create mode =
   Main_page.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "source"
-    ~icon: "archive"
+    ~icon: (Model Source)
     editor
     ~mode
     ~assemble

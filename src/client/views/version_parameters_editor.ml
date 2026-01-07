@@ -55,7 +55,8 @@ let disassemble params =
 let e =
   Editor.prepare_nosubmit
     ~key: "version parameters"
-    ~icon: "fixme"
+    ~icon: (Other Bug)
+    (* FIXME: unused? *)
     editor
     ~assemble
     ~disassemble

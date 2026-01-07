@@ -319,7 +319,7 @@ let create mode =
   Main_page.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "version"
-    ~icon: "music-note-beamed"
+    ~icon: (Model Version)
     editor
     ~mode
     ~href: (Endpoints.Page.href_version % Entry.id)

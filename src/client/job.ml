@@ -106,7 +106,7 @@ let show_live_status ~on_succeeded status_signal =
   flip S.map status_signal @@ function
     | Registering ->
       [
-        Utils.Alert.make ~level: Info ~icon: Cloud_upload [
+        Utils.Alert.make ~level: Info ~icon: (Job Registering) [
           txt
             "The document generation job is being sent to the server.";
         ];
@@ -116,7 +116,7 @@ let show_live_status ~on_succeeded status_signal =
       [
         Utils.Alert.make
           ~level: Info
-          ~icon: Hourglass_bottom
+          ~icon: (Job Pending)
           [
             txt
               "The document generation job is pending, that is it has been \
@@ -127,7 +127,7 @@ let show_live_status ~on_succeeded status_signal =
       ]
     | Running logs ->
       [
-        Utils.Alert.make ~level: Info ~icon: Cpu [
+        Utils.Alert.make ~level: Info ~icon: (Job Running) [
           txt
             "The server has started generating the document. This process can be \
            short for single tunes, but can also take a (very) long time, up to \

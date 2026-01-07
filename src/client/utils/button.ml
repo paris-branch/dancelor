@@ -31,16 +31,9 @@ let make_content
         (
           flip Option.map icon @@ fun icon ->
           [
-            i
-              ~a: [
-                R.a_class
-                  (
-                    flip S.map processing @@ function
-                      | true -> ["d-none"]
-                      | false -> ["bi"; "bi-" ^ icon; (if label <> "" then "me-2" else "me-0")]
-                  )
-              ]
-              [];
+            span ~a: [R.a_class (S.map (function true -> ["d-none"] | _ -> []) processing)] [
+              Icon.html icon ~classes: [(if label <> "" then "me-2" else "me-0")];
+            ];
           ]
         );
         Some
@@ -159,15 +152,13 @@ let make_a
 let make_icon ?(classes = []) icon =
   button
     ~a: [a_button_type `Button; a_class (["btn"; "disabled"] @ classes); a_tabindex (-1)]
-    [
-      i ~a: [a_class ["bi"; "bi-" ^ icon]] []
-    ]
+    [Icon.html icon]
 
 let save ?label ?label_processing ?disabled ~onclick () =
   make
     ~label: (Option.value label ~default: "Save")
     ~label_processing: (Option.value label_processing ~default: "Saving...")
-    ~icon: "save"
+    ~icon: (Action Save)
     ~classes: ["btn-primary"]
     ?disabled
     ~onclick
@@ -177,7 +168,7 @@ let clear ~onclick () =
   make
     ~label: "Clear"
     ~label_processing: "Clearing..."
-    ~icon: "eraser"
+    ~icon: (Action Clear)
     ~classes: ["btn-warning"]
     ~onclick: (fun () ->
       if Dom_html.window##confirm (Js.string "Clear the editor?") |> Js.to_bool then
@@ -191,7 +182,7 @@ let cancel ?onclick ?more_a () =
   make
     ~label: "Cancel"
     ~label_processing: "Cancelling..."
-    ~icon: "x-lg"
+    ~icon: (Action Close_or_cancel)
     ~classes: ["btn-secondary"]
     ?onclick
     ?more_a
@@ -207,7 +198,7 @@ let close ?onclick ?more_a () =
   make
     ~label: "Close"
     ~label_processing: "Closing..."
-    ~icon: "x-lg"
+    ~icon: (Action Close_or_cancel)
     ~classes: ["btn-secondary"]
     ?onclick
     ?more_a
@@ -237,7 +228,7 @@ let ok' ~return ?more_a () =
 let download ~onclick () =
   make
     ~label: "Download"
-    ~icon: "download"
+    ~icon: (Action Download)
     ~classes: ["btn-primary"]
     ~onclick
     ()
