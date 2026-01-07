@@ -4,7 +4,7 @@ open Components
 open Js_of_ocaml
 open Html
 
-type status = Match | DontMatch
+type status = Match | Dont_match
 
 let create username token =
   let%lwt password1_input =

@@ -51,7 +51,7 @@ module type S = sig
     unit Lwt.t
   (** Given a function that computes reverse dependencies, make a function that
       deletes an existing database entry if it is safe to do so. It throws
-      {!Error.EntityHasReverseDependencies} otherwise. *)
+      {!Error.Entity_has_reverse_dependencies} otherwise. *)
 
   val dependencies : value -> unit Entry.id list
   (** Pass {!Model.dependencies} through. *)

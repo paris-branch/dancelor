@@ -3,7 +3,7 @@ open Common
 open Components
 open Html
 
-type status = Match | DontMatch
+type status = Match | Dont_match
 
 let open_token_result_dialog user token =
   ignore

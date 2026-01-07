@@ -47,7 +47,7 @@ module Version = Table.Make(struct
   let wrap_any = Model_builder.Core.Any.version
 end)
 
-module SetModel = struct
+module Set_model = struct
   include Model_builder.Core.Set
   let dependencies set =
     List.map (id_for "version" % fst) (Model_builder.Core.Set.contents set) @
@@ -56,7 +56,7 @@ module SetModel = struct
   let wrap_any = Model_builder.Core.Any.set
 end
 
-module Set = Table.Make(SetModel)
+module Set = Table.Make(Set_model)
 
 module Book = Table.Make(struct
   include Model_builder.Core.Book

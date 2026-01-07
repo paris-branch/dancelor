@@ -6,7 +6,7 @@
 open NesUnix
 open Common
 
-module Log = (val Logger.create "controller.modelToRenderer": Logs.LOG)
+module Log = (val Logger.create "controller.model_to_renderer": Logs.LOG)
 
 let format_persons_list =
   List.map (NEString.to_string % Model.Person.name')

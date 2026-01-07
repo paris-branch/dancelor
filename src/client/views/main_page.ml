@@ -257,23 +257,23 @@ let load page_promise =
   page_on_load ();
   lwt_unit
 
-exception ReplacementSuccessful
-exception ReplacementFailed
+exception Replacement_successful
+exception Replacement_failed
 
 (** Variant of {!load}, that, after loading, sleeps for a bit, then raises
-    either {!ReplacementFailed} or {!ReplacementSuccessful} dependending on the
+    either {!Replacement_failed} or {!Replacement_successful} dependending on the
     status of things. It is intended to be used in an asynchronous promise that
     loses meaning once the page replacement has taken place. The async exception
-    hook should ignore {!ReplacementSuccessful} and report
-    {!ReplacementFailed}. *)
+    hook should ignore {!Replacement_successful} and report
+    {!Replacement_failed}. *)
 let load_sleep_raise ?(delay = 1.) page_promise =
   let previous_content = !current_content in
   load page_promise;%lwt
   Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt
   if !current_content = previous_content then
-    Lwt.fail ReplacementFailed
+    Lwt.fail Replacement_failed
   else
-    Lwt.fail ReplacementSuccessful
+    Lwt.fail Replacement_successful
 
 let madge_call_or_404 endpoint arg f =
   try%lwt

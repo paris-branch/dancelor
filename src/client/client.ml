@@ -93,7 +93,7 @@ let () =
           previous_exn := exn;
           match exn with
           | Lwt.Canceled -> () (* the promises are cancelled on purpose *)
-          | Main_page.ReplacementSuccessful -> () (* see comment for {!Main_page.load_sleep_raise} *)
+          | Main_page.Replacement_successful -> () (* see comment for {!Main_page.load_sleep_raise} *)
           | Madge_client.(Error (Http {request; status; _})) ->
             Utils.Toast.open_
               ~type_: Forever
