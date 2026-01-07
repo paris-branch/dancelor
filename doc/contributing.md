@@ -68,15 +68,15 @@ In general, in this repository, we enforce the following invariants:
 
 - Dune files should be formatted with `dune fmt`.
 
-- Nix code should be formatted with [`nixfmt-rfc-style`] and should not include
-  any unused variable or piece of code.
+- Nix code should be formatted with [`nixfmt`] and should not include any unused
+  variable or piece of code.
 
 - Nix files should contain enough information to spin up an environment able to
   build Dancelor.
 
 - HTML, CSS and YAML files should be formatted with [Prettier].
 
-[`nixfmt-rfc-style`]: https://github.com/NixOS/nixfmt
+[`nixfmt`]: https://github.com/NixOS/nixfmt
 [Prettier]: https://prettier.io/
 [Topiary]: https://topiary.tweag.io/
 
