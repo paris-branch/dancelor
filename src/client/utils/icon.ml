@@ -66,13 +66,13 @@ let to_string = function
   | Job icon -> job_to_string icon
   | Model icon -> model_to_string icon
 
-(** Generate HTML for the given icon. Optionally, one can pass a tooltip that is
-    shown when hovering on the icon. *)
-let html ?tooltip icon =
+(** Generate HTML for the given icon. One can optionally pass extra HTML
+    [?classes] or a [?tooltip] that is shown when hovering on the icon. *)
+let html ?(classes = []) ?tooltip icon =
   let open Html in
   let a =
     List.concat [
-      [a_class ["bi"; ("bi-" ^ to_string icon)]];
+      [a_class (["bi"; ("bi-" ^ to_string icon)] @ classes)];
       (Option.fold ~none: [] ~some: (fun t -> [a_title t]) tooltip);
     ]
   in
