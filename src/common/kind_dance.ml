@@ -18,7 +18,7 @@ let of_string_opt s =
   try
     Some (Kind_dance_parser.main Kind_dance_lexer.token (Lexing.from_string s))
   with
-    | Kind_dance_parser.Error | Kind_dance_lexer.UnexpectedCharacter _ -> None
+    | Kind_dance_parser.Error | Kind_dance_lexer.Unexpected_character _ -> None
 
 let of_string s =
   match of_string_opt s with Some k -> k | None -> failwith "Kind.Dance.of_string"
@@ -85,14 +85,14 @@ module Filter = struct
   [@@deriving eq, show {with_path = false}, yojson, variants]
 
   let base = version % Kind_version.Filter.base'
-  let baseIs = version % Kind_version.Filter.baseIs'
+  let base_is = version % Kind_version.Filter.base_is'
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
   let base' = Formula.pred % base
-  let baseIs' = Formula.pred % baseIs
+  let base_is' = Formula.pred % base_is
 
   let accepts filter kind =
     Formula.interpret filter @@ function

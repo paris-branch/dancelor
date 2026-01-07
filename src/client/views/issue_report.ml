@@ -4,7 +4,7 @@ open Common
 open Html
 open Components
 
-include Endpoints.Page.MakeDescribe(Model)
+include Endpoints.Page.Make_describe(Model)
 
 let open_dialog page =
   let%lwt maybe_reporter_input =

@@ -47,19 +47,19 @@ let restrict_formula (text : string) : restricted_formula option =
         match non_raws with
         | [] -> Some None
         | [Type Source] -> Some (Some (source []))
-        | [Source filter] -> Some (Option.map source (Formula.unCnf filter))
+        | [Source filter] -> Some (Option.map source (Formula.cnf_val filter))
         | [Type Person] -> Some (Some (person []))
-        | [Person filter] -> Some (Option.map person (Formula.unCnf filter))
+        | [Person filter] -> Some (Option.map person (Formula.cnf_val filter))
         | [Type Dance] -> Some (Some (dance []))
-        | [Dance filter] -> Some (Option.map dance (Formula.unCnf filter))
+        | [Dance filter] -> Some (Option.map dance (Formula.cnf_val filter))
         | [Type Book] -> Some (Some (book []))
-        | [Book filter] -> Some (Option.map book (Formula.unCnf filter))
+        | [Book filter] -> Some (Option.map book (Formula.cnf_val filter))
         | [Type Set] -> Some (Some (set []))
-        | [Set filter] -> Some (Option.map set (Formula.unCnf filter))
+        | [Set filter] -> Some (Option.map set (Formula.cnf_val filter))
         | [Type Tune] -> Some (Some (tune []))
-        | [Tune filter] -> Some (Option.map tune (Formula.unCnf filter))
+        | [Tune filter] -> Some (Option.map tune (Formula.cnf_val filter))
         | [Type Version] -> Some (Some (version []))
-        | [Version filter] -> Some (Option.map version (Formula.unCnf filter))
+        | [Version filter] -> Some (Option.map version (Formula.cnf_val filter))
         | _ -> None
       in
       (* return the raw predicates and the restricted lifted one *)
@@ -103,8 +103,8 @@ let kind_choices filter =
   let checked kind =
     (* NOTE: Will stop working when we push the disjunction inside the kind filters *)
     match filter with
-    | Some (Dance filter) -> List.exists (List.mem (Filter.Dance.kind @@ Kind.Dance.Filter.baseIs' kind)) filter
-    | Some (Set filter) -> List.exists (List.mem (Filter.Set.kind @@ Kind.Dance.Filter.baseIs' kind)) filter
+    | Some (Dance filter) -> List.exists (List.mem (Filter.Dance.kind @@ Kind.Dance.Filter.base_is' kind)) filter
+    | Some (Set filter) -> List.exists (List.mem (Filter.Set.kind @@ Kind.Dance.Filter.base_is' kind)) filter
     | Some (Tune filter) -> List.exists (List.mem (Filter.Tune.kind @@ Kind.Base.Filter.is' kind)) filter
     | Some (Version filter) -> List.exists (List.mem (Filter.Version.tune @@ Filter.Tune.kind' @@ Kind.Base.Filter.is' kind)) filter
     | _ -> false
@@ -141,7 +141,7 @@ let dance_bundled_choices ~kind_choices _filter =
         [
           choices_formula
             ~s: (S.map Result.get_ok (Component.signal kind_choices))
-            ~f: (Filter.Dance.kind' % Kind.Dance.Filter.baseIs');
+            ~f: (Filter.Dance.kind' % Kind.Dance.Filter.base_is');
         ]
   in
   let html = [
@@ -163,7 +163,7 @@ let set_bundled_choices ~kind_choices _filter =
         [
           choices_formula
             ~s: (S.map Result.get_ok (Component.signal kind_choices))
-            ~f: (Filter.Set.kind' % Kind.Dance.Filter.baseIs');
+            ~f: (Filter.Set.kind' % Kind.Dance.Filter.base_is');
         ]
   in
   let html = [

@@ -47,7 +47,7 @@ type (_, _, _) t =
    describe fields that are not included by default, but for now we will just
    redact it from the HTTP responses. NOTE: We only redact it from the HTTP
    _responses_, but not from the requests! *)
-module VersionNoLilypond = struct
+module Version_no_lilypond = struct
   type t = Version.t
   let of_yojson = Version.of_yojson
   let to_yojson = Version.to_yojson % Version.erase_lilypond_from_content
@@ -64,12 +64,12 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     (* Actions without specific version *)
-    | Create -> body "version" (module Version) @@ post (module Entry.JPublic(VersionNoLilypond))
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Version) @@ get (module JPair(JInt)(JList(Entry.JPublic(VersionNoLilypond))))
+    | Create -> body "version" (module Version) @@ post (module Entry.JPublic(Version_no_lilypond))
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Version) @@ get (module JPair(JInt)(JList(Entry.JPublic(Version_no_lilypond))))
     (* Actions on a specific version *)
-    | Get -> variable (module Entry.Id.S(Version)) @@ get (module Entry.JPublic(VersionNoLilypond))
+    | Get -> variable (module Entry.Id.S(Version)) @@ get (module Entry.JPublic(Version_no_lilypond))
     | Content -> literal "content" @@ variable (module Entry.Id.S(Version)) @@ get (module Copyright_response(Version.Content))
-    | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module Entry.JPublic(VersionNoLilypond))
+    | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module Entry.JPublic(Version_no_lilypond))
     | Delete -> variable (module Entry.Id.S(Version)) @@ delete (module JUnit)
     (* Files related to a version *)
     | Build_snippets -> literal "build-snippets" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module Version_parameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Copyright_response(Job.Registration_response(Snippet_ids)))

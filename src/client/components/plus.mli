@@ -2,7 +2,7 @@
 
 (** {2 Tuple elements} *)
 
-module TupleElt : sig
+module Tuple_elt : sig
   type _ t =
     | Zero : 'a -> ('a * 'b) t
     | Succ : 'b t -> ('a * 'b) t
@@ -51,8 +51,8 @@ end
 
 val prepare :
   label: string ->
-  cast: ('bundled_value TupleElt.t -> 'value) ->
-  uncast: ('value -> 'bundled_value TupleElt.t) ->
+  cast: ('bundled_value Tuple_elt.t -> 'value) ->
+  uncast: ('value -> 'bundled_value Tuple_elt.t) ->
   ('bundled_value, 'state) Bundle.t ->
   ('value, int option * 'state) Component.s
 (** Prepare a sum of components. The components have to be bundled together. The

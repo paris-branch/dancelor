@@ -83,7 +83,7 @@ module Filter = struct
     | Base of Kind_base.Filter.t
   [@@deriving eq, show {with_path = false}, yojson, variants]
 
-  let baseIs = base % Kind_base.Filter.is'
+  let base_is = base % Kind_base.Filter.is'
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]
@@ -91,7 +91,7 @@ module Filter = struct
   let is' = Formula.pred % is
   let base' = Formula.pred % base
 
-  let baseIs' = Formula.pred % baseIs
+  let base_is' = Formula.pred % base_is
 
   let accepts filter kind =
     Formula.interpret filter @@ function

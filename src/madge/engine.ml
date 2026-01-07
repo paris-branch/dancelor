@@ -8,7 +8,7 @@ module Log = (val Logs.(src_log (Src.create "madge.engine")): Logs.LOG)
 
 (* route -> request *)
 
-exception IllegalBodyInGetRequest
+exception Illegal_body_in_get_request
 
 let rec with_request
   : type a w r. string ->
@@ -26,7 +26,7 @@ let rec with_request
         if meth = GET then
           (
             if not (Query.is_empty body) then
-              raise IllegalBodyInGetRequest;
+              raise Illegal_body_in_get_request;
             ""
           )
         else

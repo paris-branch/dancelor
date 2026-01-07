@@ -51,7 +51,7 @@ module Build (Getters : Getters.S) = struct
 
   let versions_from_contents' = versions_from_contents % Entry.value_private_
 
-  module BuiltSet = Set.Build(Getters)
+  module Built_set = Set.Build(Getters)
 
   module Warnings = struct
     (* The following functions all have the name of a warning of
@@ -129,7 +129,7 @@ module Build (Getters : Getters.S) = struct
       (* register tunes in sets *)
       Lwt_list.iter_s
         (fun set ->
-          let%lwt contents = BuiltSet.contents' set in
+          let%lwt contents = Built_set.contents' set in
           let versions = List.map fst contents in
           Lwt_list.iter_s
             (fun v ->

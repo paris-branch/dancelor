@@ -128,7 +128,7 @@ let editor user =
     ) ^::
   (
     let open Plus.Bundle in
-    let open Plus.TupleElt in
+    let open Plus.Tuple_elt in
     Plus.prepare
       ~label: "Visibility"
       ~cast: (function

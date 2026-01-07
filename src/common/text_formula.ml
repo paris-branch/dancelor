@@ -61,7 +61,7 @@ module Parser = struct
     match from_string_internal ?filename text with
     | Ok formula -> Ok formula
     | Error (_, _, where) -> kspf error "There is a syntax error %s in your request." where
-    | exception Lexer.UnexpectedCharacter char ->
+    | exception Lexer.Unexpected_character char ->
       kspf
         error
         (
@@ -71,7 +71,7 @@ module Parser = struct
         )
         char
         char
-    | exception Lexer.UnterminatedQuote ->
+    | exception Lexer.Unterminated_quote ->
       kspf
         error
         (

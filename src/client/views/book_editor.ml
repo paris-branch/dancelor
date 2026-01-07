@@ -94,7 +94,7 @@ let dance_and_dance_page =
         ()
     )
     (
-      let open Plus.TupleElt in
+      let open Plus.Tuple_elt in
       Plus.prepare
         ~label: "Dance page"
         ~cast: (function
@@ -156,7 +156,7 @@ let editor user =
     ~label: "Contents"
     ~make_header: (fun n -> div ~a: [a_class (if n = 0 then [] else ["pt-1"; "mt-1"; "border-top"])] [txtf "Page %d" (n + 1)])
     (
-      let open Plus.TupleElt in
+      let open Plus.Tuple_elt in
       Plus.prepare
         ~label: "Page"
         ~cast: (function
@@ -254,7 +254,7 @@ let editor user =
     ) ^::
   (
     let open Plus.Bundle in
-    let open Plus.TupleElt in
+    let open Plus.Tuple_elt in
     Plus.prepare
       ~label: "Visibility"
       ~cast: (function

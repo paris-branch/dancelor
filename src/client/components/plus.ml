@@ -1,7 +1,7 @@
 open Nes
 open Html
 
-module TupleElt = struct
+module Tuple_elt = struct
   type _ t =
     | Zero : 'a -> ('a * 'b) t
     | Succ : 'b t -> ('a * 'b) t
@@ -32,7 +32,7 @@ module Bundle = struct
     val empty : state
     val from_initial_text : string -> state
 
-    val value_to_state : value TupleElt.t -> state Lwt.t
+    val value_to_state : value Tuple_elt.t -> state Lwt.t
     (** Given one value among a tuple, create the state where everything is
         empty, except for that one value where we call the corresponding
         {!Component.S.value_to_state}. *)
@@ -43,7 +43,7 @@ module Bundle = struct
 
     val state : t -> state S.t
 
-    val signal : t -> int -> (value TupleElt.t, string) result S.t
+    val signal : t -> int -> (value Tuple_elt.t, string) result S.t
     (** Value of the component at the given index, or the error of that component.
         The value is returned as a {!tuple_elt}. *)
 
@@ -57,7 +57,7 @@ module Bundle = struct
     (** One choice per component, starting from the given index. The [?offset]
         argument should only be used by the {!cons} function. *)
 
-    val set : t -> value TupleElt.t -> unit Lwt.t
+    val set : t -> value Tuple_elt.t -> unit Lwt.t
     (** Given one value among a tuple, set the whole bundle to empty everywhere,
         except for that one value. *)
 
@@ -80,8 +80,8 @@ module Bundle = struct
     let from_initial_text text = (A.from_initial_text text, B.from_initial_text text)
 
     let value_to_state = function
-      | TupleElt.Zero v -> let%lwt a_state = A.value_to_state v in lwt (a_state, B.empty)
-      | TupleElt.Succ elt -> let%lwt b_state = B.value_to_state elt in lwt (A.empty, b_state)
+      | Tuple_elt.Zero v -> let%lwt a_state = A.value_to_state v in lwt (a_state, B.empty)
+      | Tuple_elt.Succ elt -> let%lwt b_state = B.value_to_state elt in lwt (A.empty, b_state)
 
     type t = {a: A.t; b: B.t}
 
@@ -91,8 +91,8 @@ module Bundle = struct
       S.const (a_state, b_state)
 
     let signal t = function
-      | 0 -> S.map (Result.map TupleElt.zero) (A.signal t.a)
-      | n -> S.map (Result.map TupleElt.succ) (B.signal t.b (n - 1))
+      | 0 -> S.map (Result.map Tuple_elt.zero) (A.signal t.a)
+      | n -> S.map (Result.map Tuple_elt.succ) (B.signal t.b (n - 1))
 
     let initialise (a_state, b_state) =
       let%lwt a = A.initialise a_state in
@@ -111,8 +111,8 @@ module Bundle = struct
       Choices.choice' ~value: offset ~checked: (initial_selected = Some offset) [txt A.label] :: B.choices ~offset: (offset + 1) ?initial_selected ()
 
     let set t = function
-      | TupleElt.Zero v -> A.set t.a v;%lwt B.clear t.b;%lwt lwt_unit
-      | TupleElt.Succ elt -> A.clear t.a;%lwt B.set t.b elt
+      | Tuple_elt.Zero v -> A.set t.a v;%lwt B.clear t.b;%lwt lwt_unit
+      | Tuple_elt.Succ elt -> A.clear t.a;%lwt B.set t.b elt
 
     let clear t =
       A.clear t.a;%lwt
@@ -126,7 +126,7 @@ module Bundle = struct
     type state = unit [@@deriving yojson]
     let empty = ()
     let from_initial_text _ = ()
-    let value_to_state = TupleElt.consume_negative
+    let value_to_state = Tuple_elt.consume_negative
     type t = unit
     let state _ = S.const ()
     let signal _ = invalid_arg "Components.Plus.zero.signal"
@@ -141,8 +141,8 @@ end
 
 let prepare (type value)(type bundled_value)(type state)
   ~label
-  ~(cast : bundled_value TupleElt.t -> value)
-  ~(uncast : value -> bundled_value TupleElt.t)
+  ~(cast : bundled_value Tuple_elt.t -> value)
+  ~(uncast : value -> bundled_value Tuple_elt.t)
   (bundle : (bundled_value, state) Bundle.t)
   : (value, int option * state) Component.s
 = (module struct
@@ -157,7 +157,7 @@ let prepare (type value)(type bundled_value)(type state)
 
   let value_to_state value =
     let elt = uncast value in
-    let selected = Some (TupleElt.position elt) in
+    let selected = Some (Tuple_elt.position elt) in
     let%lwt bundle_state = Bundle.value_to_state elt in
     lwt (selected, bundle_state)
 
@@ -215,7 +215,7 @@ let prepare (type value)(type bundled_value)(type state)
 
   let set t v =
     let v = uncast v in
-    Component.set t.choices (TupleElt.position v);%lwt
+    Component.set t.choices (Tuple_elt.position v);%lwt
     Bundle.set t.bundle v
 
   let clear t =

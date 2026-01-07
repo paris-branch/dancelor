@@ -1,6 +1,6 @@
 open Common
 
-let kindDance_to_string_of_string_roundtrip =
+let kind_dance_to_string_of_string_roundtrip =
   QCheck_alcotest.to_alcotest
     (
       QCheck2.Test.make
@@ -24,6 +24,6 @@ let () =
     [
       (
         "of_string % to_string = id",
-        [kindDance_to_string_of_string_roundtrip]
+        [kind_dance_to_string_of_string_roundtrip]
       );
     ]

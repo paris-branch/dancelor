@@ -143,7 +143,7 @@ let content_in_parts () =
     )
 
 let content () =
-  let open Plus.TupleElt in
+  let open Plus.Tuple_elt in
   Plus.prepare
     ~label: "Content"
     ~cast: (function

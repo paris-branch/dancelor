@@ -112,7 +112,7 @@ let href_any_full ?context any =
   | Tune tune -> href_tune ?context (Entry.id tune)
   | User _ -> assert false (* FIXME: user visualisation page *)
 
-module MakeDescribe (Model : Model_builder.S) = struct
+module Make_describe (Model : Model_builder.S) = struct
   let describe = fun uri ->
     let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
       | Index -> lwt_none

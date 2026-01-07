@@ -1,8 +1,8 @@
 {
   open Text_formula_parser
 
-  exception UnexpectedCharacter of char
-  exception UnterminatedQuote
+  exception Unexpected_character of char
+  exception Unterminated_quote
 
   let keywords =
     [ "true",   TRUE;
@@ -45,7 +45,7 @@ rule token = parse
       LITERAL lit
     }
 
-  | _ as c { raise (UnexpectedCharacter c) }
+  | _ as c { raise (Unexpected_character c) }
 
   | eof { EOF }
 
@@ -66,5 +66,5 @@ and string esc buf = parse
       Buffer.add_char buf c; string false buf lexbuf
     }
   | eof {
-      raise UnterminatedQuote
+      raise Unterminated_quote
     }

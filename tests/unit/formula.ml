@@ -127,7 +127,7 @@ let optimise_idempotent' (type p)
   =
   optimise_idempotent ~name ~gen: G.gen ~equal: M.equal ~optimise: M.optimise ~show: M.show
 
-module FormulaUnit = struct
+module Formula_unit = struct
   type predicate = unit
   type t = unit Formula.t
   [@@deriving eq, show]
@@ -136,7 +136,7 @@ module FormulaUnit = struct
   let optimise = Formula.optimise Fun.id
 end
 
-module FormulaInt = struct
+module Formula_int = struct
   type predicate = int
   type t = int Formula.t
   [@@deriving eq, show]
@@ -191,8 +191,8 @@ let () =
       );
       (
         "optimise is idempotent",
-        [optimise_idempotent' ~name: "Formula (unit)" (module FormulaUnit) (module FormulaUnit);
-        optimise_idempotent' ~name: "Formula (int)" (module FormulaInt) (module FormulaInt);
+        [optimise_idempotent' ~name: "Formula (unit)" (module Formula_unit) (module Formula_unit);
+        optimise_idempotent' ~name: "Formula (int)" (module Formula_int) (module Formula_int);
         optimise_idempotent' ~name: "Source.Filter" (module Filter_builder.Core.Source) (module Gen.Filter.Source);
         optimise_idempotent' ~name: "Person.Filter" (module Filter_builder.Core.Person) (module Gen.Filter.Person);
         optimise_idempotent' ~name: "Dance.Filter" (module Filter_builder.Core.Dance) (module Gen.Filter.Dance);

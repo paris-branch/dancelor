@@ -1,7 +1,7 @@
 {
   open Kind_dance_parser
 
-  exception UnexpectedCharacter of char
+  exception Unexpected_character of char
 }
 
 let alpha = ['a'-'z' 'A'-'Z']
@@ -15,5 +15,5 @@ rule token = parse
   | 'x' { TIMES }
   | digit+ as n { NUMBER (int_of_string n) }
   | alpha+ as w { WORD w }
-  | _ as c { raise (UnexpectedCharacter c) }
+  | _ as c { raise (Unexpected_character c) }
   | eof { EOF }

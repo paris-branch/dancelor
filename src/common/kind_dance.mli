@@ -31,7 +31,7 @@ module Filter : sig
   val is : Kind_dance_type.t -> predicate
 
   val base : Kind_base.Filter.t -> predicate
-  val baseIs : Kind_base.t -> predicate
+  val base_is : Kind_base.t -> predicate
 
   type t = predicate Formula.t
   [@@deriving eq, show, yojson]
@@ -39,7 +39,7 @@ module Filter : sig
   val is' : Kind_dance_type.t -> t
 
   val base' : Kind_base.Filter.t -> t
-  val baseIs' : Kind_base.t -> t
+  val base_is' : Kind_base.t -> t
 
   val accepts : t -> Kind_dance_type.t -> float Lwt.t
 

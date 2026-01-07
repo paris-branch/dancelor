@@ -35,7 +35,7 @@ module Filter : sig
   val is : version_kind -> predicate
   val base : Kind_base.Filter.t -> predicate
 
-  val baseIs : Kind_base.t -> predicate
+  val base_is : Kind_base.t -> predicate
 
   type t = predicate Formula.t
   [@@deriving eq, show, yojson]
@@ -45,7 +45,7 @@ module Filter : sig
   val is' : version_kind -> t
   val base' : Kind_base.Filter.t -> t
 
-  val baseIs' : Kind_base.t -> t
+  val base_is' : Kind_base.t -> t
 
   val text_formula_converter : predicate Text_formula_converter.t
   val from_text_formula : Text_formula.t -> (t, string) Result.t
