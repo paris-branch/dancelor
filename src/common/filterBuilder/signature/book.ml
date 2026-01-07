@@ -25,8 +25,8 @@ module type S = sig
   val existstunedeep' : Core.Tune.t -> t
   val existsversiondeep' : Core.Version.t -> t
 
-  val text_formula_converter : predicate TextFormulaConverter.t
-  val from_text_formula : TextFormula.t -> (t, string) Result.t
+  val text_formula_converter : predicate Text_formula_converter.t
+  val from_text_formula : Text_formula.t -> (t, string) Result.t
   val from_string : ?filename: string -> string -> (t, string) Result.t
   val to_string : t -> string
 

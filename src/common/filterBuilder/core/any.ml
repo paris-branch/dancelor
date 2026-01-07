@@ -37,7 +37,7 @@ let version' = Formula.pred % version
     <vfilter>] as ["type:version <vfilter>"]. This is correct but it will
     not generate the correct inverse of [of_string]. *)
 let make_text_formula_converter ?(human = false) () =
-  TextFormulaConverter.(
+  Text_formula_converter.(
     (* We find formulas of the form [type:version predicate-on-version]
        better for humans than [version:predicate-on-version]. *)
     let wrap_back = if human then Never else Always in
@@ -75,10 +75,10 @@ let make_text_formula_converter ?(human = false) () =
   )
 let text_formula_converter = make_text_formula_converter ()
 
-let from_text_formula = TextFormula.to_formula text_formula_converter
-let from_string ?filename input = Result.bind (TextFormula.from_string ?filename input) from_text_formula
+let from_text_formula = Text_formula.to_formula text_formula_converter
+let from_string ?filename input = Result.bind (Text_formula.from_string ?filename input) from_text_formula
 
-let to_string = TextFormula.to_string % TextFormula.of_formula text_formula_converter
+let to_string = Text_formula.to_string % Text_formula.of_formula text_formula_converter
 
 (** Clean up a formula by analysing the types of given predicates. For
     instance, ["type:version (version:key:A :or book::source)"] can be
@@ -184,14 +184,14 @@ let to_pretty_string =
       | Version f -> type_and Version version' f
       | p -> Formula.pred p
   in
-  TextFormula.to_string %
-    TextFormula.of_formula (make_text_formula_converter ~human: true ()) %
+  Text_formula.to_string %
+    Text_formula.of_formula (make_text_formula_converter ~human: true ()) %
     add_explicit_type %
     optimise
 
 let specialise ~from_text_formula ~type_ ~unLift =
   Formula.convert @@ function
-    | Raw str -> Result.get_ok (from_text_formula (TextFormula.raw' str))
+    | Raw str -> Result.get_ok (from_text_formula (Text_formula.raw' str))
     | Type t when ModelBuilder.Core.Any.Type.equal t type_ -> Formula.true_
     | Type _ -> Formula.false_
     | pred -> Option.value (unLift pred) ~default: Formula.false_

@@ -61,7 +61,7 @@ let nav_item_explore =
           ] @
             List.map
               (fun (icon, key, label) ->
-                let href = S.const @@ Endpoints.Page.(href Explore) @@ some @@ TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
+                let href = S.const @@ Endpoints.Page.(href Explore) @@ some @@ Text_formula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
                 li [Utils.Button.make_a ~label ~icon ~href ~dropdown: true ()]
               )
               [

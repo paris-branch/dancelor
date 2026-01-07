@@ -1,6 +1,6 @@
 open Nes
 open Formula
-open TextFormulaType
+open Text_formula_type
 
 let level = function
   | False | True | Pred _ -> 3

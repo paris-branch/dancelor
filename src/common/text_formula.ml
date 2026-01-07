@@ -1,22 +1,22 @@
-(** {1 TextFormula}
+(** {1 Text_formula}
 
     Textual representation of formulas. *)
 
-(* To avoid cycles, the [TextFormula] module is split in two. [TextFormulaType]
+(* To avoid cycles, the [Text_formula] module is split in two. [Text_formula_type]
    contains only the types, because they are necessary for the lexing, parsing
    and printing. This module contains the actual functions. *)
 
 open Nes
-module Converter = TextFormulaConverter
-module Lexer = TextFormulaLexer
-module Printer = TextFormulaPrinter
+module Converter = Text_formula_converter
+module Lexer = Text_formula_lexer
+module Printer = Text_formula_printer
 
-include TextFormulaType
+include Text_formula_type
 
 module Parser = struct
   module L = MenhirLib.LexerUtil
   module E = MenhirLib.ErrorReports
-  module I = TextFormulaParser.MenhirInterpreter
+  module I = Text_formula_parser.MenhirInterpreter
 
   (* exception ParseError of Lexing.position * Lexing.position * string *)
 
@@ -54,7 +54,7 @@ module Parser = struct
     let lexbuf = L.init filename (Lexing.from_string text) in
     let supplier = I.lexer_lexbuf_to_supplier Lexer.token lexbuf in
     let (buffer, supplier) = E.wrap_supplier supplier in
-    let checkpoint = TextFormulaParser.Incremental.formula lexbuf.lex_curr_p in
+    let checkpoint = Text_formula_parser.Incremental.formula lexbuf.lex_curr_p in
     I.loop_handle succeed (fail text buffer) supplier checkpoint
 
   let from_string ?filename text =

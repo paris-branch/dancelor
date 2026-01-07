@@ -15,14 +15,14 @@ let key' = Formula.pred % key
 let existssource' = Formula.pred % existssource
 
 let text_formula_converter =
-  TextFormulaConverter.(
+  Text_formula_converter.(
     merge
       ~tiebreaker: Left
       (
         (* Version-specific converter. *)
         make
           [
-            unary_lift ~wrap_back: NotRaw ~name: "tune" (tune, tune_val) ~converter: Tune.text_formula_converter;
+            unary_lift ~wrap_back: Not_raw ~name: "tune" (tune, tune_val) ~converter: Tune.text_formula_converter;
             unary_raw ~name: "key" (key, key_val) ~cast: (Music.Key.of_string_opt, Music.Key.to_string) ~type_: "key";
             unary_id ~name: "is" (is, is_val);
             unary_lift ~name: "exists-source" (existssource, existssource_val) ~converter: Source.text_formula_converter;
@@ -34,14 +34,14 @@ let text_formula_converter =
       )
   )
 
-let from_text_formula = TextFormula.to_formula text_formula_converter
+let from_text_formula = Text_formula.to_formula text_formula_converter
 let from_string ?filename input =
   Result.bind
-    (TextFormula.from_string ?filename input)
+    (Text_formula.from_string ?filename input)
     from_text_formula
 
-let to_text_formula = TextFormula.of_formula text_formula_converter
-let to_string = TextFormula.to_string % to_text_formula
+let to_text_formula = Text_formula.of_formula text_formula_converter
+let to_string = Text_formula.to_string % to_text_formula
 
 let is x = is @@ Entry.id x
 let is' x = Formula.pred @@ is x

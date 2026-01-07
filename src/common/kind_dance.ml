@@ -111,7 +111,7 @@ module Filter = struct
             (version_kinds kind)
 
   let text_formula_converter =
-    TextFormulaConverter.(
+    Text_formula_converter.(
       merge
         ~tiebreaker: Left
         (
@@ -136,9 +136,9 @@ module Filter = struct
         )
     )
 
-  let from_text_formula = TextFormula.to_formula text_formula_converter
+  let from_text_formula = Text_formula.to_formula text_formula_converter
   let from_string ?filename input =
-    Result.bind (TextFormula.from_string ?filename input) from_text_formula
+    Result.bind (Text_formula.from_string ?filename input) from_text_formula
 
   (* Little trick to convince OCaml that polymorphism is OK. *)
   type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}

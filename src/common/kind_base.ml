@@ -92,7 +92,7 @@ module Filter = struct
         lwt (Formula.interpret_bool (kind = kind'))
 
   let text_formula_converter =
-    TextFormulaConverter.(
+    Text_formula_converter.(
       make
         [
           raw
@@ -106,7 +106,7 @@ module Filter = struct
         ]
     )
 
-  let from_text_formula = TextFormula.to_formula text_formula_converter
+  let from_text_formula = Text_formula.to_formula text_formula_converter
 
   let optimise =
     Formula.optimise @@ function

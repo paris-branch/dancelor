@@ -26,10 +26,10 @@ module type S = sig
   val existsdance : Core.Dance.t -> predicate
   val existsdance' : Core.Dance.t -> t
 
-  val text_formula_converter : predicate TextFormulaConverter.t
+  val text_formula_converter : predicate Text_formula_converter.t
   (** Converter from text formulas to formulas on tunes. *)
 
-  val from_text_formula : TextFormula.t -> (t, string) Result.t
+  val from_text_formula : Text_formula.t -> (t, string) Result.t
   (** Build a filter from a text predicate, or fail. *)
 
   val from_string : ?filename: string -> string -> (t, string) Result.t

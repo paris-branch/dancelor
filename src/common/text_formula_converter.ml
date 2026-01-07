@@ -1,7 +1,7 @@
 open Nes
 open Formula
-module Type = TextFormulaType
-module Printer = TextFormulaPrinter
+module Type = Text_formula_type
+module Printer = Text_formula_printer
 
 type 'p case = {
   to_: (Type.predicate, ('p Formula.t, string) Result.t) Link.t;
@@ -23,7 +23,7 @@ let map ?(error = Fun.id) f c = Map (f, error, c)
 let merge ?(tiebreaker = Both) c1 c2 = Merge (tiebreaker, c1, c2)
 
 let merge_l = function
-  | [] -> invalid_arg "TextFormulaConverter.merge_l"
+  | [] -> invalid_arg "Text_formula_converter.merge_l"
   | [c] -> c
   | c :: cs -> List.fold_left merge c cs
 
@@ -59,7 +59,7 @@ let of_formula converter formula =
     Formula.convert_opt (aux c) f
   in
   match aux' converter formula with
-  | None -> failwith "TextFormulaConverter.of_formula: incomplete formula converter"
+  | None -> failwith "Text_formula_converter.of_formula: incomplete formula converter"
   | Some tf -> tf
 
 let raw f =
@@ -90,13 +90,13 @@ let unary ~name f from =
   in
     {to_; from}
 
-type wrap_back = Always | Never | NotPred | NotRaw | Custom of (Type.t -> Type.t)
+type wrap_back = Always | Never | Not_pred | Not_raw | Custom of (Type.t -> Type.t)
 
 let apply_wrap_back ~name = function
   | Always -> Type.unary' name
   | Never -> Fun.id
-  | NotPred -> (function Pred p -> Pred p | f -> Type.unary' name f)
-  | NotRaw -> (function Pred (Raw _) as f -> f | f -> Type.unary' name f)
+  | Not_pred -> (function Pred p -> Pred p | f -> Type.unary' name f)
+  | Not_raw -> (function Pred (Raw _) as f -> f | f -> Type.unary' name f)
   | Custom c -> c
 
 let unary_raw ?(wrap_back = Always) ~name ~cast: (cast, uncast) ~type_ (to_predicate, from_predicate) =

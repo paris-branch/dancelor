@@ -43,8 +43,8 @@ module Filter : sig
 
   val accepts : t -> Kind_dance_type.t -> float Lwt.t
 
-  val text_formula_converter : predicate TextFormulaConverter.t
-  val from_text_formula : TextFormula.t -> (t, string) Result.t
+  val text_formula_converter : predicate Text_formula_converter.t
+  val from_text_formula : Text_formula.t -> (t, string) Result.t
   val from_string : ?filename: string -> string -> (t, string) Result.t
 
   val optimise : t -> t

@@ -157,7 +157,7 @@ let () =
     [
       (
         "to_string raises no exception",
-        [to_string_no_exn' ~name: "TextFormula" (module TextFormula) (module Gen.TextFormula);
+        [to_string_no_exn' ~name: "Text_formula" (module Text_formula) (module Gen.Text_formula);
         to_string_no_exn' ~name: "Source.Filter" (module FilterBuilder.Core.Source) (module Gen.Filter.Source);
         to_string_no_exn' ~name: "Person.Filter" (module FilterBuilder.Core.Person) (module Gen.Filter.Person);
         to_string_no_exn' ~name: "Dance.Filter" (module FilterBuilder.Core.Dance) (module Gen.Filter.Dance);
@@ -171,7 +171,7 @@ let () =
       );
       (
         "from_string % to_string = id",
-        [to_string_from_string_roundtrip' ~name: "TextFormula" (module TextFormula) (module Gen.TextFormula);
+        [to_string_from_string_roundtrip' ~name: "Text_formula" (module Text_formula) (module Gen.Text_formula);
         to_string_from_string_roundtrip' ~name: "Source.Filter" (module FilterBuilder.Core.Source) (module Gen.Filter.Source);
         to_string_from_string_roundtrip' ~name: "Person.Filter" (module FilterBuilder.Core.Person) (module Gen.Filter.Person);
         to_string_from_string_roundtrip' ~name: "Dance.Filter" (module FilterBuilder.Core.Dance) (module Gen.Filter.Dance);

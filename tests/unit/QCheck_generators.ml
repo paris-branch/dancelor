@@ -30,9 +30,9 @@ module Formula = struct
   let gen gen_p = gen_sized gen_p 10
 end
 
-module TextFormula = struct
-  type predicate = [%import: Common.TextFormula.predicate]
-  and t = [%import: Common.TextFormula.t]
+module Text_formula = struct
+  type predicate = [%import: Common.Text_formula.predicate]
+  and t = [%import: Common.Text_formula.t]
 
   let gen_predicate_name =
     let open Gen in
@@ -51,9 +51,9 @@ module TextFormula = struct
     fix
       (fun self () ->
         oneof [
-          (Common.TextFormula.raw <$> string_printable);
-          (Common.TextFormula.nullary <$> gen_predicate_name);
-          (Common.TextFormula.unary <$> gen_predicate_name <*> Formula.gen (self ()));
+          (Common.Text_formula.raw <$> string_printable);
+          (Common.Text_formula.nullary <$> gen_predicate_name);
+          (Common.Text_formula.unary <$> gen_predicate_name <*> Formula.gen (self ()));
         ]
       )
       ()

@@ -9,10 +9,10 @@ type 'p t
 
 (** {2 Using} *)
 
-val to_formula : 'p t -> TextFormulaType.t -> ('p Formula.t, string) Result.t
+val to_formula : 'p t -> Text_formula_type.t -> ('p Formula.t, string) Result.t
 (** Convert a text formula to a formula using the given converter. *)
 
-val of_formula : 'p t -> 'p Formula.t -> TextFormulaType.t
+val of_formula : 'p t -> 'p Formula.t -> Text_formula_type.t
 (** Convert a formula to a text formula using the given converter. *)
 
 (** {2 Case}
@@ -40,9 +40,9 @@ val nullary : name: string -> 'p -> 'p case
 type wrap_back =
   | Always
   | Never
-  | NotPred
-  | NotRaw
-  | Custom of (TextFormulaType.t -> TextFormulaType.t)
+  | Not_pred
+  | Not_raw
+  | Custom of (Text_formula_type.t -> Text_formula_type.t)
 
 val unary_string :
   ?wrap_back: wrap_back ->

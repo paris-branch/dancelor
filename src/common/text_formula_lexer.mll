@@ -1,5 +1,5 @@
 {
-  open TextFormulaParser
+  open Text_formula_parser
 
   exception UnexpectedCharacter of char
   exception UnterminatedQuote

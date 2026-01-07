@@ -120,7 +120,7 @@ module Filter = struct
         Kind_base.Filter.accepts bfilter bkind
 
   let text_formula_converter =
-    TextFormulaConverter.(
+    Text_formula_converter.(
       merge
         (
           (* Version kind-specific converter *)
@@ -140,7 +140,7 @@ module Filter = struct
               unary_int ~name: "bars-lt" (barslt, barslt_val);
               unary_int ~name: "bars-le" (barsle, barsle_val);
               unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "version kind";
-              unary_lift ~wrap_back: NotPred ~name: "base" (base, base_val) ~converter: Kind_base.Filter.text_formula_converter;
+              unary_lift ~wrap_back: Not_pred ~name: "base" (base, base_val) ~converter: Kind_base.Filter.text_formula_converter;
             ]
         )
         (
@@ -149,9 +149,9 @@ module Filter = struct
         )
     )
 
-  let from_text_formula = TextFormula.to_formula text_formula_converter
+  let from_text_formula = Text_formula.to_formula text_formula_converter
   let from_string ?filename input =
-    Result.bind (TextFormula.from_string ?filename input) from_text_formula
+    Result.bind (Text_formula.from_string ?filename input) from_text_formula
 
   (* Little trick to convince OCaml that polymorphism is OK. *)
   type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}

@@ -13,7 +13,7 @@ let name' = Formula.pred % name
 let nameMatches' = Formula.pred % namematches
 
 let text_formula_converter =
-  TextFormulaConverter.(
+  Text_formula_converter.(
     make
       [
         raw (ok % nameMatches');
@@ -23,12 +23,12 @@ let text_formula_converter =
       ]
   )
 
-let from_text_formula = TextFormulaConverter.to_formula text_formula_converter
+let from_text_formula = Text_formula_converter.to_formula text_formula_converter
 let from_string ?filename input =
-  Result.bind (TextFormula.from_string ?filename input) from_text_formula
+  Result.bind (Text_formula.from_string ?filename input) from_text_formula
 
-let to_text_formula = TextFormula.of_formula text_formula_converter
-let to_string = TextFormula.to_string % to_text_formula
+let to_text_formula = Text_formula.of_formula text_formula_converter
+let to_string = Text_formula.to_string % to_text_formula
 
 let is x = is @@ Entry.id x
 let is' x = Formula.pred @@ is x

@@ -1,6 +1,6 @@
 %{
   open Formula
-  open TextFormulaType
+  open Text_formula_type
 %}
 
 %token TRUE FALSE NOT AND OR
@@ -13,7 +13,7 @@
 %left NOT
 %left PREDICATE
 
-%start<TextFormulaType.t> formula
+%start<Text_formula_type.t> formula
 %%
 
 formula:
