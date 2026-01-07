@@ -7,8 +7,8 @@ type access =
 
 let access_to_string = function
   | Everyone -> "globe"
-  | Viewer -> "unlock"
-  | Owner -> "lock-fill"
+  | Viewer -> "eye"
+  | Owner -> "unlock-fill" (* FIXME: unlock2-fill would be better but requires Bootstrap icons 1.13.1 *)
   | Omniscient_administrator -> "shield-lock-fill"
 
 (** Type for alert-specific icons. *)
