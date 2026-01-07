@@ -28,6 +28,14 @@ let to_string = function
   | Alert icon -> alert_to_string icon
   | Job icon -> job_to_string icon
 
-let html icon =
+(** Generate HTML for the given icon. Optionally, one can pass a tooltip that is
+    shown when hovering on the icon. *)
+let html ?tooltip icon =
   let open Html in
-  i ~a: [a_class ["bi"; ("bi-" ^ to_string icon)]] [];
+  let a =
+    List.concat [
+      [a_class ["bi"; ("bi-" ^ to_string icon)]];
+      (Option.fold ~none: [] ~some: (fun t -> [a_title t]) tooltip);
+    ]
+  in
+  i ~a []
