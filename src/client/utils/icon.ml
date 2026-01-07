@@ -33,15 +33,38 @@ let job_to_string = function
   | Pending -> "hourglass-bottom"
   | Running -> "cpu"
 
+(** Type for model-specific icons. *)
+type model =
+  | Source
+  | Person
+  | Dance
+  | Tune
+  | Version
+  | Set
+  | Book
+  | User
+
+let model_to_string = function
+  | Source -> "archive"
+  | Person -> "person"
+  | Dance -> "person-arms-up"
+  | Tune -> "music-note-list"
+  | Version -> "music-note-beamed"
+  | Set -> "list-stars"
+  | Book -> "book"
+  | User -> "person-circle"
+
 type t =
   | Access of access
   | Alert of alert
   | Job of job
+  | Model of model
 
 let to_string = function
   | Access icon -> access_to_string icon
   | Alert icon -> alert_to_string icon
   | Job icon -> job_to_string icon
+  | Model icon -> model_to_string icon
 
 (** Generate HTML for the given icon. Optionally, one can pass a tooltip that is
     shown when hovering on the icon. *)

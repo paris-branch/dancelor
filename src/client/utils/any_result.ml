@@ -217,15 +217,18 @@ let make_user_result ?classes ?context ?prefix ?suffix user =
     ?suffix
     user
 
-let any_type_to_bi = function
-  | Any.Type.Source -> "bi-archive"
-  | Person -> "bi-person"
-  | Dance -> "bi-person-arms-up"
-  | Tune -> "bi-music-note-list"
-  | Version -> "bi-music-note-beamed"
-  | Set -> "bi-list-stars"
-  | Book -> "bi-book"
-  | User -> "bi-person-circle"
+let any_type_to_icon any =
+  Icon.Model (
+    match (any : Any.Type.t) with
+    | Source -> Source
+    | Person -> Person
+    | Dance -> Dance
+    | Tune -> Tune
+    | Version -> Version
+    | Set -> Set
+    | Book -> Book
+    | User -> User
+  )
 
 let make_result ?classes ?context any =
   let type_ = Any.type_of any in
@@ -233,7 +236,7 @@ let make_result ?classes ?context any =
     Result_row.cell
       ~a: [a_class ["text-nowrap"]]
       [
-        i ~a: [a_class ["bi"; any_type_to_bi type_]] [];
+        Icon.html (any_type_to_icon type_);
         span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt " "; txt (Any.Type.to_string type_)];
       ];
   ]

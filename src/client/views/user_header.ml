@@ -171,7 +171,7 @@ let header_item =
         [
           Utils.Button.make
             ~label: (NEString.to_string @@ Model.User.username' user)
-            ~icon: "person-circle"
+            ~icon: Utils.Icon.(to_string @@ Model User)
             ~classes: ["text-white"; "dropdown-toggle"]
             ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
             ();
