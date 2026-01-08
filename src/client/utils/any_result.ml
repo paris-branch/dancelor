@@ -241,33 +241,28 @@ let make_result ?classes ?context any =
       ];
   ]
   in
-  let suffix =
-    let tooltip_everyone =
-      "You can see this entry because it is an always-public entry (eg. a person \
-       or a tune), or because it was made public by its owner."
-    in
-    [
-      Result_row.cell [
-        Model.Any.to_entry'
-          any
-          ~on_public: (fun _entry ->
-            span [Icon.html Icon.(Access Everyone) ~tooltip: tooltip_everyone]
-          )
-          ~on_private: (fun entry ->
-            R.span @@
-            S.from' [] @@
-            let%lwt reason = Option.get <$> Permission.can_get_private entry in
-            let (icon, tooltip) =
-              match reason with
-              | Everyone -> (Icon.(Access Everyone), tooltip_everyone)
-              | Viewer -> (Icon.(Access Viewer), "You can see this entry because its owner marked you as one of its viewers.")
-              | Owner -> (Icon.(Access Owner), "You can see this entry because you are (one of) its owners.")
-              | Omniscient_administrator -> (Icon.(Access Omniscient_administrator), "You can see this entry because you are an administrator, with omniscience enabled. You would not be able to access it without that.")
-            in
-            lwt [Icon.html ~tooltip icon]
-          )
-      ]
+  let suffix = [
+    Result_row.cell [
+      Model.Any.to_entry'
+        any
+        ~on_public: (fun _entry ->
+          span [Icon.html Icon.(Access Everyone) ~tooltip: "You can see this entry because it is an always-public entry (eg. a person or a tune)" ~classes: ["opacity-25"]]
+        )
+        ~on_private: (fun entry ->
+          R.span @@
+          S.from' [] @@
+          let%lwt reason = Option.get <$> Permission.can_get_private entry in
+          let (icon, tooltip, classes) =
+            match reason with
+            | Everyone -> (Icon.(Access Everyone), "You can see this entry because it was made public by its owner.", ["opacity-50"])
+            | Viewer -> (Icon.(Access Viewer), "You can see this entry because its owner marked you as one of its viewers.", ["opacity-75"])
+            | Owner -> (Icon.(Access Owner), "You can see this entry because you are (one of) its owners.", [])
+            | Omniscient_administrator -> (Icon.(Access Omniscient_administrator), "You can see this entry because you are an administrator, with omniscience enabled. You would not be able to access it without that.", [])
+          in
+          lwt [Icon.html icon ~tooltip ~classes]
+        )
     ]
+  ]
   in
   match any with
   | Source source -> make_source_result ?classes ?context ~prefix ~suffix source
