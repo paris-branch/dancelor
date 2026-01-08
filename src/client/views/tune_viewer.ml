@@ -2,6 +2,7 @@ open Nes
 open Common
 open Model
 open Html
+open Utils
 
 let create ?context id =
   Main_page.madge_call_or_404 (Tune Get) id @@ fun tune ->
@@ -18,20 +19,20 @@ let create ?context id =
     ~share: (Tune tune)
     ~actions: (
       lwt @@
-      [Utils.Button.make_a
+      [Button.make_a
         ~label: "Edit"
         ~icon: (Action Edit)
         ~href: (S.const @@ Endpoints.Page.(href Tune_edit) id)
         ~dropdown: true
         ();
-      Utils.Action.delete
+      Action.delete
         ~model: "tune"
         ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Tune Delete) (Entry.id tune))
         ();
       ] @ (
         match Tune.scddb_id' tune with
         | None -> []
-        | Some scddb_id -> [Utils.Action.scddb Publication scddb_id]
+        | Some scddb_id -> [Action.scddb Publication scddb_id]
       )
     )
     [
@@ -51,7 +52,7 @@ let create ?context id =
             ul (List.map (li % List.singleton % txt % NEString.to_string) other_names);
           ]
       );
-      Utils.quick_explorer_links'
+      quick_explorer_links'
         (lwt tune)
         [
           ("sets containing this tune", Filter.(Any.set' % Set.exists_version' % Version.tuneis'));

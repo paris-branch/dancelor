@@ -2,6 +2,7 @@ open Nes
 open Common
 open Js_of_ocaml
 open Html
+open Utils
 open Views
 
 let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
@@ -58,7 +59,7 @@ let () =
   flip S.map Environment.run_status @@ function
   | Running -> ()
   | Offline ->
-    Utils.Toast.open_
+    Toast.open_
       ~title: "You are now offline"
       [
         txt
@@ -66,7 +67,7 @@ let () =
            offline mode."
       ]
   | Newer ->
-    Utils.Toast.open_
+    Toast.open_
       ~type_: Forever
       ~title: "Newer version available"
       [txt
@@ -75,7 +76,7 @@ let () =
          the page.";
       ]
       ~buttons: [
-        Utils.Button.make
+        Button.make
           ~label: "Reload"
           ~icon: (Other Reload)
           ~classes: ["btn-primary"]
@@ -95,7 +96,7 @@ let () =
           | Lwt.Canceled -> () (* the promises are cancelled on purpose *)
           | Main_page.Replacement_successful -> () (* see comment for {!Main_page.load_sleep_raise} *)
           | Madge_client.(Error (Http {request; status; _})) ->
-            Utils.Toast.open_
+            Toast.open_
               ~type_: Forever
               ~title: "Uncaught API call error"
               [
@@ -108,7 +109,7 @@ let () =
                contact your administrator or file a bug report.";
               ]
           | Madge_client.(Error (Server_unreachable {request; status})) ->
-            Utils.Toast.open_
+            Toast.open_
               ~type_: Forever
               ~title: "Server unreachable"
               [
@@ -123,7 +124,7 @@ let () =
                      administrator."
               ]
           | exn ->
-            Utils.Toast.open_
+            Toast.open_
               ~type_: Forever
               ~title: "Uncaught exception"
               [

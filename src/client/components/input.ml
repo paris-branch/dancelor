@@ -1,6 +1,7 @@
 open Nes
 open Js_of_ocaml
 open Html
+open Utils
 
 type html =
   | Text of {input: 'a. ([> Html_types.input] as 'a) elt; input_dom: Dom_html.inputElement Js.t}
@@ -149,7 +150,7 @@ let prepare (type value)
           | None -> []
           | Some template ->
             [
-              Utils.Button.make
+              Button.make
                 ~classes: ["btn-info"]
                 ~icon: (Action Magic)
                 ~tooltip: "Fill the content of this input with the default template."
@@ -159,7 +160,7 @@ let prepare (type value)
         )
       | _ ->
         [
-          Utils.Button.make
+          Button.make
             ~classes: ["btn-warning"]
             ~icon: (Action Clear)
             ~tooltip: "Clear the content of this input. It cannot be recovered."

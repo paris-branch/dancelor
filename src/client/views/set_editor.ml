@@ -68,7 +68,7 @@ let editor user =
             ~make_result: Any_result.make_version_result'
             ~make_more_results: (fun version ->
               flip S.map show_preview @@ function
-                | true -> [Utils.Result_row.make [Utils.Result_row.cell ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
+                | true -> [Result_row.make [Result_row.cell ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
                 | false -> []
             )
             ~label: "Version"

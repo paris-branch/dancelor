@@ -1,5 +1,6 @@
 open Nes
 open Html
+open Utils
 
 module type S = sig
   val label : string
@@ -62,7 +63,7 @@ let html'
         label ~a: [a_class ["col"]] [txt C.label];
         R.div ~a: [a_class ["col-auto"]] (
           flip S.map (C.actions c) @@ function
-            | [] -> [Utils.Button.make ~classes: ["invisible"] ~icon: (Action Add) ()] (* for spacing *)
+            | [] -> [Button.make ~classes: ["invisible"] ~icon: (Action Add) ()] (* for spacing *)
             | actions -> actions
         );
       ];

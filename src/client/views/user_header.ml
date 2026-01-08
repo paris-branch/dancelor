@@ -1,6 +1,7 @@
 open Nes
 open Common
 open Html
+open Utils
 
 type sign_in_dialog_status = Dont_know | Invalid
 
@@ -70,8 +71,8 @@ let open_sign_in_dialog () =
       Component.html remember_me_input;
       ]
       ~buttons: [
-        Utils.Button.cancel' ~return ();
-        Utils.Button.make
+        Button.cancel' ~return ();
+        Button.make
           ~label: "Sign in"
           ~label_processing: "Signing in..."
           ~icon: (Other Sign_in)
@@ -118,18 +119,18 @@ let victorise () =
     with
       | Madge_client.(Error (Server_unreachable _)) -> lwt_unit
   );
-  Utils.Toast.open_
+  Toast.open_
     ~title: "Victorisation"
     [txt "Victorisation in progress. Please wait."]
 
 let set_omniscience enable =
   let%lwt _ = Madge_client.call Endpoints.Api.(route @@ User Set_omniscience) enable in
-  Utils.Toast.open_
+  Toast.open_
     ~type_: Forever
     ~title: "Omniscience"
     [txtf "Omniscience has been %s. You should reload for it to take effect." (if enable then "enabled" else "disabled")]
     ~buttons: [
-      Utils.Button.make
+      Button.make
         ~label: "Reload"
         ~icon: (Other Reload)
         ~classes: ["btn-primary"]
@@ -151,7 +152,7 @@ let header_item =
     ]
     (
       S.from' [
-        Utils.Button.make
+        Button.make
           ~label: "Sign in"
           ~icon: (Other Sign_in)
           ~classes: ["disabled"; "placeholder"]
@@ -160,7 +161,7 @@ let header_item =
       flip Lwt.map Environment.user @@ function
       | None ->
         [
-          Utils.Button.make
+          Button.make
             ~label: "Sign in"
             ~icon: (Other Sign_in)
             ~classes: ["text-white"]
@@ -169,7 +170,7 @@ let header_item =
         ]
       | Some user ->
         [
-          Utils.Button.make
+          Button.make
             ~label: (NEString.to_string @@ Model.User.username' user)
             ~icon: (Model User)
             ~classes: ["text-white"; "dropdown-toggle"]
@@ -184,7 +185,7 @@ let header_item =
                     if Model.User.is_administrator' user then
                       [
                         li [
-                          Utils.Button.make_a
+                          Button.make_a
                             ~label: "Create user"
                             ~icon: (Action Add)
                             ~dropdown: true
@@ -192,7 +193,7 @@ let header_item =
                             ()
                         ];
                         li [
-                          Utils.Button.make
+                          Button.make
                             ~label: "Victorise"
                             ~icon: (Action Stop)
                             ~dropdown: true
@@ -201,14 +202,14 @@ let header_item =
                         ];
                         li [
                           if Model.User.is_omniscient_administrator' user then
-                            Utils.Button.make
+                            Button.make
                               ~label: "Disable omniscience"
                               ~icon: (Access Omniscient_administrator)
                               ~dropdown: true
                               ~onclick: (fun () -> set_omniscience false)
                               ()
                           else
-                            Utils.Button.make
+                            Button.make
                               ~label: "Enable omniscience"
                               ~icon: (Access Non_omniscient_administrator)
                               ~dropdown: true
@@ -225,7 +226,7 @@ let header_item =
                       | None -> lwt_nil
                       | Some person ->
                         lwt [
-                          Utils.Button.make_a
+                          Button.make_a
                             ~label: "My person"
                             ~icon: (Model Person)
                             ~dropdown: true
@@ -234,7 +235,7 @@ let header_item =
                         ]
                   );
                   li [
-                    Utils.Button.make
+                    Button.make
                       ~label: "Sign out"
                       ~icon: (Other Sign_out)
                       ~dropdown: true

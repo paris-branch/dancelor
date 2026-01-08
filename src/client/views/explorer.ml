@@ -3,6 +3,7 @@ open Common
 open Js_of_ocaml
 open Components
 open Html
+open Utils
 
 let update_uri input =
   let uri = Endpoints.Page.(href Explore) (Some input) in
@@ -29,9 +30,9 @@ let create ?query () =
     [
       Search.render
         search
-        ~make_result: (fun ~context result -> Utils.Any_result.make_result ~context result)
+        ~make_result: (fun ~context result -> Any_result.make_result ~context result)
         ~attached_buttons: [
-          Utils.Button.make
+          Button.make
             ~label: "Filter"
             ~label_processing: "Filtering..."
             ~icon: (Other Filter)

@@ -2,6 +2,7 @@ open Nes
 open Common
 open Components
 open Js_of_ocaml
+open Utils
 open Html
 
 type status = Match | Dont_match
@@ -41,14 +42,14 @@ let create username token =
     Component.html password2_input;
     ]
     ~buttons: [
-      Utils.Button.make
+      Button.make
         ~label: "Reset password"
         ~label_processing: "Resetting password..."
         ~classes: ["btn-primary"]
         ~disabled: (S.map Result.is_error password)
         ~onclick: (fun () ->
           Madge_client.call_exn Endpoints.Api.(route @@ User Reset_password) username token (Result.get_ok @@ S.value password);%lwt
-          Utils.Toast.open_ ~title: "Password reset" [txt "Your password has been reset successfully. You may now try to sign in."];
+          Toast.open_ ~title: "Password reset" [txt "Your password has been reset successfully. You may now try to sign in."];
           Dom_html.window##.history##replaceState "fixme-the-state" (Js.string "") (Js.some (Js.string "/"));
           Main_page.load_sleep_raise (Index.create ());%lwt
           lwt_unit

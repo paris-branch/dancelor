@@ -2,6 +2,7 @@ open Nes
 open Common
 open Model
 open Html
+open Utils
 open Components
 
 (* REVIEW: This is close to `Version_download_dialog.t`; there is room for
@@ -50,8 +51,8 @@ let open_ book dialog =
     ~title: (lwt "Download a PDF")
     [div dialog.choice_rows]
     ~buttons: [
-      Utils.Button.cancel' ~return ();
-      Utils.Button.download
+      Button.cancel' ~return ();
+      Button.download
         ~onclick: (fun () ->
           let (book_params, rendering_params) = S.value dialog.parameters_signal in
           return None;

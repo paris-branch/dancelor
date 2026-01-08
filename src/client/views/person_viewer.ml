@@ -2,6 +2,7 @@ open Nes
 open Common
 open Model
 open Html
+open Utils
 
 let create ?context id =
   Main_page.madge_call_or_404 (Person Get) id @@ fun person ->
@@ -17,20 +18,20 @@ let create ?context id =
     ~share: (Person person)
     ~actions: (
       lwt @@
-      [Utils.Button.make_a
+      [Button.make_a
         ~label: "Edit"
         ~icon: (Action Edit)
         ~href: (S.const @@ Endpoints.Page.(href Person_edit) id)
         ~dropdown: true
         ();
-      Utils.Action.delete
+      Action.delete
         ~model: "person"
         ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Person Delete) (Entry.id person))
         ();
       ] @ (
         match Person.scddb_id' person with
         | None -> []
-        | Some scddb_id -> [Utils.Action.scddb Person scddb_id]
+        | Some scddb_id -> [Action.scddb Person scddb_id]
       )
     )
     [
@@ -52,7 +53,7 @@ let create ?context id =
           ]
         else []
       );
-      Utils.quick_explorer_links'
+      quick_explorer_links'
         (lwt person)
         [
           ("tunes they composed", Filter.(Any.tune' % Tune.exists_composer' % Person.is'));

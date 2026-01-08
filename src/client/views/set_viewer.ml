@@ -2,6 +2,7 @@ open Nes
 open Common
 open Model
 open Html
+open Utils
 
 let create ?context id =
   Main_page.madge_call_or_404 (Set Get) id @@ fun set ->
@@ -33,19 +34,19 @@ let create ?context id =
     ~actions: (
       lwt
         [
-          Utils.Button.make
+          Button.make
             ~label: "Download PDF"
             ~icon: (Other File_pdf)
             ~onclick: (fun _ -> ignore <$> Set_download_dialog.create_and_open set)
             ~dropdown: true
             ();
-          Utils.Button.make_a
+          Button.make_a
             ~label: "Edit"
             ~icon: (Action Edit)
             ~href: (S.const @@ Endpoints.Page.(href Set_edit) id)
             ~dropdown: true
             ();
-          Utils.Action.delete
+          Action.delete
             ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Set Delete) (Entry.id set))
             ~model: "set"
             ();
@@ -105,7 +106,7 @@ let create ?context id =
               )
               contents
         );
-      Utils.quick_explorer_links'
+      quick_explorer_links'
         (lwt set)
         [
           ("books containing this set", Filter.(Any.book' % Book.memset'));

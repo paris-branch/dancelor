@@ -2,6 +2,7 @@ open Js_of_ocaml
 open Nes
 open Common
 open Html
+open Utils
 
 (** Similar to {!Endpoints.Job.Status.t} but with an additional “Registering”
     and with “Succeeded” carrying the path. *)
@@ -106,7 +107,7 @@ let show_live_status ~on_succeeded status_signal =
   flip S.map status_signal @@ function
     | Registering ->
       [
-        Utils.Alert.make ~level: Info ~icon: (Job Registering) [
+        Alert.make ~level: Info ~icon: (Job Registering) [
           txt
             "The document generation job is being sent to the server.";
         ];
@@ -114,7 +115,7 @@ let show_live_status ~on_succeeded status_signal =
       ]
     | Pending ->
       [
-        Utils.Alert.make
+        Alert.make
           ~level: Info
           ~icon: (Job Pending)
           [
@@ -127,7 +128,7 @@ let show_live_status ~on_succeeded status_signal =
       ]
     | Running logs ->
       [
-        Utils.Alert.make ~level: Info ~icon: (Job Running) [
+        Alert.make ~level: Info ~icon: (Job Running) [
           txt
             "The server has started generating the document. This process can be \
            short for single tunes, but can also take a (very) long time, up to \
@@ -137,7 +138,7 @@ let show_live_status ~on_succeeded status_signal =
       ]
     | Failed logs ->
       [
-        Utils.Alert.make ~level: Danger [
+        Alert.make ~level: Danger [
           txt
             "There was a problem during document generation, presumably because \
            the LilyPond of a tune is erroneous. Fix the error, or report an \
@@ -167,7 +168,7 @@ let show_placeholder ~on_succeeded status_signal =
     | Waiting -> [div_placeholder ~min: 12 ~max: 20 ()]
     | Failed ->
       [
-        Utils.Alert.make ~level: Danger [
+        Alert.make ~level: Danger [
           txt
             "There was a problem during document generation, presumably because \
            the LilyPond of a tune is erroneous. Fix the error, or report an \

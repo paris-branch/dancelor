@@ -1,5 +1,6 @@
 open Nes
 open Html
+open Utils
 
 let prepare (type comp_value)(type comp_state)(type params)(type params_value)(type params_state)
   ((module C): (comp_value, comp_state) Component.s)
@@ -66,7 +67,7 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_value)(t
       (@)
       (
         S.const [
-          Utils.Button.make
+          Button.make
             ~icon: (Action Parameterise)
             ~classes: ["btn-outline-secondary"]
             ~tooltip: "Edit parameters"
@@ -82,7 +83,7 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_value)(t
                   p.editor
                   ~title_suffix: comp_descr
                   ~after_save: (fun _ ->
-                    Utils.Toast.open_ ~title: (spf "Set parameters%s" comp_descr) [
+                    Toast.open_ ~title: (spf "Set parameters%s" comp_descr) [
                       txtf
                         "Your parameters%s have been set. However, this will only \
                          take effect once save the whole editor for the change \

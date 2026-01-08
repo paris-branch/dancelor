@@ -2,6 +2,7 @@ open Nes
 open Common
 open Model
 open Html
+open Utils
 
 let create ?context id =
   Main_page.madge_call_or_404 (Dance Get) id @@ fun dance ->
@@ -30,20 +31,20 @@ let create ?context id =
     ~share: (Dance dance)
     ~actions: (
       lwt @@
-      [Utils.Button.make_a
+      [Button.make_a
         ~label: "Edit"
         ~icon: (Action Edit)
         ~href: (S.const @@ Endpoints.Page.(href Dance_edit) id)
         ~dropdown: true
         ();
-      Utils.Action.delete
+      Action.delete
         ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Dance Delete) (Entry.id dance))
         ~model: "dance"
         ();
       ] @ (
         match Dance.scddb_id' dance with
         | None -> []
-        | Some scddb_id -> [Utils.Action.scddb Dance scddb_id]
+        | Some scddb_id -> [Action.scddb Dance scddb_id]
       );
     )
     [

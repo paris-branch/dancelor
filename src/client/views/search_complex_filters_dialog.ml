@@ -2,6 +2,7 @@ open Nes
 open Common
 open Model
 open Html
+open Utils
 open Components
 
 (** Restricted predicates supported by the complex filter dialog. They are
@@ -375,9 +376,9 @@ let open_ text raws filter =
       );
     ]
     ~buttons: [
-      Utils.Button.cancel ~onclick: (fun () -> return text; lwt_unit) ();
-      Utils.Button.clear ~onclick: (fun () -> lwt @@ return "") ();
-      Utils.Button.make
+      Button.cancel ~onclick: (fun () -> return text; lwt_unit) ();
+      Button.clear ~onclick: (fun () -> lwt @@ return "") ();
+      Button.make
         ~label: "Apply"
         ~label_processing: "Applying..."
         ~icon: (Action Apply)

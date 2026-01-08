@@ -3,6 +3,7 @@
 open Nes
 open Common
 open Html
+open Utils
 
 val make :
   label: string ->
@@ -11,14 +12,14 @@ val make :
   make_descr: (('model, 'access) Entry.t -> string Lwt.t) ->
   make_result:
   (?classes: string list ->
-  ?action: Utils.Result_row.action ->
-  ?prefix: Utils.Result_row.cell list ->
-  ?suffix: Utils.Result_row.cell list ->
+  ?action: Result_row.action ->
+  ?prefix: Result_row.cell list ->
+  ?suffix: Result_row.cell list ->
   ('model, 'access) Entry.t ->
-  Utils.Result_row.t) ->
+  Result_row.t) ->
   ?make_more_results:
   (('model, 'access) Entry.t ->
-  Utils.Result_row.t list S.t) ->
+  Result_row.t list S.t) ->
   model_name: string ->
   ?create_dialog_content: ((('model, 'access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) ->
   'model Entry.id option ->
@@ -35,14 +36,14 @@ val prepare :
   make_descr: (('model, 'access) Entry.t -> string Lwt.t) ->
   make_result:
   (?classes: string list ->
-  ?action: Utils.Result_row.action ->
-  ?prefix: Utils.Result_row.cell list ->
-  ?suffix: Utils.Result_row.cell list ->
+  ?action: Result_row.action ->
+  ?prefix: Result_row.cell list ->
+  ?suffix: Result_row.cell list ->
   ('model, 'access) Entry.t ->
-  Utils.Result_row.t) ->
+  Result_row.t) ->
   ?make_more_results:
   (('model, 'access) Entry.t ->
-  Utils.Result_row.t list S.t) ->
+  Result_row.t list S.t) ->
   model_name: string ->
   ?create_dialog_content: ((('model, 'access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) ->
   unit ->

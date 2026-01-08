@@ -2,6 +2,7 @@ open Nes
 open Common
 open Components
 open Html
+open Utils
 
 type status = Match | Dont_match
 
@@ -23,7 +24,7 @@ let open_token_result_dialog user token =
         txt " for them to create a password.";
       ];
       ]
-      ~buttons: [Utils.Button.ok' ~return ()]
+      ~buttons: [Button.ok' ~return ()]
 
 let create () =
   Main_page.assert_can_admin @@ fun () ->
@@ -43,7 +44,7 @@ let create () =
     [Component.html username_input;
     ]
     ~buttons: [
-      Utils.Button.make
+      Button.make
         ~label: "Create user"
         ~label_processing: "Creating user..."
         ~classes: ["btn-primary"]

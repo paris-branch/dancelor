@@ -1,6 +1,7 @@
 open Nes
 open Js_of_ocaml
 open Js_of_ocaml_lwt
+open Utils
 open Html
 
 type 'result state =
@@ -116,7 +117,7 @@ let make
 
   (* Because the following event prevents the default browser behaviour (in case
      of `on_enter`), it must happen on `keydown` and not on `keyup`. *)
-  Utils.add_target_event_listener bar_dom Dom_html.Event.keydown (fun event _target ->
+  add_target_event_listener bar_dom Dom_html.Event.keydown (fun event _target ->
     match event##.keyCode with
     | 13 (* Enter *) ->
       (

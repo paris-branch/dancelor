@@ -1,6 +1,7 @@
+open Js_of_ocaml
 open Nes
 open Html
-open Js_of_ocaml
+open Utils
 
 type t = {
   parent_title: string;
@@ -58,12 +59,12 @@ let render p =
               | None -> []
               | Some share ->
                 [
-                  Utils.Button.make
+                  Button.make
                     ~icon: (Action Share)
                     ~classes: ["btn-primary"]
                     ~onclick: (fun _ ->
-                      Utils.write_to_clipboard @@ Utils.href_any_for_sharing share;
-                      Utils.Toast.open_ ~title: "Copied to clipboard" [txt "A short link to this page has been copied to your clipboard."];
+                      write_to_clipboard @@ href_any_for_sharing share;
+                      Toast.open_ ~title: "Copied to clipboard" [txt "A short link to this page has been copied to your clipboard."];
                       lwt_unit
                     )
                     ()
@@ -75,7 +76,7 @@ let render p =
             | [] -> []
             | actions ->
               [
-                Utils.Button.make
+                Button.make
                   ~icon: (Other Actions)
                   ~classes: ["btn-secondary"]
                   ~more_a: [a_user_data "bs-toggle" "dropdown"]
@@ -94,13 +95,13 @@ let render p =
           S.const @@
             match p.share with
             | None -> []
-            | Some _ -> [Utils.Button.make ~icon: (Action Share) ()]
+            | Some _ -> [Button.make ~icon: (Action Share) ()]
         )
         (
           S.from' [] @@
           flip Lwt.map actions_promise @@ function
           | [] -> []
-          | _ -> [Utils.Button.make ~icon: (Other Actions) ()]
+          | _ -> [Button.make ~icon: (Other Actions) ()]
         )
     )
   in
@@ -210,7 +211,7 @@ let open_dialog
      In this case, we can probably track [onclick] on the whole modal, since the
      background takes everything. *)
   (* Add an event listener to close the box by clicking outside of it. *)
-  Utils.add_target_event_listener Dom_html.window Dom_html.Event.click (fun _event target ->
+  add_target_event_listener Dom_html.window Dom_html.Event.click (fun _event target ->
     if target = (dom_box :> Dom_html.element Js.t) then
       return None;
     Js._true

@@ -2,6 +2,7 @@ open Nes
 open Common
 open Model
 open Html
+open Utils
 
 let create ?context id =
   Main_page.madge_call_or_404 (Source Get) id @@ fun source ->
@@ -19,20 +20,20 @@ let create ?context id =
     ~share: (Source source)
     ~actions: (
       lwt @@
-      [Utils.Button.make_a
+      [Button.make_a
         ~label: "Edit"
         ~icon: (Action Edit)
         ~href: (S.const @@ Endpoints.Page.(href Source_edit) id)
         ~dropdown: true
         ();
-      Utils.Action.delete
+      Action.delete
         ~model: "source"
         ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Source Delete) (Entry.id source))
         ();
       ] @ (
         match Source.scddb_id' source with
         | None -> []
-        | Some scddb_id -> [Utils.Action.scddb Publication scddb_id]
+        | Some scddb_id -> [Action.scddb Publication scddb_id]
       )
     )
     [
@@ -58,7 +59,7 @@ let create ?context id =
                 ];
             ];
         ];
-      Utils.quick_explorer_links
+      quick_explorer_links
         [
           ("versions from this source", lwt @@ Filter.(Any.version' % Version.memsource') source);
         ];

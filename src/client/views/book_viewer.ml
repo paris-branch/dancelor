@@ -1,5 +1,6 @@
 open Nes
 open Common
+open Utils
 open Model
 
 let display_warnings warnings =
@@ -78,7 +79,7 @@ let table_contents ~this_id contents =
               match page with
               | Book.Part title ->
                 (
-                  Utils.Result_row.(
+                  Result_row.(
                     to_clickable_row @@
                       make [
                         cell [txt "Part"];
@@ -189,26 +190,26 @@ let create ?context id =
     ~share: (Book book)
     ~actions: (
       lwt @@
-      [Utils.Button.make
+      [Button.make
         ~label: "Download PDF"
         ~icon: (Other File_pdf)
         ~onclick: (fun _ -> ignore <$> Book_download_dialog.create_and_open book)
         ~dropdown: true
         ();
-      Utils.Button.make_a
+      Button.make_a
         ~label: "Edit"
         ~icon: (Action Edit)
         ~href: (S.const @@ Endpoints.Page.(href Book_edit) id)
         ~dropdown: true
         ();
-      Utils.Action.delete
+      Action.delete
         ~model: "book"
         ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Book Delete) (Entry.id book))
         ();
       ] @ (
         match Book.scddb_id' book with
         | None -> []
-        | Some scddb_id -> [Utils.Action.scddb Publication scddb_id]
+        | Some scddb_id -> [Action.scddb Publication scddb_id]
       )
     )
     [

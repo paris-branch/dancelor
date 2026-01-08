@@ -3,6 +3,7 @@ open Nes
 open Common
 open Model
 open Html
+open Utils
 open Components
 
 type t = {
@@ -85,7 +86,7 @@ let open_pdf_generation_dialog status_signal =
             ]
           )
       )]
-      ~buttons: [Utils.Button.cancel' ~return ()]
+      ~buttons: [Button.cancel' ~return ()]
 
 let copyright_reponse_promise_to_job_registration_promise copyright_response_promise =
   match%lwt copyright_response_promise with
@@ -99,8 +100,8 @@ let open_ version dialog =
     ~title: (lwt "Download a PDF")
     [div dialog.choice_rows]
     ~buttons: [
-      Utils.Button.cancel' ~return ();
-      Utils.Button.download
+      Button.cancel' ~return ();
+      Button.download
         ~onclick: (fun () ->
           let (version_params, rendering_params) = S.value dialog.parameters_signal in
           let%lwt slug = Version.slug' version in

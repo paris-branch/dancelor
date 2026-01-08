@@ -1,6 +1,7 @@
 open Js_of_ocaml
 open Nes
 open Common
+open Utils
 open Html
 
 let prepare_gen (type model)(type access)(type model_validated)
@@ -10,15 +11,15 @@ let prepare_gen (type model)(type access)(type model_validated)
   ~make_descr
   ~(make_result :
     ?classes: string list ->
-    ?action: Utils.Result_row.action ->
-    ?prefix: Utils.Result_row.cell list ->
-    ?suffix: Utils.Result_row.cell list ->
+    ?action: Result_row.action ->
+    ?prefix: Result_row.cell list ->
+    ?suffix: Result_row.cell list ->
     (model, access) Entry.t ->
-    Utils.Result_row.t
+    Result_row.t
   )
   ?(make_more_results =
   (const (S.const []): (model, access) Entry.t ->
-    Utils.Result_row.t list S.t))
+    Result_row.t list S.t))
   ~model_name
   ?(create_dialog_content : (((model, access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) option)
   ~(validate : (model, access) Entry.t option -> (model_validated, string) Result.t)
@@ -62,7 +63,7 @@ let prepare_gen (type model)(type access)(type model_validated)
       | None -> []
       | Some _ ->
         [
-          Utils.Button.make
+          Button.make
             ~classes: ["btn-warning"]
             ~icon: (Action Clear)
             ~tooltip: "Clear the selection. It cannot be recovered."
@@ -98,7 +99,7 @@ let prepare_gen (type model)(type access)(type model_validated)
           ~dialog_title: (lwt label)
           ~make_result: (fun ~context: _ result ->
             make_result
-              ~action: (Utils.Result_row.callback @@ fun () -> lwt @@ quick_search_return (Some result))
+              ~action: (Result_row.callback @@ fun () -> lwt @@ quick_search_return (Some result))
               result
           )
           ~dialog_buttons: (
@@ -106,7 +107,7 @@ let prepare_gen (type model)(type access)(type model_validated)
             | None -> []
             | Some create_dialog_content ->
               [
-                Utils.Button.make
+                Button.make
                   ~label: ("Create new " ^ model_name)
                   ~label_processing: ("Creating new " ^ model_name ^ "...")
                   ~icon: (Action Add)
@@ -130,7 +131,7 @@ let prepare_gen (type model)(type access)(type model_validated)
       lwt_unit
     in
     let select_button =
-      Utils.Button.make
+      Button.make
         ~label: ("Select a " ^ model_name)
         ~label_processing: ("Selecting a " ^ model_name ^ "...")
         ~classes: ["text-secondary"; "btn-outline-light"; "w-100"; "text-start"]
@@ -146,7 +147,7 @@ let prepare_gen (type model)(type access)(type model_validated)
               div
                 ~a: [a_class ["btn-group"; "w-100"]]
                 [
-                  Utils.Button.make_icon (Action Search) ~classes: ["btn-light"];
+                  Button.make_icon (Action Search) ~classes: ["btn-light"];
                   select_button;
                 ];
             ]
@@ -155,12 +156,12 @@ let prepare_gen (type model)(type access)(type model_validated)
               div ~a: [a_class ["rounded-2"; "border"; "w-100"; "px-2"; "py-1"]] [
                 tablex
                   ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"]]
-                  [tbody (List.map Utils.Result_row.to_clickable_row [make_result model])];
+                  [tbody (List.map Result_row.to_clickable_row [make_result model])];
               ];
               div ~a: [a_class ["row"; "m-0"; "overflow-hidden"]] [
                 tablex
                   ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"; "col"]]
-                  [R.tbody (S.map (List.map Utils.Result_row.to_clickable_row) (make_more_results model))];
+                  [R.tbody (S.map (List.map Result_row.to_clickable_row) (make_more_results model))];
               ]
             ]
       )

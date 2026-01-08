@@ -1,6 +1,7 @@
 open Nes
 open Js_of_ocaml
 open Html
+open Utils
 
 let prepare (type value)(type state)
   ~label
@@ -72,7 +73,7 @@ let prepare (type value)(type state)
        we need the module type {!Component} to provide an equality. *)
     let (components, set_components) = S.create ~eq: (fun _ _ -> false) components in
     let button_add_object =
-      Utils.Button.make
+      Button.make
         ~label: ("Add a " ^ String.lowercase_ascii C.label)
         ~label_processing: ("Adding a " ^ String.lowercase_ascii C.label)
         ~icon: (Action Add)
@@ -107,19 +108,19 @@ let prepare (type value)(type state)
                     (C.actions component)
                     (
                       S.const [
-                        Utils.Button.make
+                        Button.make
                           ~icon: (Action Delete)
                           ~tooltip: ("Remove this " ^ String.lowercase_ascii C.label ^ " from the list. It cannot be recovered.")
                           ~classes: ["btn-warning"]
                           ~onclick: (fun _ -> set_components @@ List.remove n @@ S.value components; lwt_unit)
                           ();
-                        Utils.Button.make
+                        Button.make
                           ~icon: (Action Move_down)
                           ~tooltip: ("Move this " ^ String.lowercase_ascii C.label ^ " down in the list.")
                           ~classes: (["btn-outline-secondary"] @ (if n = last_index then ["disabled"] else []))
                           ~onclick: (fun _ -> set_components @@ List.swap n (n + 1) @@ S.value components; lwt_unit)
                           ();
-                        Utils.Button.make
+                        Button.make
                           ~icon: (Action Move_up)
                           ~tooltip: ("Move this " ^ String.lowercase_ascii C.label ^ " up in the list.")
                           ~classes: (["btn"; "btn-outline-secondary"] @ (if n = 0 then ["disabled"] else []))

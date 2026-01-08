@@ -1,11 +1,11 @@
 open Nes
 open Common
-
 open Model
 open Html
+open Utils
 
 let clickable_row ?href ?onclick cells =
-  Utils.Result_row.(to_clickable_row @@ make ?href ?onclick (List.map lcell cells))
+  Result_row.(to_clickable_row @@ make ?href ?onclick (List.map lcell cells))
 
 let map_table ~header list fun_ =
   div

@@ -1,5 +1,6 @@
 open Nes
 open Html
+open Utils
 
 type 'p pagination_mode =
   | Pagination of 'p
@@ -20,7 +21,7 @@ val make :
   'result t
 
 val render :
-  make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Utils.Result_row.t) ->
+  make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Result_row.t) ->
   ?attached_buttons: [< Html_types.div_content_fun >`I `Input] elt list ->
   ?show_table_headers: bool ->
   'result t ->
@@ -43,7 +44,7 @@ module Quick : sig
     return: ('dialog_result option -> unit) ->
     dialog_title: string Lwt.t ->
     ?dialog_buttons: Html_types.div_content_fun elt list ->
-    make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Utils.Result_row.t) ->
+    make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Result_row.t) ->
     'result t ->
     Page.t Lwt.t
 end

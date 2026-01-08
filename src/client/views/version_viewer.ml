@@ -2,6 +2,7 @@ open Nes
 open Common
 open Model
 open Html
+open Utils
 
 let show_lilypond_dialog version =
   let content_promise =
@@ -22,15 +23,15 @@ let show_lilypond_dialog version =
         lwt [pre [txt content]]
       )]
       ~buttons: [
-        Utils.Button.close' ~return ();
-        Utils.Button.make
+        Button.close' ~return ();
+        Button.make
           ~label: "Copy to clipboard"
           ~icon: (Other Clipboard)
           ~classes: ["btn-primary"]
           ~onclick: (fun _ ->
             let%lwt content = content_promise in
-            Utils.write_to_clipboard content;
-            Utils.Toast.open_ ~title: "Copied to clipboard" [txt "The LilyPond content was copied to your clipboard."];
+            write_to_clipboard content;
+            Toast.open_ ~title: "Copied to clipboard" [txt "The LilyPond content was copied to your clipboard."];
             return (some ());
             lwt_unit
           )
@@ -266,11 +267,11 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
     Page.open_dialog @@ fun return ->
     Page.make'
       ~title: (lwt "De-duplicate a version")
-      [Utils.Alert.make ~level: Warning [txt "This action is irreversible."];
+      [Alert.make ~level: Warning [txt "This action is irreversible."];
       div ~a: [a_class ["mt-4"]] [txt "This will:"; ul (List.map li (get_changes_html ()))]]
       ~buttons: [
-        Utils.Button.cancel' ~return ();
-        Utils.Button.make
+        Button.cancel' ~return ();
+        Button.make
           ~classes: ["btn-primary"]
           ~label: "Proceed"
           ~label_processing: "Proceeding"
@@ -283,7 +284,7 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
   match user_input with
   | None -> lwt_unit
   | Some() ->
-    Utils.Toast.open_
+    Toast.open_
       ~title: "De-duplicating a version"
       [
         txt
@@ -293,14 +294,14 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
            because the database might be in an odd state.";
       ];
     Lwt_list.iter_s (fun action -> action ()) (get_changes_actions ());%lwt
-    Utils.Toast.open_
+    Toast.open_
       ~type_: Forever
       ~title: "De-duplicated a version"
       [txt
         "The version has been de-duplicated successfully! This means that \
            you are on a page that does not exist anymore. Run, you fools!"]
       ~buttons: [
-        Utils.Button.make_a
+        Button.make_a
           ~label: "Go to other version"
           ~icon: (Model Version)
           ~classes: ["btn-primary"]
@@ -327,7 +328,7 @@ let deduplication_dialog ~version ~other_versions_promise () =
         );
       ]
       ~buttons: [
-        Utils.Button.close' ~return ();
+        Button.close' ~return ();
       ]
 
 let create ?context id =
@@ -363,36 +364,36 @@ let create ?context id =
         (
           lwt
             [
-              Utils.Button.make
+              Button.make
                 ~label: "Download PDF"
                 ~icon: (Other File_pdf)
                 ~dropdown: true
                 ~onclick: (fun _ -> ignore <$> Version_download_dialog.create_and_open version)
                 ();
-              Utils.Button.make
+              Button.make
                 ~label: "Show LilyPond"
                 ~label_processing: "Showing LilyPond..."
                 ~icon: (Other File_lilypond)
                 ~dropdown: true
                 ~onclick: (fun () -> show_lilypond_dialog version)
                 ();
-              Utils.Button.make_a
+              Button.make_a
                 ~label: "Edit"
                 ~icon: (Action Edit)
                 ~href: (S.const @@ Endpoints.Page.(href Version_edit) id)
                 ~dropdown: true
                 ();
-              Utils.Button.make_a
+              Button.make_a
                 ~label: "Edit tune"
                 ~icon: (Action Edit)
                 ~href: (S.const @@ Endpoints.Page.(href Tune_edit) (Entry.id tune))
                 ~dropdown: true
                 ();
-              Utils.Action.delete
+              Action.delete
                 ~model: "version"
                 ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Version Delete) (Entry.id version))
                 ();
-              Utils.Button.make
+              Button.make
                 ~label: "De-duplicate"
                 ~icon: (Action Deduplicate)
                 ~dropdown: true
@@ -404,7 +405,7 @@ let create ?context id =
         (
           match%lwt Tune.scddb_id' <$> Model.Version.tune' version with
           | None -> lwt_nil
-          | Some scddb_id -> lwt [Utils.Action.scddb Tune scddb_id]
+          | Some scddb_id -> lwt [Action.scddb Tune scddb_id]
         )
     )
     [
@@ -434,7 +435,7 @@ let create ?context id =
               | Destructured {default_structure; _} ->
                 [
                   txt "Destructured version ";
-                  Utils.Documentation.link "destructured-versions";
+                  Documentation.link "destructured-versions";
                   txtf
                     " in %s, shown here as %s"
                     (Music.Key.to_pretty_string key)
@@ -505,7 +506,7 @@ let create ?context id =
               )
             ]
       );
-      Utils.quick_explorer_links
+      quick_explorer_links
         [
           ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memversion') version);
           ("sets containing this tune", Filter.(Any.set' % Set.exists_version' % Version.tuneis') <$> Model.Version.tune' version);
