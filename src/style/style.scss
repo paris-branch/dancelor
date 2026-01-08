@@ -73,6 +73,9 @@ $placeholder-opacity-min: 0.05;
 
 a {
   text-decoration: none;
+  &:not(.btn):not(.dropdown-item):not(.page-link):hover {
+    text-decoration: underline;
+  }
 }
 
 .hover-opacity-50:hover {
