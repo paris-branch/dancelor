@@ -181,7 +181,7 @@ let editor =
   let open Editor in
   Selector.prepare
     ~make_descr: (lwt % NEString.to_string % Model.Tune.one_name')
-    ~make_result: Any_result.make_tune_result'
+    ~make_result: (Any_result.make_tune_result ?context: None ?onclick: None)
     ~label: "Tune"
     ~model_name: "tune"
     ~create_dialog_content: Tune_editor.create

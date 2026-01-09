@@ -67,32 +67,18 @@ let make_set_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix =
       suffix
     )
 
-let make_tune_result' ?classes ?action ?(prefix = []) ?(suffix = []) tune =
+let make_tune_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix = []) tune =
   Result_row.make
     ?classes
     ?action
     (
       prefix @
-      [Result_row.cell [txt @@ NEString.to_string @@ Tune.one_name' tune];
+      [Result_row.cell [Formatters.Tune.name' ~link: (onclick = None) ?context tune];
       Result_row.cell [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
       Result_row.cell [Formatters.Tune.composers' tune];
       ] @
       suffix
     )
-
-let make_tune_result ?classes ?context ?prefix ?suffix tune =
-  make_tune_result'
-    ?classes
-    ~action: (
-      Result_row.link @@
-        Option.fold
-          context
-          ~none: (S.const @@ Endpoints.Page.href_tune @@ Entry.id tune)
-          ~some: (S.map (fun context -> Endpoints.Page.href_tune ~context @@ Entry.id tune))
-    )
-    ?prefix
-    ?suffix
-    tune
 
 let make_version_result' ?classes ?action ?(prefix = []) ?(suffix = []) version =
   Result_row.make
