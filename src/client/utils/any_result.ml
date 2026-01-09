@@ -41,32 +41,18 @@ let make_dance_result ?classes ?action ?onclick ?context ?(prefix = []) ?(suffix
       suffix
     )
 
-let make_book_result' ?classes ?action ?(prefix = []) ?(suffix = []) book =
+let make_book_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix = []) book =
   Result_row.make
     ?classes
     ?action
     (
       prefix @
-      [Result_row.cell [Formatters.Book.title' ~link: false book];
+      [Result_row.cell [Formatters.Book.title' ~link: (onclick = None) ?context book];
       Result_row.cell [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date' book))];
       Result_row.cell [Formatters.Book.editors' book];
       ] @
       suffix
     )
-
-let make_book_result ?classes ?context ?prefix ?suffix book =
-  make_book_result'
-    ?classes
-    ~action: (
-      Result_row.link @@
-        Option.fold
-          context
-          ~none: (S.const @@ Endpoints.Page.href_book @@ Entry.id book)
-          ~some: (S.map (fun context -> Endpoints.Page.href_book ~context @@ Entry.id book))
-    )
-    ?prefix
-    ?suffix
-    book
 
 let make_set_result' ?classes ?action ?(prefix = []) ?(suffix = []) set =
   Result_row.make

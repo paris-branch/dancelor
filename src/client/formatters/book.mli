@@ -3,7 +3,7 @@ open Html
 
 val title' :
   ?link: bool ->
-  ?context: Endpoints.Page.context ->
+  ?context: Endpoints.Page.context S.t ->
   Model.Book.entry ->
   [> Html_types.span] elt
 
