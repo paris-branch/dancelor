@@ -80,32 +80,18 @@ let make_tune_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix 
       suffix
     )
 
-let make_version_result' ?classes ?action ?(prefix = []) ?(suffix = []) version =
+let make_version_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix = []) version =
   Result_row.make
     ?classes
     ?action
     (
       prefix @
-      [Result_row.cell [Formatters.Version.name_disambiguation_and_sources' ~name_link: false version];
+      [Result_row.cell [Formatters.Version.name_disambiguation_and_sources' ~name_link: (onclick = None) ?context version];
       Result_row.cell [Formatters.Version.kind_and_structure' version];
       Result_row.cell [Formatters.Version.composer_and_arranger' ~short: true version];
       ] @
       suffix
     )
-
-let make_version_result ?classes ?context ?prefix ?suffix version =
-  make_version_result'
-    ?classes
-    ~action: (
-      Result_row.link @@
-        Option.fold
-          context
-          ~none: (S.const @@ Endpoints.Page.href_version @@ Entry.id version)
-          ~some: (S.map (fun context -> Endpoints.Page.href_version ~context @@ Entry.id version))
-    )
-    ?prefix
-    ?suffix
-    version
 
 let make_user_result' ?classes ?action ?(prefix = []) ?(suffix = []) user =
   Result_row.make

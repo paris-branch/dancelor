@@ -90,7 +90,7 @@ let create ?context id =
                       div ~a: [a_class ["row"; "justify-content-between"; "mb-2"]] [
                         div ~a: [a_class ["col-auto"; "text-start"]] [
                           Formatters.Version.name_disambiguation_and_sources'
-                            ~context
+                            ~context: (S.const context)
                             ~params
                             version
                         ];

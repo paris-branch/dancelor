@@ -1,7 +1,10 @@
 open Nes
 open Common
-
 open Html
+
+let switch_signal_option = function
+  | None -> S.Option.none
+  | Some signal -> S.Option.some signal
 
 let disambiguation ?(parentheses = true) version =
   span @@
@@ -65,7 +68,11 @@ let name_gen version_gen =
     match version_gen with
     | Right (version, true, context) ->
       let%lwt name = Model.Version.one_name' version in
-      lwt [a ~a: [a_href @@ Endpoints.Page.href_version ?context @@ Entry.id version] [txt @@ NEString.to_string name]]
+      lwt [
+        a
+          ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_version ?context @@ Entry.id version) (switch_signal_option context)]
+          [txt @@ NEString.to_string name]
+      ]
     | Right (version, _, _) ->
       let%lwt name = Model.Version.one_name' version in
       lwt [txt @@ NEString.to_string name]

@@ -33,7 +33,7 @@ let versions_and_parameters ?(label = "Versions") () =
         (
           Selector.prepare
             ~make_descr: (Lwt.map NEString.to_string % Model.Version.one_name')
-            ~make_result: Any_result.make_version_result'
+            ~make_result: (Any_result.make_version_result ?context: None ?onclick: None)
             ~make_more_results: (fun version ->
               flip S.map show_preview @@ function
                 | true -> [Result_row.make [Result_row.cell ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]

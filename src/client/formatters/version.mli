@@ -8,7 +8,7 @@ val name :
 
 val name' :
   ?link: bool ->
-  ?context: Endpoints.Page.context ->
+  ?context: Endpoints.Page.context S.t ->
   Model.Version.entry ->
   [> Html_types.span] elt
 (** Variant of {!name} taking an {!Entry.t}. Because this is an entry, we can
@@ -26,7 +26,7 @@ val disambiguation' :
 
 val name_disambiguation_and_sources' :
   ?name_link: bool ->
-  ?context: Endpoints.Page.context ->
+  ?context: Endpoints.Page.context S.t ->
   ?params: Model.Version_parameters.t ->
   Model.Version.entry ->
   [> Html_types.span] elt
