@@ -38,7 +38,7 @@ let editor =
         )
         ~unserialise: Model.Person.get
         ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: Any_result.make_person_result'
+        ~make_result: (Any_result.make_person_result ?context: None ?onclick: None)
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create
         ()

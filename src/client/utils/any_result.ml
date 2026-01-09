@@ -17,30 +17,16 @@ let make_source_result ?classes ?action ?onclick ?context ?(prefix = []) ?(suffi
       suffix
     )
 
-let make_person_result' ?classes ?action ?(prefix = []) ?(suffix = []) person =
+let make_person_result ?classes ?action ?onclick ?context ?(prefix = []) ?(suffix = []) person =
   Result_row.make
     ?classes
     ?action
     (
       prefix @
-      [Result_row.cell ~a: [a_colspan 3] [Formatters.Person.name' ~link: false person];
+      [Result_row.cell ~a: [a_colspan 3] [Formatters.Person.name' ~link: (onclick = None) ?context person];
       ] @
       suffix
     )
-
-let make_person_result ?classes ?context ?prefix ?suffix person =
-  make_person_result'
-    ?classes
-    ~action: (
-      Result_row.link @@
-        Option.fold
-          context
-          ~none: (S.const @@ Endpoints.Page.href_person @@ Entry.id person)
-          ~some: (S.map (fun context -> Endpoints.Page.href_person ~context @@ Entry.id person))
-    )
-    ?prefix
-    ?suffix
-    person
 
 let make_dance_result' ?classes ?action ?(prefix = []) ?(suffix = []) dance =
   Result_row.make

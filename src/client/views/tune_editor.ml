@@ -32,7 +32,7 @@ let editor =
     (
       Selector.prepare
         ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: Any_result.make_person_result'
+        ~make_result: (Any_result.make_person_result ?context: None ?onclick: None)
         ~label: "Composer"
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create
