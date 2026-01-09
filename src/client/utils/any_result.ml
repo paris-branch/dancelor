@@ -54,32 +54,18 @@ let make_book_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix 
       suffix
     )
 
-let make_set_result' ?classes ?action ?(prefix = []) ?(suffix = []) set =
+let make_set_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix = []) set =
   Result_row.make
     ?classes
     ?action
     (
       prefix @
-      [Result_row.cell [txt @@ NEString.to_string @@ Set.name' set];
+      [Result_row.cell [Formatters.Set.name' ~link: (onclick = None) ?context set];
       Result_row.cell [txt @@ Kind.Dance.to_string @@ Set.kind' set];
       Result_row.lcell (List.singleton <$> (Formatters.Person.names' ~short: true <$> Set.conceptors' set));
       ] @
       suffix
     )
-
-let make_set_result ?classes ?context ?prefix ?suffix set =
-  make_set_result'
-    ?classes
-    ~action: (
-      Result_row.link @@
-        Option.fold
-          context
-          ~none: (S.const @@ Endpoints.Page.href_set @@ Entry.id set)
-          ~some: (S.map (fun context -> Endpoints.Page.href_set ~context @@ Entry.id set))
-    )
-    ?prefix
-    ?suffix
-    set
 
 let make_tune_result' ?classes ?action ?(prefix = []) ?(suffix = []) tune =
   Result_row.make
