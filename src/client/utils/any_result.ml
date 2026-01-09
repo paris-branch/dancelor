@@ -4,32 +4,18 @@ open Common
 open Model
 open Html
 
-let make_source_result' ?classes ?action ?(prefix = []) ?(suffix = []) source =
+let make_source_result ?classes ?action ?onclick ?context ?(prefix = []) ?(suffix = []) source =
   Result_row.make
     ?classes
     ?action
     (
       prefix @
-      [Result_row.cell [Formatters.Source.name' ~link: false source];
+      [Result_row.cell [Formatters.Source.name' ~link: (onclick = None) ?context source];
       Result_row.cell [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Source.date' source))];
       Result_row.lcell (List.singleton <$> (Formatters.Person.names' ~short: true <$> Source.editors' source));
       ] @
       suffix
     )
-
-let make_source_result ?classes ?context ?prefix ?suffix source =
-  make_source_result'
-    ?classes
-    ~action: (
-      Result_row.link @@
-        Option.fold
-          context
-          ~none: (S.const @@ Endpoints.Page.href_source @@ Entry.id source)
-          ~some: (S.map (fun context -> Endpoints.Page.href_source ~context @@ Entry.id source))
-    )
-    ?prefix
-    ?suffix
-    source
 
 let make_person_result' ?classes ?action ?(prefix = []) ?(suffix = []) person =
   Result_row.make

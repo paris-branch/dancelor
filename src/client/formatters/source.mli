@@ -8,6 +8,7 @@ val name :
 val name' :
   ?short: bool ->
   ?link: bool ->
+  ?context: Common.Endpoints.Page.context S.t ->
   Model.Source.entry ->
   [> Html_types.span] elt
 (** Variant of {!name} taking an {!Entry.t}. Because this is an entry, we can

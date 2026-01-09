@@ -233,7 +233,7 @@ let editor =
         (
           Selector.prepare
             ~make_descr: (lwt % NEString.to_string % Model.Source.name')
-            ~make_result: Any_result.make_source_result'
+            ~make_result: (Any_result.make_source_result ?onclick: None ?context: None)
             ~label: "Source"
             ~model_name: "source"
             ~create_dialog_content: Source_editor.create
