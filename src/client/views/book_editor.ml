@@ -244,7 +244,7 @@ let editor user =
         ~label: "Owner"
         ~model_name: "user"
         ~make_descr: (lwt % NEString.to_string % Model.User.username')
-        ~make_result: Any_result.make_user_result'
+        ~make_result: (Any_result.make_user_result ?context: None ?onclick: None)
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.User.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
@@ -279,7 +279,7 @@ let editor user =
                 ~label: "Viewer"
                 ~model_name: "user"
                 ~make_descr: (lwt % NEString.to_string % Model.User.username')
-                ~make_result: Any_result.make_user_result'
+                ~make_result: (Any_result.make_user_result ?context: None ?onclick: None)
                 ~search: (fun slice input ->
                   let%rlwt filter = lwt (Filter.User.from_string input) in
                   ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter

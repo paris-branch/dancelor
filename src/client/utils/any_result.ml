@@ -93,7 +93,9 @@ let make_version_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suff
       suffix
     )
 
-let make_user_result' ?classes ?action ?(prefix = []) ?(suffix = []) user =
+let make_user_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix = []) user =
+  ignore context;
+  ignore onclick;
   Result_row.make
     ?classes
     ?action
@@ -103,21 +105,6 @@ let make_user_result' ?classes ?action ?(prefix = []) ?(suffix = []) user =
       ] @
       suffix
     )
-
-let make_user_result ?classes ?context ?prefix ?suffix user =
-  ignore context;
-  make_user_result'
-    ?classes
-    ~action: No_action
-    (* FIXME: make a user href *)
-    (* Result_row.link @@ *)
-    (*   Option.fold *)
-    (*     context *)
-    (*     ~none: (S.const @@ Endpoints.Page.href_user @@ Entry.id user) *)
-    (*     ~some: (S.map (fun context -> Endpoints.Page.href_user ~context @@ Entry.id user)) *)
-    ?prefix
-    ?suffix
-    user
 
 let any_type_to_icon any =
   Icon.Model (
