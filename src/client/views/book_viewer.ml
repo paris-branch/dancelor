@@ -79,11 +79,10 @@ let table_contents ~this_id contents =
               match page with
               | Book.Part title ->
                 (
-                  Result_row.to_clickable_row @@
-                    Result_row.make [
-                      td [txt "Part"];
-                      td ~a: [a_colspan 3] [txt @@ NEString.to_string title];
-                    ]
+                  tr [
+                    td [txt "Part"];
+                    td ~a: [a_colspan 3] [txt @@ NEString.to_string title];
+                  ]
                 )
               | Book.Dance (dance, Dance_only) ->
                 (

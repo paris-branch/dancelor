@@ -68,7 +68,7 @@ let editor user =
             ~make_result: (Any_result.make_version_result ?context: None)
             ~make_more_results: (fun version ->
               flip S.map show_preview @@ function
-                | true -> [Result_row.make [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
+                | true -> [tr [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
                 | false -> []
             )
             ~label: "Version"

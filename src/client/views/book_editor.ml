@@ -36,7 +36,7 @@ let versions_and_parameters ?(label = "Versions") () =
             ~make_result: (Any_result.make_version_result ?context: None)
             ~make_more_results: (fun version ->
               flip S.map show_preview @@ function
-                | true -> [Result_row.make [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
+                | true -> [tr [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
                 | false -> []
             )
             ~label
@@ -60,7 +60,7 @@ let set_and_parameters ?(label = "Set") () =
         ~make_result: (Any_result.make_set_result ?context: None)
         ~make_more_results: (fun set ->
           flip S.map show_preview @@ function
-            | true -> [Result_row.make [td ~a: [a_colspan 9999] [Formatters.Set.tunes' set]]]
+            | true -> [tr [td ~a: [a_colspan 9999] [Formatters.Set.tunes' set]]]
             | false -> []
         )
         ~label

@@ -5,7 +5,7 @@ open Html
 open Utils
 
 let clickable_row ?onclick cells =
-  Result_row.(to_clickable_row @@ make ?onclick (List.map (fun content -> R.td (S.from' [] content)) cells))
+  Any_result.row ?onclick (List.map (fun content -> R.td (S.from' [] content)) cells)
 
 let map_table ~header list fun_ =
   div

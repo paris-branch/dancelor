@@ -3,7 +3,6 @@
 open Nes
 open Common
 open Html
-open Utils
 
 val make :
   label: string ->
@@ -16,10 +15,10 @@ val make :
   ?prefix: Html_types.td Html.elt list ->
   ?suffix: Html_types.td Html.elt list ->
   ('model, 'access) Entry.t ->
-  Result_row.t) ->
+  Html_types.tr Html.elt) ->
   ?make_more_results:
   (('model, 'access) Entry.t ->
-  Result_row.t list S.t) ->
+  Html_types.tr Html.elt list S.t) ->
   model_name: string ->
   ?create_dialog_content: ((('model, 'access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) ->
   'model Entry.id option ->
@@ -40,10 +39,10 @@ val prepare :
   ?prefix: Html_types.td Html.elt list ->
   ?suffix: Html_types.td Html.elt list ->
   ('model, 'access) Entry.t ->
-  Result_row.t) ->
+  Html_types.tr Html.elt) ->
   ?make_more_results:
   (('model, 'access) Entry.t ->
-  Result_row.t list S.t) ->
+  Html_types.tr Html.elt list S.t) ->
   model_name: string ->
   ?create_dialog_content: ((('model, 'access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) ->
   unit ->

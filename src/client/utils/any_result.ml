@@ -3,8 +3,19 @@ open Common
 open Model
 open Html
 
+let row ?(classes = []) ?onclick cells =
+  let open Html in
+  tr
+    ~a: (
+      List.filter_map id [
+        Some (a_class classes);
+        Option.map (fun f -> a_onclick (fun _ -> Lwt.async f; true)) onclick;
+      ]
+    )
+    (cells)
+
 let make_source_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) source =
-  Result_row.make
+  row
     ?classes
     ?onclick
     (
@@ -17,7 +28,7 @@ let make_source_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) 
     )
 
 let make_person_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) person =
-  Result_row.make
+  row
     ?classes
     ?onclick
     (
@@ -28,7 +39,7 @@ let make_person_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) 
     )
 
 let make_dance_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) dance =
-  Result_row.make
+  row
     ?classes
     ?onclick
     (
@@ -41,7 +52,7 @@ let make_dance_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) d
     )
 
 let make_book_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) book =
-  Result_row.make
+  row
     ?classes
     ?onclick
     (
@@ -54,7 +65,7 @@ let make_book_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) bo
     )
 
 let make_set_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) set =
-  Result_row.make
+  row
     ?classes
     ?onclick
     (
@@ -67,20 +78,20 @@ let make_set_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) set
     )
 
 let make_tune_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) tune =
-  Result_row.make
+  row
     ?classes
     ?onclick
     (
       prefix @
       [td [Formatters.Tune.name' ~link: (onclick = None) ?context tune];
       td [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
-      td [Formatters.Tune.composers' tune];
+      td [Formatters.Tune.composers' ~links: (onclick = None) tune];
       ] @
       suffix
     )
 
 let make_version_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) version =
-  Result_row.make
+  row
     ?classes
     ?onclick
     (
@@ -94,7 +105,7 @@ let make_version_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = [])
 
 let make_user_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) user =
   ignore context;
-  Result_row.make
+  row
     ?classes
     ?onclick
     (
