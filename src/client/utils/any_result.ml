@@ -28,32 +28,18 @@ let make_person_result ?classes ?action ?onclick ?context ?(prefix = []) ?(suffi
       suffix
     )
 
-let make_dance_result' ?classes ?action ?(prefix = []) ?(suffix = []) dance =
+let make_dance_result ?classes ?action ?onclick ?context ?(prefix = []) ?(suffix = []) dance =
   Result_row.make
     ?classes
     ?action
     (
       prefix @
-      [Result_row.cell [Formatters.Dance.name_and_disambiguation' ~name_link: false dance];
+      [Result_row.cell [Formatters.Dance.name_and_disambiguation' ~name_link: (onclick = None) ?context dance];
       Result_row.cell [txt (Kind.Dance.to_string @@ Dance.kind' dance)];
       Result_row.lcell (List.singleton <$> (Formatters.Person.names' ~short: true <$> Dance.devisers' dance));
       ] @
       suffix
     )
-
-let make_dance_result ?classes ?context ?prefix ?suffix dance =
-  make_dance_result'
-    ?classes
-    ~action: (
-      Result_row.link @@
-        Option.fold
-          context
-          ~none: (S.const @@ Endpoints.Page.href_dance @@ Entry.id dance)
-          ~some: (S.map (fun context -> Endpoints.Page.href_dance ~context @@ Entry.id dance))
-    )
-    ?prefix
-    ?suffix
-    dance
 
 let make_book_result' ?classes ?action ?(prefix = []) ?(suffix = []) book =
   Result_row.make

@@ -66,7 +66,7 @@ let editor =
         )
         ~unserialise: Model.Dance.get
         ~make_descr: (lwt % NEString.to_string % Model.Dance.one_name')
-        ~make_result: Any_result.make_dance_result'
+        ~make_result: (Any_result.make_dance_result ?context: None ?onclick: None)
         ~label: "Dance"
         ~model_name: "dance"
         ~create_dialog_content: Dance_editor.create
