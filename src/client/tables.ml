@@ -4,8 +4,8 @@ open Model
 open Html
 open Utils
 
-let clickable_row ?href ?onclick cells =
-  Result_row.(to_clickable_row @@ make ?href ?onclick (List.map lcell cells))
+let clickable_row ?onclick cells =
+  Result_row.(to_clickable_row @@ make ?onclick (List.map lcell cells))
 
 let map_table ~header list fun_ =
   div
@@ -20,22 +20,19 @@ let map_table ~header list fun_ =
 let books books =
   map_table ~header: ["Book"; "Date"] books @@ fun book ->
   clickable_row
-    ~href: (Endpoints.Page.href_book @@ Entry.id book)
     [
-      lwt [Formatters.Book.title' ~link: false book];
+      lwt [Formatters.Book.title' book];
       lwt [txt @@ Option.fold ~none: "" ~some: PartialDate.to_pretty_string @@ Book.date' book]
     ]
 
 let sets sets =
   map_table ~header: ["Name"; "Deviser"; "Kind"] sets @@ fun set ->
-  let href = Endpoints.Page.href_set @@ Entry.id set in
   clickable_row
-    ~href
     [
       lwt [
-        Formatters.Set.name' ~link: false set;
+        Formatters.Set.name' set;
         br ();
-        small [Formatters.Set.tunes' ~link: true set];
+        small [Formatters.Set.tunes' set];
       ];
       (List.singleton <$> (Formatters.Person.names' <$> Set.conceptors' set));
       lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set];
@@ -43,22 +40,18 @@ let sets sets =
 
 let dances dances =
   map_table ~header: ["Name"; "Deviser"; "Kind"] dances @@ fun dance ->
-  let href = Endpoints.Page.href_dance @@ Entry.id dance in
   clickable_row
-    ~href
     [
-      lwt [Formatters.Dance.name_and_disambiguation' ~name_link: false dance];
+      lwt [Formatters.Dance.name_and_disambiguation' dance];
       (List.singleton <$> (Formatters.Person.names' <$> Dance.devisers' dance));
       lwt [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
     ]
 
 let tunes tunes =
   map_table ~header: ["Name"; "Kind"; "Composer"] tunes @@ fun tune ->
-  let href = Endpoints.Page.href_tune @@ Entry.id tune in
   clickable_row
-    ~href
     [
-      lwt [Formatters.Tune.name' ~link: false tune];
+      lwt [Formatters.Tune.name' tune];
       lwt [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
       lwt [Formatters.Tune.composers' tune];
     ]
@@ -69,9 +62,7 @@ let versions ?onclick versions =
     versions
     @@ fun version ->
     let onclick = Option.map (fun onclick -> fun () -> onclick version) onclick in
-    let href = if Option.is_none onclick then Some (Endpoints.Page.href_version (Entry.id version)) else None in
     clickable_row
-      ?href
       ?onclick
       [
         lwt [Formatters.Version.disambiguation_and_sources' ~parentheses: false version];
@@ -91,9 +82,7 @@ let versions_with_names versions =
     ~header: ["Name"; "Kind"; "Key"; "Structure"]
     versions
     @@ fun version ->
-    let href = Endpoints.Page.href_version @@ Entry.id version in
     clickable_row
-      ~href
       [
         lwt [with_span_placeholder (List.singleton % txt % NEString.to_string % Tune.one_name' <$> Version.tune' version)];
         (List.singleton <$> (txt % Kind.Base.to_pretty_string % Tune.kind' <$> Version.tune' version));

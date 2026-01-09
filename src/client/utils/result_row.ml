@@ -3,7 +3,6 @@ open React
 
 type action =
   | No_action
-  | Link of string S.t
   | Callback of (unit -> unit Lwt.t)
 [@@deriving variants]
 
@@ -40,13 +39,12 @@ type t = {
   classes: string list;
 }
 
-let make ?(classes = []) ?action ?href ?onclick cells =
+let make ?(classes = []) ?action ?onclick cells =
   let action =
-    match (action, href, onclick) with
-    | (None, None, None) -> No_action
-    | (Some a, None, None) -> a
-    | (None, Some href, None) -> Link (S.const href)
-    | (None, None, Some onclick) -> Callback onclick
+    match (action, onclick) with
+    | (None, None) -> No_action
+    | (Some a, None) -> a
+    | (None, Some onclick) -> Callback onclick
     | _ -> invalid_arg "Cannot have more than one of action, href, or onclick"
   in
     {action; cells; classes}
@@ -76,35 +74,6 @@ let to_clickable_row t =
       (
         List.map (fun cell -> R.td ~a: cell.a cell.content) t.cells
       )
-  | Link href ->
-    tr
-      ~a: [a_class t.classes]
-      (
-        List.map
-          (fun cell ->
-            td
-              (* FIXME: remove the padding; except if I add an `a_class
-                 ["p-0"]` it only works if `cell.a` does not contain an
-                 `a_class`. *)
-              ~a: cell.a
-              [
-                a
-                  ~a: [
-                    a_class ["text-reset"];
-                    R.a_href href;
-                  ]
-                  [
-                    R.div
-                      (
-                        flip S.map cell.content @@ function
-                          | [] -> [txt " "] (* empty cells would not have their link fill 100% of the height *)
-                          | content -> content
-                      )
-                  ]
-              ]
-          )
-          t.cells
-      )
   | Callback f ->
     tr
       ~a: [
@@ -116,8 +85,6 @@ let to_clickable_row t =
       )
 
 let run_action row =
-  let open Js_of_ocaml in
   match row.action with
   | No_action -> lwt_unit
-  | Link href -> Dom_html.window##.location##.href := Js.string (S.value href); lwt_unit
   | Callback f -> f ()
