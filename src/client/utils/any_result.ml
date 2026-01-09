@@ -1,6 +1,5 @@
 open Nes
 open Common
-
 open Model
 open Html
 
@@ -10,9 +9,9 @@ let make_source_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) 
     ?onclick
     (
       prefix @
-      [Result_row.cell [Formatters.Source.name' ~link: (onclick = None) ?context source];
-      Result_row.cell [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Source.date' source))];
-      Result_row.lcell (List.singleton <$> (Formatters.Person.names' ~short: true <$> Source.editors' source));
+      [td [Formatters.Source.name' ~link: (onclick = None) ?context source];
+      td [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Source.date' source))];
+      R.td (S.from' [] (List.singleton <$> (Formatters.Person.names' ~short: true <$> Source.editors' source)));
       ] @
       suffix
     )
@@ -23,7 +22,7 @@ let make_person_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) 
     ?onclick
     (
       prefix @
-      [Result_row.cell ~a: [a_colspan 3] [Formatters.Person.name' ~link: (onclick = None) ?context person];
+      [td ~a: [a_colspan 3] [Formatters.Person.name' ~link: (onclick = None) ?context person];
       ] @
       suffix
     )
@@ -34,9 +33,9 @@ let make_dance_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) d
     ?onclick
     (
       prefix @
-      [Result_row.cell [Formatters.Dance.name_and_disambiguation' ~name_link: (onclick = None) ?context dance];
-      Result_row.cell [txt (Kind.Dance.to_string @@ Dance.kind' dance)];
-      Result_row.lcell (List.singleton <$> (Formatters.Person.names' ~short: true <$> Dance.devisers' dance));
+      [td [Formatters.Dance.name_and_disambiguation' ~name_link: (onclick = None) ?context dance];
+      td [txt (Kind.Dance.to_string @@ Dance.kind' dance)];
+      R.td (S.from' [] (List.singleton <$> (Formatters.Person.names' ~short: true <$> Dance.devisers' dance)));
       ] @
       suffix
     )
@@ -47,9 +46,9 @@ let make_book_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) bo
     ?onclick
     (
       prefix @
-      [Result_row.cell [Formatters.Book.title' ~link: (onclick = None) ?context book];
-      Result_row.cell [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date' book))];
-      Result_row.cell [Formatters.Book.editors' book];
+      [td [Formatters.Book.title' ~link: (onclick = None) ?context book];
+      td [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date' book))];
+      td [Formatters.Book.editors' book];
       ] @
       suffix
     )
@@ -60,9 +59,9 @@ let make_set_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) set
     ?onclick
     (
       prefix @
-      [Result_row.cell [Formatters.Set.name' ~link: (onclick = None) ?context set];
-      Result_row.cell [txt @@ Kind.Dance.to_string @@ Set.kind' set];
-      Result_row.lcell (List.singleton <$> (Formatters.Person.names' ~short: true <$> Set.conceptors' set));
+      [td [Formatters.Set.name' ~link: (onclick = None) ?context set];
+      td [txt @@ Kind.Dance.to_string @@ Set.kind' set];
+      R.td (S.from' [] (List.singleton <$> (Formatters.Person.names' ~short: true <$> Set.conceptors' set)));
       ] @
       suffix
     )
@@ -73,9 +72,9 @@ let make_tune_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) tu
     ?onclick
     (
       prefix @
-      [Result_row.cell [Formatters.Tune.name' ~link: (onclick = None) ?context tune];
-      Result_row.cell [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
-      Result_row.cell [Formatters.Tune.composers' tune];
+      [td [Formatters.Tune.name' ~link: (onclick = None) ?context tune];
+      td [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
+      td [Formatters.Tune.composers' tune];
       ] @
       suffix
     )
@@ -86,9 +85,9 @@ let make_version_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = [])
     ?onclick
     (
       prefix @
-      [Result_row.cell [Formatters.Version.name_disambiguation_and_sources' ~name_link: (onclick = None) ?context version];
-      Result_row.cell [Formatters.Version.kind_and_structure' version];
-      Result_row.cell [Formatters.Version.composer_and_arranger' ~short: true version];
+      [td [Formatters.Version.name_disambiguation_and_sources' ~name_link: (onclick = None) ?context version];
+      td [Formatters.Version.kind_and_structure' version];
+      td [Formatters.Version.composer_and_arranger' ~short: true version];
       ] @
       suffix
     )
@@ -100,7 +99,7 @@ let make_user_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) us
     ?onclick
     (
       prefix @
-      [Result_row.cell ~a: [a_colspan 3] [txt @@ NEString.to_string @@ User.username' user];
+      [td ~a: [a_colspan 3] [txt @@ NEString.to_string @@ User.username' user];
       ] @
       suffix
     )
@@ -121,7 +120,7 @@ let any_type_to_icon any =
 let make_result ?classes ?context any =
   let type_ = Any.type_of any in
   let prefix = [
-    Result_row.cell
+    td
       ~a: [a_class ["text-nowrap"]]
       [
         Icon.html (any_type_to_icon type_);
@@ -130,7 +129,7 @@ let make_result ?classes ?context any =
   ]
   in
   let suffix = [
-    Result_row.cell [
+    td [
       Model.Any.to_entry'
         any
         ~on_public: (fun _entry ->

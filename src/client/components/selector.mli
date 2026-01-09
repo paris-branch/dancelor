@@ -13,8 +13,8 @@ val make :
   make_result:
   (?classes: string list ->
   ?onclick: (unit -> unit Lwt.t) ->
-  ?prefix: Result_row.cell list ->
-  ?suffix: Result_row.cell list ->
+  ?prefix: Html_types.td Html.elt list ->
+  ?suffix: Html_types.td Html.elt list ->
   ('model, 'access) Entry.t ->
   Result_row.t) ->
   ?make_more_results:
@@ -37,8 +37,8 @@ val prepare :
   make_result:
   (?classes: string list ->
   ?onclick: (unit -> unit Lwt.t) ->
-  ?prefix: Result_row.cell list ->
-  ?suffix: Result_row.cell list ->
+  ?prefix: Html_types.td Html.elt list ->
+  ?suffix: Html_types.td Html.elt list ->
   ('model, 'access) Entry.t ->
   Result_row.t) ->
   ?make_more_results:
