@@ -4,10 +4,10 @@ open Common
 open Model
 open Html
 
-let make_source_result ?classes ?action ?onclick ?context ?(prefix = []) ?(suffix = []) source =
+let make_source_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) source =
   Result_row.make
     ?classes
-    ?action
+    ?onclick
     (
       prefix @
       [Result_row.cell [Formatters.Source.name' ~link: (onclick = None) ?context source];
@@ -17,10 +17,10 @@ let make_source_result ?classes ?action ?onclick ?context ?(prefix = []) ?(suffi
       suffix
     )
 
-let make_person_result ?classes ?action ?onclick ?context ?(prefix = []) ?(suffix = []) person =
+let make_person_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) person =
   Result_row.make
     ?classes
-    ?action
+    ?onclick
     (
       prefix @
       [Result_row.cell ~a: [a_colspan 3] [Formatters.Person.name' ~link: (onclick = None) ?context person];
@@ -28,10 +28,10 @@ let make_person_result ?classes ?action ?onclick ?context ?(prefix = []) ?(suffi
       suffix
     )
 
-let make_dance_result ?classes ?action ?onclick ?context ?(prefix = []) ?(suffix = []) dance =
+let make_dance_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) dance =
   Result_row.make
     ?classes
-    ?action
+    ?onclick
     (
       prefix @
       [Result_row.cell [Formatters.Dance.name_and_disambiguation' ~name_link: (onclick = None) ?context dance];
@@ -41,10 +41,10 @@ let make_dance_result ?classes ?action ?onclick ?context ?(prefix = []) ?(suffix
       suffix
     )
 
-let make_book_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix = []) book =
+let make_book_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) book =
   Result_row.make
     ?classes
-    ?action
+    ?onclick
     (
       prefix @
       [Result_row.cell [Formatters.Book.title' ~link: (onclick = None) ?context book];
@@ -54,10 +54,10 @@ let make_book_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix 
       suffix
     )
 
-let make_set_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix = []) set =
+let make_set_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) set =
   Result_row.make
     ?classes
-    ?action
+    ?onclick
     (
       prefix @
       [Result_row.cell [Formatters.Set.name' ~link: (onclick = None) ?context set];
@@ -67,10 +67,10 @@ let make_set_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix =
       suffix
     )
 
-let make_tune_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix = []) tune =
+let make_tune_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) tune =
   Result_row.make
     ?classes
-    ?action
+    ?onclick
     (
       prefix @
       [Result_row.cell [Formatters.Tune.name' ~link: (onclick = None) ?context tune];
@@ -80,10 +80,10 @@ let make_tune_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix 
       suffix
     )
 
-let make_version_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix = []) version =
+let make_version_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) version =
   Result_row.make
     ?classes
-    ?action
+    ?onclick
     (
       prefix @
       [Result_row.cell [Formatters.Version.name_disambiguation_and_sources' ~name_link: (onclick = None) ?context version];
@@ -93,12 +93,11 @@ let make_version_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suff
       suffix
     )
 
-let make_user_result ?classes ?action ?context ?onclick ?(prefix = []) ?(suffix = []) user =
+let make_user_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) user =
   ignore context;
-  ignore onclick;
   Result_row.make
     ?classes
-    ?action
+    ?onclick
     (
       prefix @
       [Result_row.cell ~a: [a_colspan 3] [txt @@ NEString.to_string @@ User.username' user];

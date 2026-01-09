@@ -12,7 +12,7 @@ val make :
   make_descr: (('model, 'access) Entry.t -> string Lwt.t) ->
   make_result:
   (?classes: string list ->
-  ?action: Result_row.action ->
+  ?onclick: (unit -> unit Lwt.t) ->
   ?prefix: Result_row.cell list ->
   ?suffix: Result_row.cell list ->
   ('model, 'access) Entry.t ->
@@ -36,7 +36,7 @@ val prepare :
   make_descr: (('model, 'access) Entry.t -> string Lwt.t) ->
   make_result:
   (?classes: string list ->
-  ?action: Result_row.action ->
+  ?onclick: (unit -> unit Lwt.t) ->
   ?prefix: Result_row.cell list ->
   ?suffix: Result_row.cell list ->
   ('model, 'access) Entry.t ->

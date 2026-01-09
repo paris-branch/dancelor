@@ -181,7 +181,7 @@ let editor =
   let open Editor in
   Selector.prepare
     ~make_descr: (lwt % NEString.to_string % Model.Tune.one_name')
-    ~make_result: (Any_result.make_tune_result ?context: None ?onclick: None)
+    ~make_result: (Any_result.make_tune_result ?context: None)
     ~label: "Tune"
     ~model_name: "tune"
     ~create_dialog_content: Tune_editor.create
@@ -207,7 +207,7 @@ let editor =
     (
       Selector.prepare
         ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: (Any_result.make_person_result ?context: None ?onclick: None)
+        ~make_result: (Any_result.make_person_result ?context: None)
         ~label: "Arranger"
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create
@@ -233,7 +233,7 @@ let editor =
         (
           Selector.prepare
             ~make_descr: (lwt % NEString.to_string % Model.Source.name')
-            ~make_result: (Any_result.make_source_result ?onclick: None ?context: None)
+            ~make_result: (Any_result.make_source_result ?context: None)
             ~label: "Source"
             ~model_name: "source"
             ~create_dialog_content: Source_editor.create

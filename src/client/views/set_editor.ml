@@ -47,7 +47,7 @@ let editor user =
     (
       Selector.prepare
         ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: (Any_result.make_person_result ?context: None ?onclick: None)
+        ~make_result: (Any_result.make_person_result ?context: None)
         ~label: "Conceptor"
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create
@@ -65,7 +65,7 @@ let editor user =
         (
           Selector.prepare
             ~make_descr: (Lwt.map NEString.to_string % Model.Version.one_name')
-            ~make_result: (Any_result.make_version_result ?context: None ?onclick: None)
+            ~make_result: (Any_result.make_version_result ?context: None)
             ~make_more_results: (fun version ->
               flip S.map show_preview @@ function
                 | true -> [Result_row.make [Result_row.cell ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
@@ -118,7 +118,7 @@ let editor user =
         ~label: "Owner"
         ~model_name: "user"
         ~make_descr: (lwt % NEString.to_string % Model.User.username')
-        ~make_result: (Any_result.make_user_result ?context: None ?onclick: None)
+        ~make_result: (Any_result.make_user_result ?context: None)
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.User.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
@@ -153,7 +153,7 @@ let editor user =
                 ~label: "Viewer"
                 ~model_name: "user"
                 ~make_descr: (lwt % NEString.to_string % Model.User.username')
-                ~make_result: (Any_result.make_user_result ?context: None ?onclick: None)
+                ~make_result: (Any_result.make_user_result ?context: None)
                 ~search: (fun slice input ->
                   let%rlwt filter = lwt (Filter.User.from_string input) in
                   ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter

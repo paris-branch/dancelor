@@ -11,7 +11,7 @@ let prepare_gen (type model)(type access)(type model_validated)
   ~make_descr
   ~(make_result :
     ?classes: string list ->
-    ?action: Result_row.action ->
+    ?onclick: (unit -> unit Lwt.t) ->
     ?prefix: Result_row.cell list ->
     ?suffix: Result_row.cell list ->
     (model, access) Entry.t ->
@@ -99,7 +99,7 @@ let prepare_gen (type model)(type access)(type model_validated)
           ~dialog_title: (lwt label)
           ~make_result: (fun ~context: _ result ->
             make_result
-              ~action: (Result_row.callback @@ fun () -> lwt @@ quick_search_return (Some result))
+              ~onclick: (fun () -> lwt @@ quick_search_return (Some result))
               result
           )
           ~dialog_buttons: (
