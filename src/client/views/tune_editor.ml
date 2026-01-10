@@ -32,7 +32,7 @@ let editor =
     (
       Selector.prepare
         ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: Any_result.make_person_result'
+        ~make_result: (Any_result.make_person_result ?context: None)
         ~label: "Composer"
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create
@@ -66,7 +66,7 @@ let editor =
         )
         ~unserialise: Model.Dance.get
         ~make_descr: (lwt % NEString.to_string % Model.Dance.one_name')
-        ~make_result: Any_result.make_dance_result'
+        ~make_result: (Any_result.make_dance_result ?context: None)
         ~label: "Dance"
         ~model_name: "dance"
         ~create_dialog_content: Dance_editor.create

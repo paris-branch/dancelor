@@ -1,10 +1,8 @@
 open Nes
 open Common
-
 open Js_of_ocaml
 
 module Any_result = Any_result
-module Result_row = Result_row
 module Icon = Icon
 module Alert = Alert
 module Button = Button

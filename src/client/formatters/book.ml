@@ -1,14 +1,23 @@
 open Nes
 open Common
-
 open Html
+
+let switch_signal_option = function
+  | None -> S.Option.none
+  | Some signal -> S.Option.some signal
 
 let title_gen book_gen =
   span @@
     match book_gen with
     | Right (book, true, context) ->
       let title = Model.Book.title' book in
-        [a ~a: [a_href @@ Endpoints.Page.href_book ?context @@ Entry.id book] [txt @@ NEString.to_string title]]
+      [
+        a
+          ~a: [
+            R.a_href @@ S.map (fun context -> Endpoints.Page.href_book ?context @@ Entry.id book) (switch_signal_option context)
+          ]
+          [txt @@ NEString.to_string title]
+      ]
     | Right (book, _, _) ->
       let title = Model.Book.title' book in
         [txt @@ NEString.to_string title]

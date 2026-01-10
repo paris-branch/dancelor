@@ -1,7 +1,10 @@
 open Nes
 open Common
-
 open Html
+
+let switch_signal_option = function
+  | None -> S.Option.none
+  | Some signal -> S.Option.some signal
 
 let name ?(short = false) source =
   let name =
@@ -11,7 +14,7 @@ let name ?(short = false) source =
   in
   span [txt @@ NEString.to_string name]
 
-let name' ?(short = false) ?(link = true) source =
+let name' ?(short = false) ?(link = true) ?context source =
   let name =
     match short, Model.Source.short_name' source with
     | false, _ | true, None -> Model.Source.name' source
@@ -22,7 +25,7 @@ let name' ?(short = false) ?(link = true) source =
     if link then
       [
         a
-          ~a: [a_href @@ Endpoints.Page.href_source @@ Entry.id source]
+          ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_source ?context @@ Entry.id source) (switch_signal_option context)]
           name_text
       ]
     else

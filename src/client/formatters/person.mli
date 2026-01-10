@@ -6,6 +6,7 @@ val name :
 
 val name' :
   ?link: bool ->
+  ?context: Common.Endpoints.Page.context S.t ->
   Model.Person.entry ->
   [> Html_types.span] elt
 (** Variant of {!name} taking an {!Entry.t}. Because this is an entry, we can

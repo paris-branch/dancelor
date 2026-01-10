@@ -1,221 +1,119 @@
 open Nes
 open Common
-
 open Model
 open Html
 
-let make_source_result' ?classes ?action ?(prefix = []) ?(suffix = []) source =
-  Result_row.make
+let row ?(classes = []) ?onclick cells =
+  let open Html in
+  tr
+    ~a: (
+      List.filter_map id [
+        Some (a_class classes);
+        Option.map (fun f -> a_onclick (fun _ -> Lwt.async f; true)) onclick;
+      ]
+    )
+    (cells)
+
+let make_source_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) source =
+  row
     ?classes
-    ?action
+    ?onclick
     (
       prefix @
-      [Result_row.cell [Formatters.Source.name' ~link: false source];
-      Result_row.cell [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Source.date' source))];
-      Result_row.lcell (List.singleton <$> (Formatters.Person.names' ~short: true <$> Source.editors' source));
+      [td [Formatters.Source.name' ~link: (onclick = None) ?context source];
+      td [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Source.date' source))];
+      R.td (S.from' [] (List.singleton <$> (Formatters.Person.names' ~short: true <$> Source.editors' source)));
       ] @
       suffix
     )
 
-let make_source_result ?classes ?context ?prefix ?suffix source =
-  make_source_result'
+let make_person_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) person =
+  row
     ?classes
-    ~action: (
-      Result_row.link @@
-        Option.fold
-          context
-          ~none: (S.const @@ Endpoints.Page.href_source @@ Entry.id source)
-          ~some: (S.map (fun context -> Endpoints.Page.href_source ~context @@ Entry.id source))
-    )
-    ?prefix
-    ?suffix
-    source
-
-let make_person_result' ?classes ?action ?(prefix = []) ?(suffix = []) person =
-  Result_row.make
-    ?classes
-    ?action
+    ?onclick
     (
       prefix @
-      [Result_row.cell ~a: [a_colspan 3] [Formatters.Person.name' ~link: false person];
+      [td ~a: [a_colspan 3] [Formatters.Person.name' ~link: (onclick = None) ?context person];
       ] @
       suffix
     )
 
-let make_person_result ?classes ?context ?prefix ?suffix person =
-  make_person_result'
+let make_dance_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) dance =
+  row
     ?classes
-    ~action: (
-      Result_row.link @@
-        Option.fold
-          context
-          ~none: (S.const @@ Endpoints.Page.href_person @@ Entry.id person)
-          ~some: (S.map (fun context -> Endpoints.Page.href_person ~context @@ Entry.id person))
-    )
-    ?prefix
-    ?suffix
-    person
-
-let make_dance_result' ?classes ?action ?(prefix = []) ?(suffix = []) dance =
-  Result_row.make
-    ?classes
-    ?action
+    ?onclick
     (
       prefix @
-      [Result_row.cell [Formatters.Dance.name_and_disambiguation' ~name_link: false dance];
-      Result_row.cell [txt (Kind.Dance.to_string @@ Dance.kind' dance)];
-      Result_row.lcell (List.singleton <$> (Formatters.Person.names' ~short: true <$> Dance.devisers' dance));
+      [td [Formatters.Dance.name_and_disambiguation' ~name_link: (onclick = None) ?context dance];
+      td [txt (Kind.Dance.to_string @@ Dance.kind' dance)];
+      R.td (S.from' [] (List.singleton <$> (Formatters.Person.names' ~short: true <$> Dance.devisers' dance)));
       ] @
       suffix
     )
 
-let make_dance_result ?classes ?context ?prefix ?suffix dance =
-  make_dance_result'
+let make_book_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) book =
+  row
     ?classes
-    ~action: (
-      Result_row.link @@
-        Option.fold
-          context
-          ~none: (S.const @@ Endpoints.Page.href_dance @@ Entry.id dance)
-          ~some: (S.map (fun context -> Endpoints.Page.href_dance ~context @@ Entry.id dance))
-    )
-    ?prefix
-    ?suffix
-    dance
-
-let make_book_result' ?classes ?action ?(prefix = []) ?(suffix = []) book =
-  Result_row.make
-    ?classes
-    ?action
+    ?onclick
     (
       prefix @
-      [Result_row.cell [Formatters.Book.title' ~link: false book];
-      Result_row.cell [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date' book))];
-      Result_row.cell [Formatters.Book.editors' book];
+      [td [Formatters.Book.title' ~link: (onclick = None) ?context book];
+      td [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date' book))];
+      td [Formatters.Book.editors' book];
       ] @
       suffix
     )
 
-let make_book_result ?classes ?context ?prefix ?suffix book =
-  make_book_result'
+let make_set_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) set =
+  row
     ?classes
-    ~action: (
-      Result_row.link @@
-        Option.fold
-          context
-          ~none: (S.const @@ Endpoints.Page.href_book @@ Entry.id book)
-          ~some: (S.map (fun context -> Endpoints.Page.href_book ~context @@ Entry.id book))
-    )
-    ?prefix
-    ?suffix
-    book
-
-let make_set_result' ?classes ?action ?(prefix = []) ?(suffix = []) set =
-  Result_row.make
-    ?classes
-    ?action
+    ?onclick
     (
       prefix @
-      [Result_row.cell [txt @@ NEString.to_string @@ Set.name' set];
-      Result_row.cell [txt @@ Kind.Dance.to_string @@ Set.kind' set];
-      Result_row.lcell (List.singleton <$> (Formatters.Person.names' ~short: true <$> Set.conceptors' set));
+      [td [Formatters.Set.name' ~link: (onclick = None) ?context set];
+      td [txt @@ Kind.Dance.to_string @@ Set.kind' set];
+      R.td (S.from' [] (List.singleton <$> (Formatters.Person.names' ~short: true <$> Set.conceptors' set)));
       ] @
       suffix
     )
 
-let make_set_result ?classes ?context ?prefix ?suffix set =
-  make_set_result'
+let make_tune_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) tune =
+  row
     ?classes
-    ~action: (
-      Result_row.link @@
-        Option.fold
-          context
-          ~none: (S.const @@ Endpoints.Page.href_set @@ Entry.id set)
-          ~some: (S.map (fun context -> Endpoints.Page.href_set ~context @@ Entry.id set))
-    )
-    ?prefix
-    ?suffix
-    set
-
-let make_tune_result' ?classes ?action ?(prefix = []) ?(suffix = []) tune =
-  Result_row.make
-    ?classes
-    ?action
+    ?onclick
     (
       prefix @
-      [Result_row.cell [txt @@ NEString.to_string @@ Tune.one_name' tune];
-      Result_row.cell [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
-      Result_row.cell [Formatters.Tune.composers' tune];
+      [td [Formatters.Tune.name' ~link: (onclick = None) ?context tune];
+      td [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
+      td [Formatters.Tune.composers' ~links: (onclick = None) tune];
       ] @
       suffix
     )
 
-let make_tune_result ?classes ?context ?prefix ?suffix tune =
-  make_tune_result'
+let make_version_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) version =
+  row
     ?classes
-    ~action: (
-      Result_row.link @@
-        Option.fold
-          context
-          ~none: (S.const @@ Endpoints.Page.href_tune @@ Entry.id tune)
-          ~some: (S.map (fun context -> Endpoints.Page.href_tune ~context @@ Entry.id tune))
-    )
-    ?prefix
-    ?suffix
-    tune
-
-let make_version_result' ?classes ?action ?(prefix = []) ?(suffix = []) version =
-  Result_row.make
-    ?classes
-    ?action
+    ?onclick
     (
       prefix @
-      [Result_row.cell [Formatters.Version.name_disambiguation_and_sources' ~name_link: false version];
-      Result_row.cell [Formatters.Version.kind_and_structure' version];
-      Result_row.cell [Formatters.Version.composer_and_arranger' ~short: true version];
+      [td [Formatters.Version.name_disambiguation_and_sources' ~name_link: (onclick = None) ?context version];
+      td [Formatters.Version.kind_and_structure' version];
+      td [Formatters.Version.composer_and_arranger' ~short: true version];
       ] @
       suffix
     )
 
-let make_version_result ?classes ?context ?prefix ?suffix version =
-  make_version_result'
-    ?classes
-    ~action: (
-      Result_row.link @@
-        Option.fold
-          context
-          ~none: (S.const @@ Endpoints.Page.href_version @@ Entry.id version)
-          ~some: (S.map (fun context -> Endpoints.Page.href_version ~context @@ Entry.id version))
-    )
-    ?prefix
-    ?suffix
-    version
-
-let make_user_result' ?classes ?action ?(prefix = []) ?(suffix = []) user =
-  Result_row.make
-    ?classes
-    ?action
-    (
-      prefix @
-      [Result_row.cell ~a: [a_colspan 3] [txt @@ NEString.to_string @@ User.username' user];
-      ] @
-      suffix
-    )
-
-let make_user_result ?classes ?context ?prefix ?suffix user =
+let make_user_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) user =
   ignore context;
-  make_user_result'
+  row
     ?classes
-    ~action: No_action
-    (* FIXME: make a user href *)
-    (* Result_row.link @@ *)
-    (*   Option.fold *)
-    (*     context *)
-    (*     ~none: (S.const @@ Endpoints.Page.href_user @@ Entry.id user) *)
-    (*     ~some: (S.map (fun context -> Endpoints.Page.href_user ~context @@ Entry.id user)) *)
-    ?prefix
-    ?suffix
-    user
+    ?onclick
+    (
+      prefix @
+      [td ~a: [a_colspan 3] [txt @@ NEString.to_string @@ User.username' user];
+      ] @
+      suffix
+    )
 
 let any_type_to_icon any =
   Icon.Model (
@@ -233,7 +131,7 @@ let any_type_to_icon any =
 let make_result ?classes ?context any =
   let type_ = Any.type_of any in
   let prefix = [
-    Result_row.cell
+    td
       ~a: [a_class ["text-nowrap"]]
       [
         Icon.html (any_type_to_icon type_);
@@ -242,7 +140,7 @@ let make_result ?classes ?context any =
   ]
   in
   let suffix = [
-    Result_row.cell [
+    td [
       Model.Any.to_entry'
         any
         ~on_public: (fun _entry ->

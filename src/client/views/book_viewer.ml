@@ -74,25 +74,21 @@ let table_contents ~this_id contents =
         (
           List.map
             (fun (index, page) ->
-              let context = Endpoints.Page.in_book this_id index in
+              let context = S.const @@ Endpoints.Page.in_book this_id index in
               (* on non-viewable pages, index = -1 *)
               match page with
               | Book.Part title ->
                 (
-                  Result_row.(
-                    to_clickable_row @@
-                      make [
-                        cell [txt "Part"];
-                        cell ~a: [a_colspan 3] [txt @@ NEString.to_string title];
-                      ]
-                  )
+                  tr [
+                    td [txt "Part"];
+                    td ~a: [a_colspan 3] [txt @@ NEString.to_string title];
+                  ]
                 )
               | Book.Dance (dance, Dance_only) ->
                 (
-                  let href = Endpoints.Page.href_dance ~context @@ Entry.id dance in
-                  Tables.clickable_row ~href [
+                  Tables.clickable_row [
                     lwt [txt "Dance"];
-                    lwt [Formatters.Dance.name' ~link: false dance];
+                    lwt [Formatters.Dance.name' ~context dance];
                     lwt [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
                     lwt [];
                   ]
@@ -106,7 +102,7 @@ let table_contents ~this_id contents =
                       txt (if NEList.is_singleton versions_and_params then "+Tune" else "+Tunes");
                     ];
                     lwt [
-                      Formatters.Dance.name' ~link: false dance;
+                      Formatters.Dance.name' ~context dance;
                       br ();
                       small ~a: [a_class ["opacity-50"]] [
                         txt (if NEList.is_singleton versions_and_params then "Tune: " else "Tunes: ");
@@ -119,11 +115,10 @@ let table_contents ~this_id contents =
                 )
               | Book.Dance (dance, Dance_set (set, params)) ->
                 (
-                  let href = Endpoints.Page.href_set ~context @@ Entry.id set in
-                  Tables.clickable_row ~href [
+                  Tables.clickable_row [
                     lwt [txt "Dance"; br (); txt "+Set"];
                     lwt [
-                      Formatters.Dance.name' ~link: false dance;
+                      Formatters.Dance.name' ~context dance;
                       br ();
                       small ~a: [a_class ["opacity-50"]] [txt "Set: "; Formatters.Set.name' ~link: true ~params set];
                       br ();
@@ -156,11 +151,10 @@ let table_contents ~this_id contents =
                 )
               | Book.Set (set, params) ->
                 (
-                  let href = Endpoints.Page.href_set ~context @@ Entry.id set in
-                  Tables.clickable_row ~href [
+                  Tables.clickable_row [
                     lwt [txt "Set"];
                     lwt [
-                      Formatters.Set.name' ~link: false ~params set;
+                      Formatters.Set.name' ~context ~params set;
                       br ();
                       small ~a: [a_class ["opacity-50"]] [Formatters.Set.tunes' ~link: true set];
                     ];

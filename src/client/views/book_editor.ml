@@ -33,10 +33,10 @@ let versions_and_parameters ?(label = "Versions") () =
         (
           Selector.prepare
             ~make_descr: (Lwt.map NEString.to_string % Model.Version.one_name')
-            ~make_result: Any_result.make_version_result'
+            ~make_result: (Any_result.make_version_result ?context: None)
             ~make_more_results: (fun version ->
               flip S.map show_preview @@ function
-                | true -> [Result_row.make [Result_row.cell ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
+                | true -> [tr [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
                 | false -> []
             )
             ~label
@@ -57,10 +57,10 @@ let set_and_parameters ?(label = "Set") () =
     (
       Selector.prepare
         ~make_descr: (lwt % NEString.to_string % Model.Set.name')
-        ~make_result: Any_result.make_set_result'
+        ~make_result: (Any_result.make_set_result ?context: None)
         ~make_more_results: (fun set ->
           flip S.map show_preview @@ function
-            | true -> [Result_row.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])]
+            | true -> [tr [td ~a: [a_colspan 9999] [Formatters.Set.tunes' set]]]
             | false -> []
         )
         ~label
@@ -82,7 +82,7 @@ let dance_and_dance_page =
     (
       Selector.prepare
         ~make_descr: (lwt % NEString.to_string % Model.Dance.one_name')
-        ~make_result: Any_result.make_dance_result'
+        ~make_result: (Any_result.make_dance_result ?context: None)
         ~label: "Dance"
         ~model_name: "dance"
         ~create_dialog_content: Dance_editor.create
@@ -134,7 +134,7 @@ let editor user =
         )
         ~unserialise: Model.Person.get
         ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: Any_result.make_person_result'
+        ~make_result: (Any_result.make_person_result ?context: None)
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create
         ()
@@ -212,7 +212,7 @@ let editor user =
     (
       Selector.prepare
         ~make_descr: (lwt % NEString.to_string % Model.Source.name')
-        ~make_result: Any_result.make_source_result'
+        ~make_result: (Any_result.make_source_result ?context: None)
         ~label: "Source"
         ~model_name: "source"
         ~create_dialog_content: Source_editor.create
@@ -244,7 +244,7 @@ let editor user =
         ~label: "Owner"
         ~model_name: "user"
         ~make_descr: (lwt % NEString.to_string % Model.User.username')
-        ~make_result: Any_result.make_user_result'
+        ~make_result: (Any_result.make_user_result ?context: None)
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.User.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
@@ -279,7 +279,7 @@ let editor user =
                 ~label: "Viewer"
                 ~model_name: "user"
                 ~make_descr: (lwt % NEString.to_string % Model.User.username')
-                ~make_result: Any_result.make_user_result'
+                ~make_result: (Any_result.make_user_result ?context: None)
                 ~search: (fun slice input ->
                   let%rlwt filter = lwt (Filter.User.from_string input) in
                   ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter

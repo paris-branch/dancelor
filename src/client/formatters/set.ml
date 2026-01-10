@@ -1,7 +1,10 @@
 open Nes
 open Common
-
 open Html
+
+let switch_signal_option = function
+  | None -> S.Option.none
+  | Some signal -> S.Option.some signal
 
 let works set =
   with_span_placeholder @@
@@ -25,19 +28,21 @@ let name_gen ?params set_gen =
   span (
     [
     match set_gen with
-    | Right (set, true) ->
+    | Right (set, true, context) ->
       a
-        ~a: [a_href @@ Endpoints.Page.href_set @@ Entry.id set]
+        ~a: [
+          R.a_href @@ S.map (fun context -> Endpoints.Page.href_set ?context @@ Entry.id set) (switch_signal_option context)
+        ]
         [txt @@ NEString.to_string @@ Model.Set.name' set]
-    | Right (set, _) -> txt (NEString.to_string @@ Model.Set.name' set)
+    | Right (set, _, _) -> txt (NEString.to_string @@ Model.Set.name' set)
     | Left set -> txt (NEString.to_string @@ Model.Set.name set)] @
       display_name ?params ()
   )
 
 let name = name_gen % Either.left
 
-let name' ?(link = true) ?params set =
-  name_gen ?params @@ Right (set, link)
+let name' ?(link = true) ?params ?context set =
+  name_gen ?params @@ Right (set, link, context)
 
 let tunes ?link set =
   with_span_placeholder @@

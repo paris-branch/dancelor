@@ -160,7 +160,7 @@ module Search = struct
                             match state with
                             | Results results ->
                               let context = S.map Common.Endpoints.Page.in_search @@ Search_bar.text t.search_bar in
-                              List.map (Result_row.to_clickable_row % make_result ~context) results
+                              List.map (make_result ~context) results
                             | _ -> []
                         )
                     ];

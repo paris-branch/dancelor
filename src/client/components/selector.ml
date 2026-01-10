@@ -11,15 +11,15 @@ let prepare_gen (type model)(type access)(type model_validated)
   ~make_descr
   ~(make_result :
     ?classes: string list ->
-    ?action: Result_row.action ->
-    ?prefix: Result_row.cell list ->
-    ?suffix: Result_row.cell list ->
+    ?onclick: (unit -> unit Lwt.t) ->
+    ?prefix: Html_types.td Html.elt list ->
+    ?suffix: Html_types.td Html.elt list ->
     (model, access) Entry.t ->
-    Result_row.t
+    Html_types.tr Html.elt
   )
   ?(make_more_results =
   (const (S.const []): (model, access) Entry.t ->
-    Result_row.t list S.t))
+    Html_types.tr Html.elt list S.t))
   ~model_name
   ?(create_dialog_content : (((model, access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) option)
   ~(validate : (model, access) Entry.t option -> (model_validated, string) Result.t)
@@ -99,7 +99,7 @@ let prepare_gen (type model)(type access)(type model_validated)
           ~dialog_title: (lwt label)
           ~make_result: (fun ~context: _ result ->
             make_result
-              ~action: (Result_row.callback @@ fun () -> lwt @@ quick_search_return (Some result))
+              ~onclick: (fun () -> lwt @@ quick_search_return (Some result))
               result
           )
           ~dialog_buttons: (
@@ -156,12 +156,12 @@ let prepare_gen (type model)(type access)(type model_validated)
               div ~a: [a_class ["rounded-2"; "border"; "w-100"; "px-2"; "py-1"]] [
                 tablex
                   ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"]]
-                  [tbody (List.map Result_row.to_clickable_row [make_result model])];
+                  [tbody [make_result model]];
               ];
               div ~a: [a_class ["row"; "m-0"; "overflow-hidden"]] [
                 tablex
                   ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"; "col"]]
-                  [R.tbody (S.map (List.map Result_row.to_clickable_row) (make_more_results model))];
+                  [R.tbody (make_more_results model)];
               ]
             ]
       )
