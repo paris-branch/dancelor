@@ -78,7 +78,7 @@ let nav_item_explore =
     ]
 
 let nav_item_create =
-  if%lwt Permission.can_create () then
+  if%lwt Option.is_some <$> Environment.user then
     lwt [
       li
         ~a: [a_class ["nav-item"; "dropdown"]]
