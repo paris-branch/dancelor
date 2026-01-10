@@ -36,7 +36,7 @@
           monadise
           monadise-lwt
           ppx_blob
-          ppx_deriving_biniou
+          ppx_deriving_qcheck
           ppx_deriving_yojson
           ppx_import
           ppx_inline_test
@@ -46,16 +46,6 @@
           prometheus
           slug
           yaml
-        ];
-
-        ## TODO: The tests run `qcheck`; it would be good if we had a way to run
-        ## them with the additional environment variable QCHECK_LONG=true.
-        doCheck = true;
-        checkInputs = with pkgs.ocamlPackages; [
-          alcotest
-          ppx_deriving_qcheck
-          qcheck
-          qcheck-alcotest
         ];
       };
 

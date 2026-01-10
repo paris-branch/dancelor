@@ -15,7 +15,7 @@
       ## variant of TiMidity++), which this derivation provides. They would be
       ## acquired dynamically by Nix, but we would rather avoid that extra
       ## computation time, so we add them here.
-      self.packages.${pkgs.system}.rendererRuntime
+      self.packages.${pkgs.stdenv.hostPlatform.system}.rendererRuntime
     ];
 
   perSystem =

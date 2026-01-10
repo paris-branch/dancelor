@@ -46,6 +46,13 @@
         buildInputs =
           ## Runtime inputs
           (self.makeRuntimeInputs pkgs)
+          ## Test inputs
+          ++ (with pkgs.ocamlPackages; [
+            alcotest
+            ppx_deriving_qcheck
+            qcheck
+            qcheck-alcotest
+          ])
           ## Development environment
           ++ [ (gitHookBinFor myTopiaryConfig) ]
           ++ (with pkgs.ocamlPackages; [
