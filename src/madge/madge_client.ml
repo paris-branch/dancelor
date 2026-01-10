@@ -33,7 +33,11 @@ let call_retry ?(retry = true) (request : Request.t) : (Response.t, error) resul
   in
   call_retry (if retry then 1 else max_int)
 
+(** Maximal time a request waits before its batch goes. *)
 let batch_delay = 0.01 (* 10 ms *)
+
+(** Maximal batch size; when reached, we send it. *)
+let batch_size = 100
 
 type batch_state =
   | Gathering_batch of (Request.t * (Response.t, error) result Lwt.u) list
@@ -59,16 +63,12 @@ type request_list = Request.t list
 type response_list = Response.t list
 [@@deriving yojson]
 
-let process_batch () =
-  match !batch_state with
-  | Idle -> assert false
-  | Gathering_batch [(request, resolver)] ->
-    batch_state := Idle;
+let process_batch = function
+  | [(request, resolver)] ->
     let%lwt response = call_retry request in
     Lwt.wakeup_later resolver response;
     lwt_unit
-  | Gathering_batch batch ->
-    batch_state := Idle;
+  | batch ->
     let (requests, resolvers) = List.split (List.rev batch) in
     with_request
       (batch_route ())
@@ -99,9 +99,20 @@ let call_batch (request : Request.t) : (Response.t, error) result Lwt.t =
   batch_state :=
     (
       match !batch_state with
-      | Gathering_batch batch -> Gathering_batch (batch_elem :: batch)
+      | Gathering_batch batch when List.length batch < batch_size ->
+        Gathering_batch (batch_elem :: batch)
+      | Gathering_batch batch ->
+        Lwt.async (fun () -> process_batch batch);
+        Gathering_batch [batch_elem]
       | Idle ->
-        Lwt.async (fun () -> Js_of_ocaml_lwt.Lwt_js.sleep batch_delay;%lwt process_batch ());
+        Lwt.async (fun () ->
+          Js_of_ocaml_lwt.Lwt_js.sleep batch_delay;%lwt
+          match !batch_state with
+          | Idle -> lwt_unit
+          | Gathering_batch batch ->
+            batch_state := Idle;
+            process_batch batch
+        );
         Gathering_batch [batch_elem]
     );
   promise
