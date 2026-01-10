@@ -17,14 +17,14 @@ class TestContextLinks():
     self.driver.get("http://localhost:8080/explore")
     self.driver.find_element(By.XPATH, "//div[@class = 'container-md']//input").send_keys("tam")
     time.sleep(1)
-    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Tam Lin Thrice')]").click()
+    self.driver.find_element(By.XPATH, "//a[contains(text(), 'Tam Lin Thrice')]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/set/ului-yd9x-o35w?context=%5B%22In_search%22%2C%22tam%22%5D"))
 
   def test_fromExplorerURI(self):
     ## From the explorer loaded with query “tam”, click on the set “Tam Lin
     ## Thrice” and check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/explore?q=%22tam%22")
-    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Tam Lin Thrice')]").click()
+    self.driver.find_element(By.XPATH, "//a[contains(text(), 'Tam Lin Thrice')]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/set/ului-yd9x-o35w?context=%5B%22In_search%22%2C%22tam%22%5D"))
 
   def test_fromSet(self):
@@ -39,7 +39,7 @@ class TestContextLinks():
     ## check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/book/0fi3-1iot-6tbq")
     time.sleep(1) # give a second to avoid clicking on placeholder
-    self.driver.find_element(By.XPATH, "//tr[2]/td").click()
+    self.driver.find_element(By.XPATH, "//tr[2]/td//a").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/set/ului-yd9x-o35w?context=%5B%22In_book%22%2C%220fi3-1iot-6tbq%22%2C1%5D"))
 
   def test_sideArrowGoesToNeighbour(self):
