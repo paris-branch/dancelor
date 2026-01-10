@@ -41,25 +41,25 @@ let assert_is_connected env =
     are public, so anyone, including anonymous users. *)
 let can_get_public _env (_ : 'value Entry.public) = true
 
-(** Whether the given user can create public elements. Those are only database
-    maintainers and administrators. This is exactly the same as
-    {!can_update_public}. *)
-let can_create_public env =
+(** Whether the given user can create public elements. This is any connected
+    user. *)
+let can_create_public = is_connected
+
+(** Whether the given user can update public elements. Those are only database
+    maintainers and administrators. We require a witness entry, which is not
+    used, but is meant to force us to check that the entry exists, and that it
+    is indeed public (at type-checking time). *)
+(* FIXME: grace period during which anyone can edit *)
+let can_update_public env (_ : 'value Entry.public) =
   fold_user
     env
     ~none: (const false)
     ~some: (fun user -> Model.User.is_maintainer' user || Model.User.is_administrator' user)
 
-(** Whether the given user can update public elements. Those are only database
-    maintainers and administrators. This is the same as {!can_create_public},
-    except that we require a witness entry. This entry is not used, but is meant
-    to force us to check that the entry exists, and that it is indeed public (at
-    type-checking time). *)
-let can_update_public env (_ : 'value Entry.public) = can_create_public env
-
 (** Whether the given user can delete public elements. Those are only database
     maintainers and administrators. This is the same as {!can_update_public}. *)
-let can_delete_public env (_ : 'value Entry.public) = can_create_public env
+(* FIXME: grace period during which anyone can edit *)
+let can_delete_public = can_update_public
 
 (** {3 Assertions} *)
 
