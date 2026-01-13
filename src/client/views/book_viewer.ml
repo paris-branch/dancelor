@@ -106,7 +106,7 @@ let table_contents ~this_id contents =
                       br ();
                       small ~a: [a_class ["opacity-50"]] [
                         txt (if NEList.is_singleton versions_and_params then "Tune: " else "Tunes: ");
-                        Formatters.Version.names_disambiguations_and_sources' ~name_links: true versions_and_params
+                        Formatters.Version.names_disambiguations_and_sources' versions_and_params
                       ];
                     ];
                     lwt [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
@@ -132,7 +132,7 @@ let table_contents ~this_id contents =
                 (
                   Tables.clickable_row [
                     lwt [txt @@ if NEList.is_singleton versions_and_params then "Tune" else "Tunes"];
-                    lwt [Formatters.Version.names_disambiguations_and_sources' ~name_links: true versions_and_params];
+                    lwt [Formatters.Version.names_disambiguations_and_sources' versions_and_params];
                     (
                       let%lwt all_kinds =
                         List.sort_uniq Kind.Base.compare %
