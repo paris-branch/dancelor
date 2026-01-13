@@ -66,9 +66,9 @@ let nav_item_explore =
                 li [Button.make_a ~label ~icon: (Model icon) ~href ~dropdown: true ()]
               )
               [
-                (Icon.Source, "source", "Sources");
                 (Icon.Person, "person", "Persons");
                 (Icon.Dance, "dance", "Dances");
+                (Icon.Source, "source", "Sources");
                 (Icon.Tune, "tune", "Tunes");
                 (Icon.Version, "version", "Versions");
                 (Icon.Set, "set", "Sets");
@@ -97,9 +97,9 @@ let nav_item_create =
                   li [Button.make_a ~label ~icon: (Model icon) ~href: (S.const href) ~dropdown: true ()]
                 )
                 [
-                  (Icon.Source, href Source_add, "Source");
                   (Icon.Person, href Person_add, "Person");
                   (Icon.Dance, href Dance_add, "Dance");
+                  (Icon.Source, href Source_add, "Source");
                   (Icon.Tune, href Tune_add, "Tune");
                   (Icon.Version, href Version_add, "Version");
                   (Icon.Set, href Set_add, "Set");

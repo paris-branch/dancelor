@@ -5,13 +5,13 @@ module type S = sig
   open Core
 
   type t = Any.t =
-    | Source of Source.entry
     | Person of Person.entry
     | Dance of Dance.entry
-    | Book of Book.entry
-    | Set of Set.entry
+    | Source of Source.entry
     | Tune of Tune.entry
     | Version of Version.entry
+    | Set of Set.entry
+    | Book of Book.entry
     | User of User.entry
   (** Type of an “any” element, that is simply a sum type of all the other
       models. *)
@@ -54,13 +54,13 @@ module type S = sig
 
   module Type : sig
     type t = Core.Any.Type.t =
-      | Source
       | Person
       | Dance
-      | Book
-      | Set
+      | Source
       | Tune
       | Version
+      | Set
+      | Book
       | User
     (** Type to represent the type of an “any”. There is basically one type per
         model, eg. [Version] or [Dance]. Must not be mistaken for a kind, which,

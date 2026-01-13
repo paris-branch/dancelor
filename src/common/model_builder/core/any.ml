@@ -1,13 +1,13 @@
 open Nes
 
 type t =
-  | Source of Source.entry
   | Person of Person.entry
   | Dance of Dance.entry
-  | Book of Book.entry
-  | Set of Set.entry
+  | Source of Source.entry
   | Tune of Tune.entry
   | Version of Version.entry
+  | Set of Set.entry
+  | Book of Book.entry
   | User of User.entry
 [@@deriving show {with_path = false}, yojson, variants]
 
@@ -16,13 +16,13 @@ type t =
 
 module Type = struct
   type t =
-    | Source
     | Person
     | Dance
-    | Book
-    | Set
+    | Source
     | Tune
     | Version
+    | Set
+    | Book
     | User
   [@@deriving eq, show {with_path = false}, yojson]
 
@@ -42,7 +42,7 @@ module Type = struct
     else
       Int.compare (to_int t1) (to_int t2)
 
-  let all = [Source; Person; Dance; Book; Set; Tune; Version; User]
+  let all = [Person; Dance; Source; Tune; Version; Set; Book; User]
 
   module Set = struct
     include Stdlib.Set.Make(struct
@@ -57,26 +57,26 @@ module Type = struct
   let equal = (=)
 
   let to_string = function
-    | Source -> "Source"
     | Person -> "Person"
     | Dance -> "Dance"
-    | Book -> "Book"
-    | Set -> "Set"
+    | Source -> "Source"
     | Tune -> "Tune"
     | Version -> "Version"
+    | Set -> "Set"
+    | Book -> "Book"
     | User -> "User"
 
   exception Not_a_type of string
 
   let of_string str =
     match String.lowercase_ascii str with
-    | "source" -> Source
     | "person" -> Person
     | "dance" -> Dance
-    | "book" -> Book
-    | "set" -> Set
+    | "source" -> Source
     | "tune" -> Tune
     | "version" -> Version
+    | "set" -> Set
+    | "book" -> Book
     | "user" -> User
     | _ -> raise (Not_a_type str)
 
@@ -88,31 +88,31 @@ module Type = struct
 end
 
 let type_of = function
-  | Source _ -> Type.Source
   | Person _ -> Type.Person
   | Dance _ -> Type.Dance
-  | Book _ -> Type.Book
-  | Set _ -> Type.Set
+  | Source _ -> Type.Source
   | Tune _ -> Type.Tune
   | Version _ -> Type.Version
+  | Set _ -> Type.Set
+  | Book _ -> Type.Book
   | User _ -> Type.User
 
 let to_entry = function
-  | Source entry -> Entry.unsafe_erase_value_and_access entry
   | Person entry -> Entry.unsafe_erase_value_and_access entry
   | Dance entry -> Entry.unsafe_erase_value_and_access entry
-  | Book entry -> Entry.unsafe_erase_value_and_access entry
-  | Set entry -> Entry.unsafe_erase_value_and_access entry
+  | Source entry -> Entry.unsafe_erase_value_and_access entry
   | Tune entry -> Entry.unsafe_erase_value_and_access entry
   | Version entry -> Entry.unsafe_erase_value_and_access entry
+  | Set entry -> Entry.unsafe_erase_value_and_access entry
+  | Book entry -> Entry.unsafe_erase_value_and_access entry
   | User entry -> Entry.unsafe_erase_value_and_access entry
 
 let to_entry' ~on_public ~on_private = function
-  | Source entry -> on_public (Entry.unsafe_erase_value entry)
   | Person entry -> on_public (Entry.unsafe_erase_value entry)
   | Dance entry -> on_public (Entry.unsafe_erase_value entry)
+  | Source entry -> on_public (Entry.unsafe_erase_value entry)
   | Tune entry -> on_public (Entry.unsafe_erase_value entry)
   | Version entry -> on_public (Entry.unsafe_erase_value entry)
-  | User entry -> on_public (Entry.unsafe_erase_value entry)
-  | Book entry -> on_private (Entry.unsafe_erase_value entry)
   | Set entry -> on_private (Entry.unsafe_erase_value entry)
+  | Book entry -> on_private (Entry.unsafe_erase_value entry)
+  | User entry -> on_public (Entry.unsafe_erase_value entry)
