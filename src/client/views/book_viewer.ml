@@ -78,92 +78,36 @@ let table_contents ~this_id contents =
               (* on non-viewable pages, index = -1 *)
               match page with
               | Book.Part title ->
-                (
-                  tr [
-                    td [txt "Part"];
-                    td ~a: [a_colspan 3] [txt @@ NEString.to_string title];
-                  ]
-                )
+                Any_result.make_part_result
+                  ~prefix: [td [txt "Part"]]
+                  title
               | Book.Dance (dance, Dance_only) ->
-                (
-                  tr [
-                    td [txt "Dance"];
-                    td [Formatters.Dance.name' ~context dance];
-                    td [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
-                    td [];
-                  ]
-                )
+                Any_result.make_dance_result
+                  ~prefix: [td [txt "Dance"]]
+                  ~context
+                  dance
               | Book.Dance (dance, Dance_versions versions_and_params) ->
-                (
-                  tr [
-                    td [
-                      txt "Dance";
-                      br ();
-                      txt (if NEList.is_singleton versions_and_params then "+Tune" else "+Tunes");
-                    ];
-                    td [
-                      Formatters.Dance.name' ~context dance;
-                      br ();
-                      small ~a: [a_class ["opacity-50"]] [
-                        txt (if NEList.is_singleton versions_and_params then "Tune: " else "Tunes: ");
-                        Formatters.Version.names_disambiguations_and_sources' versions_and_params
-                      ];
-                    ];
-                    td [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
-                    td [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]
-                  ]
-                )
+                Any_result.make_dance_plus_versions_result
+                  ~prefix: [td [txt "Dance"; br (); txt (if NEList.is_singleton versions_and_params then "+Tune" else "+Tunes")]]
+                  ~context
+                  dance
+                  versions_and_params
               | Book.Dance (dance, Dance_set (set, params)) ->
-                (
-                  tr [
-                    td [txt "Dance"; br (); txt "+Set"];
-                    td [
-                      Formatters.Dance.name' ~context dance;
-                      br ();
-                      small ~a: [a_class ["opacity-50"]] [txt "Set: "; Formatters.Set.name' ~link: true ~params set];
-                      br ();
-                      small ~a: [a_class ["opacity-50"]] [Formatters.Set.tunes' ~link: true set];
-                    ];
-                    td [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
-                    td [Formatters.Set.conceptors' ~short: true ~params set];
-                  ]
-                )
+                Any_result.make_dance_plus_set_result
+                  ~prefix: [td [txt "Dance"; br (); txt "+Set"]]
+                  dance
+                  set
+                  ~set_params: params
               | Book.Versions versions_and_params ->
-                (
-                  tr [
-                    td [txt @@ if NEList.is_singleton versions_and_params then "Tune" else "Tunes"];
-                    td [Formatters.Version.names_disambiguations_and_sources' versions_and_params];
-                    (
-                      L.td (
-                        let%lwt all_kinds =
-                          List.sort_uniq Kind.Base.compare %
-                            NEList.to_list
-                          <$> NEList.map_lwt_p (Version.kind' % fst) versions_and_params
-                        in
-                        lwt [
-                          txt @@
-                            match all_kinds with
-                            | [kind] -> Kind.Base.to_string kind ^ (if NEList.is_singleton versions_and_params then "" else "s")
-                            | _ -> "Medley"
-                        ]
-                      )
-                    );
-                    td [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]
-                  ]
-                )
+                Any_result.make_versions_result
+                  ~prefix: [td [txt @@ if NEList.is_singleton versions_and_params then "Tune" else "Tunes"]]
+                  versions_and_params
               | Book.Set (set, params) ->
-                (
-                  tr [
-                    td [txt "Set"];
-                    td [
-                      Formatters.Set.name' ~context ~params set;
-                      br ();
-                      small ~a: [a_class ["opacity-50"]] [Formatters.Set.tunes' ~link: true set];
-                    ];
-                    td [txt @@ Kind.Dance.to_string @@ Set.kind' set];
-                    td [Formatters.Set.conceptors' ~short: true ~params set];
-                  ]
-                )
+                Any_result.make_set_result
+                  ~prefix: [td [txt "Set"]]
+                  ~context
+                  ~params
+                  set
             )
             contents
         )
