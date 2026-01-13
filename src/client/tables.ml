@@ -2,9 +2,6 @@ open Nes
 open Html
 open Utils
 
-let clickable_row ?onclick cells =
-  Any_result.row ?onclick (List.map (fun content -> R.td (S.from' [] content)) cells)
-
 let map_table ~header f list =
   div
     ~a: [a_class ["table-responsive"]]

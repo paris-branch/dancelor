@@ -86,22 +86,22 @@ let table_contents ~this_id contents =
                 )
               | Book.Dance (dance, Dance_only) ->
                 (
-                  Tables.clickable_row [
-                    lwt [txt "Dance"];
-                    lwt [Formatters.Dance.name' ~context dance];
-                    lwt [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
-                    lwt [];
+                  tr [
+                    td [txt "Dance"];
+                    td [Formatters.Dance.name' ~context dance];
+                    td [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
+                    td [];
                   ]
                 )
               | Book.Dance (dance, Dance_versions versions_and_params) ->
                 (
-                  Tables.clickable_row [
-                    lwt [
+                  tr [
+                    td [
                       txt "Dance";
                       br ();
                       txt (if NEList.is_singleton versions_and_params then "+Tune" else "+Tunes");
                     ];
-                    lwt [
+                    td [
                       Formatters.Dance.name' ~context dance;
                       br ();
                       small ~a: [a_class ["opacity-50"]] [
@@ -109,57 +109,59 @@ let table_contents ~this_id contents =
                         Formatters.Version.names_disambiguations_and_sources' versions_and_params
                       ];
                     ];
-                    lwt [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
-                    lwt [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]
+                    td [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
+                    td [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]
                   ]
                 )
               | Book.Dance (dance, Dance_set (set, params)) ->
                 (
-                  Tables.clickable_row [
-                    lwt [txt "Dance"; br (); txt "+Set"];
-                    lwt [
+                  tr [
+                    td [txt "Dance"; br (); txt "+Set"];
+                    td [
                       Formatters.Dance.name' ~context dance;
                       br ();
                       small ~a: [a_class ["opacity-50"]] [txt "Set: "; Formatters.Set.name' ~link: true ~params set];
                       br ();
                       small ~a: [a_class ["opacity-50"]] [Formatters.Set.tunes' ~link: true set];
                     ];
-                    lwt [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
-                    lwt [Formatters.Set.conceptors' ~short: true ~params set];
+                    td [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
+                    td [Formatters.Set.conceptors' ~short: true ~params set];
                   ]
                 )
               | Book.Versions versions_and_params ->
                 (
-                  Tables.clickable_row [
-                    lwt [txt @@ if NEList.is_singleton versions_and_params then "Tune" else "Tunes"];
-                    lwt [Formatters.Version.names_disambiguations_and_sources' versions_and_params];
+                  tr [
+                    td [txt @@ if NEList.is_singleton versions_and_params then "Tune" else "Tunes"];
+                    td [Formatters.Version.names_disambiguations_and_sources' versions_and_params];
                     (
-                      let%lwt all_kinds =
-                        List.sort_uniq Kind.Base.compare %
-                          NEList.to_list
-                        <$> NEList.map_lwt_p (Version.kind' % fst) versions_and_params
-                      in
-                      lwt [
-                        txt @@
-                          match all_kinds with
-                          | [kind] -> Kind.Base.to_string kind ^ (if NEList.is_singleton versions_and_params then "" else "s")
-                          | _ -> "Medley"
-                      ]
+                      L.td (
+                        let%lwt all_kinds =
+                          List.sort_uniq Kind.Base.compare %
+                            NEList.to_list
+                          <$> NEList.map_lwt_p (Version.kind' % fst) versions_and_params
+                        in
+                        lwt [
+                          txt @@
+                            match all_kinds with
+                            | [kind] -> Kind.Base.to_string kind ^ (if NEList.is_singleton versions_and_params then "" else "s")
+                            | _ -> "Medley"
+                        ]
+                      )
                     );
-                    lwt [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]
+                    td [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]
                   ]
                 )
               | Book.Set (set, params) ->
                 (
-                  Tables.clickable_row [
-                    lwt [txt "Set"];
-                    lwt [
+                  tr [
+                    td [txt "Set"];
+                    td [
                       Formatters.Set.name' ~context ~params set;
                       br ();
                       small ~a: [a_class ["opacity-50"]] [Formatters.Set.tunes' ~link: true set];
                     ];
-                    lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set];
-                    lwt [Formatters.Set.conceptors' ~short: true ~params set];
+                    td [txt @@ Kind.Dance.to_string @@ Set.kind' set];
+                    td [Formatters.Set.conceptors' ~short: true ~params set];
                   ]
                 )
             )
