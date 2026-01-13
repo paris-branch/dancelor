@@ -31,7 +31,6 @@ include Search.Build(struct
 
   let optimise_filter = Filter.Dance.optimise
   let filter_is_empty = (=) Formula.False
-  let filter_is_full = (=) Formula.True
   let filter_accepts = Filter.Dance.accepts
   let score_true = Formula.interpret_true
 
