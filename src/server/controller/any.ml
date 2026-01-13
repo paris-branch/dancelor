@@ -52,9 +52,9 @@ let cache = Cache.create ~lifetime: 600 ()
 let search' env filter =
   Cache.use ~cache ~key: (env, filter) @@ fun () ->
   let (book_f, dance_f, person_f, set_f, source_f, tune_f, version_f) = Filter.Any.specialise filter in
-  let%lwt (count_sources, sources) = Source.search' env source_f in
   let%lwt (count_persons, persons) = Person.search' env person_f in
   let%lwt (count_dances, dances) = Dance.search' env dance_f in
+  let%lwt (count_sources, sources) = Source.search' env source_f in
   let%lwt (count_books, books) = Book.search' env book_f in
   let%lwt (count_sets, sets) = Set.search' env set_f in
   let%lwt (count_tunes, tunes) = Tune.search' env tune_f in
