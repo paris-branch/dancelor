@@ -16,7 +16,7 @@ let disambiguation ?(parentheses = true) version =
 let disambiguation' ?parentheses version =
   disambiguation ?parentheses (Entry.value version)
 
-let disambiguation_and_sources_internal ?(parentheses = true) ?source_links version =
+let disambiguation_and_sources_internal ?(parentheses = true) ?link version =
   let sources_block =
     match%lwt Model.Version.sources_grouped version with
     | [] -> lwt_nil
@@ -33,7 +33,7 @@ let disambiguation_and_sources_internal ?(parentheses = true) ?source_links vers
               List.map
                 (fun source_group ->
                   [
-                    Source.name' ~short: true ?link: source_links (List.hd source_group).Model.Version.source;
+                    Source.name' ~short: true ?link (List.hd source_group).Model.Version.source;
                     (
                       span @@
                       List.interspersei
@@ -57,11 +57,11 @@ let disambiguation_and_sources_internal ?(parentheses = true) ?source_links vers
   in
     [with_span_placeholder sources_block; disambiguation ~parentheses version]
 
-let disambiguation_and_sources ?parentheses ?source_links version =
-  span (disambiguation_and_sources_internal ?parentheses ?source_links version)
+let disambiguation_and_sources ?parentheses ?link version =
+  span (disambiguation_and_sources_internal ?parentheses ?link version)
 
-let disambiguation_and_sources' ?parentheses ?source_links version =
-  disambiguation_and_sources ?parentheses ?source_links @@ Entry.value version
+let disambiguation_and_sources' ?parentheses ?link version =
+  disambiguation_and_sources ?parentheses ?link @@ Entry.value version
 
 let name_gen version_gen =
   with_span_placeholder @@
@@ -117,18 +117,18 @@ let name_disambiguation_and_sources_gen ?(params = Model.Version_parameters.none
     display_name_block @ structure_block @ transposition_block
   )
 
-let name_disambiguation_and_sources' ?(name_link = true) ?context ?params version =
-  name_disambiguation_and_sources_gen ?params @@ Right (version, name_link, context)
+let name_disambiguation_and_sources' ?(link = true) ?context ?params version =
+  name_disambiguation_and_sources_gen ?params @@ Right (version, link, context)
 
-let composer_and_arranger ?(short = false) ?arranger_links ?(params = Model.Version_parameters.none) version =
+let composer_and_arranger ?(short = false) ?link ?(params = Model.Version_parameters.none) version =
   with_span_placeholder @@
-    let%lwt composer_block = Tune.composers' ~short <$> Model.Version.tune version in
+    let%lwt composer_block = Tune.composers' ?links: link ~short <$> Model.Version.tune version in
     let%lwt arranger_block =
       match%lwt Model.Version.arrangers version with
       | [] -> lwt_nil
       | arrangers ->
         let arr = if short then "arr." else "arranged by" in
-        let arranger_block = Person.names' ~short ?links: arranger_links arrangers in
+        let arranger_block = Person.names' ~short ?links: link arrangers in
         lwt
           [
             span ~a: [a_class ["opacity-50"]] [txt (spf ", %s " arr); arranger_block]
@@ -141,8 +141,8 @@ let composer_and_arranger ?(short = false) ?arranger_links ?(params = Model.Vers
     in
     lwt ([composer_block] @ arranger_block @ display_composer_block)
 
-let composer_and_arranger' ?short ?arranger_links ?params version =
-  composer_and_arranger ?short ?arranger_links ?params (Entry.value version)
+let composer_and_arranger' ?short ?link ?params version =
+  composer_and_arranger ?short ?link ?params (Entry.value version)
 
 let tune_description version =
   with_span_placeholder
@@ -172,8 +172,10 @@ let several f versions =
   |> span
 
 let names versions = several name @@ NEList.to_list versions
-let names' ?links versions = several (name' ?link: links) @@ NEList.to_list versions
+let names' ?link versions = several (name' ?link) @@ NEList.to_list versions
 
-let composers_and_arrangers' ?short ?arranger_links versions = several (fun (version, params) -> composer_and_arranger' ?short ?arranger_links ~params version) @@ NEList.to_list versions
+let composers_and_arrangers' ?short ?link versions =
+  several (fun (version, params) -> composer_and_arranger' ?short ?link ~params version) @@ NEList.to_list versions
 
-let names_disambiguations_and_sources' ?name_links versions = several (fun (version, params) -> name_disambiguation_and_sources' ?name_link: name_links ~params version) @@ NEList.to_list versions
+let names_disambiguations_and_sources' ?link versions =
+  several (fun (version, params) -> name_disambiguation_and_sources' ?link ~params version) @@ NEList.to_list versions

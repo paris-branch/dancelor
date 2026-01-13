@@ -96,9 +96,9 @@ let make_version_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = [])
     ?onclick
     (
       prefix @
-      [L.td (Lwt.pause ();%lwt lwt [Formatters.Version.name_disambiguation_and_sources' ~name_link: (onclick = None) ?context version]);
+      [L.td (Lwt.pause ();%lwt lwt [Formatters.Version.name_disambiguation_and_sources' ~link: (onclick = None) ?context version]);
       L.td (Lwt.pause ();%lwt lwt [Formatters.Version.kind_and_structure' version]);
-      L.td (Lwt.pause ();%lwt lwt [Formatters.Version.composer_and_arranger' ~short: true version]);
+      L.td (Lwt.pause ();%lwt lwt [Formatters.Version.composer_and_arranger' ~link: (onclick = None) ~short: true version]);
       ] @
       suffix
     )
