@@ -9,6 +9,7 @@ module Button = Button
 module Toast = Toast
 module Action = Action
 module Documentation = Documentation
+module Tables = Tables
 
 let write_to_clipboard = Clipboard.write_to_clipboard
 

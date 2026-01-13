@@ -1,6 +1,5 @@
 open Nes
 open Html
-open Utils
 
 let map_table ~header f list =
   div
