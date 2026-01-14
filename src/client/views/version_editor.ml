@@ -323,7 +323,7 @@ let create mode =
     ~icon: (Model Version)
     editor
     ~mode
-    ~href: (fun version -> Endpoints.Page.href_version (Model_builder.Core.Version.tune' version) (Entry.id version))
+    ~href: (fun version -> Endpoints.Page.href_version (Model_builder.Core.Version.tune' version) (some @@ Entry.id version))
     ~format: (Formatters.Version.name' ~link: true)
     ~assemble
     ~submit

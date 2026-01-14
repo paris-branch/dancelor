@@ -31,3 +31,6 @@ val fold' : none: (unit -> 'a) -> some: ('b -> 'a) -> 'b option -> 'a
 
 val value' : default: (unit -> 'a) -> 'a option -> 'a
 (** Variant of {!default} where [~default] is a thunk. *)
+
+val for_ : 'a option -> ('a -> 'b) -> 'b option
+(** Flipped version of {!map}. *)

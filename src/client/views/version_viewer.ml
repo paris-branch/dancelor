@@ -38,93 +38,104 @@ let show_lilypond_dialog version =
           ()
       ]
 
+let madge_call_or_404_on_option route maybe_id =
+  Option.fold
+    maybe_id
+    ~none: (fun f -> f None)
+    ~some: (fun id f -> Main_page.madge_call_or_404 route id (f % some))
+
 let create ?context tune_id id =
   Main_page.madge_call_or_404 (Tune Get) tune_id @@ fun tune ->
-  Main_page.madge_call_or_404 (Version Get) id @@ fun version ->
-  let other_versions_promise =
-    snd
-    <$> Madge_client.call_exn
-        Endpoints.Api.(route @@ Version Search)
-        Slice.everything
-        Formula.(
-          and_l
-            [
-              Filter.Version.tuneis' tune;
-              not (Filter.Version.is' version);
-            ]
-        )
-  in
+  madge_call_or_404_on_option (Version Get) id @@ fun version ->
   Page.make'
-    ~parent_title: "Version"
+    ~parent_title: "Tune"
     ~before_title: [
       Components.Context_links.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_version tune_id id)
-        (lwt @@ Any.version version);
+        (lwt @@ Option.fold ~none: (Any.tune tune) ~some: Any.version version);
     ]
-    ~title: (NEString.to_string <$> Version.one_name' version)
-    ~subtitles: [Formatters.Version.tune_description' version]
-    ~share: (Version version)
+    ~title: (lwt @@ NEString.to_string @@ Tune.one_name' tune)
+    ~subtitles: [Formatters.Tune.description' tune]
+    ~share: (Option.fold ~none: (Any.tune tune) ~some: Any.version version)
     ~actions: (
-      Lwt.l2
-        (@)
-        (
-          lwt
-            [
+      lwt @@
+        List.filter_map
+          Fun.id
+          [
+            (
+              Option.for_ version @@ fun version ->
               Button.make
                 ~label: "Download PDF"
                 ~icon: (Other File_pdf)
                 ~dropdown: true
                 ~onclick: (fun _ -> ignore <$> Version_download_dialog.create_and_open version)
-                ();
+                ()
+            );
+            (
+              Option.for_ version @@ fun version ->
               Button.make
                 ~label: "Show LilyPond"
                 ~label_processing: "Showing LilyPond..."
                 ~icon: (Other File_lilypond)
                 ~dropdown: true
                 ~onclick: (fun () -> show_lilypond_dialog version)
-                ();
+                ()
+            );
+            (
+              Option.for_ id @@ fun id ->
               Button.make_a
-                ~label: "Edit"
+                ~label: "Edit version"
                 ~icon: (Action Edit)
                 ~href: (S.const @@ Endpoints.Page.(href Version_edit) id)
                 ~dropdown: true
-                ();
+                ()
+            );
+            Some (
               Button.make_a
                 ~label: "Edit tune"
                 ~icon: (Action Edit)
                 ~href: (S.const @@ Endpoints.Page.(href Tune_edit) (Entry.id tune))
                 ~dropdown: true
-                ();
+                ()
+            );
+            (
+              Option.for_ version @@ fun version ->
               Action.delete
                 ~model: "version"
                 ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Version Delete) (Entry.id version))
-                ();
+                ()
+            );
+            Some (
+              Action.delete
+                ~model: "tune"
+                ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Tune Delete) (Entry.id tune))
+                ()
+            );
+            (
+              Option.for_ version @@ fun version ->
               Button.make
                 ~label: "De-duplicate"
                 ~icon: (Action Deduplicate)
                 ~dropdown: true
                 ~classes: ["btn-warning"]
-                ~onclick: (Version_deduplicator.dialog ~version ~other_versions_promise)
+                ~onclick: (Version_deduplicator.dialog ~tune ~version)
                 ()
-            ]
-        )
-        (
-          match%lwt Tune.scddb_id' <$> Model.Version.tune' version with
-          | None -> lwt_nil
-          | Some scddb_id -> lwt [Action.scddb Tune scddb_id]
-        )
+            );
+            Option.map (Action.scddb Tune) (Tune.scddb_id' tune);
+          ]
     )
     [
       div
-        [
-          with_span_placeholder @@
-            match%lwt Tune.date' <$> Model.Version.tune' version with
-            | None -> lwt_nil
-            | Some date ->
-              lwt [txtf "Composed %s." (PartialDate.to_pretty_string ~at: true date)]
-        ];
+        (
+          match Tune.date' tune with
+          | None -> []
+          | Some date -> [txtf "Composed %s." (PartialDate.to_pretty_string ~at: true date)]
+        );
       (
+        div @@
+        Option.to_list @@
+        Option.for_ version @@ fun version ->
         (* For de-structured versions, show one of the common structures. *)
         div [
           div ~a: [a_class ["row"; "justify-content-between"]] [
@@ -167,93 +178,90 @@ let create ?context tune_id id =
           )
         ];
       );
-      R.div (
-        S.from' [] @@
-          match%lwt Model.Version.other_names' version with
-          | [] -> lwt_nil
-          | [other_name] -> lwt [txtf "Also known as %s." (NEString.to_string other_name)]
-          | other_names ->
-            lwt [
-              txt "Also known as:";
-              ul (List.map (li % List.singleton % txt % NEString.to_string) other_names);
-            ]
+      div (
+        match Model.Tune.other_names' tune with
+        | [] -> []
+        | [other_name] -> [txtf "Also known as %s." (NEString.to_string other_name)]
+        | other_names ->
+          [
+            txt "Also known as:";
+            ul (List.map (li % List.singleton % txt % NEString.to_string) other_names);
+          ]
       );
       R.div (
-        S.from' [] @@
-          let show_source_group source_group =
-            let source = (List.hd source_group).Model.Version.source in
-            span @@
-            [Formatters.Source.name' source] @
-            (
-              List.concat @@
-              List.interspersei
-                (fun _ -> [txt ", "])
-                ~last: (fun _ -> [txt " and "]) @@
-              List.map
-                (fun Model.Version.{details; structure; _} ->
-                  [
-                    (if details <> "" then txtf " %s" details else txt "");
-                    txtf " as %s" (NEString.to_string (Model.Version.Structure.to_string structure));
-                  ]
-                )
-                source_group
-            ) @
-              [txt "."]
-          in
-          match%lwt Model.Version.sources_grouped' version with
-          | [] -> lwt_nil
-          | [source_group] -> lwt [txt "Appears in "; show_source_group source_group]
-          | source_groups ->
-            lwt [
-              txt "Appears:";
-              ul (
-                List.map
-                  (fun source_group -> li [txt "in "; show_source_group source_group])
-                  source_groups
-              )
-            ]
-      );
-      quick_explorer_links
-        [
-          ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memversion') version);
-          ("sets containing this tune", Filter.(Any.set' % Set.exists_version' % Version.tuneis') <$> Model.Version.tune' version);
-          ("books containing this version", lwt @@ Filter.(Any.book' % Book.memversiondeep') version);
-          ("books containing this tune", Filter.(Any.book' % Book.exists_version_deep' % Version.tuneis') <$> Model.Version.tune' version);
-        ];
-      div
-        ~a: [a_class ["section"]]
-        [
-          h3 [txt "Other Versions"];
-          R.div
-            (
-              S.from' (Tables.placeholder ()) @@
-                let%lwt other_versions = other_versions_promise in
-                let%lwt tune_href = (Endpoints.Page.href_tune % Entry.id) <$> Model.Version.tune' version in
-                lwt
-                  (
-                    if other_versions = [] then
-                        [p [txt "There are no other versions available for this tune."]]
-                    else
+        Option.fold
+          version
+          ~none: (S.const [])
+          ~some: (fun version ->
+            S.from' [] @@
+              let show_source_group source_group =
+                let source = (List.hd source_group).Model.Version.source in
+                span @@
+                [Formatters.Source.name' source] @
+                (
+                  List.concat @@
+                  List.interspersei
+                    (fun _ -> [txt ", "])
+                    ~last: (fun _ -> [txt " and "]) @@
+                  List.map
+                    (fun Model.Version.{details; structure; _} ->
                       [
-                        Tables.versions other_versions;
-                        p
-                          [
-                            txt "You can also go to the ";
-                            a ~a: [a_href tune_href] [txt "page of the tune"];
-                            txt "."
-                          ]
+                        (if details <> "" then txtf " %s" details else txt "");
+                        txtf " as %s" (NEString.to_string (Model.Version.Structure.to_string structure));
                       ]
+                    )
+                    source_group
+                ) @
+                  [txt "."]
+              in
+              match%lwt Model.Version.sources_grouped' version with
+              | [] -> lwt_nil
+              | [source_group] -> lwt [txt "Appears in "; show_source_group source_group]
+              | source_groups ->
+                lwt [
+                  txt "Appears:";
+                  ul (
+                    List.map
+                      (fun source_group -> li [txt "in "; show_source_group source_group])
+                      source_groups
                   )
-            );
+                ]
+          )
+      );
+      quick_explorer_links @@
+        List.filter_map Fun.id [
+          Option.for_ version (fun version -> ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memversion') version));
+          Some ("sets containing this tune", Filter.(Any.set' % Set.exists_version' % Version.tuneis') <$> lwt tune);
+          Option.for_ version (fun version -> ("books containing this version", lwt @@ Filter.(Any.book' % Book.memversiondeep') version));
+          Some ("books containing this tune", Filter.(Any.book' % Book.exists_version_deep' % Version.tuneis') <$> lwt tune);
         ];
       div
         ~a: [a_class ["section"]]
         [
-          h3 [txt "Dances That Recommend This Tune"];
+          h3 [txt "Versions of this tune"];
           R.div
             (
               S.from' (Tables.placeholder ()) @@
-                let%lwt dances = Tune.dances' =<< Model.Version.tune' version in
+                let%lwt versions =
+                  snd
+                  <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
+                      Filter.Version.tuneis' tune
+                in
+                lwt @@
+                  if versions = [] then
+                      [txt "There are no versions for this tune."]
+                  else
+                      [Tables.versions versions]
+            )
+        ];
+      div
+        ~a: [a_class ["section"]]
+        [
+          h3 [txt "Dances that recommend this tune"];
+          R.div
+            (
+              S.from' (Tables.placeholder ()) @@
+                let%lwt dances = Tune.dances' tune in
                 lwt
                   [
                     if dances = [] then

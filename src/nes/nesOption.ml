@@ -22,3 +22,5 @@ let fold' ~none ~some = function
 let value' ~default = function
   | None -> default ()
   | Some x -> x
+
+let for_ x f = map f x

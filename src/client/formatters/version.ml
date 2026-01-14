@@ -70,7 +70,7 @@ let name_gen version_gen =
       let%lwt name = Model.Version.one_name' version in
       lwt [
         a
-          ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_version ?context (Model_builder.Core.Version.tune' version) (Entry.id version)) (switch_signal_option context)]
+          ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_version ?context (Model_builder.Core.Version.tune' version) (some @@ Entry.id version)) (switch_signal_option context)]
           [txt @@ NEString.to_string name]
       ]
     | Right (version, _, _) ->
@@ -162,7 +162,7 @@ let kind_and_structure version =
 let kind_and_structure' = kind_and_structure % Entry.value
 
 let id' version =
-  span [a ~a: [a_href @@ Endpoints.Page.href_version (Model_builder.Core.Version.tune' version) (Entry.id version)] [txt @@ Entry.id_as_string version]]
+  span [a ~a: [a_href @@ Endpoints.Page.href_version (Model_builder.Core.Version.tune' version) (some @@ Entry.id version)] [txt @@ Entry.id_as_string version]]
 
 let several f versions =
   versions

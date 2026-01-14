@@ -305,20 +305,32 @@ let confirmation_dialog ~this_version ~other_version =
           ~label: "Go to other version"
           ~icon: (Model Version)
           ~classes: ["btn-primary"]
-          ~href: (S.const @@ Endpoints.Page.href_version (Model_builder.Core.Version.tune' other_version) (Entry.id other_version))
+          ~href: (S.const @@ Endpoints.Page.href_version (Model_builder.Core.Version.tune' other_version) (some @@ Entry.id other_version))
           ();
       ];
     lwt_unit
 
-let dialog ~version ~other_versions_promise () =
-  let%lwt other_versions = other_versions_promise in
+let dialog ~tune ~version () =
+  let%lwt other_versions =
+    snd
+    <$> Madge_client.call_exn
+        Endpoints.Api.(route @@ Version Search)
+        Slice.everything
+        Formula.(
+          and_l
+            [
+              Filter.Version.tuneis' tune;
+              not (Filter.Version.is' version);
+            ]
+        )
+  in
   ignore
   <$> Page.open_dialog @@ fun return ->
     Page.make'
       ~title: (lwt "De-duplicate a version")
       [txt
         "Only do this if the two versions are actually the same, or if the other \
-         one is a destructured version that can encompass this one.";
+        one is a destructured version that can encompass this one.";
       Tables.versions
         other_versions
         ~onclick: (fun other_version ->
