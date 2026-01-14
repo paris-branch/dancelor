@@ -47,6 +47,18 @@ let madge_call_or_404_on_option route maybe_id =
 let create ?context tune_id id =
   Main_page.madge_call_or_404 (Tune Get) tune_id @@ fun tune ->
   madge_call_or_404_on_option (Version Get) id @@ fun version ->
+  let%lwt versions_of_this_tune =
+    snd
+    <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
+        Filter.Version.tuneis' tune
+  in
+  (* If no specific version was provided, grab any available one. FIXME: Some
+     more logic here, eg. priorities books or versions that the user likes. *)
+  let version =
+    match version with
+    | Some version -> Some version
+    | None -> List.hd_opt versions_of_this_tune
+  in
   Page.make'
     ~parent_title: "Tune"
     ~before_title: [
@@ -134,18 +146,17 @@ let create ?context tune_id id =
         );
       (
         div @@
-        Option.to_list @@
+        Option.value ~default: [] @@
         Option.for_ version @@ fun version ->
-        (* For de-structured versions, show one of the common structures. *)
-        div [
-          div ~a: [a_class ["row"; "justify-content-between"]] [
-            div ~a: [a_class ["col-auto"; "text-start"]] (
+        [div ~a: [a_class ["row"; "justify-content-between"]] [
+          div ~a: [a_class ["col-auto"; "text-start"]] (
+            (
               let key = Model.Version.key' version in
               match Model.Version.content' version with
               | Monolithic {bars; structure; _} ->
                 [
                   txtf
-                    "%d-bar %s version in %s"
+                    "Monolithic %d-bar %s version in %s"
                     bars
                     (NEString.to_string @@ Model.Version.Structure.to_string structure)
                     (Music.Key.to_pretty_string key)
@@ -159,24 +170,30 @@ let create ?context tune_id id =
                     (Music.Key.to_pretty_string key)
                     (NEString.to_string @@ Version.Structure.to_string default_structure)
                 ]
+            ) @
+            (
+              match id with
+              | Some _ -> []
+              | None -> [txt ", selected by Dancelor"]
+            ) @
+              [txt "."]
+          );
+          div ~a: [a_class ["col-auto"; "text-end"]] [
+            Formatters.Version.disambiguation' ~parentheses: false version;
+            with_span_placeholder (
+              match%lwt Model.Version.arrangers' version with
+              | [] -> lwt_nil
+              | arrangers ->
+                let name_block = Formatters.Person.names' ~links: true arrangers in
+                lwt ([txt " arranged by "; name_block])
             );
-            div ~a: [a_class ["col-auto"; "text-end"]] [
-              Formatters.Version.disambiguation' ~parentheses: false version;
-              with_span_placeholder (
-                match%lwt Model.Version.arrangers' version with
-                | [] -> lwt_nil
-                | arrangers ->
-                  let name_block = Formatters.Person.names' ~links: true arrangers in
-                  lwt ([txt " arranged by "; name_block])
-              );
-            ];
           ];
-          (
-            match Model.Version.content' version with
-            | Monolithic _ -> Components.Version_snippets.make version
-            | Destructured {default_structure; _} -> Components.Version_snippets.make version ~params: (Model.Version_parameters.make ~structure: default_structure ());
-          )
         ];
+        (
+          match Model.Version.content' version with
+          | Monolithic _ -> Components.Version_snippets.make version
+          | Destructured {default_structure; _} -> Components.Version_snippets.make version ~params: (Model.Version_parameters.make ~structure: default_structure ());
+        )];
       );
       div (
         match Model.Tune.other_names' tune with
@@ -216,10 +233,10 @@ let create ?context tune_id id =
               in
               match%lwt Model.Version.sources_grouped' version with
               | [] -> lwt_nil
-              | [source_group] -> lwt [txt "Appears in "; show_source_group source_group]
+              | [source_group] -> lwt [txt "This specific version appears in "; show_source_group source_group]
               | source_groups ->
                 lwt [
-                  txt "Appears:";
+                  txt "This specific version appears:";
                   ul (
                     List.map
                       (fun source_group -> li [txt "in "; show_source_group source_group])
