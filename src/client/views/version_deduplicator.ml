@@ -305,7 +305,7 @@ let confirmation_dialog ~this_version ~other_version =
           ~label: "Go to other version"
           ~icon: (Model Version)
           ~classes: ["btn-primary"]
-          ~href: (S.const @@ Endpoints.Page.href_version (Entry.id other_version))
+          ~href: (S.const @@ Endpoints.Page.href_version (Model_builder.Core.Version.tune' other_version) (Entry.id other_version))
           ();
       ];
     lwt_unit

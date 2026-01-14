@@ -45,7 +45,7 @@ type (_, _, _) t =
   | Tune : ((Context.t option -> Core.Tune.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Version_add : ('w, 'w, Void.t) t
   | Version_edit : ((Core.Version.t Entry.Id.t -> 'w), 'w, Void.t) t
-  | Version : ((Context.t option -> Core.Version.t Entry.Id.t -> 'w), 'w, Void.t) t
+  | Version : ((Context.t option -> Core.Tune.t Entry.Id.t -> Core.Version.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Index : ('w, 'w, Void.t) t
   | Explore : ((string option -> 'w), 'w, Void.t) t
   | User_create : ('w, 'w, Void.t) t
@@ -77,7 +77,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Tune -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Tune)) @@ void ()
     | Tune_add -> literal "tune" @@ literal "add" @@ void ()
     | Tune_edit -> literal "tune" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Tune)) @@ void ()
-    | Version -> literal "version" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Version)) @@ void ()
+    | Version -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Tune)) @@ variable (module Entry.Id.S(Core.Version)) @@ void ()
     | Version_add -> literal "version" @@ literal "add" @@ void ()
     | Version_edit -> literal "version" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Version)) @@ void ()
     | Index -> void ()
@@ -98,12 +98,12 @@ let href_person ?context person = href Person context person
 let href_source ?context source = href Source context source
 let href_set ?context set = href Set context set
 let href_tune ?context tune = href Tune context tune
-let href_version ?context version = href Version context version
+let href_version ?context tune version = href Version context tune version
 
 let href_any_full ?context any =
   let open Core.Any in
   match any with
-  | Version version -> href_version ?context (Entry.id version)
+  | Version version -> href_version ?context (Model_builder.Core.Version.tune' version) (Entry.id version)
   | Set set -> href_set ?context (Entry.id set)
   | Person person -> href_person ?context (Entry.id person)
   | Source source -> href_source ?context (Entry.id source)
@@ -135,7 +135,7 @@ module Make_describe (Model : Model_builder.S) = struct
       | User_password_reset -> const2 lwt_none
       | Any -> (fun id -> lwt_some ("any", Entry.Id.to_string id))
       | Version ->
-        (fun _ id ->
+        (fun _ _ id ->
           let%lwt name = NEString.to_string <$> (Model.Version.one_name' % Option.get =<< Model.Version.get id) in
           lwt_some ("version", name)
         )

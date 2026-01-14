@@ -38,9 +38,9 @@ let show_lilypond_dialog version =
           ()
       ]
 
-let create ?context id =
+let create ?context tune_id id =
+  Main_page.madge_call_or_404 (Tune Get) tune_id @@ fun tune ->
   Main_page.madge_call_or_404 (Version Get) id @@ fun version ->
-  let%lwt tune = Model.Version.tune' version in
   let other_versions_promise =
     snd
     <$> Madge_client.call_exn
@@ -59,7 +59,7 @@ let create ?context id =
     ~before_title: [
       Components.Context_links.make_and_render
         ?context
-        ~this_page: (Endpoints.Page.href_version id)
+        ~this_page: (Endpoints.Page.href_version tune_id id)
         (lwt @@ Any.version version);
     ]
     ~title: (NEString.to_string <$> Version.one_name' version)
