@@ -13,14 +13,14 @@ type visibility' =
   | Select_viewers of Model.User.entry NEList.t
 
 let visibility'_to_visibility : visibility' -> Entry.Access.Private.visibility = function
-  | Owners_only -> Owners_only
-  | Everyone -> Everyone
-  | Select_viewers users -> Select_viewers (NEList.map Entry.id users)
+  | Owners_only -> `Owners_only
+  | Everyone -> `Everyone
+  | Select_viewers users -> `Select_viewers (NEList.map Entry.id users)
 
 let visibility_to_visibility' : Entry.Access.Private.visibility -> visibility' Lwt.t = function
-  | Owners_only -> lwt Owners_only
-  | Everyone -> lwt Everyone
-  | Select_viewers users ->
+  | `Owners_only -> lwt Owners_only
+  | `Everyone -> lwt Everyone
+  | `Select_viewers users ->
     let%lwt users = Monadise_lwt.monadise_1_1 NEList.map (Option.get <%> Model.User.get) users in
     lwt (Select_viewers users)
 
