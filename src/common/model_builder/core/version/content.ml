@@ -8,18 +8,20 @@ type destructured = {
 [@@deriving eq, yojson, show {with_path = false}]
 
 type t =
-  | Monolithic of {lilypond: string; bars: int; structure: Structure.t}
+  | No_content
   | Destructured of destructured
+  | Monolithic of {lilypond: string; bars: int; structure: Structure.t}
 [@@deriving eq, yojson, show {with_path = false}, variants]
 
 let erase_lilypond = function
-  | Monolithic {bars; structure; _} -> Monolithic {bars; structure; lilypond = ""}
+  | No_content -> No_content
   | Destructured {default_structure; _} ->
     Destructured {
       default_structure;
       parts = NEList.singleton Voices.empty;
       transitions = [];
     }
+  | Monolithic {bars; structure; _} -> Monolithic {bars; structure; lilypond = ""}
 
 (** Auxiliary function to {!lilypond}, doing the heavy lifting. Given a list of
     [~parts], an association list of [~transitions], and an already folded
@@ -133,5 +135,6 @@ let lilypond ?structure ~kind ~key parts transitions =
     chords
 
 let lilypond ?structure ~kind ~key = function
+  | No_content -> "" (* FIXME: LilyPond that indicates that there is no content? *)
   | Monolithic {lilypond; _} -> lilypond
   | Destructured {parts; transitions; _} -> lilypond ?structure ~kind ~key parts transitions
