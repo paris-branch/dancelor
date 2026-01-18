@@ -57,7 +57,7 @@ let set_and_parameters ?(label = "Set") () =
     (
       Selector.prepare
         ~make_descr: (lwt % NEString.to_string % Model.Set.name')
-        ~make_result: (Any_result.make_set_result ?context: None)
+        ~make_result: (Any_result.make_set_result ?context: None ?params: None)
         ~make_more_results: (fun set ->
           flip S.map show_preview @@ function
             | true -> [tr [td ~a: [a_colspan 9999] [Formatters.Set.tunes' set]]]

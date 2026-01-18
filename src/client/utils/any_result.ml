@@ -14,6 +14,9 @@ let row ?(classes = []) ?onclick cells =
     )
     (cells)
 
+let make_part_result ?classes ?onclick ?(prefix = []) ?(suffix = []) title =
+  row ?classes ?onclick (prefix @ [td ~a: [a_colspan 3] [txt @@ NEString.to_string title]] @ suffix)
+
 let make_source_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) source =
   row
     ?classes
@@ -51,6 +54,38 @@ let make_dance_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) d
       suffix
     )
 
+let make_dance_plus_set_result ?classes ?onclick ?context ?set_params ?(prefix = []) ?(suffix = []) dance set =
+  row ?classes ?onclick (
+    prefix @
+    [td [
+      Formatters.Dance.name' ?context dance;
+      br ();
+      small ~a: [a_class ["opacity-50"]] [txt "Set: "; Formatters.Set.name' ~link: true ?params: set_params set];
+      br ();
+      small ~a: [a_class ["opacity-50"]] [Formatters.Set.tunes' ~link: true set];
+    ];
+    td [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
+    td [Formatters.Set.conceptors' ~short: true ?params: set_params set];
+    ] @
+    suffix
+  )
+
+let make_dance_plus_versions_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) dance versions_and_params =
+  row ?classes ?onclick (
+    prefix @
+    [td [
+      Formatters.Dance.name' ?context dance;
+      br ();
+      small ~a: [a_class ["opacity-50"]] [
+        txt (if NEList.is_singleton versions_and_params then "Tune: " else "Tunes: ");
+        Formatters.Version.names_disambiguations_and_sources' versions_and_params
+      ];
+    ];
+    td [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
+    td [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]] @
+    suffix
+  )
+
 let make_book_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) book =
   row
     ?classes
@@ -64,15 +99,22 @@ let make_book_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) bo
       suffix
     )
 
-let make_set_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) set =
+let make_set_result ?classes ?onclick ?context ?params ?(prefix = []) ?(suffix = []) set =
   row
     ?classes
     ?onclick
     (
       prefix @
-      [L.td (Lwt.pause ();%lwt lwt [Formatters.Set.name' ~link: (onclick = None) ?context set]);
+      [L.td (
+        Lwt.pause ();%lwt
+        lwt [
+          Formatters.Set.name' ~link: (onclick = None) ?context ?params set;
+          br ();
+          small ~a: [a_class ["lh-1"; "opacity-50"]] [Formatters.Set.tunes' ~link: true set];
+        ]
+      );
       L.td (Lwt.pause ();%lwt lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set]);
-      L.td (Lwt.pause ();%lwt List.singleton <$> (Formatters.Person.names' ~short: true <$> Set.conceptors' set));
+      L.td (Lwt.pause ();%lwt lwt [Formatters.Set.conceptors' ~short: true ?params set]);
       ] @
       suffix
     )
@@ -102,6 +144,29 @@ let make_version_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = [])
       ] @
       suffix
     )
+
+let make_versions_result ?classes ?onclick ?(prefix = []) ?(suffix = []) versions_and_params =
+  row ?classes ?onclick (
+    prefix @
+    [td [Formatters.Version.names_disambiguations_and_sources' versions_and_params];
+    (
+      L.td (
+        let%lwt all_kinds =
+          List.sort_uniq Kind.Base.compare %
+            NEList.to_list
+          <$> NEList.map_lwt_p (Version.kind' % fst) versions_and_params
+        in
+        lwt [
+          txt @@
+            match all_kinds with
+            | [kind] -> Kind.Base.to_string kind ^ (if NEList.is_singleton versions_and_params then "" else "s")
+            | _ -> "Medley"
+        ]
+      )
+    );
+    td [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]] @
+    suffix
+  )
 
 let make_user_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) user =
   ignore context;
