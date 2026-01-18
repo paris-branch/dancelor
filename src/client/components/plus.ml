@@ -143,6 +143,7 @@ let prepare (type value)(type bundled_value)(type state)
   ~label
   ~(cast : bundled_value Tuple_elt.t -> value)
   ~(uncast : value -> bundled_value Tuple_elt.t)
+  ?(selected_when_empty : int option)
   (bundle : (bundled_value, state) Bundle.t)
   : (value, int option * state) Component.s
 = (module struct
@@ -161,8 +162,8 @@ let prepare (type value)(type bundled_value)(type state)
     let%lwt bundle_state = Bundle.value_to_state elt in
     lwt (selected, bundle_state)
 
-  let empty = (None, Bundle.empty)
-  let from_initial_text text = (None, Bundle.from_initial_text text)
+  let empty = (selected_when_empty, Bundle.empty)
+  let from_initial_text text = (selected_when_empty, Bundle.from_initial_text text)
 
   type t = {
     choices: (int, string) Component.t;

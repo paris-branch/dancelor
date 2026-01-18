@@ -108,6 +108,7 @@ let dance_and_dance_page =
           | Model.Book.Dance_versions versions_and_params -> one versions_and_params
           | Model.Book.Dance_set (set, params) -> two (set, params)
         )
+        ~selected_when_empty: 0
         (
           Nil.prepare ~label: "Dance only" () ^::
           versions_and_parameters ~label: "+Versions" () ^::
@@ -268,6 +269,7 @@ let editor user =
         | Everyone -> one ()
         | Select_viewers viewers -> two viewers
       )
+      ~selected_when_empty: 0
       (
         Nil.prepare ~label: "Owners only" () ^::
         Nil.prepare ~label: "Everyone" () ^::

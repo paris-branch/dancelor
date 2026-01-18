@@ -170,6 +170,7 @@ let content () =
           )
         )
     )
+    ~selected_when_empty: 0
     (
       let open Plus.Bundle in
       content_full () ^::
