@@ -39,7 +39,7 @@ class TestContextLinks():
     ## check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/book/0fi3-1iot-6tbq")
     time.sleep(1) # give a second to avoid clicking on placeholder
-    self.driver.find_element(By.XPATH, "//tr[2]/td//a").click()
+    self.driver.find_element(By.XPATH, "//tr[2]/td[2]//a[not(ancestor::small)]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/set/ului-yd9x-o35w?context=%5B%22In_book%22%2C%220fi3-1iot-6tbq%22%2C1%5D"))
 
   def test_sideArrowGoesToNeighbour(self):
