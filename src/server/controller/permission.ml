@@ -104,14 +104,14 @@ let assert_can_delete_public env entry =
     the owners of the entry or an omniscient administrator. *)
 let can_get_private env entry =
   let access = Entry.access entry in
-  let visibility = Entry.Access.Private.visibility access in
-  (visibility = `Everyone)
+  let meta_visibility = Entry.Access.Private.meta_visibility access in
+  (meta_visibility = `Everyone)
   || fold_user
     env
     ~none: (const false)
     ~some: (fun user ->
       NEList.exists (Entry.Id.equal' (Entry.id user)) (Entry.Access.Private.owners access)
-      || (match visibility with `Select_viewers viewers -> NEList.exists (Entry.Id.equal' (Entry.id user)) viewers | _ -> false)
+      || (match meta_visibility with `Select_viewers viewers -> NEList.exists (Entry.Id.equal' (Entry.id user)) viewers | _ -> false)
       || Model.User.is_omniscient_administrator' user
     )
 

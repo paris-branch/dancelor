@@ -7,22 +7,36 @@ open Utils
 let (show_preview, set_show_preview) = S.create false
 let flip_show_preview () = set_show_preview (not (S.value show_preview))
 
-type visibility' =
-  | Owners_only
-  | Everyone
-  | Select_viewers of Model.User.entry NEList.t
+type meta_visibility' = [
+  | `Owners_only
+  | `Everyone
+  | `Select_viewers of Model.User.entry NEList.t
+]
 
-let visibility'_to_visibility : visibility' -> Entry.Access.Private.visibility = function
-  | Owners_only -> `Owners_only
-  | Everyone -> `Everyone
-  | Select_viewers users -> `Select_viewers (NEList.map Entry.id users)
+type content_visibility' = [
+  | `Same_as_meta_visibility
+  | meta_visibility'
+]
 
-let visibility_to_visibility' : Entry.Access.Private.visibility -> visibility' Lwt.t = function
-  | `Owners_only -> lwt Owners_only
-  | `Everyone -> lwt Everyone
+let meta_visibility'_to_meta_visibility : meta_visibility' -> Entry.Access.Private.meta_visibility = function
+  | `Owners_only -> `Owners_only
+  | `Everyone -> `Everyone
+  | `Select_viewers users -> `Select_viewers (NEList.map Entry.id users)
+
+let meta_visibility_to_meta_visibility' : Entry.Access.Private.meta_visibility -> meta_visibility' Lwt.t = function
+  | `Owners_only -> lwt `Owners_only
+  | `Everyone -> lwt `Everyone
   | `Select_viewers users ->
     let%lwt users = Monadise_lwt.monadise_1_1 NEList.map (Option.get <%> Model.User.get) users in
-    lwt (Select_viewers users)
+    lwt (`Select_viewers users)
+
+let content_visibility'_to_content_visibility : content_visibility' -> Entry.Access.Private.content_visibility = function
+  | `Same_as_meta_visibility -> `Same_as_meta_visibility
+  | (`Owners_only | `Everyone | `Select_viewers _) as meta_visibility' -> (meta_visibility'_to_meta_visibility meta_visibility' :> Entry.Access.Private.content_visibility)
+
+let content_visibility_to_content_visibility' : Entry.Access.Private.content_visibility -> content_visibility' Lwt.t = function
+  | `Same_as_meta_visibility -> lwt `Same_as_meta_visibility
+  | (`Owners_only | `Everyone | `Select_viewers _) as meta_visibility -> (meta_visibility_to_meta_visibility' meta_visibility :> content_visibility' Lwt.t)
 
 let editor user =
   let open Editor in
@@ -134,15 +148,15 @@ let editor user =
     Plus.prepare
       ~label: "Visibility"
       ~cast: (function
-        | Zero() -> Owners_only
-        | Succ Zero() -> Everyone
-        | Succ Succ Zero viewers -> Select_viewers viewers
+        | Zero() -> `Owners_only
+        | Succ Zero() -> `Everyone
+        | Succ Succ Zero viewers -> `Select_viewers viewers
         | _ -> assert false (* types guarantee this is not reachable *)
       )
       ~uncast: (function
-        | Owners_only -> Zero ()
-        | Everyone -> one ()
-        | Select_viewers viewers -> two viewers
+        | `Owners_only -> Zero ()
+        | `Everyone -> one ()
+        | `Select_viewers viewers -> two viewers
       )
       ~selected_when_empty: 0
       (
@@ -168,11 +182,58 @@ let editor user =
         nil
       )
   ) ^::
+  (
+    let open Plus.Bundle in
+    let open Plus.Tuple_elt in
+    Plus.prepare
+      ~label: "Visibility"
+      ~cast: (function
+        | Zero() -> `Same_as_meta_visibility
+        | Succ Zero() -> `Owners_only
+        | Succ Succ Zero() -> `Everyone
+        | Succ Succ Succ Zero viewers -> `Select_viewers viewers
+        | _ -> assert false (* types guarantee this is not reachable *)
+      )
+      ~uncast: (function
+        | `Same_as_meta_visibility -> Zero ()
+        | `Owners_only -> one ()
+        | `Everyone -> two ()
+        | `Select_viewers viewers -> three viewers
+      )
+      ~selected_when_empty: 0
+      (
+        Nil.prepare ~label: "Same as meta visibility" () ^::
+        Nil.prepare ~label: "Owners only" () ^::
+        Nil.prepare ~label: "Everyone" () ^::
+        (
+          Star.prepare_non_empty
+            ~label: "Viewers"
+            (
+              Selector.prepare
+                ~label: "Viewer"
+                ~model_name: "user"
+                ~make_descr: (lwt % NEString.to_string % Model.User.username')
+                ~make_result: (Any_result.make_user_result ?context: None)
+                ~search: (fun slice input ->
+                  let%rlwt filter = lwt (Filter.User.from_string input) in
+                  ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
+                )
+                ~unserialise: Model.User.get
+                ()
+            )
+        ) ^::
+        nil
+      )
+  ) ^::
   nil
 
-let assemble (name, (kind, (conceptors, (contents, (order, (owners, (visibility, ()))))))) = (
+let assemble (name, (kind, (conceptors, (contents, (order, (owners, (meta_visibility, (content_visibility, ())))))))) = (
   Model.Set.make ~name ~kind ~conceptors ~contents ~order (),
-  Entry.Access.Private.make ~owners: (NEList.map Entry.id owners) ~visibility: (visibility'_to_visibility visibility) ()
+  Entry.Access.Private.make
+    ~owners: (NEList.map Entry.id owners)
+    ~meta_visibility: (meta_visibility'_to_meta_visibility meta_visibility)
+    ~content_visibility: (content_visibility'_to_content_visibility content_visibility)
+    ()
 )
 
 let submit mode (set, access) =
@@ -190,8 +251,9 @@ let disassemble (set, access) =
   let%lwt contents = Model.Set.contents set in
   let order = Model.Set.order set in
   let%lwt owners = NEList.of_list_exn <$> Lwt_list.map_p (fun user -> Option.get <$> Model.User.get user) (NEList.to_list @@ Entry.Access.Private.owners access) in
-  let%lwt visibility = visibility_to_visibility' @@ Entry.Access.Private.visibility access in
-  lwt (name, (kind, (conceptors, (contents, (order, (owners, (visibility, ())))))))
+  let%lwt meta_visibility = meta_visibility_to_meta_visibility' @@ Entry.Access.Private.meta_visibility access in
+  let%lwt content_visibility = content_visibility_to_content_visibility' @@ Entry.Access.Private.content_visibility access in
+  lwt (name, (kind, (conceptors, (contents, (order, (owners, (meta_visibility, (content_visibility, ()))))))))
 
 let create mode =
   let%lwt user = Option.map Entry.id <$> Environment.user in

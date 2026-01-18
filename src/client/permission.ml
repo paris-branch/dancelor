@@ -18,14 +18,14 @@ let (<|>) = Option.(choose ~tie: first)
 let can_get_private entry : can_get_private option Lwt.t =
   let%lwt user = Environment.user in
   let access = Entry.access entry in
-  let visibility = Entry.Access.Private.visibility access in
+  let meta_visibility = Entry.Access.Private.meta_visibility access in
   lwt (
-    (match visibility with `Everyone -> Some Everyone | _ -> None)
+    (match meta_visibility with `Everyone -> Some Everyone | _ -> None)
     <|> Option.bind
         user
         (fun user ->
           (if NEList.exists (Entry.Id.equal' (Entry.id user)) (Entry.Access.Private.owners access) then Some Owner else None)
-          <|> (match visibility with `Select_viewers viewers when NEList.exists (Entry.Id.equal' (Entry.id user)) viewers -> Some Viewer | _ -> None)
+          <|> (match meta_visibility with `Select_viewers viewers when NEList.exists (Entry.Id.equal' (Entry.id user)) viewers -> Some Viewer | _ -> None)
           <|> (if Model.User.is_omniscient_administrator' user then Some Omniscient_administrator else None)
         )
   )
