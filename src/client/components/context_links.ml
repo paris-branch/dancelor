@@ -47,96 +47,90 @@ let make_and_render ?context ~this_page any_lwt =
         | In_book (id, _) -> href_book id
       in
       let parent_a content = a ~a: [a_href parent_href] content in
-      let context_links_placeholder = [
-        div ~a: [a_class ["col-auto"; "text-start"; "p-0"]] [
-          Button.make
-            ~classes: ["btn-secondary"; "placeholder"]
-            ~icon: (Action Move_left)
-            ~disabled: (S.const true)
-            ();
-        ];
-        div ~a: [a_class ["col"; "text-center"]] [
-          span_placeholder ();
+      let neighbours_lwt = flip get_neighbours context =<< any_lwt in
+      let context_links = [
+        div ~a: [a_class ["col"; "ps-0"]] [
+          with_span_placeholder
+            (
+              uncurry List.cons
+              <$> Lwt.both
+                  (
+                    Lwt.flip_map neighbours_lwt @@ function
+                      | None -> txt "?? of ?? in "
+                      | Some List.{total; index; _} -> txtf "%d of %d in " (index + 1) total
+                  )
+                  (
+                    let open Endpoints.Page in
+                    match context with
+                    | In_search "" ->
+                      lwt [txt "all the entries"]
+                    | In_search query ->
+                      lwt [txt "search for: "; parent_a [txt query]]
+                    | In_set (id, _) ->
+                      let%lwt name = Set.name' % Option.get <$> Set.get id in
+                      lwt [txt "set: "; parent_a [txt @@ NEString.to_string name]]
+                    | In_book (id, _) ->
+                      let%lwt name = Book.title' % Option.get <$> Book.get id in
+                      lwt [txt "book: "; parent_a [txt @@ NEString.to_string name]]
+                  )
+            );
         ];
         div
           ~a: [a_class ["col-auto"; "text-end"; "p-0"]]
           [
-            Button.make
-              ~classes: ["btn-secondary"; "placeholder"]
+            Button.make_a
+              ~classes: ["btn-secondary"]
               ~icon: (Action Back)
-              ~disabled: (S.const true)
+              ~tooltip: "Go back to the parent page, be it a search, a set, \
+                           or anything else."
+              ~href: (S.const parent_href)
               ();
-            Button.make
-              ~classes: ["btn-warning"; "placeholder"]
+            Button.make_a
+              ~classes: ["btn-warning"]
               ~icon: (Action Clear)
-              ~disabled: (S.const true)
+              ~tooltip: "Reload the current page without the context. This will get \
+                           rid of this banner and of the side links."
+              ~href: (S.const this_page)
               ();
-            Button.make
-              ~classes: ["btn-secondary"; "ms-1"; "placeholder"]
-              ~icon: (Action Move_right)
-              ~disabled: (S.const true)
-              ();
-          ];
-      ]
-      in
-      let context_links_lwt =
-        match%lwt flip get_neighbours context =<< any_lwt with
-        | None -> lwt []
-        | Some List.{total; index; previous; next; _} ->
-          lwt [
-            div ~a: [a_class ["col-auto"; "text-start"; "p-0"]] [
-              Button.make_a
-                ~classes: ["btn-secondary"]
-                ~icon: (Action Move_left)
-                ~disabled: (S.const @@ Option.is_none previous)
-                ~tooltip: "Go to the previous element in the context."
-                ~href: (S.const @@ Option.fold ~none: "" ~some: (Endpoints.Page.href_any_full ~context: (neighbour_context ~left: true context)) previous)
-                ();
-            ];
-            div ~a: [a_class ["col"; "text-center"]] [
-              txt (spf "%d of %d in " (index + 1) total);
-              with_span_placeholder
+            R.div ~a: [a_class ["d-inline-block"; "ms-1"]] (
+              S.map
                 (
-                  let open Endpoints.Page in
-                  match context with
-                  | In_search "" ->
-                    lwt [txt "all the entries"]
-                  | In_search query ->
-                    lwt [txt "search for: "; parent_a [txt query]]
-                  | In_set (id, _) ->
-                    let%lwt name = Set.name' % Option.get <$> Set.get id in
-                    lwt [txt "set: "; parent_a [txt @@ NEString.to_string name]]
-                  | In_book (id, _) ->
-                    let%lwt name = Book.title' % Option.get <$> Book.get id in
-                    lwt [txt "book: "; parent_a [txt @@ NEString.to_string name]]
-                );
-            ];
-            div
-              ~a: [a_class ["col-auto"; "text-end"; "p-0"]]
+                  Option.value
+                    ~default: [
+                      Button.make
+                        ~classes: ["btn-secondary"; "placeholder"]
+                        ~icon: (Action Move_left)
+                        ~disabled: (S.const true)
+                        ();
+                      Button.make
+                        ~classes: ["btn-secondary"; "placeholder"]
+                        ~icon: (Action Move_right)
+                        ~disabled: (S.const true)
+                        ();
+                    ]
+                ) @@
+              S.from' None @@
+              Lwt.flip_map neighbours_lwt @@
+              Option.map @@ fun List.{previous; next; _} ->
               [
                 Button.make_a
                   ~classes: ["btn-secondary"]
-                  ~icon: (Action Back)
-                  ~tooltip: "Go back to the parent page, be it a search, a set, \
-                           or anything else."
-                  ~href: (S.const parent_href)
+                  ~icon: (Action Move_left)
+                  ~disabled: (S.const @@ Option.is_none previous)
+                  ~tooltip: "Go to the previous element in the context."
+                  ~href: (S.const @@ Option.fold ~none: "" ~some: (Endpoints.Page.href_any_full ~context: (neighbour_context ~left: true context)) previous)
                   ();
                 Button.make_a
-                  ~classes: ["btn-warning"]
-                  ~icon: (Action Clear)
-                  ~tooltip: "Reload the current page without the context. This will get \
-                           rid of this banner and of the side links."
-                  ~href: (S.const this_page)
-                  ();
-                Button.make_a
-                  ~classes: ["btn-secondary"; "ms-1"]
+                  ~classes: ["btn-secondary"]
                   ~icon: (Action Move_right)
                   ~disabled: (S.const @@ Option.is_none next)
                   ~tooltip: "Go to the next element in the context."
                   ~href: (S.const @@ Option.fold ~none: "" ~some: (Endpoints.Page.href_any_full ~context: (neighbour_context ~left: false context)) next)
                   ();
-              ];
-          ]
+              ]
+            );
+          ];
+      ]
       in
       div
         [
@@ -144,9 +138,7 @@ let make_and_render ?context ~this_page any_lwt =
             ~a: [a_class ["bg-secondary-subtle"; "mt-n2"; (* keep in sync with header's margin *) "mb-2"; "opacity-75"]]
             [
               div ~a: [a_class ["container-md"]] [
-                R.div ~a: [a_class ["row"; "m-0"; "align-items-center"]] (
-                  S.from' context_links_placeholder context_links_lwt
-                );
+                div ~a: [a_class ["row"; "m-0"; "align-items-center"]] (context_links);
               ];
             ]
         ]

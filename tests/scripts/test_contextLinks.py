@@ -53,7 +53,7 @@ class TestContextLinks():
     ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check
     ## that clicking the banner's “undo” icon goes back to the explorer.
     self.driver.get("http://localhost:8080/set/ului-yd9x-o35w?context=%5B%22In_search%22%2C%22tam%22%5D")
-    self.driver.find_element(By.XPATH, "//a[contains(@class, 'btn')]//i[contains(@class, 'bi-arrow-counterclockwise')]").click()
+    self.driver.find_element(By.XPATH, "//a[contains(@class, 'btn')]//i[contains(@class, 'bi-arrow-90deg-up')]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/explore?q=%22tam%22"))
 
   def test_bannerCloseRemovesContext(self):

@@ -42,7 +42,7 @@ type action =
 let action_to_string = function
   | Add -> "plus-circle"
   | Apply -> "check-circle"
-  | Back -> "arrow-counterclockwise"
+  | Back -> "arrow-90deg-up"
   | Clear -> "eraser"
   | Close_or_cancel -> "x-lg"
   | Deduplicate -> "node-minus"
