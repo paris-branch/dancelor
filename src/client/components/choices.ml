@@ -14,11 +14,12 @@ type 'value choice = {
   value: 'value;
   checked: bool;
   contents: Html_types.label_content_fun elt list;
+  onclick: unit -> unit;
 }
 
-let choice ?(checked = false) ~value contents = {id = unique (); value; checked; contents}
+let choice ?(checked = false) ?(onclick = Fun.id) ~value contents = {id = unique (); value; checked; contents; onclick}
 
-let choice' ?checked ?value contents = choice ?checked ~value contents
+let choice' ?checked ?onclick ?value contents = choice ?checked ?onclick ~value contents
 
 let prepare_gen_unsafe (type value)(type choice_value)
   ~(label : string)
@@ -90,7 +91,7 @@ let prepare_gen_unsafe (type value)(type choice_value)
               )
               ();
             Html.label
-              ~a: [a_class ["btn"; "btn-light"]; a_label_for choice.id]
+              ~a: [a_class ["btn"; "btn-light"]; a_label_for choice.id; a_onclick (fun _ -> choice.onclick (); true)]
               choice.contents;
           ]
         )
