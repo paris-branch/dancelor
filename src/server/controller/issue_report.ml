@@ -21,14 +21,17 @@ let report _env issue =
   (* otherwise this will pick up on the current Git repository *)
   let body =
     spf
-      "**Reporter**: %s\n\n**Page**: %s\n\n**Description**:\n\n%s\n"
+      "**Reporter**: %s\n\n**Page**: %s\n%s"
       (
         match issue.reporter with
         | Left user -> NEString.to_string @@ Model.User.username' user (* FIXME: when there is a profile page for users, link to it *)
         | Right string -> string
       )
       issue.page
-      issue.description
+      (
+        if issue.description = "" then ""
+        else spf "\n**Description**:\n\n%s\n" issue.description
+      )
   in
   let%lwt output =
     NesProcess.run

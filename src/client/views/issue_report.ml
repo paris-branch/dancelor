@@ -59,7 +59,7 @@ let open_dialog page =
       ~label: "Description"
       ~placeholder: "I am gutted; this knock off tune is wonky at best!"
       ~serialise: Fun.id
-      ~validate: (S.const % Result.of_string_nonempty ~empty: "The description cannot be empty.")
+      ~validate: (S.const % ok)
       ""
   in
   let request_signal =
