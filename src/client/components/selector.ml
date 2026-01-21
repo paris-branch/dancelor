@@ -66,7 +66,7 @@ let prepare_gen (type model)(type access)(type model_validated)
           Button.make
             ~classes: ["btn-warning"]
             ~icon: (Action Clear)
-            ~tooltip: "Clear the selection. It cannot be recovered."
+            ~tooltip: (spf "Clear the selected %s. It cannot be recovered." model_name)
             ~onclick: (fun _ -> s.set None; lwt_unit)
             ();
         ]

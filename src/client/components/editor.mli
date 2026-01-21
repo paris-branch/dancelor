@@ -148,6 +148,14 @@ val result_to_state :
   'result ->
   'state Lwt.t
 
+val key :
+  ('result, 'product, 'value, 'state) s ->
+  string
+
+val s :
+  ('result, 'product, 'value, 'state) t ->
+  ('result, 'product, 'value, 'state) s
+
 val state :
   ('result, 'product, 'value, 'state) t ->
   'state S.t
