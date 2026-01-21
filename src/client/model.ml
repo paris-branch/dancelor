@@ -2,7 +2,7 @@ open Nes
 open Common
 
 let madge_call_or_option endpoint id =
-  flip Lwt.map (Madge_client.call (Endpoints.Api.route @@ endpoint) id) @@ function
+  Lwt.flip_map (Madge_client.call (Endpoints.Api.route @@ endpoint) id) @@ function
     | Ok v -> Some v
     | Error (Madge_client.Http {status = `Not_found; _}) -> None
     | Error e -> raise (Madge_client.Error e)

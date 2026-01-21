@@ -143,7 +143,7 @@ let prepare (type value)
     | Textarea {textarea; _} -> textarea
 
   let actions i =
-    flip S.map i.state @@ function
+    S.flip_map i.state @@ function
       | "" ->
         (
           match template with

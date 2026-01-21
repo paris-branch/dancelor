@@ -20,7 +20,7 @@ let make_content
               ~a: [
                 R.a_class
                   (
-                    flip S.map processing @@ function
+                    S.flip_map processing @@ function
                       | true -> ["spinner-border"; "spinner-border-sm"; (if label <> "" then "me-2" else "me-0")]
                       | false -> ["d-none"]
                   );
@@ -29,7 +29,7 @@ let make_content
               [];
           ];
         (
-          flip Option.map icon @@ fun icon ->
+          Option.flip_map icon @@ fun icon ->
           [
             span ~a: [R.a_class (S.map (function true -> ["d-none"] | _ -> []) processing)] [
               Icon.html icon ~classes: [(if label <> "" then "me-2" else "me-0")];
@@ -40,13 +40,13 @@ let make_content
           [
             R.txt
               (
-                flip S.map processing @@ function
+                S.flip_map processing @@ function
                   | true -> Option.value ~default: label label_processing
                   | false -> label
               );
           ];
         (
-          flip Option.map badge @@ fun badge ->
+          Option.flip_map badge @@ fun badge ->
           [
             span ~a: [a_class ["badge"; "text-bg-secondary"; "ms-2"]] [txt badge];
           ]
@@ -65,7 +65,7 @@ let make_attributes
     [
       [R.a_class @@
         let classes = (if dropdown then ["dropdown-item"] else ["btn"]) @ classes in
-        flip S.map (S.l2 (||) disabled processing) @@ function
+        S.flip_map (S.l2 (||) disabled processing) @@ function
           | true -> "disabled" :: classes
           | false -> classes];
       (match tooltip with None -> [] | Some tooltip -> [a_title tooltip]);

@@ -60,7 +60,7 @@ let prepare_gen (type model)(type access)(type model_validated)
   let inner_html s = s.inner_html
 
   let actions s =
-    flip S.map s.signal @@ function
+    S.flip_map s.signal @@ function
       | None -> []
       | Some _ ->
         [
@@ -144,7 +144,7 @@ let prepare_gen (type model)(type access)(type model_validated)
     let select_button_dom = To_dom.of_button select_button in
     let inner_html =
       R.div (
-        flip S.map signal @@ function
+        S.flip_map signal @@ function
           | None ->
             [
               div

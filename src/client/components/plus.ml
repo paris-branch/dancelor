@@ -211,7 +211,7 @@ let prepare (type value)(type bundled_value)(type state)
         );
       ];
       R.div ~a: [a_class ["ps-2"; "mt-1"; "border-start"]] (
-        flip S.map (Component.signal p.choices) @@ function
+        S.flip_map (Component.signal p.choices) @@ function
           | Error _ -> []
           | Ok n -> [Bundle.inner_html p.bundle n]
       );

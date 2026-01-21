@@ -39,7 +39,7 @@ let make_ogg_gen status_signal =
     (
       (* we go via an intermediary signal, so as to avoid the placeholder flickering
          on irrelevant changes of status *)
-      flip S.map (S.map Job.status_to_wait_status status_signal) @@ function
+      S.flip_map (S.map Job.status_to_wait_status status_signal) @@ function
         | Waiting -> [audio ~a: [a_controls (); a_class ["placeholder"]] []]
         | Failed -> [audio ~a: [a_controls (); a_class ["bg-danger"; "opacity-50"]] []]
         | Succeeded src -> [audio ~a: [a_controls ()] ~src []]

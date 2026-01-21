@@ -73,7 +73,7 @@ let make
           )
         in
         let search_signal = S.from' None (some <$> delayed_search_promise) in
-        flip S.map search_signal @@ function
+        S.flip_map search_signal @@ function
           | None -> Searching
           | Some Error messages ->
             Errors messages

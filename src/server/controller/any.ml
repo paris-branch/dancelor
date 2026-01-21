@@ -80,9 +80,9 @@ let search env slice filter =
 
 let search_context env filter element =
   let%lwt results = snd <$> search env Slice.everything filter in
-  let List.{total; previous; index; next; _} = Option.get @@ List.find_context (Model.Any.equal element) results in
-  (* TODO: Return the context directly. *)
-  lwt (total, previous, index, next)
+  match List.find_context (Model.Any.equal element) results with
+  | None -> Madge_server.shortcut_not_found "Could not find the given element in the search results."
+  | Some List.{total; previous; index; next; _} -> lwt (total, previous, index, next) (* TODO: Return the context directly. *)
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Any.t -> a = fun env endpoint ->
   match endpoint with

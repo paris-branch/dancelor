@@ -43,7 +43,7 @@ let create ~number_of_entries ~entries_per_page =
     {state; update_current_page}
 
 let status_text pagination =
-  flip S.map pagination.state @@ fun state ->
+  S.flip_map pagination.state @@ fun state ->
   match state.number_of_entries with
   | None -> "Loading.."
   | Some 0 -> "No entries"
@@ -67,7 +67,7 @@ module Button = struct
       ~a: [
         R.a_class
           (
-            flip S.map pagination.state @@ fun state ->
+            S.flip_map pagination.state @@ fun state ->
             "page-item" :: if active state then
                 ["active"]
             else if enabled state then
@@ -130,7 +130,7 @@ module Button = struct
 end
 
 let button_list pagination =
-  flip S.map pagination.state @@ fun state ->
+  S.flip_map pagination.state @@ fun state ->
   let number_of_pages = number_of_pages state
   and current_page = state.current_page
   in

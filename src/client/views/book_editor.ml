@@ -35,7 +35,7 @@ let versions_and_parameters ?(label = "Versions") () =
             ~make_descr: (Lwt.map NEString.to_string % Model.Version.one_name')
             ~make_result: (Any_result.make_version_result ?context: None)
             ~make_more_results: (fun version ->
-              flip S.map show_preview @@ function
+              S.flip_map show_preview @@ function
                 | true -> [tr [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
                 | false -> []
             )
@@ -59,7 +59,7 @@ let set_and_parameters ?(label = "Set") () =
         ~make_descr: (lwt % NEString.to_string % Model.Set.name')
         ~make_result: (Any_result.make_set_result ?context: None ?params: None)
         ~make_more_results: (fun set ->
-          flip S.map show_preview @@ function
+          S.flip_map show_preview @@ function
             | true -> [tr [td ~a: [a_colspan 9999] [Formatters.Set.tunes' set]]]
             | false -> []
         )
@@ -198,7 +198,7 @@ let editor user =
           ~onclick: (fun _ -> flip_show_preview (); lwt_unit)
           ()
       in
-      flip S.map show_preview @@ function
+      S.flip_map show_preview @@ function
         | true -> [flip_show_preview_button ~icon: (Action Show)]
         | false -> [flip_show_preview_button ~icon: (Action Hide)]
     ) ^::

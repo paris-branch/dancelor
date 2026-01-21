@@ -70,7 +70,7 @@ let restrict_formula (text : string) : restricted_formula option =
 (** Takes a [~s]ignal to elements and a [~f]unction to map on those and return a
     signal to a filter representing those elements. *)
 let choices_formula ~s ~f =
-  flip S.map s @@ function [] -> Formula.true_ | cs -> Formula.or_l (List.map f cs)
+  S.flip_map s @@ function [] -> Formula.true_ | cs -> Formula.or_l (List.map f cs)
 
 let type_choices filter =
   let checked =
@@ -328,7 +328,7 @@ let open_ text raws filter =
         [
           (
             (* [type:version] if any type has been selected *)
-            flip S.map (S.map Result.get_ok (Component.signal type_choices)) @@ function
+            S.flip_map (S.map Result.get_ok (Component.signal type_choices)) @@ function
               | None -> Formula.true_
               | Some type_ -> Filter.Any.type_' type_
           );
@@ -363,7 +363,7 @@ let open_ text raws filter =
     R.div
       ~a: [a_class ["d-flex"; "justify-content-center"]]
       (
-        flip S.map (S.map Result.get_ok (Component.signal type_choices)) @@ function
+        S.flip_map (S.map Result.get_ok (Component.signal type_choices)) @@ function
           | None -> []
           | Some Person -> person_html
           | Some Dance -> dance_html

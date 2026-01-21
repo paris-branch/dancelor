@@ -56,7 +56,7 @@ let () = Environment.start_ping_routine ()
 
 let () =
   Depart.keep_forever @@
-  flip S.map Environment.run_status @@ function
+  S.flip_map Environment.run_status @@ function
   | Running -> ()
   | Offline ->
     Toast.open_

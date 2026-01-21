@@ -68,7 +68,7 @@ let editor user =
             ~make_descr: (Lwt.map NEString.to_string % Model.Version.one_name')
             ~make_result: (Any_result.make_version_result ?context: None)
             ~make_more_results: (fun version ->
-              flip S.map show_preview @@ function
+              S.flip_map show_preview @@ function
                 | true -> [tr [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
                 | false -> []
             )
@@ -96,7 +96,7 @@ let editor user =
           ~onclick: (fun _ -> flip_show_preview (); lwt_unit)
           ()
       in
-      flip S.map show_preview @@ function
+      S.flip_map show_preview @@ function
         | true -> [flip_show_preview_button ~icon: (Action Show)]
         | false -> [flip_show_preview_button ~icon: (Action Hide)]
     ) ^::

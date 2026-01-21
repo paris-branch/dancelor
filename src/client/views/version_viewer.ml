@@ -46,7 +46,7 @@ let madge_call_or_404_on_option route maybe_id =
 
 let create ?context tune_id id =
   Main_page.madge_call_or_404 (Tune Get) tune_id @@ fun tune ->
-  madge_call_or_404_on_option (Version Get) id @@ fun version ->
+  madge_call_or_404_on_option (Version Get) id @@ fun specific_version ->
   let%lwt versions_of_this_tune =
     snd
     <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
@@ -55,7 +55,7 @@ let create ?context tune_id id =
   (* If no specific version was provided, grab any available one. FIXME: Some
      more logic here, eg. priorities books or versions that the user likes. *)
   let version =
-    match version with
+    match specific_version with
     | Some version -> Some version
     | None -> List.hd_opt versions_of_this_tune
   in
@@ -65,7 +65,7 @@ let create ?context tune_id id =
       Components.Context_links.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_version tune_id id)
-        (lwt @@ Option.fold ~none: (Any.tune tune) ~some: Any.version version);
+        (lwt @@ Option.fold specific_version ~some: Any.version ~none: (Any.tune tune));
     ]
     ~title: (lwt @@ NEString.to_string @@ Tune.one_name' tune)
     ~subtitles: [Formatters.Tune.description' tune]
@@ -76,7 +76,7 @@ let create ?context tune_id id =
           Fun.id
           [
             (
-              Option.for_ version @@ fun version ->
+              Option.flip_map version @@ fun version ->
               Button.make
                 ~label: "Download PDF"
                 ~icon: (Other File_pdf)
@@ -85,7 +85,7 @@ let create ?context tune_id id =
                 ()
             );
             (
-              Option.for_ version @@ fun version ->
+              Option.flip_map version @@ fun version ->
               Button.make
                 ~label: "Show LilyPond"
                 ~label_processing: "Showing LilyPond..."
@@ -95,7 +95,7 @@ let create ?context tune_id id =
                 ()
             );
             (
-              Option.for_ id @@ fun id ->
+              Option.flip_map id @@ fun id ->
               Button.make_a
                 ~label: "Edit version"
                 ~icon: (Action Edit)
@@ -112,7 +112,7 @@ let create ?context tune_id id =
                 ()
             );
             (
-              Option.for_ version @@ fun version ->
+              Option.flip_map version @@ fun version ->
               Action.delete
                 ~model: "version"
                 ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Version Delete) (Entry.id version))
@@ -125,7 +125,7 @@ let create ?context tune_id id =
                 ()
             );
             (
-              Option.for_ version @@ fun version ->
+              Option.flip_map version @@ fun version ->
               Button.make
                 ~label: "De-duplicate"
                 ~icon: (Action Deduplicate)
@@ -147,7 +147,7 @@ let create ?context tune_id id =
       (
         div @@
         Option.value ~default: [] @@
-        Option.for_ version @@ fun version ->
+        Option.flip_map version @@ fun version ->
         [div ~a: [a_class ["row"; "justify-content-between"]] [
           div ~a: [a_class ["col-auto"; "text-start"]] (
             (
@@ -249,9 +249,9 @@ let create ?context tune_id id =
       );
       quick_explorer_links @@
         List.filter_map Fun.id [
-          Option.for_ version (fun version -> ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memversion') version));
+          Option.flip_map version (fun version -> ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memversion') version));
           Some ("sets containing this tune", Filter.(Any.set' % Set.exists_version' % Version.tuneis') <$> lwt tune);
-          Option.for_ version (fun version -> ("books containing this version", lwt @@ Filter.(Any.book' % Book.memversiondeep') version));
+          Option.flip_map version (fun version -> ("books containing this version", lwt @@ Filter.(Any.book' % Book.memversiondeep') version));
           Some ("books containing this tune", Filter.(Any.book' % Book.exists_version_deep' % Version.tuneis') <$> lwt tune);
         ];
       div

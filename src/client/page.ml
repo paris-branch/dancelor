@@ -72,7 +72,7 @@ let render p =
           )
           (
             S.from' [] @@
-            flip Lwt.map actions_promise @@ function
+            Lwt.flip_map actions_promise @@ function
             | [] -> []
             | actions ->
               [
@@ -99,7 +99,7 @@ let render p =
         )
         (
           S.from' [] @@
-          flip Lwt.map actions_promise @@ function
+          Lwt.flip_map actions_promise @@ function
           | [] -> []
           | _ -> [Button.make ~icon: (Other Actions) ()]
         )
