@@ -46,7 +46,7 @@ let madge_call_or_404_on_option route maybe_id =
 
 let create ?context tune_id id =
   Main_page.madge_call_or_404 (Tune Get) tune_id @@ fun tune ->
-  madge_call_or_404_on_option (Version Get) id @@ fun version ->
+  madge_call_or_404_on_option (Version Get) id @@ fun specific_version ->
   let%lwt versions_of_this_tune =
     snd
     <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
@@ -55,7 +55,7 @@ let create ?context tune_id id =
   (* If no specific version was provided, grab any available one. FIXME: Some
      more logic here, eg. priorities books or versions that the user likes. *)
   let version =
-    match version with
+    match specific_version with
     | Some version -> Some version
     | None -> List.hd_opt versions_of_this_tune
   in
@@ -65,7 +65,7 @@ let create ?context tune_id id =
       Components.Context_links.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_version tune_id id)
-        (lwt @@ Option.fold version ~some: Any.version ~none: (Any.tune tune));
+        (lwt @@ Option.fold specific_version ~some: Any.version ~none: (Any.tune tune));
     ]
     ~title: (lwt @@ NEString.to_string @@ Tune.one_name' tune)
     ~subtitles: [Formatters.Tune.description' tune]
