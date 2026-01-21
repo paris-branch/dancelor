@@ -142,6 +142,7 @@ let editor user =
         | Everyone -> one ()
         | Select_viewers viewers -> two viewers
       )
+      ~selected_when_empty: 0
       (
         Nil.prepare ~label: "Owners only" () ^::
         Nil.prepare ~label: "Everyone" () ^::

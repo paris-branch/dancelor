@@ -53,6 +53,7 @@ val prepare :
   label: string ->
   cast: ('bundled_value Tuple_elt.t -> 'value) ->
   uncast: ('value -> 'bundled_value Tuple_elt.t) ->
+  ?selected_when_empty: int ->
   ('bundled_value, 'state) Bundle.t ->
   ('value, int option * 'state) Component.s
 (** Prepare a sum of components. The components have to be bundled together. The
