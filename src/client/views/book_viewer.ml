@@ -88,13 +88,13 @@ let table_contents ~this_id contents =
                   dance
               | Book.Dance (dance, Dance_versions versions_and_params) ->
                 Any_result.make_dance_plus_versions_result
-                  ~prefix: [td [txt "Dance"; br (); txt (if NEList.is_singleton versions_and_params then "+Tune" else "+Tunes")]]
+                  ~prefix: [td [txt "Dance"; Any_result.details [txt (if NEList.is_singleton versions_and_params then "+Tune" else "+Tunes")]]]
                   ~context
                   dance
                   versions_and_params
               | Book.Dance (dance, Dance_set (set, params)) ->
                 Any_result.make_dance_plus_set_result
-                  ~prefix: [td [txt "Dance"; br (); txt "+Set"]]
+                  ~prefix: [td [txt "Dance"; Any_result.details [txt "+Set"]]]
                   dance
                   set
                   ~set_params: params

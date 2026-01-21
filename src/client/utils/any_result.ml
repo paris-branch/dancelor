@@ -14,6 +14,8 @@ let row ?(classes = []) ?onclick cells =
     )
     (cells)
 
+let details content = p ~a: [a_class ["mb-0"; "opacity-50"; "lh-sm"]] [small content]
+
 let make_part_result ?classes ?onclick ?(prefix = []) ?(suffix = []) title =
   row ?classes ?onclick (prefix @ [td ~a: [a_colspan 3] [txt @@ NEString.to_string title]] @ suffix)
 
@@ -59,10 +61,8 @@ let make_dance_plus_set_result ?classes ?onclick ?context ?set_params ?(prefix =
     prefix @
     [td [
       Formatters.Dance.name' ?context dance;
-      br ();
-      small ~a: [a_class ["opacity-50"]] [txt "Set: "; Formatters.Set.name' ~link: true ?params: set_params set];
-      br ();
-      small ~a: [a_class ["opacity-50"]] [Formatters.Set.tunes' ~link: true set];
+      details [txt "Set: "; Formatters.Set.name' ~link: true ?params: set_params set];
+      details [Formatters.Set.tunes' ~link: true set];
     ];
     td [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
     td [Formatters.Set.conceptors' ~short: true ?params: set_params set];
@@ -75,8 +75,7 @@ let make_dance_plus_versions_result ?classes ?onclick ?context ?(prefix = []) ?(
     prefix @
     [td [
       Formatters.Dance.name' ?context dance;
-      br ();
-      small ~a: [a_class ["opacity-50"]] [
+      details [
         txt (if NEList.is_singleton versions_and_params then "Tune: " else "Tunes: ");
         Formatters.Version.names_disambiguations_and_sources' versions_and_params
       ];
@@ -109,8 +108,7 @@ let make_set_result ?classes ?onclick ?context ?params ?(prefix = []) ?(suffix =
         Lwt.pause ();%lwt
         lwt [
           Formatters.Set.name' ~link: (onclick = None) ?context ?params set;
-          br ();
-          small ~a: [a_class ["lh-1"; "opacity-50"]] [Formatters.Set.tunes' ~link: true set];
+          details [Formatters.Set.tunes' ~link: true set];
         ]
       );
       L.td (Lwt.pause ();%lwt lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set]);
