@@ -222,7 +222,7 @@ let header_item =
                   );
                   [R.li (
                     S.from' [] @@
-                      match%lwt Madge_client.call_exn Endpoints.Api.(route @@ Person For_user) (Entry.id user) with
+                      match%lwt Environment.person with
                       | None -> lwt_nil
                       | Some person ->
                         lwt [
