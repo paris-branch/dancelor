@@ -19,14 +19,17 @@ type 'value choice
 
 val choice :
   ?checked: bool ->
+  ?onclick: (unit -> unit) ->
   value: 'value ->
   Html_types.label_content_fun elt list ->
   'value choice
 (** Make one choice from the value it must hold, whether it should be checked at
-    the start (defaults to [false]) and its HTML contents. *)
+    the start (defaults to [false]) and its HTML contents. The additional
+    [?onclick] parameter allows plugging in an external action when clicking. *)
 
 val choice' :
   ?checked: bool ->
+  ?onclick: (unit -> unit) ->
   ?value: 'value ->
   Html_types.label_content_fun elt list ->
   'value option choice

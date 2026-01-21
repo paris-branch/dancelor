@@ -53,7 +53,11 @@ module Bundle = struct
     val inner_html : t -> int -> Html_types.div_content_fun elt
     (** Inner HTML of the component at the given index. *)
 
-    val choices : ?offset: int -> ?initial_selected: int -> unit -> int option Choices.choice list
+    val choices :
+      ?offset: int ->
+      ?initial_selected: int ->
+      t ->
+      int option Choices.choice list
     (** One choice per component, starting from the given index. The [?offset]
         argument should only be used by the {!cons} function. *)
 
@@ -107,8 +111,12 @@ module Bundle = struct
       | 0 -> A.inner_html t.a
       | n -> B.inner_html t.b (n - 1)
 
-    let choices ?(offset = 0) ?initial_selected () =
-      Choices.choice' ~value: offset ~checked: (initial_selected = Some offset) [txt A.label] :: B.choices ~offset: (offset + 1) ?initial_selected ()
+    let choices ?(offset = 0) ?initial_selected t =
+      Choices.choice'
+        ~value: offset
+        ~checked: (initial_selected = Some offset)
+        [txt A.label]
+        ~onclick: (fun () -> A.trigger t.a) :: B.choices ~offset: (offset + 1) ?initial_selected t.b
 
     let set t = function
       | Tuple_elt.Zero v -> A.set t.a v;%lwt B.clear t.b;%lwt lwt_unit
@@ -183,13 +191,13 @@ let prepare (type value)(type bundled_value)(type state)
       | Some selected -> S.map (Result.map cast) (Bundle.signal t.bundle selected)
 
   let initialise (initial_selected, initial_states) =
+    let%lwt bundle = Bundle.initialise initial_states in
     let%lwt choices =
       Choices.make_radios'
         ~label
         ~validate: (Option.to_result ~none: "You must make a choice.")
-        (Bundle.choices ?initial_selected ())
+        (Bundle.choices ?initial_selected bundle)
     in
-    let%lwt bundle = Bundle.initialise initial_states in
     lwt {choices; bundle}
 
   let inner_html p =

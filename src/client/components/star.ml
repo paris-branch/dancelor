@@ -57,7 +57,10 @@ let prepare (type value)(type state)
     | first :: _ -> C.focus first
     | [] -> l.button_add_object_dom##focus
 
-  let trigger = focus
+  let trigger l =
+    match S.value l.components with
+    | first :: _ -> C.trigger first
+    | [] -> l.button_add_object_dom##click
 
   let set _ _ = assert false
 
