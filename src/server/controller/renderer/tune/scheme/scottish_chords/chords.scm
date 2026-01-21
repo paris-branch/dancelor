@@ -10,6 +10,15 @@
          (octave (if (<= note 2) 0 -1)))
     (ly:make-pitch octave note alter)))
 
+;; Grab the fifth of a chord by grabbing the third note of the chord; fall back
+;; on second or first note otherwise.
+;;
+(define (grab-fifth notes)
+  (match notes
+    ((_ _ fifth . _) fifth)
+    ((_ fifth) fifth)
+    ((fifth) fifth)))
+
 (define (rewrite-chord-bass-fifth-and-notes chord)
 
   (let* ((notes    (event-chord-pitches  chord))
@@ -21,7 +30,7 @@
          (bass (rewrite-chord-bass bass))
 
          ;; Compute the fifth of the bass.
-         (fifth (caddr notes))
+         (fifth (grab-fifth notes))
          (fifth (rewrite-chord-bass fifth))
 
          ;; We rewrite the chord by rewriting every note in it and rebuilding
