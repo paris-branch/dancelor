@@ -65,7 +65,7 @@ let create ?context tune_id id =
       Components.Context_links.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_version tune_id id)
-        (lwt @@ Option.fold ~none: (Any.tune tune) ~some: Any.version version);
+        (lwt @@ Option.fold version ~some: Any.version ~none: (Any.tune tune));
     ]
     ~title: (lwt @@ NEString.to_string @@ Tune.one_name' tune)
     ~subtitles: [Formatters.Tune.description' tune]

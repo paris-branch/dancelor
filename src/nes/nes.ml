@@ -35,4 +35,5 @@ module Pair = NesPair
 
 (* Monads *)
 
+module Olwt = NesOlwt
 module Rlwt = NesRlwt
