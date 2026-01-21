@@ -61,7 +61,7 @@ let quick_explorer_links links =
                   R.a_class
                     (
                       S.from' [] @@
-                      flip Lwt.map count_lwt @@ function
+                      Lwt.flip_map count_lwt @@ function
                       | 0 -> ["disabled"]
                       | _ -> []
                     );

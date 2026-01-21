@@ -145,7 +145,7 @@ let header_item =
       R.a_class
         (
           S.from' ["nav-item"] @@
-          flip Lwt.map Environment.user @@ function
+          Lwt.flip_map Environment.user @@ function
           | None -> ["nav-item"]
           | Some _ -> ["nav-item"; "dropdown"]
         );
@@ -158,7 +158,7 @@ let header_item =
           ~classes: ["disabled"; "placeholder"]
           ()
       ] @@
-      flip Lwt.map Environment.user @@ function
+      Lwt.flip_map Environment.user @@ function
       | None ->
         [
           Button.make

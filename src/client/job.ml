@@ -104,7 +104,7 @@ let ohnoes () =
   ohnoes
 
 let show_live_status ~on_succeeded status_signal =
-  flip S.map status_signal @@ function
+  S.flip_map status_signal @@ function
     | Registering ->
       [
         Alert.make ~level: Info ~icon: (Job Registering) [
@@ -164,7 +164,7 @@ let status_to_wait_status : status -> wait_status = function
     statuses. It is meant to be used in places where people should not be
     exposed to logs. *)
 let show_placeholder ~on_succeeded status_signal =
-  flip S.map (S.map status_to_wait_status status_signal) @@ function
+  S.flip_map (S.map status_to_wait_status status_signal) @@ function
     | Waiting -> [div_placeholder ~min: 12 ~max: 20 ()]
     | Failed ->
       [

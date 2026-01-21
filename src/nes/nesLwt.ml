@@ -15,3 +15,5 @@ let l2 f a b =
   let%lwt a = a in
   let%lwt b = b in
   Lwt.return (f a b)
+
+let flip_map x f = map f x

@@ -95,7 +95,7 @@ let prepare (type value)(type state)
         R.div
           ~a: [R.a_class (S.map (function [] -> [] | _ -> ["mb-1"]) components)]
           (
-            flip S.map components @@ fun components_ ->
+            S.flip_map components @@ fun components_ ->
             let last_index = List.length components_ - 1 in
             flip List.mapi components_ @@ fun n component ->
             div ~a: [a_class ["row"; "border-start"; "m-0"; "ps-2"; (if n = 0 then "pt-0" else "pt-1")]] (

@@ -83,7 +83,7 @@ module Search = struct
           R.div
             (
               let no_search_suffix = if results_when_no_search <> [] then " Maybe you want one of the following:" else "" in
-              flip S.map (Search_bar.state t.search_bar) @@ function
+              S.flip_map (Search_bar.state t.search_bar) @@ function
                 | No_results -> [Alert.make ~level: Warning [txtf "Your search returned no results.%s" no_search_suffix]]
                 | Errors error -> [Alert.make ~level: Danger [txtf "%s%s" error no_search_suffix]]
                 | Start_typing -> [Alert.make ~level: Info [txtf "Start typing to search.%s" no_search_suffix]]
@@ -97,7 +97,7 @@ module Search = struct
             ~a: [
               R.a_class
                 (
-                  flip S.map (Search_bar.state t.search_bar) @@ fun state ->
+                  S.flip_map (Search_bar.state t.search_bar) @@ fun state ->
                   let show =
                     match state with
                     | Results _ -> true
@@ -136,7 +136,7 @@ module Search = struct
                     [
                       R.tbody
                         (
-                          flip S.map (S.Pair.pair (fst @@ slice t.pagination) (Search_bar.state t.search_bar))
+                          S.flip_map (S.Pair.pair (fst @@ slice t.pagination) (Search_bar.state t.search_bar))
                             @@ fun (_, state) ->
                             match state with
                             | Results results ->
@@ -161,7 +161,7 @@ module Search = struct
           div
             ~a: [
               R.a_class (
-                flip S.map (Search_bar.state t.search_bar) @@ function
+                S.flip_map (Search_bar.state t.search_bar) @@ function
                   | Searching -> ["my-4"]
                   | _ -> ["d-none"]
               )

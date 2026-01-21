@@ -82,7 +82,7 @@ module Build (Getters : Getters.S) = struct
         contents
 
     let duplicate_set book =
-      flip Lwt.map (sets_from_contents' book) @@ fun sets ->
+      Lwt.flip_map (sets_from_contents' book) @@ fun sets ->
       match List.sort Entry.compare' sets with
       | [] -> []
       | first_set :: other_sets ->

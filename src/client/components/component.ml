@@ -47,7 +47,7 @@ let set : type value state. (value, state) t -> value -> unit Lwt.t = function C
 let inner_html : type value state. (value, state) t -> Html_types.div_content_fun elt = function Component ((module C), c) -> C.inner_html c
 
 let case_errored ~no ~yes signal =
-  flip S.map signal @@ function
+  S.flip_map signal @@ function
     | Error msg -> yes msg
     | _ -> no
 
@@ -62,7 +62,7 @@ let html'
       div ~a: [a_class ["row"; "align-items-center"]] [
         label ~a: [a_class ["col"]] [txt C.label];
         R.div ~a: [a_class ["col-auto"]] (
-          flip S.map (C.actions c) @@ function
+          S.flip_map (C.actions c) @@ function
             | [] -> [Button.make ~classes: ["invisible"] ~icon: (Action Add) ()] (* for spacing *)
             | actions -> actions
         );

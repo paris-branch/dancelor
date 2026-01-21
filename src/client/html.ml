@@ -61,6 +61,8 @@ module S = struct
       set_setter new_setter;
       (* fire it asynchronously *)
       Lwt.async (fun () -> new_setter)
+
+  let flip_map x f = map f x
 end
 
 (** {2 TyXML aliases} *)

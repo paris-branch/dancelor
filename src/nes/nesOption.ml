@@ -23,4 +23,4 @@ let value' ~default = function
   | None -> default ()
   | Some x -> x
 
-let for_ x f = map f x
+let flip_map x f = map f x
