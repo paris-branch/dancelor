@@ -19,6 +19,7 @@ val make :
   ?make_more_results:
   (('model, 'access) Entry.t ->
   Html_types.tr Html.elt list S.t) ->
+  ?results_when_no_search: ('model, 'access) Entry.t list Lwt.t ->
   model_name: string ->
   ?create_dialog_content: ((('model, 'access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) ->
   'model Entry.id option ->
@@ -43,6 +44,7 @@ val prepare :
   ?make_more_results:
   (('model, 'access) Entry.t ->
   Html_types.tr Html.elt list S.t) ->
+  ?results_when_no_search: ('model, 'access) Entry.t list Lwt.t ->
   model_name: string ->
   ?create_dialog_content: ((('model, 'access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) ->
   unit ->
