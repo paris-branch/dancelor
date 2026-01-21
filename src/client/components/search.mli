@@ -20,7 +20,8 @@ val make :
   'result t
 
 val render :
-  make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Html_types.tr Html.elt) ->
+  make_result: (?context: Common.Endpoints.Page.context S.t -> 'result -> Html_types.tr Html.elt) ->
+  ?results_when_no_search: 'result list ->
   ?attached_buttons: [< Html_types.div_content_fun >`I `Input] elt list ->
   ?show_table_headers: bool ->
   'result t ->
@@ -43,7 +44,8 @@ module Quick : sig
     return: ('dialog_result option -> unit) ->
     dialog_title: string Lwt.t ->
     ?dialog_buttons: Html_types.div_content_fun elt list ->
-    make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Html_types.tr Html.elt) ->
+    make_result: (?context: Common.Endpoints.Page.context S.t -> 'result -> Html_types.tr Html.elt) ->
+    ?results_when_no_search: 'result list ->
     'result t ->
     Page.t Lwt.t
 end

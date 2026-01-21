@@ -42,7 +42,7 @@ let open_quick_search () =
         ~onclick: (fun () -> quick_search_to_explorer (S.value @@ Components.Search.Quick.text quick_search))
         ();
     ]
-    ~make_result: (fun ~context result -> Any_result.make_result ~context result)
+    ~make_result: (fun ?context result -> Any_result.make_result ?context result)
     quick_search
 
 let nav_item_explore =
