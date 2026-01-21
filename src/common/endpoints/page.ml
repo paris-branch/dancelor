@@ -179,5 +179,5 @@ module Make_describe (Model : Model_builder.S) = struct
     in
     match madge_match_apply_all @@ all' () with
     | Some page -> page ()
-    | None -> (* FIXME: 404 page *) assert false
+    | None -> (* 404 page *) lwt_none
 end
