@@ -48,7 +48,8 @@ module Search = struct
       {pagination; search_bar; min_characters}
 
   let render
-      ~make_result
+      ~(make_result : ?context: Common.Endpoints.Page.context S.t -> 'result -> Html_types.tr Html.elt)
+      ?(results_when_no_search = [])
       ?(attached_buttons = [])
       ?(show_table_headers = true)
       t
@@ -58,16 +59,12 @@ module Search = struct
         (
           (* Alert for when the user is not connected. *)
           R.div
+            ~a: [a_class ["mb-3"]]
             (
               S.from' [] @@
                 match%lwt Madge_client.call_exn Common.Endpoints.Api.(route @@ User Status) with
                 | Some _ -> lwt_nil
-                | None ->
-                  lwt [
-                    div ~a: [a_class ["alert"; "alert-info"]; a_role ["alert"]] [
-                      txt "You are not connected, and therefore are only seeing public items.";
-                    ];
-                  ]
+                | None -> lwt [Alert.make ~level: Info [txt "You are not connected, and therefore are only seeing public items."]]
             )
         );
         (
@@ -85,12 +82,13 @@ module Search = struct
           (* Info or alert box, eg. to inform that one needs to type. *)
           R.div
             (
+              let no_search_suffix = if results_when_no_search <> [] then " Maybe you want one of the following:" else "" in
               flip S.map (Search_bar.state t.search_bar) @@ function
-                | No_results -> [div ~a: [a_class ["alert"; "alert-warning"]] [txt "Your search returned no results."]]
-                | Errors error -> [div ~a: [a_class ["alert"; "alert-danger"]] [txt error]]
-                | Start_typing -> [div ~a: [a_class ["alert"; "alert-info"]] [txt "Start typing to search."]]
-                | Continue_typing -> [div ~a: [a_class ["alert"; "alert-info"]] [txt (spf "Type at least %s characters." (Int.to_english_string t.min_characters))]]
-                | _ -> []
+                | No_results -> [Alert.make ~level: Warning [txtf "Your search returned no results.%s" no_search_suffix]]
+                | Errors error -> [Alert.make ~level: Danger [txtf "%s%s" error no_search_suffix]]
+                | Start_typing -> [Alert.make ~level: Info [txtf "Start typing to search.%s" no_search_suffix]]
+                | Continue_typing -> [Alert.make ~level: Info [txtf "Type at least %s characters.%s" (Int.to_english_string t.min_characters) no_search_suffix]]
+                | Searching | Results _ -> []
             )
         );
         (
@@ -99,10 +97,14 @@ module Search = struct
             ~a: [
               R.a_class
                 (
-                  flip S.map (Search_bar.state t.search_bar) @@ function
-                    | Results _ when show_table_headers -> ["my-4"]
-                    | Results _ -> []
-                    | _ -> ["d-none"]
+                  flip S.map (Search_bar.state t.search_bar) @@ fun state ->
+                  let show =
+                    match state with
+                    | Results _ -> true
+                    | Start_typing | Continue_typing | No_results | Errors _ -> results_when_no_search <> []
+                    | _ -> false
+                  in
+                  if show then if show_table_headers then ["my-4"] else [] else ["d-none"]
                 )
             ]
             [
@@ -114,44 +116,23 @@ module Search = struct
               div
                 ~a: [a_class ["table-responsive"]]
                 [
+                  let make_table_headers (thead : ('a, 'b, [< Html_types.thead | Html_types.tfoot]) Html.star) =
+                    thead
+                      ~a: [a_class ["table-primary"]]
+                      [
+                        tr [
+                          th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]];
+                          th [txt "Name"];
+                          th [txt "Kind/date"];
+                          th [txt "By"];
+                          th []
+                        ]
+                      ]
+                  in
                   tablex
                     ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-1"]]
-                    ?thead: (
-                      if show_table_headers then
-                        Some
-                          (
-                            thead
-                              ~a: [a_class ["table-primary"]]
-                              [
-                                tr [
-                                  th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]];
-                                  th [txt "Name"];
-                                  th [txt "Kind/date"];
-                                  th [txt "By"];
-                                  th []
-                                ]
-                              ]
-                          )
-                      else None
-                    )
-                    ?tfoot: (
-                      if show_table_headers then
-                        Some
-                          (
-                            tfoot
-                              ~a: [a_class ["table-primary"]]
-                              [
-                                tr [
-                                  th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]];
-                                  th [txt "Name"];
-                                  th [txt "Kind/date"];
-                                  th [txt "By"];
-                                  th []
-                                ]
-                              ]
-                          )
-                      else None
-                    )
+                    ?thead: (if show_table_headers then Some (make_table_headers thead) else None)
+                    ?tfoot: (if show_table_headers then Some (make_table_headers tfoot) else None)
                     [
                       R.tbody
                         (
@@ -161,7 +142,9 @@ module Search = struct
                             | Results results ->
                               let context = S.map Common.Endpoints.Page.in_search @@ Search_bar.text t.search_bar in
                               List.map (make_result ~context) results
-                            | _ -> []
+                            | Start_typing | Continue_typing | No_results | Errors _ ->
+                              List.map make_result results_when_no_search
+                            | Searching -> []
                         )
                     ];
                 ];
@@ -225,6 +208,7 @@ module Quick = struct
       ~dialog_title
       ?(dialog_buttons = [])
       ~make_result
+      ?results_when_no_search
       quick_search
     =
     Page.make'
@@ -232,6 +216,7 @@ module Quick = struct
       ~on_load: (fun () -> Search_bar.focus @@ Search.search_bar quick_search.search)
       [Search.render
         ~make_result
+        ?results_when_no_search
         ~show_table_headers: false
         quick_search.search;
       ]

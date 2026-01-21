@@ -22,3 +22,6 @@ val user : Model.User.entry option Lwt.t
     use {!user_now}. This might however answer [None] even though we are
     connected, if {!user} didn't have time to resolve. *)
 val user_now : unit -> Model.User.entry option
+
+(** The person corresponding to the user that is currently logged in. *)
+val person : Model.Person.entry option Lwt.t

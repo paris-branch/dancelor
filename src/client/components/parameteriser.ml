@@ -70,7 +70,7 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_value)(t
           Button.make
             ~icon: (Action Parameterise)
             ~classes: ["btn-outline-secondary"]
-            ~tooltip: "Edit parameters"
+            ~tooltip: ("Edit this " ^ Editor.(key % s) p.editor)
             ~onclick: (fun () ->
               let%lwt comp_descr =
                 match S.value @@ C.signal p.comp with

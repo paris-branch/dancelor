@@ -31,3 +31,8 @@ let start_ping_routine () =
 let user = Madge_client.call_exn Endpoints.Api.(route @@ User Status)
 
 let user_now () = match Lwt.state user with Return user -> user | _ -> None
+
+let person =
+  match%lwt user with
+  | None -> lwt_none
+  | Some user -> Madge_client.call_exn Endpoints.Api.(route @@ Person For_user) (Entry.id user)

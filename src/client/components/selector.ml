@@ -20,6 +20,7 @@ let prepare_gen (type model)(type access)(type model_validated)
   ?(make_more_results =
   (const (S.const []): (model, access) Entry.t ->
     Html_types.tr Html.elt list S.t))
+  ?(results_when_no_search = lwt_nil)
   ~model_name
   ?(create_dialog_content : (((model, access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) option)
   ~(validate : (model, access) Entry.t option -> (model_validated, string) Result.t)
@@ -66,7 +67,7 @@ let prepare_gen (type model)(type access)(type model_validated)
           Button.make
             ~classes: ["btn-warning"]
             ~icon: (Action Clear)
-            ~tooltip: "Clear the selection. It cannot be recovered."
+            ~tooltip: (spf "Clear the selected %s. It cannot be recovered." model_name)
             ~onclick: (fun _ -> s.set None; lwt_unit)
             ();
         ]
@@ -91,17 +92,19 @@ let prepare_gen (type model)(type access)(type model_validated)
       lwt_unit
     );
     let select_model () =
+      let%lwt results_when_no_search = results_when_no_search in
       let%lwt quick_search_result =
         Page.open_dialog @@ fun quick_search_return ->
         Search.Quick.render
           quick_search
           ~return: quick_search_return
           ~dialog_title: (lwt label)
-          ~make_result: (fun ~context: _ result ->
+          ~make_result: (fun ?context: _ result ->
             make_result
               ~onclick: (fun () -> lwt @@ quick_search_return (Some result))
               result
           )
+          ~results_when_no_search
           ~dialog_buttons: (
             match create_dialog_content with
             | None -> []
@@ -127,7 +130,7 @@ let prepare_gen (type model)(type access)(type model_validated)
           )
       in
       Search_bar.clear @@ Search.Quick.search_bar quick_search;
-      flip Option.iter quick_search_result (fun r -> set (Some r));
+      Option.iter (set % some) quick_search_result;
       lwt_unit
     in
     let select_button =
@@ -176,6 +179,7 @@ let prepare
     ~make_descr
     ~make_result
     ?make_more_results
+    ?results_when_no_search
     ~model_name
     ?create_dialog_content
     ()
@@ -188,6 +192,7 @@ let prepare
     ~make_descr
     ~make_result
     ?make_more_results
+    ?results_when_no_search
     ~model_name
     ?create_dialog_content
     ~validate: (Option.to_result ~none: "You must select an element.")
@@ -201,6 +206,7 @@ let make
     ~make_descr
     ~make_result
     ?make_more_results
+    ?results_when_no_search
     ~model_name
     ?create_dialog_content
     initial_value
@@ -214,6 +220,7 @@ let make
         ~make_descr
         ~make_result
         ?make_more_results
+        ?results_when_no_search
         ~model_name
         ?create_dialog_content
         ()

@@ -69,6 +69,7 @@ type ('result, 'product, 'value, 'state) s = {
   bundle: ('value, 'state) bundle;
 }
 
+let key {key; _} = key
 let empty (type value)(type state) {bundle = (Bundle(module C): (value, state) bundle); _} : state = C.empty
 let state_of_yojson (type value)(type state) {bundle = (Bundle(module C): (value, state) bundle); _} = C.state_of_yojson
 let state_to_yojson (type value)(type state) {bundle = (Bundle(module C): (value, state) bundle); _} = C.state_to_yojson
@@ -99,6 +100,7 @@ type ('result, 'product, 'value, 'state) t = {
 }
 [@@deriving fields]
 
+let s e = e.s
 let state e = Component.state e.editor
 let set e r = Component.set e.editor <=< e.s.disassemble =<< e.s.unsubmit r
 let clear e = Component.clear e.editor
