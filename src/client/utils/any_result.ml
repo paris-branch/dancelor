@@ -24,7 +24,7 @@ let make_source_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) 
     (
       prefix @
       [L.td (Lwt.pause ();%lwt lwt [Formatters.Source.name' ~link: (onclick = None) ?context source]);
-      L.td (Lwt.pause ();%lwt lwt [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Source.date' source))]);
+      L.td (Lwt.pause ();%lwt lwt [txt (Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) (Source.date' source))]);
       L.td (Lwt.pause ();%lwt List.singleton <$> (Formatters.Person.names' ~short: true <$> Source.editors' source));
       ] @
       suffix
@@ -93,7 +93,7 @@ let make_book_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) bo
     (
       prefix @
       [L.td (Lwt.pause ();%lwt lwt [Formatters.Book.title' ~link: (onclick = None) ?context book]);
-      L.td (Lwt.pause ();%lwt lwt [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date' book))]);
+      L.td (Lwt.pause ();%lwt lwt [txt (Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) (Book.date' book))]);
       L.td (Lwt.pause ();%lwt lwt [Formatters.Book.editors' book]);
       ] @
       suffix
