@@ -45,26 +45,18 @@ let of_yojson = function
   | `String s -> Option.to_result ~none: "NesPartialDate.of_yojson: not a valid date" @@ from_string s
   | _ -> Error "NesPartialDate.of_yojson: not a JSON string"
 
-let month_to_pretty_string month =
-  [|
-    "January";
-    "February";
-    "March";
-    "April";
-    "May";
-    "June";
-    "July";
-    "August";
-    "September";
-    "October";
-    "November";
-    "December"
-  |].(month - 1)
+let month_to_pretty_string ?(short = false) month =
+  (
+    if short then
+        [|"Jan"; "Feb"; "Mar"; "Apr"; "May"; "Jun"; "Jul"; "Aug"; "Sep"; "Oct"; "Nov"; "Dec"|]
+    else
+        [|"January"; "February"; "March"; "April"; "May"; "June"; "July"; "August"; "September"; "October"; "November"; "December"|]
+  ).(month - 1)
 
-let to_pretty_string ?(at = false) = function
+let to_pretty_string ?(at = false) ?short = function
   | Year year -> spf "%s%d" (if at then "in " else "") year
-  | YearMonth (year, month) -> spf "%s%s %d" (if at then "in " else "") (month_to_pretty_string month) year
-  | YearMonthDay (year, month, day) -> spf "%s%d %s %d" (if at then "on " else "") day (month_to_pretty_string month) year
+  | YearMonth (year, month) -> spf "%s%s %d" (if at then "in " else "") (month_to_pretty_string ?short month) year
+  | YearMonthDay (year, month, day) -> spf "%s%d %s %d" (if at then "on " else "") day (month_to_pretty_string ?short month) year
 
 (** {2 Helpers to Implement {!NesDate}}
 
