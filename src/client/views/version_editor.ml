@@ -213,6 +213,7 @@ let editor =
       Selector.prepare
         ~make_descr: (lwt % NEString.to_string % Model.Person.name')
         ~make_result: (Any_result.make_person_result ?context: None)
+        ~results_when_no_search: (Option.to_list <$> Environment.person)
         ~label: "Arranger"
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create
