@@ -27,10 +27,10 @@ let dispatch uri =
     | Person -> (fun context id -> Person_viewer.create ?context id)
     | Person_add -> Person_editor.create Create_with_local_storage
     | Person_edit -> Person_editor.create <=< (Components.Editor.edit % Option.get <%> Model.Person.get)
-    | Version -> (fun context id -> Version_viewer.create ?context id)
+    | Version -> (fun context tune_id id -> Version_viewer.create ?context tune_id (Some id))
     | Version_add -> Version_editor.create Create_with_local_storage
     | Version_edit -> Version_editor.create <=< (Components.Editor.edit % Option.get <%> Model.Version.get)
-    | Tune -> (fun context id -> Tune_viewer.create ?context id)
+    | Tune -> (fun context id -> Version_viewer.create ?context id None)
     | Tune_add -> Tune_editor.create Create_with_local_storage
     | Tune_edit -> Tune_editor.create <=< (Components.Editor.edit % Option.get <%> Model.Tune.get)
     | Set -> (fun context id -> Set_viewer.create ?context id)

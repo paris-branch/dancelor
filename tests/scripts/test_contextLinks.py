@@ -32,7 +32,7 @@ class TestContextLinks():
     ## check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/set/ului-yd9x-o35w")
     self.driver.find_element(By.XPATH, "(//a[text() = 'Tam Lin'])[2]").click()
-    self.wait.until(EC.url_to_be("http://localhost:8080/version/xzzb-wasm-babe?context=%5B%22In_set%22%2C%22ului-yd9x-o35w%22%2C1%5D"))
+    self.wait.until(EC.url_to_be("http://localhost:8080/tune/qdod-ad7l-8gr2/xzzb-wasm-babe?context=%5B%22In_set%22%2C%22ului-yd9x-o35w%22%2C1%5D"))
 
   def test_fromBook(self):
     ## From the book “The Tam Lin Book”, click on the set “Tam Lin Thrice” and
@@ -47,7 +47,7 @@ class TestContextLinks():
     ## that clicking on the arrow to the left goes to “The Tam Lin Book”.
     self.driver.get("http://localhost:8080/set/ului-yd9x-o35w?context=%5B%22In_search%22%2C%22tam%22%5D")
     self.driver.find_element(By.XPATH, "//a[contains(@class, 'btn')]//i[contains(@class, 'bi-arrow-left')]").click()
-    self.wait.until(EC.url_to_be("http://localhost:8080/version/xzzb-wasm-babe?context=%5B%22In_search%22%2C%22tam%22%5D"))
+    self.wait.until(EC.url_to_be("http://localhost:8080/tune/qdod-ad7l-8gr2/xzzb-wasm-babe?context=%5B%22In_search%22%2C%22tam%22%5D"))
 
   def test_bannerUndoGoesToContext(self):
     ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check
