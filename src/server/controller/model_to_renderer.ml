@@ -23,6 +23,7 @@ let version_to_lilypond_content ~version_params version =
        we could not find a fold for this structure, then at least we produce the
        instruction to play that structure as we generate a destructured output *)
     match Model.Version.content version with
+    | No_content -> None
     | Monolithic _ -> None
     | Destructured _ ->
       match structure with

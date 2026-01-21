@@ -147,7 +147,7 @@ let content () =
   Plus.prepare
     ~label: "Content"
     ~cast: (function
-      | Zero ((bars, structure), lilypond) -> Model.Version.Content.Monolithic {bars; structure; lilypond}
+      | Zero() -> Model.Version.Content.No_content
       | Succ Zero (default_structure, (parts, transitions)) ->
         let wrap_part (melody, chords) = {Model.Version.Voices.melody; chords} in
         Model.Version.Content.Destructured
@@ -156,10 +156,12 @@ let content () =
             parts = NEList.map wrap_part parts;
             transitions = List.map (fun ((from, to_), part) -> (from, to_, wrap_part part)) transitions;
           }
+      | Succ Succ Zero ((bars, structure), lilypond) ->
+        Model.Version.Content.Monolithic {bars; structure; lilypond}
       | _ -> assert false (* types guarantee this is not reachable *)
     )
     ~uncast: (function
-      | Model.Version.Content.Monolithic {bars; structure; lilypond} -> Zero ((bars, structure), lilypond)
+      | Model.Version.Content.No_content -> Zero ()
       | Model.Version.Content.Destructured {default_structure; parts; transitions} ->
         let unwrap_part Model.Version.Voices.{melody; chords} = (melody, chords) in
         one (
@@ -169,12 +171,14 @@ let content () =
             List.map (fun (from, to_, part) -> ((from, to_), unwrap_part part)) transitions
           )
         )
+      | Model.Version.Content.Monolithic {bars; structure; lilypond} -> two ((bars, structure), lilypond)
     )
     ~selected_when_empty: 0
     (
       let open Plus.Bundle in
-      content_full () ^::
+      Nil.prepare ~label: "No content" () ^::
       content_in_parts () ^::
+      content_full () ^::
       nil
     )
 

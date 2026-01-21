@@ -154,10 +154,12 @@ let kind_and_structure version =
   with_span_placeholder @@
     let%lwt kind = Model.Tune.kind' <$> Model.Version.tune version in
     match Model.Version.content version with
-    | Monolithic {bars; structure; _} ->
-      lwt [txt @@ Kind.Version.to_string (bars, kind) ^ " (" ^ NEString.to_string (Model.Version.Structure.to_string structure) ^ ")"]
+    | No_content ->
+      lwt [txt "(no cont.)"]
     | Destructured _ ->
       lwt [txt @@ "∗ " ^ Kind.Base.to_string kind ^ " (destr.)"]
+    | Monolithic {bars; structure; _} ->
+      lwt [txt @@ Kind.Version.to_string (bars, kind) ^ " (" ^ NEString.to_string (Model.Version.Structure.to_string structure) ^ ")"]
 
 let kind_and_structure' = kind_and_structure % Entry.value
 

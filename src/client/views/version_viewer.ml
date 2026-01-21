@@ -153,6 +153,7 @@ let create ?context tune_id id =
             (
               let key = Model.Version.key' version in
               match Model.Version.content' version with
+              | No_content -> []
               | Monolithic {bars; structure; _} ->
                 [
                   txtf
@@ -191,6 +192,7 @@ let create ?context tune_id id =
         ];
         (
           match Model.Version.content' version with
+          | No_content -> div [Alert.make ~level: Info [txt "This version does not have any content."]]
           | Monolithic _ -> Components.Version_snippets.make version
           | Destructured {default_structure; _} -> Components.Version_snippets.make version ~params: (Model.Version_parameters.make ~structure: default_structure ());
         )];
