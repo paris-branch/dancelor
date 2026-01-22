@@ -83,16 +83,9 @@ let name_gen version_gen =
 let name = name_gen % Either.left
 let name' ?(link = true) ?context version = name_gen @@ Right (version, link, context)
 
-let name_disambiguation_and_sources_gen ?(params = Model.Version_parameters.none) version =
-  let the_version = match version with Right (version, _, _) -> Entry.value version | Left version -> version in
-  let disambiguation_and_sources_block =
-    let version =
-      match version with
-      | Left version -> version
-      | Right (version, _, _) -> Entry.value version
-    in
-    disambiguation_and_sources_internal version
-  in
+let name_disambiguation_and_sources_gen ?(params = Model.Version_parameters.none) version_gen =
+  let (version, link) = match version_gen with Right (version, link, _) -> (Entry.value version, link) | Left version -> (version, false) in
+  let disambiguation_and_sources_block = disambiguation_and_sources_internal ~link version in
   let display_name_block =
     match Model.Version_parameters.display_name params with
     | None -> []
@@ -108,12 +101,12 @@ let name_disambiguation_and_sources_gen ?(params = Model.Version_parameters.none
     | None -> []
     | Some transposition ->
       let key =
-        Music.Key.with_pitch (fun source -> Transposition.target_pitch ~source transposition) (Model.Version.key the_version)
+        Music.Key.with_pitch (fun source -> Transposition.target_pitch ~source transposition) (Model.Version.key version)
       in
         [txtf " [in %s / %+d m2]" (Music.Key.to_pretty_string key) (Transposition.to_semitones transposition)]
   in
   span (
-    [name_gen version; span ~a: [a_class ["opacity-50"]] disambiguation_and_sources_block] @
+    [name_gen version_gen; span ~a: [a_class ["opacity-50"]] disambiguation_and_sources_block] @
     display_name_block @ structure_block @ transposition_block
   )
 
