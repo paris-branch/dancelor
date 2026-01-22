@@ -122,17 +122,21 @@ let name_disambiguation_and_sources' ?(link = true) ?context ?params version =
 
 let composer_and_arranger ?(short = false) ?link ?(params = Model.Version_parameters.none) version =
   with_span_placeholder @@
-    let%lwt composer_block = Tune.composers' ?links: link ~short <$> Model.Version.tune version in
+    let%lwt tune = Model.Version.tune version in
+    let composer_block = Tune.composers' ?links: link ~short tune in
+    let%lwt exist_composers = (not % List.is_empty) <$> Model.Tune.composers' tune in
     let%lwt arranger_block =
       match%lwt Model.Version.arrangers version with
       | [] -> lwt_nil
       | arrangers ->
         let arr = if short then "arr." else "arranged by" in
         let arranger_block = Person.names' ~short ?links: link arrangers in
-        lwt
-          [
-            span ~a: [a_class ["opacity-50"]] [txt (spf ", %s " arr); arranger_block]
+        lwt [
+          span ~a: [a_class ["opacity-50"]] [
+            txtf "%s%s " (if exist_composers then ", " else "") arr;
+            arranger_block;
           ]
+        ]
     in
     let display_composer_block =
       match Model.Version_parameters.display_composer params with
