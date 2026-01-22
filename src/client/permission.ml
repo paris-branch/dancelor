@@ -1,31 +1,34 @@
 open Nes
-open Common
 
-let can_create () =
-  Madge_client.call_exn Endpoints.Api.(route @@ User Can_create)
+(** {2 Common tests and assertions} *)
 
-let can_admin () =
-  Madge_client.call_exn Endpoints.Api.(route @@ User Can_admin)
+include Common.Permission_builder
+include Make(Model.User)
 
-type can_get_private =
-  | Everyone (** everyone can see this entry *)
-  | Owner (** you can see this entry because you are its owner *)
-  | Viewer (** you can see this entry because its owner marked you as a viewer *)
-  | Omniscient_administrator (** you can see this entry because you are an administrator with omniscience enabled *)
+(** {3 Tests} *)
 
-let (<|>) = Option.(choose ~tie: first)
+let can can = fun () ->
+  can <$> Environment.user
 
-let can_get_private entry : can_get_private option Lwt.t =
-  let%lwt user = Environment.user in
-  let access = Entry.access entry in
-  let visibility = Entry.Access.Private.visibility access in
-  lwt (
-    (match visibility with Everyone -> Some Everyone | _ -> None)
-    <|> Option.bind
-        user
-        (fun user ->
-          (if NEList.exists (Entry.Id.equal' (Entry.id user)) (Entry.Access.Private.owners access) then Some Owner else None)
-          <|> (match visibility with Select_viewers viewers when NEList.exists (Entry.Id.equal' (Entry.id user)) viewers -> Some Viewer | _ -> None)
-          <|> (if Model.User.is_omniscient_administrator' user then Some Omniscient_administrator else None)
-        )
-  )
+let can_get_public entry = can (flip can_get_public entry) ()
+
+let can_create_public = can can_create_public
+
+let can_update_public entry = can (flip can_update_public entry) ()
+
+let can_delete_public entry = can (flip can_delete_public entry) ()
+
+let can_get_private entry = can (flip can_get_private entry) ()
+
+let can_create_private = can can_create_private
+
+let can_update_private entry = can (flip can_update_private entry) ()
+
+let can_delete_private entry = can (flip can_delete_private entry) ()
+
+(** {2 Ad-hoc tests and assertions} *)
+
+let can_administrate () =
+  match%lwt Environment.user with
+  | None -> lwt_false
+  | Some user -> lwt @@ Model.User.is_administrator' user

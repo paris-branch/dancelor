@@ -37,8 +37,6 @@ end
 type (_, _, _) t =
   | Get : ((User.t Entry.Id.t -> 'w), 'w, Model_builder.Core.User.entry) t
   | Status : ('w, 'w, Model_builder.Core.User.entry option) t
-  | Can_create : ('w, 'w, bool) t
-  | Can_admin : ('w, 'w, bool) t
   | Sign_in : ((string -> string -> bool -> 'w), 'w, Model_builder.Core.User.entry option) t
   | Sign_out : ('w, 'w, unit) t
   | Create : ((User.t -> 'w), 'w, Model_builder.Core.User.entry * string) t
@@ -56,7 +54,5 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Sign_out -> literal "sign-out" @@ post (module JUnit)
     | Create -> literal "create" @@ body "user" (module User) @@ post (module JPair(Entry.JPublic(User))(JString))
     | Reset_password -> literal "reset-password" @@ body "username" (module JString) @@ body "token" (module JString) @@ body "password" (module JString) @@ post (module JUnit)
-    | Can_create -> literal "can-create" @@ post (module JBool)
-    | Can_admin -> literal "can-admin" @@ post (module JBool)
     | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.User) @@ get (module JPair(JInt)(JList(Entry.JPublic(User))))
     | Set_omniscience -> literal "set-omniscience" @@ body "value" (module JBool) @@ put (module JUnit)

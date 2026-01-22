@@ -324,7 +324,8 @@ let disassemble (book, access) =
 
 let create mode =
   let%lwt user = Option.map Entry.id <$> Environment.user in
-  Main_page.assert_can_create @@ fun () ->
+  (* FIXME: if [mode] is an edition, then we should assert_can_update_private *)
+  Main_page.assert_can_create_private @@ fun () ->
   Editor.make_page
     ~key: "book"
     ~icon: (Model Book)

@@ -42,7 +42,7 @@ let sign_out env =
   | Some user -> Environment.sign_out env user
 
 let create env user =
-  Permission.assert_can_admin env @@ fun _admin ->
+  Permission.assert_can_administrate env @@ fun _admin ->
   (* FIXME: A module for usernames that reject malformed ones *)
   (* match Entry.Id.check username with *)
   (* | false -> Madge_server.shortcut_bad_request "The username does not have the right shape." *)
@@ -93,11 +93,8 @@ let reset_password username token password =
               Entry.Access.Public
         )
 
-let can_create env = lwt @@ Permission.can_create_public env
-let can_admin env = lwt @@ Permission.can_admin env
-
 let set_omniscience env value =
-  Permission.assert_can_admin env @@ fun user ->
+  Permission.assert_can_administrate env @@ fun user ->
   ignore
   <$> Database.User.update
       (Entry.id user)
@@ -134,7 +131,5 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a 
   | Sign_out -> sign_out env
   | Create -> create env
   | Reset_password -> reset_password
-  | Can_create -> can_create env
-  | Can_admin -> can_admin env
   | Search -> search env
   | Set_omniscience -> set_omniscience env
