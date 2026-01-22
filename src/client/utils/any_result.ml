@@ -9,6 +9,7 @@ let row ?(classes = []) ?onclick cells =
     ~a: (
       List.filter_map id [
         Some (a_class classes);
+        Option.map (fun _ -> a_style "cursor: pointer;") onclick;
         Option.map (fun f -> a_onclick (fun _ -> Lwt.async f; true)) onclick;
       ]
     )
