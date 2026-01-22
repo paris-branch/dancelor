@@ -23,4 +23,6 @@ let value' ~default = function
   | None -> default ()
   | Some x -> x
 
+let map_to_list f x = to_list @@ map f x
 let flip_map x f = map f x
+let flip_map_to_list x f = map_to_list f x

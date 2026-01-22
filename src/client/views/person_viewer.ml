@@ -16,24 +16,21 @@ let create ?context id =
     ]
     ~title: (lwt @@ NEString.to_string @@ Person.name' person)
     ~share: (Person person)
-    ~actions: (
-      lwt @@
-      [Button.make_a
-        ~label: "Edit"
-        ~icon: (Action Edit)
-        ~href: (S.const @@ Endpoints.Page.(href Person_edit) id)
-        ~dropdown: true
-        ();
-      Action.delete
-        ~model: "person"
-        ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Person Delete) (Entry.id person))
-        ();
-      ] @ (
-        match Person.scddb_id' person with
-        | None -> []
-        | Some scddb_id -> [Action.scddb Person scddb_id]
-      )
-    )
+    ~actions: [
+      lwt [
+        Button.make_a
+          ~label: "Edit"
+          ~icon: (Action Edit)
+          ~href: (S.const @@ Endpoints.Page.(href Person_edit) id)
+          ~dropdown: true
+          ();
+        Action.delete
+          ~model: "person"
+          ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Person Delete) (Entry.id person))
+          ();
+      ];
+      (lwt @@ Option.map_to_list (Action.scddb Person) (Person.scddb_id' person));
+    ]
     [
       div (
         if Model.Person.composed_tunes_are_public' person then

@@ -29,24 +29,21 @@ let create ?context id =
       );
     ]
     ~share: (Dance dance)
-    ~actions: (
-      lwt @@
-      [Button.make_a
-        ~label: "Edit"
-        ~icon: (Action Edit)
-        ~href: (S.const @@ Endpoints.Page.(href Dance_edit) id)
-        ~dropdown: true
-        ();
-      Action.delete
-        ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Dance Delete) (Entry.id dance))
-        ~model: "dance"
-        ();
-      ] @ (
-        match Dance.scddb_id' dance with
-        | None -> []
-        | Some scddb_id -> [Action.scddb Dance scddb_id]
-      );
-    )
+    ~actions: [
+      lwt [
+        Button.make_a
+          ~label: "Edit"
+          ~icon: (Action Edit)
+          ~href: (S.const @@ Endpoints.Page.(href Dance_edit) id)
+          ~dropdown: true
+          ();
+        Action.delete
+          ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Dance Delete) (Entry.id dance))
+          ~model: "dance"
+          ();
+      ];
+      (lwt @@ Option.map_to_list (Action.scddb Dance) (Dance.scddb_id' dance));
+    ]
     [
       div
         (

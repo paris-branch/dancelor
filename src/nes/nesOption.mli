@@ -32,5 +32,11 @@ val fold' : none: (unit -> 'a) -> some: ('b -> 'a) -> 'b option -> 'a
 val value' : default: (unit -> 'a) -> 'a option -> 'a
 (** Variant of {!default} where [~default] is a thunk. *)
 
+val map_to_list : ('a -> 'b) -> 'a option -> 'b list
+(** [map_to_list f x] is a convenient shortcut for [to_list @@ map f x]. *)
+
 val flip_map : 'a option -> ('a -> 'b) -> 'b option
 (** Flipped version of {!map}. *)
+
+val flip_map_to_list : 'a option -> ('a -> 'b) -> 'b list
+(** Flipped version of {!map_to_list}. *)

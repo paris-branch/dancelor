@@ -31,27 +31,26 @@ let create ?context id =
       );
     ]
     ~share: (Set set)
-    ~actions: (
-      lwt
-        [
-          Button.make
-            ~label: "Download PDF"
-            ~icon: (Other File_pdf)
-            ~onclick: (fun _ -> ignore <$> Set_download_dialog.create_and_open set)
-            ~dropdown: true
-            ();
-          Button.make_a
-            ~label: "Edit"
-            ~icon: (Action Edit)
-            ~href: (S.const @@ Endpoints.Page.(href Set_edit) id)
-            ~dropdown: true
-            ();
-          Action.delete
-            ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Set Delete) (Entry.id set))
-            ~model: "set"
-            ();
-        ]
-    )
+    ~actions: [
+      lwt [
+        Button.make
+          ~label: "Download PDF"
+          ~icon: (Other File_pdf)
+          ~onclick: (fun _ -> ignore <$> Set_download_dialog.create_and_open set)
+          ~dropdown: true
+          ();
+        Button.make_a
+          ~label: "Edit"
+          ~icon: (Action Edit)
+          ~href: (S.const @@ Endpoints.Page.(href Set_edit) id)
+          ~dropdown: true
+          ();
+        Action.delete
+          ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Set Delete) (Entry.id set))
+          ~model: "set"
+          ();
+      ]
+    ]
     [
       p
         [
