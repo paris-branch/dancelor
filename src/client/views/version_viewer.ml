@@ -114,12 +114,14 @@ let create ?context tune_id id =
         lwt @@
         Option.flip_map_to_list version @@ fun version ->
         Action.delete
+          ~label_suffix: "version"
           ~model: "version"
           ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Version Delete) (Entry.id version))
           ()
       );
       lwt [
         Action.delete
+          ~label_suffix: "tune"
           ~model: "tune"
           ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Tune Delete) (Entry.id tune))
           ()
