@@ -1,4 +1,5 @@
 open Nes
+open Utils
 open Html
 
 type state = {
@@ -77,18 +78,17 @@ module Button = struct
           )
       ]
       [
-        a
-          ~a: [
-            a_class ["page-link"];
-            a_onclick
-              (fun _ ->
-                let state = S.value pagination.state in
-                if enabled state then
-                  pagination.update_current_page (fun current_page -> target current_page);
-                false
-              )
-          ]
-          [txt text]
+        Button.make
+          ~classes: ["page-link"]
+          ~dropdown: true
+          ~onclick: (fun _ ->
+            let state = S.value pagination.state in
+            if enabled state then
+              pagination.update_current_page (fun current_page -> target current_page);
+            lwt_unit
+          )
+          ~label: text
+          ()
       ]
 
   (** A value that can be passed to [make]'s [~target] argument when the button

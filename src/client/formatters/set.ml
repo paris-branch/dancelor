@@ -57,12 +57,12 @@ let tunes ?link set =
 
 let tunes' ?link set = tunes ?link @@ Entry.value set
 
-let conceptors ?short ?params tune =
+let conceptors ?link ?short ?params tune =
   span (
     [with_span_placeholder
-      (List.singleton <$> (Person.names' ?short <$> Model.Set.conceptors tune))] @
+      (List.singleton <$> (Person.names' ?links: link ?short <$> Model.Set.conceptors tune))] @
       display_conceptor ?params ()
   )
 
-let conceptors' ?short ?params tune =
-  conceptors ?short ?params (Entry.value tune)
+let conceptors' ?link ?short ?params tune =
+  conceptors ?link ?short ?params (Entry.value tune)

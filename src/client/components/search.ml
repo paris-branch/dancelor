@@ -118,7 +118,7 @@ module Search = struct
                 [
                   let make_table_headers (thead : ('a, 'b, [< Html_types.thead | Html_types.tfoot]) Html.star) =
                     thead
-                      ~a: [a_class ["table-primary"]]
+                      ~a: [a_class ["table-primary"; "pe-none"]]
                       [
                         tr [
                           th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]];
