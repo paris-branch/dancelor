@@ -19,18 +19,30 @@ let create ?context id =
     ~subtitles: [Formatters.Source.date_and_editors' source]
     ~share: (Source source)
     ~actions: [
-      lwt [
-        Button.make_a
-          ~label: "Edit"
-          ~icon: (Action Edit)
-          ~href: (S.const @@ Endpoints.Page.(href Source_edit) id)
-          ~dropdown: true
-          ();
-        Action.delete
-          ~model: "source"
-          ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Source Delete) (Entry.id source))
-          ();
-      ];
+      (
+        match%lwt Permission.can_update_public source with
+        | None -> lwt_nil
+        | Some _ ->
+          lwt [
+            Button.make_a
+              ~label: "Edit"
+              ~icon: (Action Edit)
+              ~href: (S.const @@ Endpoints.Page.(href Source_edit) id)
+              ~dropdown: true
+              ()
+          ]
+      );
+      (
+        match%lwt Permission.can_delete_public source with
+        | None -> lwt_nil
+        | Some _ ->
+          lwt [
+            Action.delete
+              ~model: "source"
+              ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Source Delete) (Entry.id source))
+              ();
+          ]
+      );
       (lwt @@ Option.map_to_list (Action.scddb Publication) (Source.scddb_id' source));
     ]
     [

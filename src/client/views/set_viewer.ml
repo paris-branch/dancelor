@@ -39,17 +39,31 @@ let create ?context id =
           ~onclick: (fun _ -> ignore <$> Set_download_dialog.create_and_open set)
           ~dropdown: true
           ();
-        Button.make_a
-          ~label: "Edit"
-          ~icon: (Action Edit)
-          ~href: (S.const @@ Endpoints.Page.(href Set_edit) id)
-          ~dropdown: true
-          ();
-        Action.delete
-          ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Set Delete) (Entry.id set))
-          ~model: "set"
-          ();
-      ]
+      ];
+      (
+        match%lwt Permission.can_update_private set with
+        | None -> lwt_nil
+        | Some _ ->
+          lwt [
+            Button.make_a
+              ~label: "Edit"
+              ~icon: (Action Edit)
+              ~href: (S.const @@ Endpoints.Page.(href Set_edit) id)
+              ~dropdown: true
+              ();
+          ]
+      );
+      (
+        match%lwt Permission.can_delete_private set with
+        | None -> lwt_nil
+        | Some _ ->
+          lwt [
+            Action.delete
+              ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Set Delete) (Entry.id set))
+              ~model: "set"
+              ();
+          ]
+      );
     ]
     [
       p

@@ -136,17 +136,31 @@ let create ?context id =
           ~onclick: (fun _ -> ignore <$> Book_download_dialog.create_and_open book)
           ~dropdown: true
           ();
-        Button.make_a
-          ~label: "Edit"
-          ~icon: (Action Edit)
-          ~href: (S.const @@ Endpoints.Page.(href Book_edit) id)
-          ~dropdown: true
-          ();
-        Action.delete
-          ~model: "book"
-          ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Book Delete) (Entry.id book))
-          ();
       ];
+      (
+        match%lwt Permission.can_update_private book with
+        | None -> lwt_nil
+        | Some _ ->
+          lwt [
+            Button.make_a
+              ~label: "Edit"
+              ~icon: (Action Edit)
+              ~href: (S.const @@ Endpoints.Page.(href Book_edit) id)
+              ~dropdown: true
+              ();
+          ]
+      );
+      (
+        match%lwt Permission.can_delete_private book with
+        | None -> lwt_nil
+        | Some _ ->
+          lwt [
+            Action.delete
+              ~model: "book"
+              ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Book Delete) (Entry.id book))
+              ();
+          ]
+      );
       (lwt @@ Option.map_to_list (Action.scddb Publication) (Book.scddb_id' book));
     ]
     [
