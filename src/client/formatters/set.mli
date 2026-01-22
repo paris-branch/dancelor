@@ -26,6 +26,7 @@ val tunes' :
 (** Variant of {!tunes} taking an {!Entry.t}. *)
 
 val conceptors' :
+  ?link: bool ->
   ?short: bool ->
   ?params: Model.Set_parameters.t ->
   Model.Set.entry ->
