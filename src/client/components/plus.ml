@@ -116,7 +116,14 @@ module Bundle = struct
         ~value: offset
         ~checked: (initial_selected = Some offset)
         [txt A.label]
-        ~onclick: (fun () -> A.trigger t.a) :: B.choices ~offset: (offset + 1) ?initial_selected t.b
+        ~onclick: (fun () ->
+          (* Calling [A.trigger t.a] directly ends up with the focus in the
+             wrong place; [Lwt.async] + [Lwt.pause] to the rescue. *)
+          Lwt.async @@ fun () ->
+          Lwt.pause ();%lwt
+          A.trigger t.a;
+          lwt_unit
+        ) :: B.choices ~offset: (offset + 1) ?initial_selected t.b
 
     let set t = function
       | Tuple_elt.Zero v -> A.set t.a v;%lwt B.clear t.b;%lwt lwt_unit
