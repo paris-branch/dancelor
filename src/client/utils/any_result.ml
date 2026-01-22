@@ -195,7 +195,7 @@ let any_type_to_icon any =
 let make_result ?classes ?context any =
   let prefix = [
     L.td
-      ~a: [a_class ["text-nowrap"]]
+      ~a: [a_class ["text-nowrap"; "pe-none"]]
       (
         Lwt.pause ();%lwt
         let type_ = Any.type_of any in
