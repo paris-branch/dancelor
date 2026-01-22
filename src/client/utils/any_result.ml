@@ -27,7 +27,7 @@ let make_source_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) 
       prefix @
       [L.td (Lwt.pause ();%lwt lwt [Formatters.Source.name' ~link: (onclick = None) ?context source]);
       L.td (Lwt.pause ();%lwt lwt [txt (Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) (Source.date' source))]);
-      L.td (Lwt.pause ();%lwt List.singleton <$> (Formatters.Person.names' ~short: true <$> Source.editors' source));
+      L.td (Lwt.pause ();%lwt List.singleton <$> (Formatters.Person.names' ~links: (onclick = None) ~short: true <$> Source.editors' source));
       ] @
       suffix
     )
@@ -51,7 +51,7 @@ let make_dance_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) d
       prefix @
       [L.td (Lwt.pause ();%lwt lwt [Formatters.Dance.name_and_disambiguation' ~name_link: (onclick = None) ?context dance]);
       L.td (Lwt.pause ();%lwt lwt [txt (Kind.Dance.to_string @@ Dance.kind' dance)]);
-      L.td (Lwt.pause ();%lwt List.singleton <$> (Formatters.Person.names' ~short: true <$> Dance.devisers' dance));
+      L.td (Lwt.pause ();%lwt List.singleton <$> (Formatters.Person.names' ~links: (onclick = None) ~short: true <$> Dance.devisers' dance));
       ] @
       suffix
     )
@@ -61,8 +61,8 @@ let make_dance_plus_set_result ?classes ?onclick ?context ?set_params ?(prefix =
     prefix @
     [td [
       Formatters.Dance.name' ?context dance;
-      details [txt "Set: "; Formatters.Set.name' ~link: true ?params: set_params set];
-      details [Formatters.Set.tunes' ~link: true set];
+      details [txt "Set: "; Formatters.Set.name' ~link: (onclick = None) ?params: set_params set];
+      details [Formatters.Set.tunes' ~link: (onclick = None) set];
     ];
     td [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
     td [Formatters.Set.conceptors' ~short: true ?params: set_params set];
@@ -108,11 +108,11 @@ let make_set_result ?classes ?onclick ?context ?params ?(prefix = []) ?(suffix =
         Lwt.pause ();%lwt
         lwt [
           Formatters.Set.name' ~link: (onclick = None) ?context ?params set;
-          details [Formatters.Set.tunes' ~link: true set];
+          details [Formatters.Set.tunes' ~link: (onclick = None) set];
         ]
       );
       L.td (Lwt.pause ();%lwt lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set]);
-      L.td (Lwt.pause ();%lwt lwt [Formatters.Set.conceptors' ~short: true ?params set]);
+      L.td (Lwt.pause ();%lwt lwt [Formatters.Set.conceptors' ~link: (onclick = None) ~short: true ?params set]);
       ] @
       suffix
     )
