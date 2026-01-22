@@ -70,73 +70,109 @@ let create ?context tune_id id =
     ~title: (lwt @@ NEString.to_string @@ Tune.one_name' tune)
     ~subtitles: [Formatters.Tune.description' tune]
     ~share: (Option.fold ~none: (Any.tune tune) ~some: Any.version version)
-    ~actions: (
-      lwt @@
-        List.filter_map
-          Fun.id
-          [
-            (
-              Option.flip_map version @@ fun version ->
-              Button.make
-                ~label: "Download PDF"
-                ~icon: (Other File_pdf)
-                ~dropdown: true
-                ~onclick: (fun _ -> ignore <$> Version_download_dialog.create_and_open version)
-                ()
-            );
-            (
-              Option.flip_map version @@ fun version ->
-              Button.make
-                ~label: "Show LilyPond"
-                ~label_processing: "Showing LilyPond..."
-                ~icon: (Other File_lilypond)
-                ~dropdown: true
-                ~onclick: (fun () -> show_lilypond_dialog version)
-                ()
-            );
-            (
-              Option.flip_map id @@ fun id ->
-              Button.make_a
-                ~label: "Edit version"
-                ~icon: (Action Edit)
-                ~href: (S.const @@ Endpoints.Page.(href Version_edit) id)
-                ~dropdown: true
-                ()
-            );
-            Some (
-              Button.make_a
-                ~label: "Edit tune"
-                ~icon: (Action Edit)
-                ~href: (S.const @@ Endpoints.Page.(href Tune_edit) (Entry.id tune))
-                ~dropdown: true
-                ()
-            );
-            (
-              Option.flip_map version @@ fun version ->
-              Action.delete
-                ~model: "version"
-                ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Version Delete) (Entry.id version))
-                ()
-            );
-            Some (
-              Action.delete
-                ~model: "tune"
-                ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Tune Delete) (Entry.id tune))
-                ()
-            );
-            (
-              Option.flip_map version @@ fun version ->
-              Button.make
-                ~label: "De-duplicate"
-                ~icon: (Action Deduplicate)
-                ~dropdown: true
-                ~classes: ["btn-warning"]
-                ~onclick: (Version_deduplicator.dialog ~tune ~version)
-                ()
-            );
-            Option.map (Action.scddb Tune) (Tune.scddb_id' tune);
+    ~actions: [
+      (
+        lwt @@
+        Option.flip_map_to_list version @@ fun version ->
+        Button.make
+          ~label: "Download PDF"
+          ~icon: (Other File_pdf)
+          ~dropdown: true
+          ~onclick: (fun _ -> ignore <$> Version_download_dialog.create_and_open version)
+          ()
+      );
+      (
+        lwt @@
+        Option.flip_map_to_list version @@ fun version ->
+        Button.make
+          ~label: "Show LilyPond"
+          ~label_processing: "Showing LilyPond..."
+          ~icon: (Other File_lilypond)
+          ~dropdown: true
+          ~onclick: (fun () -> show_lilypond_dialog version)
+          ()
+      );
+      (
+        Option.fold
+          version
+          ~none: lwt_nil
+          ~some: (fun version ->
+            match%lwt Permission.can_update_public version with
+            | None -> lwt_nil
+            | Some _ ->
+              lwt [
+                Button.make_a
+                  ~label: "Edit version"
+                  ~icon: (Action Edit)
+                  ~href: (S.const @@ Endpoints.Page.(href Version_edit) (Entry.id version))
+                  ~dropdown: true
+                  ()
+              ]
+          )
+      );
+      (
+        match%lwt Permission.can_update_public tune with
+        | None -> lwt_nil
+        | Some _ ->
+          lwt [
+            Button.make_a
+              ~label: "Edit tune"
+              ~icon: (Action Edit)
+              ~href: (S.const @@ Endpoints.Page.(href Tune_edit) (Entry.id tune))
+              ~dropdown: true
+              ()
           ]
-    )
+      );
+      (
+        Option.fold
+          version
+          ~none: lwt_nil
+          ~some: (fun version ->
+            match%lwt Permission.can_delete_public version with
+            | None -> lwt_nil
+            | Some _ ->
+              lwt [
+                Action.delete
+                  ~label_suffix: "version"
+                  ~model: "version"
+                  ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Version Delete) (Entry.id version))
+                  ()
+              ]
+          )
+      );
+      (
+        match%lwt Permission.can_delete_public tune with
+        | None -> lwt_nil
+        | Some _ ->
+          lwt [
+            Action.delete
+              ~label_suffix: "tune"
+              ~model: "tune"
+              ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Tune Delete) (Entry.id tune))
+              ()
+          ]
+      );
+      (
+        Option.fold
+          version
+          ~none: lwt_nil
+          ~some: (fun version ->
+            match%lwt Permission.can_administrate () with
+            | false -> lwt_nil
+            | true ->
+              lwt [
+                Button.make
+                  ~label: "De-duplicate"
+                  ~icon: (Action Deduplicate)
+                  ~dropdown: true
+                  ~classes: ["btn-warning"]
+                  ~onclick: (Version_deduplicator.dialog ~tune ~version)
+                  ()
+              ]
+          )
+      );
+      (lwt @@ Option.to_list @@ Option.map (Action.scddb Tune) (Tune.scddb_id' tune));
+    ]
     [
       div
         (

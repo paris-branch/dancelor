@@ -1,7 +1,7 @@
 open Nes
 open Html
 
-let delete ~onclick ~model () =
+let delete ?label_suffix ~onclick ~model () =
   Button.make
     ~classes: ["btn-warning"]
     ~onclick: (fun _ ->
@@ -19,7 +19,8 @@ let delete ~onclick ~model () =
       | Error e -> raise (Madge_client.Error e)
     )
     ~icon: (Action Delete)
-    ~label: "Delete"
+    ~label: ("Delete" ^ Option.fold ~none: "" ~some: (spf " %s") label_suffix)
+    ~label_processing: ("Deleting" ^ Option.fold ~none: "" ~some: (spf " %s") label_suffix ^ "...")
     ~dropdown: true
     ()
 

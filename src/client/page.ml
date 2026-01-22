@@ -10,7 +10,7 @@ type t = {
   subtitles: Html_types.phrasing elt list;
   content: Html_types.div_content_fun elt list;
   share: Model.Any.t option;
-  actions: Html_types.li_content_fun elt list Lwt.t;
+  actions: Html_types.li_content_fun elt list Lwt.t list;
   buttons: Html_types.div_content_fun elt list;
   on_load: unit -> unit;
 }
@@ -32,7 +32,7 @@ let make
   ~title
   ?(subtitles = [])
   ?share
-  ?(actions = lwt_nil)
+  ?(actions = [])
   ?(buttons = [])
   ?(on_load = Fun.id)
   content
@@ -45,8 +45,9 @@ let make' ?parent_title ?before_title ~title ?subtitles ?share ?actions ?buttons
   lwt @@ make ?parent_title ?before_title ~title ?subtitles ?share ?actions ?buttons ?on_load content
 
 let render p =
-  (* Handling of actions *)
-  let actions_promise = List.map (li % List.singleton) <$> p.actions in
+  (* Handling of actions. We could probably generate the <ul> elements gradually
+     rather than waiting for all the promises, but what difference would it make. *)
+  let actions_promise = List.(map (li % singleton) % concat) <$> Lwt_list.map_p id p.actions in
   let actions_html =
     R.div
       ~a: [a_class ["dropdown"; "m-0"; "ms-2"; "p-0"; "col-auto"; "d-flex"; "flex-column"; "flex-sm-row"; "align-items-start"]]

@@ -282,12 +282,17 @@ let madge_call_or_404 endpoint arg f =
   with
     | Madge_client.(Error (Http {status; _})) -> Oooops_viewer.create status
 
-let assert_can_create f =
-  match%lwt Permission.can_create () with
-  | true -> f ()
-  | false -> Oooops_viewer.create `Forbidden
+let assert_can_create_public f =
+  match%lwt Permission.can_create_public () with
+  | Some _ -> f ()
+  | None -> Oooops_viewer.create `Forbidden
+
+let assert_can_create_private f =
+  match%lwt Permission.can_create_private () with
+  | Some _ -> f ()
+  | None -> Oooops_viewer.create `Forbidden
 
 let assert_can_admin f =
-  match%lwt Permission.can_admin () with
+  match%lwt Permission.can_administrate () with
   | true -> f ()
   | false -> Oooops_viewer.create `Forbidden

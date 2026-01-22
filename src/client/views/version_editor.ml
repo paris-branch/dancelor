@@ -322,7 +322,8 @@ let disassemble version =
    nice to bring it back. *)
 
 let create mode =
-  Main_page.assert_can_create @@ fun () ->
+  (* FIXME: if [mode] is an edition, then we should assert_can_update_public *)
+  Main_page.assert_can_create_public @@ fun () ->
   Editor.make_page
     ~key: "version"
     ~icon: (Model Version)

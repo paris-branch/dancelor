@@ -14,13 +14,15 @@ val make :
   title: string Lwt.t ->
   ?subtitles: Html_types.phrasing elt list ->
   ?share: Model.Any.t ->
-  ?actions: Html_types.li_content_fun elt list Lwt.t ->
+  ?actions: Html_types.li_content_fun elt list Lwt.t list ->
   ?buttons: Html_types.div_content_fun elt list ->
   ?on_load: (unit -> unit) ->
   Html_types.div_content_fun elt list ->
   t
 (** Page maker. The [?parent_title] argument is used to build a title of the
-    form ["page | parent page"]. It is empty by default. *)
+    form ["page | parent page"]. It is empty by default. The [?actions] must be
+    a list of promises that each return a list of actions; they will be combined
+    by waiting for the promises and catenating the results. *)
 
 val make' :
   ?parent_title: string ->
@@ -28,7 +30,7 @@ val make' :
   title: string Lwt.t ->
   ?subtitles: Html_types.phrasing elt list ->
   ?share: Model.Any.t ->
-  ?actions: Html_types.li_content_fun elt list Lwt.t ->
+  ?actions: Html_types.li_content_fun elt list Lwt.t list ->
   ?buttons: Html_types.div_content_fun elt list ->
   ?on_load: (unit -> unit) ->
   Html_types.div_content_fun elt list ->
