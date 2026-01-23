@@ -63,7 +63,7 @@ module Button = struct
       enabled (that is not grayed out and clickable) when the predicate [enabled]
       returns [true] on the [pagination] state. It changes the page to the result
       of [target] applied on the [pagination] state. *)
-  let make ~active ~enabled ~target ~text pagination =
+  let make ~active ~enabled ~target ?text ?icon pagination =
     li
       ~a: [
         R.a_class
@@ -87,14 +87,15 @@ module Button = struct
               pagination.update_current_page (fun current_page -> target current_page);
             lwt_unit
           )
-          ~label: text
+          ?label: text
+          ?icon
           ()
       ]
 
   (** A value that can be passed to [make]'s [~target] argument when the button
       is never be enabled. *)
   let no_target = fun _ ->
-    failwith "Dancelor_client.Eleents.Pagination.no_target"
+    failwith "Client.Components.Pagination.no_target"
 
   (** A button that is never enabled and shows three dots. *)
   let ellipsis =
@@ -103,6 +104,7 @@ module Button = struct
       ~enabled: (const false)
       ~target: no_target
       ~text: "⋯"
+      ?icon: None
 
   (** A button that is constantly linked to a page number. *)
   let numbered page =
@@ -111,6 +113,7 @@ module Button = struct
       ~enabled: (const true)
       ~target: (const page)
       ~text: (string_of_int page)
+      ?icon: None
 
   (** A button that brings to the previous page. *)
   let previous =
@@ -118,7 +121,8 @@ module Button = struct
       ~active: (const false)
       ~enabled: (fun state -> state.current_page <> 1)
       ~target: (fun current_page -> current_page - 1)
-      ~text: "Previous"
+      ?text: None
+      ~icon: (Action Move_left)
 
   (** A button that brings to the next page. *)
   let next =
@@ -126,7 +130,8 @@ module Button = struct
       ~active: (const false)
       ~enabled: (fun state -> state.current_page <> number_of_pages state)
       ~target: (fun current_page -> current_page + 1)
-      ~text: "Next"
+      ?text: None
+      ~icon: (Action Move_right)
 end
 
 let button_list pagination =
@@ -142,7 +147,7 @@ let button_list pagination =
         (fun i ->
           i = 1
           || i = number_of_pages
-          || abs (current_page - i) <= 2
+          || abs (current_page - i) <= 1
         )
   in
   let rec numbered_buttons previous = function
@@ -182,7 +187,7 @@ let placeholder ~is_below () =
             (fun x ->
               li ~a: [a_class ["page-item"; "disabled"]] [a ~a: [a_class ["page-link"; "placeholder"]] [txt x]];
             )
-            ["Previous"; "1"; "..."; "∞"; "Next"]
+            ["←"; "1"; "..."; "∞"; "→"]
         );
     ]
 
