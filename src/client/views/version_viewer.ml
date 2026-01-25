@@ -228,7 +228,7 @@ let create ?context tune_id id =
         ];
         (
           match Model.Version.content' version with
-          | No_content -> div [Alert.make ~level: Info [txt "This version does not have any content."]]
+          | No_content -> div [Alert.make ~level: Info [txt "This version does not have any content. This is usually because it has not been added yet. If you have access to the source of this precise version, consider sending it to an administrator."]]
           | Monolithic _ -> Components.Version_snippets.make version
           | Destructured {default_structure; _} -> Components.Version_snippets.make version ~params: (Model.Version_parameters.make ~structure: default_structure ());
         )];
