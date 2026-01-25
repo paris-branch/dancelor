@@ -6,6 +6,7 @@ type t =
   | Reel
   | Strathspey
   | Waltz
+  | Other
 [@@deriving eq, ord, show {with_path = false}]
 
 let all = [Jig; Reel; Strathspey; Polka; Waltz]
@@ -16,6 +17,7 @@ let to_char = function
   | Reel -> 'R'
   | Strathspey -> 'S'
   | Waltz -> 'W'
+  | Other -> 'O'
 
 let of_char c =
   match Char.uppercase_ascii c with
@@ -24,6 +26,7 @@ let of_char c =
   | 'R' -> Reel
   | 'S' -> Strathspey
   | 'W' -> Waltz
+  | 'O' -> Other
   | _ -> invalid_arg "Common.Kind.Base.of_char"
 
 let to_string b =
@@ -36,6 +39,7 @@ let of_string s =
   | "r" | "reel" -> Reel
   | "s" | "strathspey" -> Strathspey
   | "w" | "waltz" -> Waltz
+  | "o" | "other" -> Other
   | _ -> invalid_arg "Common.Kind.Base.of_string"
 
 let of_string_opt s =
@@ -65,6 +69,7 @@ let to_pretty_string ?(capitalised = false) base =
     | Reel -> "reel"
     | Strathspey -> "strathspey"
     | Waltz -> "waltz"
+    | Other -> "other"
   )
   |> if capitalised then String.capitalize_ascii else Fun.id
 
@@ -73,6 +78,7 @@ let tempo = function
   | Polka | Reel -> ("2", 108)
   | Strathspey -> ("2", 60)
   | Waltz -> ("2.", 60)
+  | Other -> ("2", 108)
 
 type base_kind = t (* needed for the interface of filters *)
 

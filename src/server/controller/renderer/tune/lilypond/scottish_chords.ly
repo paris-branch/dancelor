@@ -13,3 +13,7 @@ strathspeyChords =
 waltzChords =
   #(define-music-function (music) (ly:music?)
     (waltz-chords music))
+
+otherChords =
+  #(define-music-function (music) (ly:music?)
+    music) %% we do nothing
