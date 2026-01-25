@@ -159,9 +159,7 @@ let list_entry_files table entry =
 let read_entry_file table entry file =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Reading %s / %s / %s" table entry file);
-  Filename.concat_l [!prefix; table; entry; file]
-  |> Filesystem.read_file
-  |> lwt
+  Filesystem.read_file @@ Filename.concat_l [!prefix; table; entry; file]
 
 (** Variant of {!read_entry_file} for controllers that want to eg. serve a
     file directly from the database. *)
@@ -182,11 +180,12 @@ let write_entry_file table entry file content =
   if !Config.write_storage then
     (
       let path = Filename.concat_l [!prefix; table; entry] in
-      Filesystem.create_directory ~fail_if_exists: false path;
+      Filesystem.create_directory ~fail_if_exists: false path;%lwt
       let path = Filename.concat path file in
       Filesystem.write_file path content
-    );
-  lwt_unit
+    )
+  else
+    lwt_unit
 
 let write_entry_yaml table entry file content =
   (* no lock because using write_entry_file *)
@@ -199,11 +198,13 @@ let delete_entry table entry =
   if !Config.write_storage then
     (
       let path = Filename.concat_l [!prefix; table; entry] in
-      Filesystem.read_directory path
-      |> List.iter (fun s -> Filesystem.remove_file (path ^ "/" ^ s));
+      List.iter
+        (fun s -> Filesystem.remove_file (path ^ "/" ^ s))
+        (Filesystem.read_directory path);
       Filesystem.remove_directory path
-    );
-  lwt_unit
+    )
+  else
+    lwt_unit
 
 let save_changes_on_entry ~msg table entry =
   with_locks @@ fun () ->
