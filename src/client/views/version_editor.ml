@@ -280,15 +280,18 @@ let assemble (tune, (key, (arrangers, (remark, (sources, (disambiguation, (conte
   Model.Version.make ~tune ~key ~arrangers ~remark ~sources ~disambiguation ~content ()
 
 let preview version =
-  Option.fold ~none: false ~some: (const true)
-  <$> Page.open_dialog @@ fun return ->
-    Page.make'
-      ~title: (lwt "Preview")
-      [Components.Version_snippets.make_preview ~show_logs: true version]
-      ~buttons: [
-        Button.cancel' ~return ();
-        Button.save ~onclick: (fun () -> return (Some ()); lwt_unit) ();
-      ]
+  match Model.Version.content version with
+  | No_content -> lwt_true
+  | _ ->
+    Option.fold ~none: false ~some: (const true)
+    <$> Page.open_dialog @@ fun return ->
+      Page.make'
+        ~title: (lwt "Preview")
+        [Components.Version_snippets.make_preview ~show_logs: true version]
+        ~buttons: [
+          Button.cancel' ~return ();
+          Button.save ~onclick: (fun () -> return (Some ()); lwt_unit) ();
+        ]
 
 let submit mode version =
   match mode with
