@@ -73,24 +73,34 @@ let create ?context tune_id id =
     ~actions: [
       (
         lwt @@
-        Option.flip_map_to_list version @@ fun version ->
-        Button.make
-          ~label: "Download PDF"
-          ~icon: (Other File_pdf)
-          ~dropdown: true
-          ~onclick: (fun _ -> ignore <$> Version_download_dialog.create_and_open version)
-          ()
+        Option.to_list @@
+        Option.bind version @@ fun version ->
+        match Version.content' version with
+        | No_content -> None
+        | _ ->
+          some @@
+            Button.make
+              ~label: "Download PDF"
+              ~icon: (Other File_pdf)
+              ~dropdown: true
+              ~onclick: (fun _ -> ignore <$> Version_download_dialog.create_and_open version)
+              ()
       );
       (
         lwt @@
-        Option.flip_map_to_list version @@ fun version ->
-        Button.make
-          ~label: "Show LilyPond"
-          ~label_processing: "Showing LilyPond..."
-          ~icon: (Other File_lilypond)
-          ~dropdown: true
-          ~onclick: (fun () -> show_lilypond_dialog version)
-          ()
+        Option.to_list @@
+        Option.bind version @@ fun version ->
+        match Version.content' version with
+        | No_content -> None
+        | _ ->
+          some @@
+            Button.make
+              ~label: "Show LilyPond"
+              ~label_processing: "Showing LilyPond..."
+              ~icon: (Other File_lilypond)
+              ~dropdown: true
+              ~onclick: (fun () -> show_lilypond_dialog version)
+              ()
       );
       (
         Option.fold
