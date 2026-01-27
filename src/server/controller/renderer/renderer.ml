@@ -15,6 +15,7 @@ type tune = {
   tempo_value: int;
   chords_kind: string;
   show_bar_numbers: bool;
+  show_time_signatures: bool;
 }
 [@@deriving yojson]
 

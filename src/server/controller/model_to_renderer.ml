@@ -80,7 +80,9 @@ let version_to_renderer_tune ?(version_params = Model.Version_parameters.none) v
     Model.Version.(Content.is_monolithic @@ content version)
     || Model.Version_parameters.structure version_params <> None
   in
-  lwt Renderer.{slug; name; instructions; composer; content; first_bar; tempo_unit; tempo_value; chords_kind; show_bar_numbers}
+  let show_time_signatures = kind = Other in
+  (* only show time signatures if “Other” *)
+  lwt Renderer.{slug; name; instructions; composer; content; first_bar; tempo_unit; tempo_value; chords_kind; show_bar_numbers; show_time_signatures}
 
 let version_to_renderer_tune' ?version_params version =
   version_to_renderer_tune ?version_params (Entry.value version)

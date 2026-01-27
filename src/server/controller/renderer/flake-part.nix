@@ -27,6 +27,7 @@ let
     tempo_value = 108;
     chords_kind = "reel";
     show_bar_numbers = true;
+    show_time_signatures = true;
   };
 
   testBookPdfArg = {

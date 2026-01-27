@@ -81,6 +81,12 @@ let
         '';
         type = types.bool;
       };
+      show_time_signatures = mkOption {
+        description = ''
+          Whether to show time signatures. This will hide all time signatures
+          and should therefore be avoided on scores where time signature changes.
+        '';
+      };
     };
   };
 
@@ -120,6 +126,7 @@ let
       tempo_value,
       chords_kind,
       show_bar_numbers,
+      show_time_signatures,
       ...
     }:
     let
@@ -141,6 +148,11 @@ let
             cat ${./tune/lilypond/bar_numbering/beginning_of_line.ly}
           else
             printf '\\layout {\\context {\\Score\\omit BarNumber}}\n'
+          fi
+          if ${if show_time_signatures then "true" else "false"}; then
+            printf '\\numericTimeSignature\n'
+          else
+            printf '\\layout {\\context {\\Staff\\remove Time_signature_engraver}}\n'
           fi
           cat ${./tune/lilypond/scottish_chords.ly}
           printf '\\score {\n'
