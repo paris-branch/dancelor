@@ -22,7 +22,7 @@ let name' ?(link = true) ?context tune = name_gen @@ Right (tune, link, context)
 
 let composers ?short ?links tune =
   with_span_placeholder
-    (List.singleton <$> (Person.names' ?short ?links <$> Model.Tune.composers tune))
+    (List.singleton <$> ((Person.names' ?short ?links % List.map Model.Tune.composer_composer) <$> Model.Tune.composers tune))
 
 let composers' ?short ?links tune = composers ?short ?links (Entry.value tune)
 
@@ -35,7 +35,7 @@ let description tune =
         [
           txt (String.capitalize_ascii kind)
         ]
-    | [composer] when NEString.to_string (Model.Person.name' composer) = "Traditional" ->
+    | [composer] when NEString.to_string (Model.Person.name' @@ Model.Tune.composer_composer composer) = "Traditional" ->
       lwt
         [
           txt ("Traditional " ^ kind)
@@ -44,7 +44,7 @@ let description tune =
       lwt
         (
           [txt (String.capitalize_ascii kind ^ " by ");
-          Person.names' composers;
+          Person.names' @@ List.map Model.Tune.composer_composer composers;
           ]
         )
 

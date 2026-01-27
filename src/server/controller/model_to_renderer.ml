@@ -62,7 +62,7 @@ let version_to_renderer_tune ?(version_params = Model.Version_parameters.none) v
       (Model.Version_parameters.display_name version_params)
   in
   let%lwt composer =
-    let%lwt none = format_persons <$> (Model.Tune.composers' =<< Model.Version.tune version) in
+    let%lwt none = (format_persons % List.map Model.Tune.composer_composer) <$> (Model.Tune.composers' =<< Model.Version.tune version) in
     lwt @@
       Option.fold
         ~none

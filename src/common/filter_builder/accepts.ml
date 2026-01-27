@@ -124,7 +124,7 @@ module Make (Model : Model_builder.S) = struct
         lwt @@ Formula.interpret_or_l @@ List.map (String.inclusion_proximity ~char_equal ~needle: string % NEString.to_string) @@ NEList.to_list @@ Model.Tune.names' tune
       | Exists_composer pfilter ->
         let%lwt composers = Model.Tune.composers' tune in
-        let%lwt scores = Lwt_list.map_s (accepts_person pfilter) composers in
+        let%lwt scores = Lwt_list.map_s (accepts_person pfilter % Model.Tune.composer_composer) composers in
         lwt (Formula.interpret_or_l scores)
       | Kind kfilter ->
         Kind.Base.Filter.accepts kfilter @@ Model.Tune.kind' tune

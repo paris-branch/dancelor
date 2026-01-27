@@ -34,7 +34,7 @@ module Tune = Table.Make(struct
   include Model_builder.Core.Tune
   let dependencies tune =
     List.map (id_for "dance") (Model_builder.Core.Tune.dances tune) @
-      List.map (id_for "person") (Model_builder.Core.Tune.composers tune)
+      List.map (id_for "person" % (fun ({composer; _}: Model_builder.Core.Tune.composer_core) -> composer)) (Model_builder.Core.Tune.composers tune)
   let wrap_any = Model_builder.Core.Any.tune
 end)
 
