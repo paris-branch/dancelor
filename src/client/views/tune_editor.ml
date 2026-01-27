@@ -30,19 +30,32 @@ let editor =
   Star.prepare
     ~label: "Composer"
     (
-      Selector.prepare
-        ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: (Any_result.make_person_result ?context: None)
-        ~results_when_no_search: (Option.to_list <$> Environment.person)
+      Cpair.prepare
         ~label: "Composer"
-        ~model_name: "person"
-        ~create_dialog_content: Person_editor.create
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Person.from_string input) in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+        (
+          Selector.prepare
+            ~make_descr: (lwt % NEString.to_string % Model.Person.name')
+            ~make_result: (Any_result.make_person_result ?context: None)
+            ~results_when_no_search: (Option.to_list <$> Environment.person)
+            ~label: "Composer"
+            ~model_name: "person"
+            ~create_dialog_content: Person_editor.create
+            ~search: (fun slice input ->
+              let%rlwt filter = lwt (Filter.Person.from_string input) in
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+            )
+            ~unserialise: Model.Person.get
+            ()
         )
-        ~unserialise: Model.Person.get
-        ()
+        (
+          Input.prepare
+            ~type_: Text
+            ~label: "Details"
+            ~placeholder: "eg. “chords only”"
+            ~serialise: id
+            ~validate: (S.const % ok)
+            ()
+        )
     ) ^::
   Input.prepare
     ~type_: Text
@@ -96,6 +109,7 @@ let editor =
   nil
 
 let assemble (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))))))) =
+  let composers = List.map (fun (composer, details) -> Model.Tune.{composer; details}) composers in
   Model.Tune.make ~names ~kind ~composers ?date ~dances ~remark ?scddb_id ()
 
 let submit mode tune =
@@ -109,6 +123,7 @@ let disassemble tune =
   let names = Model.Tune.names tune in
   let kind = Model.Tune.kind tune in
   let%lwt composers = Model.Tune.composers tune in
+  let composers = List.map (fun Model.Tune.{composer; details} -> (composer, details)) composers in
   let date = Model.Tune.date tune in
   let%lwt dances = Model.Tune.dances tune in
   let remark = Model.Tune.remark tune in

@@ -33,7 +33,7 @@ let with_copyright_check env version f =
     let%lwt arrangers = Model.Version.arrangers' version in
     lwt (
       composers <> [] (* there must be at least one composer to agree *)
-      && List.for_all Model.Person.composed_tunes_are_public' composers
+      && List.for_all (Model.Person.composed_tunes_are_public' % Model.Tune.composer_composer) composers
       && List.for_all Model.Person.composed_tunes_are_public' arrangers
     )
   in
@@ -139,7 +139,7 @@ let build_pdf env id version_params rendering_params =
           (Model.Version_parameters.display_name version_params)
           ~default: (Model.Tune.one_name' tune)
     in
-    let%lwt authors = Model_to_renderer.format_persons_list <$> Model.Tune.composers' tune in
+    let%lwt authors = (Model_to_renderer.format_persons_list % List.map Model.Tune.composer_composer) <$> Model.Tune.composers' tune in
     let subjects = [Kind.Base.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
     lwt Renderer.{title; authors; subjects}
   in

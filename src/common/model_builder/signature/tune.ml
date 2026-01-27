@@ -3,6 +3,14 @@ module type S = sig
 
   open Nes
 
+  type composer = Core.Tune.composer = {
+    composer: Core.Person.entry;
+    details: string;
+  }
+
+  val composer_composer : composer -> Core.Person.entry
+  val composer_details : composer -> string
+
   type t = Core.Tune.t
 
   type access = Entry.Access.public [@@deriving yojson]
@@ -11,7 +19,7 @@ module type S = sig
   val make :
     names: NEString.t NEList.t ->
     kind: Kind.Base.t ->
-    ?composers: Core.Person.entry list ->
+    ?composers: composer list ->
     ?dances: Core.Dance.entry list ->
     ?remark: string ->
     ?scddb_id: int ->
@@ -35,8 +43,8 @@ module type S = sig
   val kind : t -> Kind.Base.t
   val kind' : entry -> Kind.Base.t
 
-  val composers : t -> Core.Person.entry list Lwt.t
-  val composers' : entry -> Core.Person.entry list Lwt.t
+  val composers : t -> composer list Lwt.t
+  val composers' : entry -> composer list Lwt.t
 
   val dances : t -> Core.Dance.entry list Lwt.t
   val dances' : entry -> Core.Dance.entry list Lwt.t
