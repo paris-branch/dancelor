@@ -3,7 +3,8 @@ value:
     - Tam Lin
   kind: R
   composers:
-    - 4plf-srss-ihav
+    - composer: 4plf-srss-ihav
+      details: ""
   dances:
     - l02q-i1j0-qpoi
 meta:
