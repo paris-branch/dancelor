@@ -88,6 +88,7 @@ module R = struct
   let a_value val_ = R.a_value val_
 
   let div ?a elts = R.div ?a (RList.from_signal elts)
+  let section ?a elts = R.section ?a (RList.from_signal elts)
   let span ?a elts = R.span ?a (RList.from_signal elts)
   let tbody ?a elts = R.tbody ?a (RList.from_signal elts)
   let ul ?a elts = R.ul ?a (RList.from_signal elts)

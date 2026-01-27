@@ -245,11 +245,13 @@ let create ?context tune_id id =
       div (
         match Model.Tune.other_names' tune with
         | [] -> []
-        | [other_name] -> [txtf "Also known as %s." (NEString.to_string other_name)]
+        | [other_name] -> [section ~a: [a_class ["mt-2"]] [txtf "Also known as %s." (NEString.to_string other_name)]]
         | other_names ->
           [
-            txt "Also known as:";
-            ul (List.map (li % List.singleton % txt % NEString.to_string) other_names);
+            section ~a: [a_class ["mt-2"]] [
+              txt "Also known as:";
+              ul (List.map (li % List.singleton % txt % NEString.to_string) other_names);
+            ];
           ]
       );
       R.div (
@@ -280,15 +282,17 @@ let create ?context tune_id id =
               in
               match%lwt Model.Version.sources_grouped' version with
               | [] -> lwt_nil
-              | [source_group] -> lwt [txt "This specific version appears in "; show_source_group source_group]
+              | [source_group] -> lwt [section ~a: [a_class ["mt-2"]] [txt "This specific version appears in "; show_source_group source_group]]
               | source_groups ->
                 lwt [
-                  txt "This specific version appears:";
-                  ul (
-                    List.map
-                      (fun source_group -> li [txt "in "; show_source_group source_group])
-                      source_groups
-                  )
+                  section ~a: [a_class ["mt-2"]] [
+                    txt "This specific version appears:";
+                    ul (
+                      List.map
+                        (fun source_group -> li [txt "in "; show_source_group source_group])
+                        source_groups
+                    );
+                  ];
                 ]
           )
       );
@@ -299,40 +303,36 @@ let create ?context tune_id id =
           Option.flip_map version (fun version -> ("books containing this version", lwt @@ Filter.(Any.book' % Book.memversiondeep') version));
           Some ("books containing this tune", Filter.(Any.book' % Book.exists_version_deep' % Version.tuneis') <$> lwt tune);
         ];
-      div
-        ~a: [a_class ["section"]]
-        [
-          h3 [txt "Versions of this tune"];
-          R.div
-            (
-              S.from' (Tables.placeholder ()) @@
-                let%lwt versions =
-                  snd
-                  <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
-                      Filter.Version.tuneis' tune
-                in
-                lwt @@
-                  if versions = [] then
-                      [txt "There are no versions for this tune."]
+      div [
+        h3 [txt "Versions of this tune"];
+        R.div
+          (
+            S.from' (Tables.placeholder ()) @@
+              let%lwt versions =
+                snd
+                <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
+                    Filter.Version.tuneis' tune
+              in
+              lwt @@
+                if versions = [] then
+                    [txt "There are no versions for this tune."]
+                else
+                    [Tables.versions versions]
+          )
+      ];
+      div [
+        h3 [txt "Dances that recommend this tune"];
+        R.div
+          (
+            S.from' (Tables.placeholder ()) @@
+              let%lwt dances = Tune.dances' tune in
+              lwt
+                [
+                  if dances = [] then
+                    txt "There are no dances that recommend this tune."
                   else
-                      [Tables.versions versions]
-            )
-        ];
-      div
-        ~a: [a_class ["section"]]
-        [
-          h3 [txt "Dances that recommend this tune"];
-          R.div
-            (
-              S.from' (Tables.placeholder ()) @@
-                let%lwt dances = Tune.dances' tune in
-                lwt
-                  [
-                    if dances = [] then
-                      txt "There are no dances that recommend this tune."
-                    else
-                      Tables.dances dances
-                  ]
-            )
-        ];
+                    Tables.dances dances
+                ]
+          )
+      ];
     ]
