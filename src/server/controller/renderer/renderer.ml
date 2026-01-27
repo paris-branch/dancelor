@@ -78,20 +78,24 @@ type call_nix_config = {
 }
 
 let call_nix fun_ json =
-  Job.Expr (
-    spf
-      "(import %s/renderer/renderer.nix { %s}).%s (builtins.fromJSON %s)"
-      (if (!Config.share).[0] = '/' then !Config.share else "./" ^ !Config.share)
-      (if !Config.nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes !Config.nixpkgs ^ "; ")
-      fun_
-      (escape_double_quotes (Yojson.Safe.to_string json))
-  )
+  let%lwt (fname, ochan) = Lwt_io.open_temp_file () in
+  Lwt_io.write ochan (Yojson.Safe.to_string json);%lwt
+  lwt @@
+    Job.Expr (
+      spf
+        "(import %s/renderer/renderer.nix { %s}).%s (builtins.fromJSON (builtins.readFile %s))"
+        (if (!Config.share).[0] = '/' then !Config.share else "./" ^ !Config.share)
+        (if !Config.nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes !Config.nixpkgs ^ "; ")
+        fun_
+        (escape_double_quotes fname),
+      [fname]
+    )
 
 (** {2 API} *)
 
 let make_tune_snippets = call_nix "makeTuneSnippets" % tune_to_yojson
-let make_tune_svg tune = (make_tune_snippets tune, "snippet.svg")
-let make_tune_ogg tune = (make_tune_snippets tune, "snippet.ogg")
+let make_tune_svg tune = Pair.snoc "snippet.svg" <$> make_tune_snippets tune
+let make_tune_ogg tune = Pair.snoc "snippet.ogg" <$> make_tune_snippets tune
 
 type pdf_metadata = {
   title: string;
@@ -109,4 +113,4 @@ type book_pdf_arg = {
 [@@deriving yojson]
 
 let make_book_pdf arg =
-  (call_nix "makeBookPdf" (book_pdf_arg_to_yojson arg), "book.pdf")
+  Pair.snoc "book.pdf" <$> call_nix "makeBookPdf" (book_pdf_arg_to_yojson arg)
