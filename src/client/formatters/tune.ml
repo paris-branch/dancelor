@@ -31,22 +31,22 @@ let description tune =
     let kind = Kind.Base.to_pretty_string @@ Model.Tune.kind tune in
     match%lwt Model.Tune.composers tune with
     | [] ->
-      lwt
-        [
-          txt (String.capitalize_ascii kind)
-        ]
+      lwt [txt (String.capitalize_ascii kind)]
     | [composer] when NEString.to_string (Model.Person.name' @@ Model.Tune.composer_composer composer) = "Traditional" ->
-      lwt
-        [
-          txt ("Traditional " ^ kind)
-        ]
+      lwt [txt ("Traditional " ^ kind)]
     | composers ->
-      lwt
-        (
-          [txt (String.capitalize_ascii kind ^ " by ");
-          Person.names' @@ List.map Model.Tune.composer_composer composers;
-          ]
-        )
+      lwt [
+        txt (String.capitalize_ascii kind ^ " by ");
+        Person.names'_with_details @@
+          List.map
+            (fun Model.Tune.{composer; details} ->
+              (
+                composer,
+                if details = "" then [] else [txtf " (%s)" details]
+              )
+            )
+            composers;
+      ]
 
 let description' = description % Entry.value
 

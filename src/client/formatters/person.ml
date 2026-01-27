@@ -23,8 +23,12 @@ let name = name_gen % Either.left
 
 let name' ?(link = true) ?context person = name_gen @@ Right (person, link, context)
 
-let names_gen ?(short = false) persons =
-  let persons = List.map (List.singleton % name_gen) persons in
+let names_with_details_gen ?(short = false) persons_with_details =
+  let persons =
+    List.map
+      (fun (person, details) -> name_gen person :: details)
+      persons_with_details
+  in
   let components =
     if short then
       match persons with
@@ -37,7 +41,12 @@ let names_gen ?(short = false) persons =
   in
   span @@ List.concat components
 
-let names ?short = names_gen ?short % List.map Either.left
+let names_with_details ?short =
+  names_with_details_gen ?short % List.map (Pair.map_fst Either.left)
 
-let names' ?short ?(links = true) persons =
-  names_gen ?short @@ List.map (fun person -> Right (person, links, None)) persons
+let names'_with_details ?short ?(links = true) persons =
+  names_with_details_gen ?short @@ List.map (fun (person, details) -> (Right (person, links, None), details)) persons
+
+let names ?short = names_with_details ?short % List.map (Pair.snoc [])
+
+let names' ?short ?links = names'_with_details ?short ?links % List.map (Pair.snoc [])
