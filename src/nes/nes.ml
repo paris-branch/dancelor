@@ -23,7 +23,6 @@ module Datetime = NesDatetime
 module Depart = NesDepart
 module PartialDate = NesPartialDate
 module Slice = NesSlice
-module Filesystem = NesFilesystem
 module Json = NesJson
 module Link = NesLink
 module Void = NesVoid
