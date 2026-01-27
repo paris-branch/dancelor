@@ -164,21 +164,18 @@ let create ?context id =
       (lwt @@ Option.map_to_list (Action.scddb Publication) (Book.scddb_id' book));
     ]
     [
-      R.div
-        (
-          S.from' [] @@
-            match%lwt Book.warnings book with
-            | [] -> lwt_nil
-            | warnings -> lwt [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
-        );
-      div
-        ~a: [a_class ["section"]]
-        [
-          h3 [txt "Contents"];
-          R.div (
-            S.from' (Tables.placeholder ()) @@
-              let%lwt contents = Book.contents' book in
-              lwt [table_contents ~this_id: id contents]
-          )
-        ];
+      R.div (
+        S.from' [] @@
+          match%lwt Book.warnings book with
+          | [] -> lwt_nil
+          | warnings -> lwt [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
+      );
+      div [
+        h3 [txt "Contents"];
+        R.div (
+          S.from' (Tables.placeholder ()) @@
+            let%lwt contents = Book.contents' book in
+            lwt [table_contents ~this_id: id contents]
+        )
+      ];
     ]

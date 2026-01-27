@@ -40,8 +40,8 @@ let add_target_event_listener n ev f =
 
 let quick_explorer_links links =
   let open Html in
-  div
-    ~a: [a_class ["section"]]
+  section
+    ~a: [a_class ["mt-2"]]
     [
       txt "Quick links to:";
       ul
