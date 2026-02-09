@@ -11,11 +11,9 @@ type state =
 
 let is_failed = function Failed _ -> true | _ -> false
 
-(** A type for Nix expressions. It can also contain a list of files that are
-    necessary for the evaluation of the expression. They will be cleaned up afterwards. *)
-type expr = Expr of string * string list
-let expr_val (Expr (s, _)) = s
-let expr_files (Expr (_, fs)) = fs
+(** A type for Nix expressions. *)
+type expr = Expr of string
+let expr_val (Expr s) = s
 
 (** An internal job. This is an actual job, producing potentially several
     artifacts. A {!Job_id.t} corresponds to an {!job_and_file}, which is an
@@ -97,7 +95,6 @@ let run_job job =
     Log.debug (fun m -> m "Status: %a" Process.pp_process_status status);
     Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stdout") stdout);
     Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stderr") (String.concat "\n" stderr));
-    List.iter Sys.remove (expr_files job.expr);
     (
       job.state :=
         match status with

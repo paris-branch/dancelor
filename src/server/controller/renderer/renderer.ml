@@ -78,9 +78,16 @@ type call_nix_config = {
 }
 
 let call_nix fun_ json =
-  let%lwt (fname, ochan) = Lwt_io.open_temp_file () in
-  Lwt_io.write ochan (Yojson.Safe.to_string json);%lwt
-  Lwt_io.close ochan;%lwt
+  let%lwt store_path =
+    (* NOTE: We could use the temporary file directly, instead of adding it to
+       the store, but (1) it would make it harder to inspect the command after
+       the fact since the input file would have disappeared, and (2) this way we
+       make the [call_nix] function deterministic, and therefore we can use its
+       resulting expression and cache it. *)
+    Lwt_io.with_temp_file @@ fun (fname, ochan) ->
+    Lwt_io.write ochan (Yojson.Safe.to_string json);%lwt
+    Lwt_process.pread ("", [|"nix"; "store"; "add"; "--name"; "renderer-input.json"; "--mode"; "flat"; fname|])
+  in
   lwt @@
     Job.Expr (
       spf
@@ -88,8 +95,7 @@ let call_nix fun_ json =
         (if (!Config.share).[0] = '/' then !Config.share else "./" ^ !Config.share)
         (if !Config.nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes !Config.nixpkgs ^ "; ")
         fun_
-        (escape_double_quotes fname),
-      [fname]
+        store_path
     )
 
 (** {2 API} *)
