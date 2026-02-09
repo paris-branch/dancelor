@@ -7,6 +7,7 @@
 
 let
   inherit (builtins)
+    readFile
     toString
     ;
 
@@ -90,33 +91,21 @@ let
     };
   };
 
-  ## TODO: Creating a file from concatenating files can be done directly in Nix,
-  ## rather than calling `cat`.
-  ## TODO: In fact, we don't need to concatenate files at all, because LilyPond
-  ## and Guile both have a mechanism to load other files.
-  tuneScheme =
-    runCommand "preamble.scm"
-      {
-        preferLocalBuild = true;
-        allowSubstitutes = false;
-      }
-      ''
-        {
-          cat ${./tune/scheme/extlib.scm}
-          cat ${./tune/scheme/extlylib.scm}
-          cat ${./tune/scheme/get_partial.scm}
-          cat ${./tune/scheme/duration_of_music.scm}
-          cat ${./tune/scheme/skip_as_repeat.scm}
-          cat ${./tune/scheme/scottish_chords/jig_chords.scm}
-          cat ${./tune/scheme/scottish_chords/reel_chords.scm}
-          cat ${./tune/scheme/scottish_chords/waltz_chords.scm}
-          cat ${./tune/scheme/scottish_chords/chords.scm}
-          cat ${./tune/scheme/bar_numbering/repeat_aware.scm}
-        } > $out
-      '';
-
-  ## TODO: cf tuneScheme
+  ## TODO: Use Guile's load instead of catenating files?
   ##
+  tuneScheme = writeText "preamble.scm" ''
+    ${readFile ./tune/scheme/extlib.scm}
+    ${readFile ./tune/scheme/extlylib.scm}
+    ${readFile ./tune/scheme/get_partial.scm}
+    ${readFile ./tune/scheme/duration_of_music.scm}
+    ${readFile ./tune/scheme/skip_as_repeat.scm}
+    ${readFile ./tune/scheme/scottish_chords/jig_chords.scm}
+    ${readFile ./tune/scheme/scottish_chords/reel_chords.scm}
+    ${readFile ./tune/scheme/scottish_chords/waltz_chords.scm}
+    ${readFile ./tune/scheme/scottish_chords/chords.scm}
+    ${readFile ./tune/scheme/bar_numbering/repeat_aware.scm}
+  '';
+
   makeTuneLilypond =
     {
       slug,
@@ -129,45 +118,63 @@ let
       show_time_signatures,
       ...
     }:
-    let
-      contentFile = writeText "tune-${slug}-content.ly" content;
-    in
-    runCommand "tune-${slug}.ly"
-      {
-        preferLocalBuild = true;
-        allowSubstitutes = false;
+    writeText "tune-${slug}.ly" ''
+      ${readFile ./tune/lilypond/preamble.ly}
+      #(load "${tuneScheme}")
+      ${readFile ./tune/lilypond/macros.ly}
+      ${
+        if show_bar_numbers then
+          ''
+            ${readFile ./tune/lilypond/bar_numbering/repeat_aware.ly}
+            ${readFile ./tune/lilypond/bar_numbering/bar_number_in_instrument_name_engraver.ly}
+            ${readFile ./tune/lilypond/bar_numbering/beginning_of_line.ly}
+          ''
+        else
+          ''
+            \layout {
+              \context {
+                \Score
+                \omit BarNumber
+              }
+            }
+          ''
       }
-      ''
-        {
-          cat ${./tune/lilypond/preamble.ly}
-          printf '#(load "%s")\n' ${tuneScheme}
-          cat ${./tune/lilypond/macros.ly}
-          if ${if show_bar_numbers then "true" else "false"}; then
-            cat ${./tune/lilypond/bar_numbering/repeat_aware.ly}
-            cat ${./tune/lilypond/bar_numbering/bar_number_in_instrument_name_engraver.ly}
-            cat ${./tune/lilypond/bar_numbering/beginning_of_line.ly}
-          else
-            printf '\\layout {\\context {\\Score\\omit BarNumber}}\n'
-          fi
-          if ${if show_time_signatures then "true" else "false"}; then
-            printf '\\numericTimeSignature\n'
-          else
-            printf '\\layout {\\context {\\Staff\\remove Time_signature_engraver}}\n'
-          fi
-          cat ${./tune/lilypond/scottish_chords.ly}
-          printf '\\score {\n'
-          printf '  \\layout { \\context { \\Score currentBarNumber = #%d } }\n' ${toString first_bar}
-          printf '  { %s }\n' "$(cat "${contentFile}")"
-          printf '}\\markup\\null\n'
-          printf '#(set! make-music the-make-music)\n'
-          printf '\\score {\n'
-          printf '  \\midi { \\tempo ${tempo_unit} = ${toString tempo_value} }\n'
-          printf '  \\${chords_kind}Chords \\unfoldRepeats {\n'
-          printf '    %s\n' "$(cat "${contentFile}")"
-          printf '  }\n'
-          printf '}\n'
-        } > $out
-      '';
+      ${
+        if show_time_signatures then
+          ''
+            \numericTimeSignature
+          ''
+        else
+          ''
+            \layout {
+              \context {
+                \Staff
+                \remove Time_signature_engraver
+              }
+            }
+          ''
+      }
+      ${readFile ./tune/lilypond/scottish_chords.ly}
+      \score {
+        \layout {
+          \context {
+            \Score
+            currentBarNumber = #${toString first_bar}
+          }
+        }
+        { ${content} }
+      }
+      \markup\null
+      #(set! make-music the-make-music)
+      \score {
+        \midi {
+          \tempo ${tempo_unit} = ${toString tempo_value}
+        }
+        \${chords_kind}Chords \unfoldRepeats {
+          ${content}
+        }
+      }
+    '';
 
   makeTuneSnippets = withArgumentType "makeTuneSnippets" tuneType (
     tune@{ slug, ... }:
