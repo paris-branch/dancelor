@@ -78,25 +78,29 @@ type call_nix_config = {
 }
 
 let call_nix fun_ json =
-  let%lwt store_path =
-    (* NOTE: We could use the temporary file directly, instead of adding it to
-       the store, but (1) it would make it harder to inspect the command after
-       the fact since the input file would have disappeared, and (2) this way we
-       make the [call_nix] function deterministic, and therefore we can use its
-       resulting expression and cache it. *)
-    Lwt_io.with_temp_file @@ fun (fname, ochan) ->
-    Lwt_io.write ochan (Yojson.Safe.to_string json);%lwt
-    Lwt_process.pread ("", [|"nix"; "store"; "add"; "--name"; "renderer-input.json"; "--mode"; "flat"; fname|])
+  Lwt_io.with_temp_file @@ fun (fname, ochan) ->
+  Lwt_io.write ochan (Yojson.Safe.to_string json);%lwt
+  let%lwt drv_path =
+    String.trim
+    <$> Lwt_process.pread (
+        "",
+        [|
+          "nix";
+          "eval";
+          "--raw";
+          "--impure";
+          "--expr";
+          spf
+            "((import %s/renderer/renderer.nix { %s}).%s (builtins.fromJSON (builtins.readFile %s))).drvPath"
+            (if (!Config.share).[0] = '/' then !Config.share else "./" ^ !Config.share)
+            (if !Config.nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes !Config.nixpkgs ^ "; ")
+            fun_
+            (escape_double_quotes fname)
+        |]
+      )
   in
-  lwt @@
-    Job.Expr (
-      spf
-        "(import %s/renderer/renderer.nix { %s}).%s (builtins.fromJSON (builtins.readFile %s))"
-        (if (!Config.share).[0] = '/' then !Config.share else "./" ^ !Config.share)
-        (if !Config.nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes !Config.nixpkgs ^ "; ")
-        fun_
-        store_path
-    )
+  assert (drv_path <> "");
+  lwt @@ Job.Drv_path drv_path
 
 (** {2 API} *)
 

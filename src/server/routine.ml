@@ -16,10 +16,10 @@ let all_versions_prerendering_job =
     (fun version ->
       let%lwt name = Model.Version.one_name' version in
       Log.debug (fun m -> m "Prerendering snippets for version %s" (NEString.to_string name));
-      let%lwt render_snippets_expr = Controller.Version.render_snippets (Entry.value version) in
+      let%lwt render_snippets_drv_path = Controller.Version.render_snippets (Entry.value version) in
       lwt
         Controller.Job.{
-          expr = render_snippets_expr;
+          drv_path = render_snippets_drv_path;
           state = ref Pending
         }
     )
