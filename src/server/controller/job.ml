@@ -11,9 +11,9 @@ type state =
 
 let is_failed = function Failed _ -> true | _ -> false
 
-(** A type for Nix expressions. *)
-type expr = Expr of string
-let expr_val (Expr s) = s
+(** A type for paths to a Nix derivation file. *)
+type drv_path = Drv_path of string
+let drv_path_val (Drv_path s) = s
 
 (** An internal job. This is an actual job, producing potentially several
     artifacts. A {!Job_id.t} corresponds to an {!job_and_file}, which is an
@@ -21,12 +21,12 @@ let expr_val (Expr s) = s
     several things at the same time, while still giving a simple “one job = one
     file” interface to the client. *)
 type job = {
-  expr: expr;
+  drv_path: drv_path;
   state: state ref;
 }
 
 (* NOTE: The following table and stream need to be kept in sync. *)
-let job_of_expr : (expr, job) Hashtbl.t = Hashtbl.create 8
+let job_of_drv_path : (drv_path, job) Hashtbl.t = Hashtbl.create 8
 let (pending_jobs : job Lwt_stream.t), add_pending_job = Lwt_stream.create ()
 
 (** An job and a file within that job. See comment for {!job}. *)
@@ -41,22 +41,22 @@ type job_and_file = {
     registered in {!job_of_expr}. *)
 let job_and_file_of_id : (Job_id.t, job_and_file) Hashtbl.t = Hashtbl.create 8
 
-let register_job (expr : expr) (file : string) : Job_id.t Endpoints.Job.registration_response =
+let register_job (drv_path : drv_path) (file : string) : Job_id.t Endpoints.Job.registration_response =
   let job_and_file =
-    match Hashtbl.find_opt job_of_expr expr with
+    match Hashtbl.find_opt job_of_drv_path drv_path with
     | Some job when not (is_failed !(job.state)) ->
-      (*  if there is a job for the same expression, but not necessarily the
+      (*  if there is a job for the same derivation, but not necessarily the
           same file, we can just return without starting an actual job; we do
           not do so for failed job in case the failure was transient *)
       {id = Job_id.create (); job; file}
     | _ ->
       (* otherwise, we really do have to register a new job *)
       let id = Job_id.create () in
-      let job = {expr; state = ref Pending} in
+      let job = {drv_path; state = ref Pending} in
       (* NOTE: we use {!Hashtbl.replace} because {!Hashtbl.add} might keep failed jobs *)
-      Hashtbl.replace job_of_expr expr job;
+      Hashtbl.replace job_of_drv_path drv_path job;
       add_pending_job (Some job);
-      Log.debug (fun m -> m "Registered new job: %s" (expr_val expr));
+      Log.debug (fun m -> m "Registered new job: %s" (drv_path_val drv_path));
       {id; job; file}
   in
   Hashtbl.add job_and_file_of_id job_and_file.id job_and_file;
@@ -73,7 +73,7 @@ let run_job job =
   | Failed _ -> invalid_arg "run_job: cannot start a job that has already failed"
   | Succeeded _ -> invalid_arg "run_job: cannot start a job that has already succeeded"
   | Pending ->
-    let command = [|"nix-build"; "--no-link"; "--impure"; "--expr"; expr_val job.expr|] in
+    let command = [|"nix-build"; "--no-link"; drv_path_val job.drv_path|] in
     let process = Lwt_process.open_process_full ("", command) in
     let stderr = ref [] in
     job.state := Running {process; stderr};
@@ -91,7 +91,7 @@ let run_job job =
     let%lwt stdout = Lwt_io.read process#stdout in
     let%lwt last_stderr = String.split_on_char '\n' <$> Lwt_io.(atomic read process#stderr) in
     let stderr = !stderr @ last_stderr in
-    Log.debug (fun m -> m "Ran job: %s" (expr_val job.expr));
+    Log.debug (fun m -> m "Ran job: %s" (drv_path_val job.drv_path));
     Log.debug (fun m -> m "Status: %a" Process.pp_process_status status);
     Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stdout") stdout);
     Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stderr") (String.concat "\n" stderr));
@@ -103,7 +103,7 @@ let run_job job =
     );
     lwt_unit
 
-let make expr = lwt {expr; state = ref Pending}
+let make drv_path = lwt {drv_path; state = ref Pending}
 
 let get id =
   match Hashtbl.find_opt job_and_file_of_id id with
