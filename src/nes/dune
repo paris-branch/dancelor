@@ -1,6 +1,6 @@
 (library
  (name nes)
- (public_name dancelor.nes)
+ (public_name nes)
  (wrapped false)
  (libraries
   yojson

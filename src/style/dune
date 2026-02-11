@@ -7,6 +7,7 @@
 
 (install
  (section share)
+ (package dancelor)
  (files
   style.css
   (glob_files

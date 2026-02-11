@@ -1,8 +1,8 @@
 (library
  (name madge)
  (modules :standard \ madge_client madge_server ppx_madge_wrapped_endpoints)
- (public_name dancelor.madge)
- (libraries dancelor.nes yojson uri logs cohttp-lwt)
+ (public_name madge)
+ (libraries nes yojson uri logs cohttp-lwt)
  (preprocess
   (staged_pps
    ppx_import
@@ -15,21 +15,16 @@
 (library
  (name madge_client)
  (modules madge_client)
- (public_name dancelor.madge.client)
- (libraries
-  dancelor.nes
-  dancelor.madge
-  cohttp-lwt-jsoo
-  yojson
-  js_of_ocaml-lwt)
+ (public_name madge.client)
+ (libraries nes madge cohttp-lwt-jsoo yojson js_of_ocaml-lwt)
  (preprocess
   (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx ppx_monad_rlwt)))
 
 (library
  (name madge_server)
  (modules madge_server)
- (public_name dancelor.madge.server)
- (libraries dancelor.madge cohttp-lwt-unix prometheus-app.unix)
+ (public_name madge.server)
+ (libraries madge cohttp-lwt-unix prometheus-app.unix)
  (preprocess
   (pps ppx_deriving_yojson lwt_ppx)))
 
@@ -37,6 +32,7 @@
  (name ppx_madge_wrapped_endpoints)
  (modules ppx_madge_wrapped_endpoints)
  (kind ppx_deriver)
+ (package madge)
  (libraries base ppxlib)
  (preprocess
   (pps ppxlib.metaquot)))

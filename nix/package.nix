@@ -7,6 +7,58 @@
       ...
     }:
     {
+      packages.nes = pkgs.ocamlPackages.buildDunePackage {
+        pname = "nes";
+        version = "dev";
+        src = ../.;
+
+        propagatedBuildInputs = with pkgs.ocamlPackages; [
+          dates_calc
+          iso8601
+          ppx_monad
+          slug
+          yojson
+        ];
+
+        buildInputs = with pkgs.ocamlPackages; [
+          self'.packages.ocaml-argon2
+
+          logs
+          lwt_ppx
+          ppx_deriving_yojson
+          ppx_import
+          ppx_inline_test
+        ];
+      };
+
+      packages.madge = pkgs.ocamlPackages.buildDunePackage {
+        pname = "madge";
+        version = "dev";
+        src = ../.;
+
+        propagatedBuildInputs = with pkgs.ocamlPackages; [
+          self'.packages.nes
+        ];
+
+        buildInputs = with pkgs.ocamlPackages; [
+          self'.packages.prometheus-app
+
+          base
+          cohttp-lwt
+          cohttp-lwt-jsoo
+          cohttp-lwt-unix
+          js_of_ocaml-lwt
+          logs
+          lwt_ppx
+          ppx_deriving_yojson
+          ppx_fields_conv
+          ppx_import
+          ppxlib
+          uri
+          yojson
+        ];
+      };
+
       packages.dancelor = pkgs.ocamlPackages.buildDunePackage {
         pname = "dancelor";
         version = "dev";
@@ -20,31 +72,34 @@
           ++ (with pkgs; [ sassc ]);
 
         buildInputs = with pkgs.ocamlPackages; [
+          self'.packages.nes
+          self'.packages.madge
           self'.packages.ocaml-argon2
           self'.packages.prometheus-app
 
-          biniou
+          cohttp
+          cohttp-lwt
           cohttp-lwt-jsoo
           cohttp-lwt-unix
-          dates_calc
-          iso8601
+          js_of_ocaml-lwt
           js_of_ocaml-ppx
           js_of_ocaml-tyxml
           logs
           lwt_ppx
           lwt_react
+          menhirLib
           monadise
           monadise-lwt
           ppx_blob
           ppx_deriving_qcheck
           ppx_deriving_yojson
+          ppx_fields_conv
           ppx_import
           ppx_inline_test
-          ppx_fields_conv
           ppx_monad
           ppx_variants_conv
-          prometheus
-          slug
+          react
+          tyxml
           yaml
         ];
       };
@@ -76,13 +131,13 @@
         propagatedBuildInputs =
           (with pkgs; [ libargon2 ])
           ++ (with pkgs.ocamlPackages; [
+            ctypes
             ctypes-foreign
+            result
           ]);
 
         buildInputs = with pkgs.ocamlPackages; [
-          ctypes
           dune-configurator
-          result
         ];
       };
 
