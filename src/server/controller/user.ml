@@ -47,8 +47,14 @@ let create env user =
   (* match Entry.Id.check username with *)
   (* | false -> Madge_server.shortcut_bad_request "The username does not have the right shape." *)
   (* | true -> *)
-  let token = uid () in
-  let hashed_token = (HashedSecret.make ~clear: token, Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)) in
+  let token = Model.User.Password_reset_token_clear.make () in
+  (* NOTE: We should use Password_reset_token_hashed.make here, but HashedSecret.make
+     is only available on the server side (NesHashedSecretUnix), not in common code. *)
+  let hashed_token = (
+    Model.User.Password_reset_token_hashed.inject @@ HashedSecret.make ~clear: (Model.User.Password_reset_token_clear.project token),
+    Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)
+  )
+  in
   let%lwt user = Model.User.update user ~password_reset_token: (const @@ Some hashed_token) in
   let%lwt user = Database.User.create user Entry.Access.Public in
   lwt (user, token)
@@ -61,8 +67,14 @@ let prepare_reset_password env username =
     Log.info (fun m -> m "Rejecting because username not found.");
     Madge_server.shortcut_bad_request "User not found."
   | Some user ->
-    let token = uid () in
-    let hashed_token = (HashedSecret.make ~clear: token, Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)) in
+    let token = Model.User.Password_reset_token_clear.make () in
+    (* NOTE: We should use Password_reset_token_hashed.make here, but HashedSecret.make
+       is only available on the server side (NesHashedSecretUnix), not in common code. *)
+    let hashed_token = (
+      Model.User.Password_reset_token_hashed.inject @@ HashedSecret.make ~clear: (Model.User.Password_reset_token_clear.project token),
+      Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)
+    )
+    in
     ignore
     <$> Database.User.update
         (Entry.id user)
@@ -96,7 +108,10 @@ let reset_password username token password =
       Log.info (fun m -> m "Rejecting because token is too old.");
       Madge_server.shortcut_forbidden_no_leak ()
     | Some (hashed_token, _) ->
-      if not @@ HashedSecret.is ~clear: token hashed_token then
+      (* NOTE: We should be able to compare Password_reset_token_clear with
+         Password_reset_token_hashed directly, but we need to project because
+         HashedSecret.is is only available on the server side. *)
+      if not @@ HashedSecret.is ~clear: (Model.User.Password_reset_token_clear.project token) (Model.User.Password_reset_token_hashed.project hashed_token) then
         (
           Log.info (fun m -> m "Rejecting because tokens do no match.");
           Madge_server.shortcut_forbidden_no_leak ()

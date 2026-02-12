@@ -8,10 +8,13 @@ module type S = sig
 
   type entry = t Entry.public
 
+  module Password_reset_token_clear = User.Password_reset_token_clear
+  module Password_reset_token_hashed = User.Password_reset_token_hashed
+
   val make :
     username: NEString.t ->
     ?password: HashedSecret.t ->
-    ?password_reset_token: HashedSecret.t * Datetime.t ->
+    ?password_reset_token: Password_reset_token_hashed.t * Datetime.t ->
     ?remember_me_tokens: (HashedSecret.t * Datetime.t) String.Map.t ->
     ?role: User.role ->
     unit ->
@@ -20,7 +23,7 @@ module type S = sig
   val update :
     ?username: (NEString.t -> NEString.t) ->
     ?password: (HashedSecret.t option -> HashedSecret.t option) ->
-    ?password_reset_token: ((HashedSecret.t * Datetime.t) option -> (HashedSecret.t * Datetime.t) option) ->
+    ?password_reset_token: ((Password_reset_token_hashed.t * Datetime.t) option -> (Password_reset_token_hashed.t * Datetime.t) option) ->
     ?remember_me_tokens: ((HashedSecret.t * Datetime.t) String.Map.t -> (HashedSecret.t * Datetime.t) String.Map.t) ->
     ?role: (User.role -> User.role) ->
     t ->
@@ -34,8 +37,8 @@ module type S = sig
   val password : t -> HashedSecret.t option
   val password' : entry -> HashedSecret.t option
 
-  val password_reset_token : t -> (HashedSecret.t * Datetime.t) option
-  val password_reset_token' : entry -> (HashedSecret.t * Datetime.t) option
+  val password_reset_token : t -> (Password_reset_token_hashed.t * Datetime.t) option
+  val password_reset_token' : entry -> (Password_reset_token_hashed.t * Datetime.t) option
 
   val remember_me_tokens : t -> (HashedSecret.t * Datetime.t) String.Map.t
   val remember_me_tokens' : entry -> (HashedSecret.t * Datetime.t) String.Map.t
