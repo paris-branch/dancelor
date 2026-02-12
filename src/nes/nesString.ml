@@ -1,6 +1,8 @@
 open NesPervasives
 include String
 
+type t = string [@@deriving eq, show, yojson]
+
 let remove_char ?(char_equal = Char.equal) c s =
   let b = Bytes.create (length s) in
   let j = ref 0 in

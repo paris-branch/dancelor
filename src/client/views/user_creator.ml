@@ -17,7 +17,7 @@ let open_token_result_dialog user token =
         txt " was created successfully. Pass them the following link: ";
       ];
       p [
-        let href = Endpoints.Page.(href User_password_reset) (NEString.to_string @@ Model.User.username' user) token in
+        let href = Endpoints.Page.(href User_password_reset) (Model.User.username' user) token in
         a ~a: [a_href href] [txt href]
       ];
       p [
@@ -29,10 +29,12 @@ let open_token_result_dialog user token =
 let create () =
   Main_page.assert_can_admin @@ fun () ->
   let%lwt username_input =
-    Input.make_non_empty
+    Input.make
       ~type_: Text
       ~placeholder: "JeanMilligan"
       ~label: "Username"
+      ~serialise: Model.User.Username.to_string
+      ~validate: (S.const % Option.to_result ~none: "Invalid username format." % Model.User.Username.from_string)
       ""
   in
   let signal =

@@ -23,5 +23,5 @@ module Build (Getters : Getters.S) = struct
     | Set s -> lwt @@ Core.Set.name' s
     | Tune t -> lwt @@ Core.Tune.one_name' t
     | Version v -> (Core.Tune.one_name' % Option.get) <$> Getters.get_tune @@ Core.Version.tune @@ Entry.value v
-    | User u -> lwt @@ Core.User.username' u
+    | User u -> lwt @@ Core.User.Username.to_nestring @@ Core.User.username' u
 end

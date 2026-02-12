@@ -49,7 +49,8 @@ type (_, _, _) t =
   | Index : ('w, 'w, Void.t) t
   | Explore : ((string option -> 'w), 'w, Void.t) t
   | User_create : ('w, 'w, Void.t) t
-  | User_password_reset : ((string -> string -> 'w), 'w, Void.t) t
+  | User_prepare_reset_password : ('w, 'w, Void.t) t
+  | User_password_reset : ((Core.User.Username.t -> Core.User.Password_reset_token_clear.t -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
 open Madge
@@ -83,7 +84,8 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Index -> void ()
     | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
     | User_create -> literal "user" @@ literal "create" @@ void ()
-    | User_password_reset -> literal "user" @@ literal "reset-password" @@ query "username" (module JString) @@ query "token" (module JString) @@ void ()
+    | User_prepare_reset_password -> literal "user" @@ literal "prepare-reset-password" @@ void ()
+    | User_password_reset -> literal "user" @@ literal "reset-password" @@ query "username" (module Core.User.Username) @@ query "token" (module Core.User.Password_reset_token_clear) @@ void ()
 
 let href : type a r. (a, string, r) t -> a = fun page ->
   with_request (route page) @@ fun (module _) request ->
@@ -135,6 +137,7 @@ module Make_describe (Model : Model_builder.S) = struct
       | Dance_add -> lwt_none
       | Dance_edit -> const lwt_none
       | User_create -> lwt_none
+      | User_prepare_reset_password -> lwt_none
       | User_password_reset -> const2 lwt_none
       | Any -> (fun id -> lwt_some ("any", Entry.Id.to_string id))
       | Version ->
