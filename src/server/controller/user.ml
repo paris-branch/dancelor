@@ -81,7 +81,7 @@ let prepare_reset_password env username =
         {(Entry.value user) with
           password = None;
           password_reset_token = Some hashed_token;
-          remember_me_tokens = String.Map.empty;
+          remember_me_tokens = Model.User.Remember_me_key.Map.empty;
         }
         Entry.Access.Public;%lwt
     Log.info (fun m -> m "Password reset token generated for user `%s`." username);
