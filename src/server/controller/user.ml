@@ -28,7 +28,8 @@ let sign_in env username password remember_me =
       | None ->
         Log.info (fun m -> m "Rejecting because user has no password.");
         lwt_none
-      | Some hashedPassword when not @@ HashedSecret.is ~clear: password hashedPassword ->
+      | Some hashedPassword when not @@ HashedSecret.is ~clear: (Model.User.Password_clear.project password) (Model.User.Password_hashed.project hashedPassword) ->
+        (* NOTE: Similar to other tokens, we should be able to compare directly but need to project. *)
         Log.info (fun m -> m "Rejecting because passwords do not match.");
         lwt_none
       | Some _ ->
@@ -119,7 +120,9 @@ let reset_password username token password =
       else
         (
           Log.info (fun m -> m "Accepting to reset password.");
-          let password = HashedSecret.make ~clear: password in
+          (* NOTE: We should use Password_hashed.make here, but HashedSecret.make
+             is only available on the server side (NesHashedSecretUnix), not in common code. *)
+          let password = Model.User.Password_hashed.inject @@ HashedSecret.make ~clear: (Model.User.Password_clear.project password) in
           ignore
           <$> Database.User.update
               (Entry.id user)

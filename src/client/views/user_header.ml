@@ -32,14 +32,14 @@ let open_sign_in_dialog () =
       ~label: "Password"
       ~placeholder: "1234567"
       ~oninput: (fun _ -> set_status_signal Dont_know)
-      ~serialise: Fun.id
+      ~serialise: Model.User.Password_clear.project
       ~validate: (fun password ->
         S.bind status_signal @@ fun status ->
         S.const @@
           match password, status with
           | "", _ -> Error "The password cannot be empty."
           | _, Invalid -> Error "Invalid username or password."
-          | _, Dont_know -> Ok password
+          | _, Dont_know -> Ok (Model.User.Password_clear.inject password)
       )
       ""
   in
