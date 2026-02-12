@@ -6,8 +6,8 @@
  (libraries
   cohttp
   cohttp-lwt
-  dancelor.madge
-  dancelor.nes
+  madge
+  nes
   logs
   lwt
   menhirLib
