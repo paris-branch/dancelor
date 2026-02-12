@@ -13,13 +13,13 @@ let get env id =
 let status = lwt % Environment.user
 
 let sign_in env username password remember_me =
-  Log.info (fun m -> m "Attempt to sign in with username `%s`." username);
+  Log.info (fun m -> m "Attempt to sign in with username `%s`." (Model.User.Username.to_string username));
   match Environment.user env with
   | Some _user ->
     Log.info (fun m -> m "Rejecting because already signed in.");
     lwt_none
   | None ->
-    match%lwt Database.User.get_from_username @@ NEString.of_string_exn username with
+    match%lwt Database.User.get_from_username username with
     | None ->
       Log.info (fun m -> m "Rejecting because of wrong username.");
       lwt_none
@@ -62,8 +62,8 @@ let create env user =
 
 let prepare_reset_password env username =
   Permission.assert_can_administrate env @@ fun _admin ->
-  Log.info (fun m -> m "Preparing password reset for user `%s`." username);
-  match%lwt Database.User.get_from_username @@ NEString.of_string_exn username with
+  Log.info (fun m -> m "Preparing password reset for user `%s`." (Model.User.Username.to_string username));
+  match%lwt Database.User.get_from_username username with
   | None ->
     Log.info (fun m -> m "Rejecting because username not found.");
     Madge_server.shortcut_bad_request "User not found."
@@ -85,18 +85,18 @@ let prepare_reset_password env username =
           remember_me_tokens = Model.User.Remember_me_key.Map.empty;
         }
         Entry.Access.Public;%lwt
-    Log.info (fun m -> m "Password reset token generated for user `%s`." username);
+    Log.info (fun m -> m "Password reset token generated for user `%s`." (Model.User.Username.to_string username));
     lwt token
 
 let reset_password username token password =
-  Log.info (fun m -> m "Attempt to reset password for user `%s`." username);
+  Log.info (fun m -> m "Attempt to reset password for user `%s`." (Model.User.Username.to_string username));
   (* FIXME: A module for usernames that reject malformed ones *)
   (* match Entry.Id.check username with *)
   (* | false -> *)
   (*   Log.info (fun m -> m "Rejecting because username is not even a id."); *)
   (*   Madge_server.shortcut_bad_request "The username does not have the right shape." *)
   (* | true -> *)
-  match%lwt Database.User.get_from_username @@ NEString.of_string_exn @@ username with
+  match%lwt Database.User.get_from_username username with
   | None ->
     Log.info (fun m -> m "Rejecting because of wrong username.");
     Madge_server.shortcut_forbidden_no_leak ()
@@ -160,7 +160,7 @@ include Search.Build(struct
   let score_true = Formula.interpret_true
 
   let tiebreakers =
-    Lwt_list.[increasing (lwt % NEString.to_string % Model.User.username') String.Sensible.compare]
+    Lwt_list.[increasing (lwt % Model.User.Username.to_string % Model.User.username') String.Sensible.compare]
 end)
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a = fun env endpoint ->

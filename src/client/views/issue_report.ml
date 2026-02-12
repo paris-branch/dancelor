@@ -10,7 +10,7 @@ let open_dialog page =
   let%lwt maybe_reporter_input =
     match Environment.user_now () with
     | Some user ->
-      lwt_left (user, Input.inactive ~label: "Reporter" (NEString.to_string @@ Model.User.username' user))
+      lwt_left (user, Input.inactive ~label: "Reporter" (Model.User.Username.to_string @@ Model.User.username' user))
     | None ->
       right
       <$> Input.make

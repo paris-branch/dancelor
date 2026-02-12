@@ -24,7 +24,7 @@ let report _env issue =
       "**Reporter**: %s\n\n**Page**: %s\n%s"
       (
         match issue.reporter with
-        | Left user -> NEString.to_string @@ Model.User.username' user (* FIXME: when there is a profile page for users, link to it *)
+        | Left user -> Model.User.Username.to_string @@ Model.User.username' user (* FIXME: when there is a profile page for users, link to it *)
         | Right string -> string
       )
       issue.page

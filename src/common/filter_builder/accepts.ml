@@ -8,9 +8,9 @@ module Make (Model : Model_builder.S) = struct
       | Core.User.Is user' ->
         lwt @@ Formula.interpret_bool @@ Entry.Id.unsafe_equal (Entry.id user) user'
       | Username string ->
-        lwt @@ String.proximity ~char_equal string @@ NEString.to_string @@ Model.User.username' user
+        lwt @@ String.proximity ~char_equal string @@ Model.User.Username.to_string @@ Model.User.username' user
       | Username_matches string ->
-        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.User.username' user
+        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ Model.User.Username.to_string @@ Model.User.username' user
 
   and accepts_book filter book =
     Formula.interpret filter @@ function

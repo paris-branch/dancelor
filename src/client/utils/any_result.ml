@@ -174,7 +174,7 @@ let make_user_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) us
     ?onclick
     (
       prefix @
-      [L.td ~a: [a_colspan 3] (Lwt.pause ();%lwt lwt [txt @@ NEString.to_string @@ User.username' user]);
+      [L.td ~a: [a_colspan 3] (Lwt.pause ();%lwt lwt [txt @@ User.Username.to_string @@ User.username' user]);
       ] @
       suffix
     )

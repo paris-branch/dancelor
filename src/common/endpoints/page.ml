@@ -50,7 +50,7 @@ type (_, _, _) t =
   | Explore : ((string option -> 'w), 'w, Void.t) t
   | User_create : ('w, 'w, Void.t) t
   | User_prepare_reset_password : ('w, 'w, Void.t) t
-  | User_password_reset : ((string -> Core.User.Password_reset_token_clear.t -> 'w), 'w, Void.t) t
+  | User_password_reset : ((Core.User.Username.t -> Core.User.Password_reset_token_clear.t -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
 open Madge
@@ -85,7 +85,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
     | User_create -> literal "user" @@ literal "create" @@ void ()
     | User_prepare_reset_password -> literal "user" @@ literal "prepare-reset-password" @@ void ()
-    | User_password_reset -> literal "user" @@ literal "reset-password" @@ query "username" (module JString) @@ query "token" (module Core.User.Password_reset_token_clear) @@ void ()
+    | User_password_reset -> literal "user" @@ literal "reset-password" @@ query "username" (module Core.User.Username) @@ query "token" (module Core.User.Password_reset_token_clear) @@ void ()
 
 let href : type a r. (a, string, r) t -> a = fun page ->
   with_request (route page) @@ fun (module _) request ->

@@ -1,5 +1,53 @@
 open Nes
 
+module Username : sig
+    type t [@@deriving eq, show, yojson]
+
+    val from_string : string -> t option
+    val to_string : t -> string
+    val to_nestring : t -> NEString.t
+    val of_string_exn : string -> t
+  end
+= struct
+  type t = string [@@deriving eq, show, to_yojson]
+
+  let from_string s =
+    let s = String.trim s in
+    let len = String.length s in
+    (* Username constraints:
+       - Not empty
+       - Between 3 and 24 characters (byte length for UTF-8)
+       - No control characters or whitespace
+       - Must not start with underscore or hyphen *)
+    if len < 3 || len > 24 then
+      None
+    else if String.exists (fun c -> Char.code c < 32 || Char.code c = 127) s then
+      None
+    else if String.contains s ' ' || String.contains s '\t' || String.contains s '\n' || String.contains s '\r' then
+      None
+    else if String.length s > 0 && (s.[0] = '_' || s.[0] = '-') then
+      None
+    else
+      Some s
+
+  let to_string t = t
+  let to_nestring t = NEString.of_string_exn t
+
+  let of_string_exn s =
+    match from_string s with
+    | Some t -> t
+    | None -> invalid_arg (spf "Invalid username: %S" s)
+
+  let of_yojson = function
+    | `String s ->
+      (
+        match from_string s with
+        | Some t -> Ok t
+        | None -> Error (spf "Invalid username: %S" s)
+      )
+    | _ -> Error "Expected string for username"
+end
+
 module Password_clear = Fresh.Make(String)
 
 (* NOTE: This module should not really live in common, but at the moment we're
@@ -64,7 +112,7 @@ type role =
 [@@deriving eq, yojson, variants, show]
 
 type t = {
-  username: NEString.t;
+  username: Username.t;
   password: Password_hashed.t option; [@default None]
   password_reset_token: (Password_reset_token_hashed.t * Datetime.t) option; [@default None] [@key "password-reset-token"]
   remember_me_tokens: (Remember_me_token_hashed.t * Datetime.t) Remember_me_key.Map.t; [@default Remember_me_key.Map.empty] [@key "remember-me-token"]
@@ -73,7 +121,6 @@ type t = {
 [@@deriving eq, make, yojson, fields, show {with_path = false}]
 
 let make ~username ?password ?password_reset_token ?remember_me_tokens ?role () =
-  let username = NEString.map_exn (String.remove_duplicates ~char: ' ') username in
   make ~username ~password ~password_reset_token ?remember_me_tokens ?role ()
 
 let update ?username ?password ?password_reset_token ?remember_me_tokens ?role user =

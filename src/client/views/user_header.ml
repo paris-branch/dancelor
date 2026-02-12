@@ -14,15 +14,15 @@ let open_sign_in_dialog () =
       ~label: "Username"
       ~placeholder: "JeanMilligan"
       ~oninput: (fun _ -> set_status_signal Dont_know)
-      ~serialise: Fun.id
+      ~serialise: Model.User.Username.to_string
       ~validate: (fun username ->
-        S.bind status_signal @@ fun status ->
-        S.const @@
-          if username = "" then Error "The username cannot be empty."
-          else
-            match status with
-            | Invalid -> Error "Invalid username or password."
-            | Dont_know -> Ok username
+        Fun.flip S.map status_signal @@ fun status ->
+        match Model.User.Username.from_string username with
+        | None -> Error "Invalid username format."
+        | Some username ->
+          match status with
+          | Invalid -> Error "Invalid username or password."
+          | Dont_know -> Ok username
       )
       ""
   in
@@ -171,7 +171,7 @@ let header_item =
       | Some user ->
         [
           Button.make
-            ~label: (NEString.to_string @@ Model.User.username' user)
+            ~label: (Model.User.Username.to_string @@ Model.User.username' user)
             ~icon: (Model User)
             ~classes: ["text-white"; "dropdown-toggle"]
             ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]

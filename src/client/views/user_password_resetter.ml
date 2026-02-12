@@ -37,7 +37,7 @@ let create username token =
   in
   Page.make'
     ~title: (lwt "Reset password")
-    [Input.inactive ~label: "Username" username;
+    [Input.inactive ~label: "Username" (Model.User.Username.to_string username);
     Component.html password1_input;
     Component.html password2_input;
     ]

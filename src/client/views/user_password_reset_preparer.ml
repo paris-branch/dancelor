@@ -11,11 +11,11 @@ let open_token_result_dialog user token =
       ~title: (lwt "Password reset link generated")
       [p [
         txt "Password reset link for user ";
-        txt (NEString.to_string @@ Model.User.username' user);
+        txt (Model.User.Username.to_string @@ Model.User.username' user);
         txt " has been generated. Pass them the following link: ";
       ];
       p [
-        let href = Endpoints.Page.(href User_password_reset) (NEString.to_string @@ Model.User.username' user) token in
+        let href = Endpoints.Page.(href User_password_reset) (Model.User.username' user) token in
         a ~a: [a_href href] [txt href]
       ];
       p [
@@ -30,7 +30,7 @@ let create () =
     Selector.make
       ~label: "User"
       ~model_name: "user"
-      ~make_descr: (lwt % NEString.to_string % Model.User.username')
+      ~make_descr: (lwt % Model.User.Username.to_string % Model.User.username')
       ~make_result: (Any_result.make_user_result ?context: None)
       ~results_when_no_search: lwt_nil
       ~search: (fun slice input ->
@@ -53,7 +53,7 @@ let create () =
         ~disabled: (S.map Result.is_error signal)
         ~onclick: (fun () ->
           let user = Result.get_ok @@ S.value signal in
-          let username = NEString.to_string @@ Model.User.username' user in
+          let username = Model.User.username' user in
           let%lwt token = Madge_client.call_exn Endpoints.Api.(route @@ User Prepare_reset_password) username in
           open_token_result_dialog user token
         )

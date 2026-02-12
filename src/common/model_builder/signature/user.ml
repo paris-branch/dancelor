@@ -8,6 +8,8 @@ module type S = sig
 
   type entry = t Entry.public
 
+  module Username = User.Username
+
   module Password_clear = User.Password_clear
   module Password_hashed = User.Password_hashed
 
@@ -19,7 +21,7 @@ module type S = sig
   module Remember_me_token_hashed = User.Remember_me_token_hashed
 
   val make :
-    username: NEString.t ->
+    username: Username.t ->
     ?password: Password_hashed.t ->
     ?password_reset_token: Password_reset_token_hashed.t * Datetime.t ->
     ?remember_me_tokens: (Remember_me_token_hashed.t * Datetime.t) Remember_me_key.Map.t ->
@@ -28,7 +30,7 @@ module type S = sig
     t
 
   val update :
-    ?username: (NEString.t -> NEString.t) ->
+    ?username: (Username.t -> Username.t) ->
     ?password: (Password_hashed.t option -> Password_hashed.t option) ->
     ?password_reset_token: ((Password_reset_token_hashed.t * Datetime.t) option -> (Password_reset_token_hashed.t * Datetime.t) option) ->
     ?remember_me_tokens: ((Remember_me_token_hashed.t * Datetime.t) Remember_me_key.Map.t -> (Remember_me_token_hashed.t * Datetime.t) Remember_me_key.Map.t) ->
@@ -38,8 +40,8 @@ module type S = sig
 
   (** {2 Field getters} *)
 
-  val username : t -> NEString.t
-  val username' : entry -> NEString.t
+  val username : t -> Username.t
+  val username' : entry -> Username.t
 
   val password : t -> Password_hashed.t option
   val password' : entry -> Password_hashed.t option
