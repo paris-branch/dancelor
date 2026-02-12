@@ -53,6 +53,28 @@ let create env user =
   let%lwt user = Database.User.create user Entry.Access.Public in
   lwt (user, token)
 
+let prepare_reset_password env username =
+  Permission.assert_can_administrate env @@ fun _admin ->
+  Log.info (fun m -> m "Preparing password reset for user `%s`." username);
+  match%lwt Database.User.get_from_username @@ NEString.of_string_exn username with
+  | None ->
+    Log.info (fun m -> m "Rejecting because username not found.");
+    Madge_server.shortcut_bad_request "User not found."
+  | Some user ->
+    let token = uid () in
+    let hashed_token = (HashedSecret.make ~clear: token, Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)) in
+    ignore
+    <$> Database.User.update
+        (Entry.id user)
+        {(Entry.value user) with
+          password = None;
+          password_reset_token = Some hashed_token;
+          remember_me_tokens = String.Map.empty;
+        }
+        Entry.Access.Public;%lwt
+    Log.info (fun m -> m "Password reset token generated for user `%s`." username);
+    lwt token
+
 let reset_password username token password =
   Log.info (fun m -> m "Attempt to reset password for user `%s`." username);
   (* FIXME: A module for usernames that reject malformed ones *)
@@ -130,6 +152,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a 
   | Sign_in -> sign_in env
   | Sign_out -> sign_out env
   | Create -> create env
+  | Prepare_reset_password -> prepare_reset_password env
   | Reset_password -> reset_password
   | Search -> search env
   | Set_omniscience -> set_omniscience env

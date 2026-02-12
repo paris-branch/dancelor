@@ -193,6 +193,14 @@ let header_item =
                             ()
                         ];
                         li [
+                          Button.make_a
+                            ~label: "Reset user password"
+                            ~icon: (Action Edit)
+                            ~dropdown: true
+                            ~href: (S.const @@ Endpoints.Page.(href User_prepare_reset_password))
+                            ()
+                        ];
+                        li [
                           Button.make
                             ~label: "Victorise"
                             ~icon: (Action Stop)

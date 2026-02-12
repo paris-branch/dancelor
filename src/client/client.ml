@@ -40,6 +40,7 @@ let dispatch uri =
     | Source_add -> Source_editor.create Create_with_local_storage
     | Source_edit -> Source_editor.create <=< (Components.Editor.edit % Option.get <%> Model.Source.get)
     | User_create -> User_creator.create ()
+    | User_prepare_reset_password -> User_password_reset_preparer.create ()
     | User_password_reset -> User_password_resetter.create
   in
   let madge_match_apply_all : Page.t Lwt.t Endpoints.Page.wrapped' list -> (unit -> Page.t Lwt.t) option =
