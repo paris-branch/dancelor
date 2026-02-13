@@ -40,17 +40,16 @@ val choice' :
 
 val make_radios :
   label: string ->
-  'value option choice list ->
-  ('value option, string) Component.t Lwt.t
-(** Make a radio-based “choices” component that can hold at most one value at
-    once out of a list of single choices. *)
+  'value choice list ->
+  ('value, string) Component.t Lwt.t
+(** Make a radio-based “choices” component that can hold exactly one value out
+    of a list of single choices. *)
 
 val make_radios' :
   label: string ->
-  validate: ('choice_value option -> ('value, string) Result.t) ->
-  'choice_value option choice list ->
-  ('value, string) Component.t Lwt.t
-(** Variant of {!make_radios} with a validation function. *)
+  'value choice list ->
+  ('value option, string) Component.t Lwt.t
+(** Variant of {!make_radios} where it is possible to select nothing. *)
 
 val make_checkboxes :
   label: string ->
@@ -61,8 +60,17 @@ val make_checkboxes :
 
 (** {2 Internal use} *)
 
+val prepare_radios :
+  label: string ->
+  'value choice list ->
+  ('value, string) Component.s
+
 val prepare_radios' :
   label: string ->
-  validate: ('choice_value option -> ('value, string) Result.t) ->
-  'choice_value option choice list ->
-  ('value, string) Component.s
+  'value choice list ->
+  ('value option, string) Component.s
+
+val prepare_checkboxes :
+  label: string ->
+  'value choice list ->
+  ('value list, string) Component.s

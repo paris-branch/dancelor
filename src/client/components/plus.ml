@@ -57,7 +57,7 @@ module Bundle = struct
       ?offset: int ->
       ?initial_selected: int ->
       t ->
-      int option Choices.choice list
+      int Choices.choice list
     (** One choice per component, starting from the given index. The [?offset]
         argument should only be used by the {!cons} function. *)
 
@@ -112,7 +112,7 @@ module Bundle = struct
       | n -> B.inner_html t.b (n - 1)
 
     let choices ?(offset = 0) ?initial_selected t =
-      Choices.choice'
+      Choices.choice
         ~value: offset
         ~checked: (initial_selected = Some offset)
         [txt A.label]
@@ -199,12 +199,7 @@ let prepare (type value)(type bundled_value)(type state)
 
   let initialise (initial_selected, initial_states) =
     let%lwt bundle = Bundle.initialise initial_states in
-    let%lwt choices =
-      Choices.make_radios'
-        ~label
-        ~validate: (Option.to_result ~none: "You must make a choice.")
-        (Bundle.choices ?initial_selected bundle)
-    in
+    let%lwt choices = Choices.make_radios ~label (Bundle.choices ?initial_selected bundle) in
     lwt {choices; bundle}
 
   let inner_html p =

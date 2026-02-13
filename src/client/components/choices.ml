@@ -105,21 +105,24 @@ let prepare_checkboxes ~label choices =
 let make_checkboxes ~label choices =
   Component.initialise (prepare_checkboxes ~label choices) "FIXME"
 
-let prepare_radios' ~label ~validate choices =
+let prepare_radios ~label choices =
   prepare_gen_unsafe
     ~label
     ~radios_or_checkboxes: `Radio
-    ~validate: (function
-      | [] -> validate None
-      | [x] -> validate x
-      | _ -> assert false (* because of [`Radio], this should never happen *)
-    )
+    ~validate: (Option.to_result ~none: "You must select something." % List.to_option)
     choices
 
-let make_radios' ~label ~validate choices =
-  Component.initialise (prepare_radios' ~validate ~label choices) "FIXME"
+let prepare_radios' ~label choices =
+  prepare_gen_unsafe
+    ~label
+    ~radios_or_checkboxes: `Radio
+    ~validate: (ok % List.to_option)
+    choices
+
+let make_radios' ~label choices =
+  Component.initialise (prepare_radios' ~label choices) "FIXME"
 
 let make_radios ~label choices =
-  make_radios' ~label ~validate: ok choices
+  Component.initialise (prepare_radios ~label choices) "FIXME"
 
 (* FIXME: In other components, ~validate is called ~validator *)

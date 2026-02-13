@@ -64,13 +64,12 @@ let editor =
     ~serialise: Fun.id
     ~validate: (S.const % ok)
     () ^::
-  Choices.prepare_radios'
+  Choices.prepare_radios
     ~label: "Number of chords"
-    ~validate: (Option.to_result ~none: "You must select something.")
     [
-      Choices.choice ~value: (Some Model.Dance.Dont_know) [txt "I don't know"] ~checked: true;
-      Choices.choice ~value: (Some Model.Dance.One_chord) [txt "One chord"];
-      Choices.choice ~value: (Some Model.Dance.Two_chords) [txt "Two chords"];
+      Choices.choice ~value: Model.Dance.Dont_know [txt "I don't know"] ~checked: true;
+      Choices.choice ~value: Model.Dance.One_chord [txt "One chord"];
+      Choices.choice ~value: Model.Dance.Two_chords [txt "Two chords"];
     ] ^::
   Input.prepare
     ~type_: Text
