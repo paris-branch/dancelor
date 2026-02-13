@@ -66,11 +66,11 @@ let editor =
     () ^::
   Choices.prepare_radios'
     ~label: "Number of chords"
-    ~validate: ok
+    ~validate: (Option.to_result ~none: "You must select something.")
     [
-      Choices.choice' [txt "I don't know"] ~checked: true;
-      Choices.choice' ~value: false [txt "One chord"];
-      Choices.choice' ~value: true [txt "Two chords"];
+      Choices.choice ~value: (Some Model.Dance.Dont_know) [txt "I don't know"] ~checked: true;
+      Choices.choice ~value: (Some Model.Dance.One_chord) [txt "One chord"];
+      Choices.choice ~value: (Some Model.Dance.Two_chords) [txt "Two chords"];
     ] ^::
   Input.prepare
     ~type_: Text
@@ -88,7 +88,7 @@ let editor =
   nil
 
 let assemble (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ()))))))) =
-  Model.Dance.make ~names ~kind ~devisers ?two_chords ?scddb_id ~disambiguation ?date ()
+  Model.Dance.make ~names ~kind ~devisers ~two_chords ?scddb_id ~disambiguation ?date ()
 
 let submit mode dance =
   match mode with

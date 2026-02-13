@@ -176,9 +176,9 @@ let page_to_renderer_page page book_params =
           NEString.of_string_exn @@
           (Kind.Dance.to_pretty_string @@ Model.Dance.kind' dance) ^ (
             match Model.Dance.two_chords' dance with
-            | None -> " — Two chords: unknown"
-            | Some true -> " — Two chords"
-            | Some false -> ""
+            | Dont_know -> " — Two chords: unknown"
+            | One_chord -> ""
+            | Two_chords -> " — Two chords"
           )
         in
         lwt @@ Model.Set_parameters.make ~display_name ~display_conceptor ~display_kind ()

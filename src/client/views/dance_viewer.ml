@@ -60,9 +60,9 @@ let create ?context id =
       div
         (
           match Dance.two_chords' dance with
-          | Some false -> []
-          | Some true -> [txt "Two Chords"]
-          | None -> [txt "Two Chords: unknown"]
+          | One_chord -> []
+          | Two_chords -> [txt "Two Chords"]
+          | Dont_know -> [txt "Two Chords: unknown"]
         );
       div
         (

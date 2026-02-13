@@ -3,6 +3,11 @@ module type S = sig
 
   open Nes
 
+  type two_chords = Core.Dance.two_chords =
+    | Dont_know
+    | One_chord
+    | Two_chords
+
   type t = Core.Dance.t
 
   type access = Entry.Access.public [@@deriving yojson]
@@ -12,7 +17,7 @@ module type S = sig
     names: NEString.t NEList.t ->
     kind: Kind.Dance.t ->
     ?devisers: Core.Person.entry list ->
-    ?two_chords: bool ->
+    ?two_chords: two_chords ->
     ?scddb_id: int ->
     ?disambiguation: string ->
     ?date: PartialDate.t ->
@@ -35,8 +40,8 @@ module type S = sig
   val devisers : t -> Core.Person.entry list Lwt.t
   val devisers' : entry -> Core.Person.entry list Lwt.t
 
-  val two_chords : t -> bool option
-  val two_chords' : entry -> bool option
+  val two_chords : t -> two_chords
+  val two_chords' : entry -> two_chords
 
   val scddb_id : t -> int option
   val scddb_id' : entry -> int option
