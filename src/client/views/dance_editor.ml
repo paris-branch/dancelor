@@ -64,13 +64,12 @@ let editor =
     ~serialise: Fun.id
     ~validate: (S.const % ok)
     () ^::
-  Choices.prepare_radios'
+  Choices.prepare_radios
     ~label: "Number of chords"
-    ~validate: ok
     [
-      Choices.choice' [txt "I don't know"] ~checked: true;
-      Choices.choice' ~value: false [txt "One chord"];
-      Choices.choice' ~value: true [txt "Two chords"];
+      Choices.choice ~value: Model.Dance.Dont_know [txt "I don't know"] ~checked: true;
+      Choices.choice ~value: Model.Dance.One_chord [txt "One chord"];
+      Choices.choice ~value: Model.Dance.Two_chords [txt "Two chords"];
     ] ^::
   Input.prepare
     ~type_: Text
@@ -88,7 +87,7 @@ let editor =
   nil
 
 let assemble (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ()))))))) =
-  Model.Dance.make ~names ~kind ~devisers ?two_chords ?scddb_id ~disambiguation ?date ()
+  Model.Dance.make ~names ~kind ~devisers ~two_chords ?scddb_id ~disambiguation ?date ()
 
 let submit mode dance =
   match mode with

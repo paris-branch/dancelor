@@ -24,24 +24,17 @@ let open_dialog page =
   let%lwt source =
     Lwt.bind (describe page) @@ function
       | None ->
-        Choices.make_radios'
+        Choices.make_radios
           ~label: "Source of the issue"
-          ~validate: (Option.to_result ~none: "You must make a choice.")
           [
-            Choices.choice' ~value: true [txt "Dancelor itself"] ~checked: true;
+            Choices.choice ~value: true [txt "Dancelor itself"] ~checked: true;
           ]
       | Some (kind, name) ->
-        Choices.make_radios'
+        Choices.make_radios
           ~label: "Source of the issue"
-          ~validate: (Option.to_result ~none: "You must make a choice.")
           [
-            Choices.choice'
-              ~value: false
-              [
-                txt @@
-                  spf "This %s: %s" kind name
-              ];
-            Choices.choice' ~value: true [txt "Dancelor itself"];
+            Choices.choice ~value: false [txt @@ spf "This %s: %s" kind name];
+            Choices.choice ~value: true [txt "Dancelor itself"];
           ]
   in
   let%lwt title_input =

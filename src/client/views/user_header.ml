@@ -45,12 +45,11 @@ let open_sign_in_dialog () =
   in
   let%lwt remember_me_input =
     Choices.(
-      make_radios'
+      make_radios
         ~label: "Sign in..."
-        ~validate: (Option.to_result ~none: "You must make a choice.")
         [
-          choice' [txt "Just this once"] ~value: false ~checked: true;
-          choice' [txt "Remember me"] ~value: true;
+          choice [txt "Just this once"] ~value: false ~checked: true;
+          choice [txt "Remember me"] ~value: true;
         ]
     )
   in
