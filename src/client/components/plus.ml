@@ -181,7 +181,7 @@ let prepare (type value)(type bundled_value)(type state)
   let from_initial_text text = (selected_when_empty, Bundle.from_initial_text text)
 
   type t = {
-    choices: (int, string) Component.t;
+    choices: (int, bool list) Component.t;
     bundle: Bundle.t;
   }
 

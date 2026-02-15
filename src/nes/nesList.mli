@@ -96,3 +96,7 @@ val to_option : ?more: ('a list -> 'a option) -> 'a list -> 'a option
 val group : by: ('a -> 'a -> bool) -> 'a list -> 'a list list
 (** Group the elements of the given list using the “equality” [by]. The equality
     is assumed to be transitive. *)
+
+val contains_duplicates : ?eq: ('a -> 'a -> bool) -> 'a list -> bool
+(** Checks whether the list contains duplicate values. This function only
+    requires an equality (which defaults to [Stdlib.(=)]) but runs in [O(n²)]. *)

@@ -170,3 +170,11 @@ let group ~by l =
       else aux ([x] :: gs) xs
   in
   aux [] l
+
+let contains_duplicates ?(eq = Stdlib.(=)) xs =
+  let rec aux = function
+    | [] -> false
+    | x :: xs when List.exists (eq x) xs -> true
+    | _ :: xs -> aux xs
+  in
+  aux xs
