@@ -45,12 +45,6 @@ val make_radios :
 (** Make a radio-based “choices” component that can hold exactly one value out
     of a list of single choices. *)
 
-val make_radios' :
-  label: string ->
-  'value choice list ->
-  ('value option, string) Component.t Lwt.t
-(** Variant of {!make_radios} where it is possible to select nothing. *)
-
 val make_checkboxes :
   label: string ->
   'value choice list ->
@@ -64,11 +58,6 @@ val prepare_radios :
   label: string ->
   'value choice list ->
   ('value, string) Component.s
-
-val prepare_radios' :
-  label: string ->
-  'value choice list ->
-  ('value option, string) Component.s
 
 val prepare_checkboxes :
   label: string ->

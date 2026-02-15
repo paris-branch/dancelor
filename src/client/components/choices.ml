@@ -112,16 +112,6 @@ let prepare_radios ~label choices =
     ~validate: (Option.to_result ~none: "You must select something." % List.to_option)
     choices
 
-let prepare_radios' ~label choices =
-  prepare_gen_unsafe
-    ~label
-    ~radios_or_checkboxes: `Radio
-    ~validate: (ok % List.to_option)
-    choices
-
-let make_radios' ~label choices =
-  Component.initialise (prepare_radios' ~label choices) "FIXME"
-
 let make_radios ~label choices =
   Component.initialise (prepare_radios ~label choices) "FIXME"
 
