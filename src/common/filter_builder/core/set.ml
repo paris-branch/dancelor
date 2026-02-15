@@ -1,12 +1,13 @@
 open Nes
 
 type predicate =
-  | Is of Model_builder.Core.Set.t Entry.Id.t
+  | Is of Model_builder.Core.Set.t Entry.Id.t (* FIXME: move to entry-level formulas *)
   | Name of string
   | Name_matches of string
   | Conceptors of Person.t Formula_list.t
   | Versions of Version.t Formula_list.t
   | Kind of Kind.Dance.Filter.t
+  | Owners of User.t Formula_list.t (* FIXME: move to entry-level formulas *)
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
@@ -17,6 +18,7 @@ let name_matches' = Formula.pred % name_matches
 let conceptors' = Formula.pred % conceptors
 let versions' = Formula.pred % versions
 let kind' = Formula.pred % kind
+let owners' = Formula.pred % owners
 
 let text_formula_converter =
   Text_formula_converter.(
@@ -27,9 +29,10 @@ let text_formula_converter =
         unary_string ~name: "name-matches" (name_matches, name_matches_val);
         unary_lift ~name: "conceptors" (conceptors, conceptors_val) ~converter: (Formula_list.text_formula_converter Person.name_matches' Person.text_formula_converter);
         unary_lift ~name: "by" (conceptors, conceptors_val) ~converter: (Formula_list.text_formula_converter Person.name_matches' Person.text_formula_converter);
-        (* alias for exists-conceptor; FIXME: make this clearer *)
+        (* ^ alias for conceptor; FIXME: make this clearer *)
         unary_lift ~name: "versions" (versions, versions_val) ~converter: (Formula_list.text_formula_converter (Version.tune' % Tune.name_matches') Version.text_formula_converter);
         unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Dance.Filter.text_formula_converter;
+        unary_lift ~name: "owners" (owners, owners_val) ~converter: (Formula_list.text_formula_converter User.username_matches' User.text_formula_converter);
         unary_id ~name: "is" (is, is_val);
       ]
   )
@@ -63,4 +66,5 @@ let optimise =
       | Conceptors pfilter -> conceptors @@ Formula_list.optimise Person.optimise pfilter
       | Versions vfilter -> versions @@ Formula_list.optimise Version.optimise vfilter
       | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter
+      | Owners lfilter -> owners @@ Formula_list.optimise User.optimise lfilter
     )

@@ -53,6 +53,10 @@ module Make (Model : Model_builder.S) = struct
       | Editors pfilter ->
         let%lwt editors = Model.Book.authors' book in
         Formula_list.accepts accepts_person pfilter editors
+      | Owners lfilter ->
+        let owners = NEList.to_list @@ Entry.(Access.Private.owners % access) book in
+        let%lwt owners = Lwt_list.map_p (Lwt.map Option.get % Model.User.get) owners in
+        Formula_list.accepts accepts_user lfilter owners
 
   and accepts_dance filter dance =
     Formula.interpret filter @@ function
@@ -94,6 +98,10 @@ module Make (Model : Model_builder.S) = struct
         Formula_list.accepts accepts_version vfilter versions
       | Kind kfilter ->
         Kind.Dance.Filter.accepts kfilter @@ Model.Set.kind' set
+      | Owners lfilter ->
+        let owners = NEList.to_list @@ Entry.(Access.Private.owners % access) set in
+        let%lwt owners = Lwt_list.map_p (Lwt.map Option.get % Model.User.get) owners in
+        Formula_list.accepts accepts_user lfilter owners
 
   and accepts_source filter source =
     Formula.interpret filter @@ function

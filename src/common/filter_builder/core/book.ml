@@ -1,13 +1,14 @@
 open Nes
 
 type predicate =
-  | Is of Model_builder.Core.Book.t Entry.Id.t
+  | Is of Model_builder.Core.Book.t Entry.Id.t (* FIXME: move to entry-level formulas *)
   | Title of string
   | Title_matches of string
   | Versions of Version.t Formula_list.t
   | Sets of Set.t Formula_list.t
   | Versions_deep of Version.t Formula_list.t
   | Editors of Person.t Formula_list.t
+  | Owners of User.t Formula_list.t (* FIXME: move to entry-level formulas *)
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
@@ -19,6 +20,7 @@ let versions' = Formula.pred % versions
 let sets' = Formula.pred % sets
 let versions_deep' = Formula.pred % versions_deep
 let editors' = Formula.pred % editors
+let owners' = Formula.pred % owners
 
 let text_formula_converter =
   Text_formula_converter.(
@@ -31,6 +33,7 @@ let text_formula_converter =
         unary_lift ~name: "sets" (sets, sets_val) ~converter: (Formula_list.text_formula_converter Set.name_matches' Set.text_formula_converter);
         unary_lift ~name: "versions-deep" (versions_deep, versions_deep_val) ~converter: (Formula_list.text_formula_converter (Version.tune' % Tune.name_matches') Version.text_formula_converter);
         unary_lift ~name: "editor" (editors, editors_val) ~converter: (Formula_list.text_formula_converter Person.name_matches' Person.text_formula_converter);
+        unary_lift ~name: "owners" (owners, owners_val) ~converter: (Formula_list.text_formula_converter User.username_matches' User.text_formula_converter);
         unary_id ~name: "is" (is, is_val);
       ]
   )
@@ -68,4 +71,5 @@ let optimise =
       | Sets sfilter -> sets @@ Formula_list.optimise Set.optimise sfilter
       | Versions_deep vfilter -> versions_deep @@ Formula_list.optimise Version.optimise vfilter
       | Editors pfilter -> editors @@ Formula_list.optimise Person.optimise pfilter
+      | Owners lfilter -> owners @@ Formula_list.optimise User.optimise lfilter
     )

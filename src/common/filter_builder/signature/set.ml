@@ -18,6 +18,9 @@ module type S = sig
   val kind : Kind.Dance.Filter.t -> predicate
   val kind' : Kind.Dance.Filter.t -> t
 
+  val owners : Core.User.t Formula_list.t -> predicate
+  val owners' : Core.User.t Formula_list.t -> t
+
   val text_formula_converter : predicate Text_formula_converter.t
   val from_text_formula : Text_formula.t -> (t, string) Result.t
   val from_string : ?filename: string -> string -> (t, string) Result.t
