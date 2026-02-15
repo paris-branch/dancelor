@@ -298,10 +298,10 @@ let create ?context tune_id id =
       );
       quick_explorer_links @@
         List.filter_map Fun.id [
-          Option.flip_map version (fun version -> ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memversion') version));
-          Some ("sets containing this tune", Filter.(Any.set' % Set.exists_version' % Version.tuneis') <$> lwt tune);
-          Option.flip_map version (fun version -> ("books containing this version", lwt @@ Filter.(Any.book' % Book.memversiondeep') version));
-          Some ("books containing this tune", Filter.(Any.book' % Book.exists_version_deep' % Version.tuneis') <$> lwt tune);
+          Option.flip_map version (fun version -> ("sets containing this version", lwt @@ Filter.(Any.set' % Set.versions' % Formula_list.exists' % Version.is') version));
+          Some ("sets containing this tune", Filter.(Any.set' % Set.versions' % Formula_list.exists' % Version.tuneis') <$> lwt tune);
+          Option.flip_map version (fun version -> ("books containing this version", lwt @@ Filter.(Any.book' % Book.versions_deep' % Formula_list.exists' % Version.is') version));
+          Some ("books containing this tune", Filter.(Any.book' % Book.versions_deep' % Formula_list.exists' % Version.tuneis') <$> lwt tune);
         ];
       div [
         h3 [txt "Versions of this tune"];

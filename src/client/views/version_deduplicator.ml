@@ -190,7 +190,7 @@ let confirmation_dialog ~this_version ~other_version =
     <$> Madge_client.call_exn
         Endpoints.Api.(route @@ Set Search)
         Slice.everything
-        (Filter.(Set.memversion') this_version)
+        Filter.(Set.versions' (Formula_list.exists' (Version.is' this_version)))
   in
   List.iter
     (fun set ->
@@ -215,7 +215,7 @@ let confirmation_dialog ~this_version ~other_version =
     <$> Madge_client.call_exn
         Endpoints.Api.(route @@ Book Search)
         Slice.everything
-        (Filter.(Book.memversion') this_version)
+        Filter.(Book.versions' (Formula_list.exists' (Version.is' this_version)))
   in
   List.iter
     (fun book ->
