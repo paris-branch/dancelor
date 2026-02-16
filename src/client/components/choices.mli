@@ -41,36 +41,31 @@ val choice' :
 val make_radios :
   label: string ->
   'value choice list ->
-  ('value, string) Component.t Lwt.t
+  ('value, bool list) Component.t Lwt.t
 (** Make a radio-based “choices” component that can hold exactly one value out
-    of a list of single choices. *)
-
-val make_radios' :
-  label: string ->
-  'value choice list ->
-  ('value option, string) Component.t Lwt.t
-(** Variant of {!make_radios} where it is possible to select nothing. *)
+    of a list of single choices. [?equal_value] defaults to [Stdlib.(=)]. Raises
+    {!Invalid_argument} if the choice list contains duplicate elements, or
+    several elements marked as checked. *)
 
 val make_checkboxes :
   label: string ->
   'value choice list ->
-  ('value list, string) Component.t Lwt.t
+  ('value list, bool list) Component.t Lwt.t
 (** Make a checkbox-based “choices” component that can hold zero, one, or
-    several values at once out of a list of single choices. *)
+    several values at once out of a list of single choices. [?equal_value]
+    defaults to [Stdlib.(=)]. Raises {!Invalid_argument} if the choice list
+    contains duplicate elements. *)
 
 (** {2 Internal use} *)
 
 val prepare_radios :
   label: string ->
   'value choice list ->
-  ('value, string) Component.s
-
-val prepare_radios' :
-  label: string ->
-  'value choice list ->
-  ('value option, string) Component.s
+  ('value, bool list) Component.s
+(** See {!make_radios}. *)
 
 val prepare_checkboxes :
   label: string ->
   'value choice list ->
-  ('value list, string) Component.s
+  ('value list, bool list) Component.s
+(** See {!make_checkboxes}. *)
