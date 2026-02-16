@@ -40,6 +40,7 @@ let create ?context id =
           ~dropdown: true
           ();
       ];
+      (Add_to.button_to_book ~source_type: "set" ~source_format: Formatters.Set.name' set (Model.Book.Set (set, Model.Set_parameters.none)));
       (
         match%lwt Permission.can_update_private set with
         | None -> lwt_nil

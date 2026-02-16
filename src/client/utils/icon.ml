@@ -112,6 +112,7 @@ type other =
   | Actions
   | Bug
   | Clipboard
+  | Dancelor_home
   | Filter
   | GitHub
   | Help
@@ -125,6 +126,7 @@ let other_to_string = function
   | Actions -> "three-dots-vertical"
   | Bug -> "bug"
   | Clipboard -> "clipboard"
+  | Dancelor_home -> "house" (* FIXME: a custom-made Dancelor logo *)
   | Filter -> "filter"
   | GitHub -> "github"
   | File_lilypond -> "file-music"
