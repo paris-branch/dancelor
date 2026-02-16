@@ -17,7 +17,6 @@ module Id = struct
     for i = 5 to 8 do Bytes.set str i (List.nth alphanumerals (i - 1)) done;
     for i = 10 to 13 do Bytes.set str i (List.nth alphanumerals (i - 2)) done;
     let str = Bytes.unsafe_to_string str in
-    Format.eprintf "===> %s@." str;
     (* convert to and id (which will check it), and we're done! *)
     pure @@ Option.get @@ Common.Entry.Id.of_string str
 end
@@ -28,6 +27,15 @@ module Formula = struct
   (* Formulas can grow very quickly. We therefore limit the size of formulas
      drastically in our generator. *)
   let gen gen_p = gen_sized gen_p 10
+end
+
+module Formula_list = struct
+  type 'f predicate = [%import: 'f Common.Formula_list.predicate]
+  [@@deriving qcheck2]
+
+  type 'f t = [%import: 'f Common.Formula_list.t [@with Common.Formula.t := Formula.t;]
+  ]
+  [@@deriving qcheck2]
 end
 
 module Text_formula = struct
@@ -125,6 +133,12 @@ module Model = struct
      context where we use their id; there, it is fine since [Id.gen] ignores its
      first argument. *)
 
+  module User = struct
+    (* FIXME: not sure this one is actually fine *)
+    type t = Common.Model_builder.Core.User.t
+    let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
+  end
+
   module Source = struct
     type t = Common.Model_builder.Core.Source.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
@@ -170,6 +184,18 @@ module Model = struct
 end
 
 module Filter = struct
+  module User = struct
+    type predicate = [%import: Common.Filter_builder.Core.User.predicate [@with Common.Entry.Id.t := Id.t;
+      Common.Entry.id := Id.t;
+      Common.Model_builder.Core.User.t := Model.User.t;
+      ]
+    ]
+    [@@deriving qcheck2]
+    type t = [%import: Common.Filter_builder.Core.User.t [@with Common.Formula.t := Formula.t;]
+    ]
+    [@@deriving qcheck2]
+  end
+
   module Person = struct
     type predicate = [%import: Common.Filter_builder.Core.Person.predicate [@with Common.Entry.Id.t := Id.t;
       Common.Entry.id := Id.t;
@@ -247,8 +273,10 @@ module Filter = struct
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+      Common.Formula_list.t := Formula_list.t;
       Common__Filter_builder__Core.Person.t := Person.t;
       Common__Filter_builder__Core.Version.t := Version.t;
+      Common__Filter_builder__Core.User.t := User.t;
       ]
     ]
     [@@deriving qcheck2]
@@ -263,9 +291,11 @@ module Filter = struct
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+      Common.Formula_list.t := Formula_list.t;
       Common__Filter_builder__Core.Person.t := Person.t;
       Common__Filter_builder__Core.Version.t := Version.t;
       Common__Filter_builder__Core.Set.t := Set.t;
+      Common__Filter_builder__Core.User.t := User.t;
       ]
     ]
     [@@deriving qcheck2]

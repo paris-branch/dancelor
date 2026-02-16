@@ -20,7 +20,7 @@ module Make (Model : Model_builder.S) = struct
         lwt @@ String.proximity ~char_equal string @@ NEString.to_string @@ Model.Book.title' book
       | Title_matches string ->
         lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Book.title' book
-      | Exists_version vfilter ->
+      | Versions vfilter ->
         let%lwt content = Model.Book.contents' book in
         let versions =
           List.concat_map
@@ -31,8 +31,8 @@ module Make (Model : Model_builder.S) = struct
             )
             content
         in
-        Formula.interpret_exists (accepts_version vfilter) versions
-      | Exists_set sfilter ->
+        Formula_list.accepts accepts_version vfilter versions
+      | Sets sfilter ->
         let%lwt content = Model.Book.contents' book in
         let%lwt sets =
           Lwt_list.filter_map_s
@@ -42,17 +42,21 @@ module Make (Model : Model_builder.S) = struct
             )
             content
         in
-        Formula.interpret_exists (accepts_set sfilter) sets
-      | Exists_version_deep vfilter ->
+        Formula_list.accepts accepts_set sfilter sets
+      | Versions_deep vfilter ->
         (* recursive call to check the compound formula *)
         flip accepts_book book @@
           Formula.or_l
-            Core.[Formula.pred (Book.Exists_version vfilter);
-            Formula.pred (Book.Exists_set (Set.exists_version' vfilter));
+            Core.[Book.versions' vfilter;
+            Book.sets' (Formula_list.exists' (Set.versions' vfilter));
             ]
-      | Exists_editor pfilter ->
+      | Editors pfilter ->
         let%lwt editors = Model.Book.authors' book in
-        Formula.interpret_exists (accepts_person pfilter) editors
+        Formula_list.accepts accepts_person pfilter editors
+      | Owners lfilter ->
+        let owners = NEList.to_list @@ Entry.(Access.Private.owners % access) book in
+        let%lwt owners = Lwt_list.map_p (Lwt.map Option.get % Model.User.get) owners in
+        Formula_list.accepts accepts_user lfilter owners
 
   and accepts_dance filter dance =
     Formula.interpret filter @@ function
@@ -86,15 +90,18 @@ module Make (Model : Model_builder.S) = struct
         lwt @@ String.proximity ~char_equal string @@ NEString.to_string @@ Model.Set.name' set
       | Name_matches string ->
         lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Set.name' set
-      | Exists_conceptor pfilter ->
+      | Conceptors pfilter ->
         let%lwt conceptors = Model.Set.conceptors' set in
-        let%lwt scores = Lwt_list.map_s (accepts_person pfilter) conceptors in
-        lwt (Formula.interpret_or_l scores)
-      | Exists_version vfilter ->
-        let%lwt contents = Model.Set.contents' set in
-        Formula.interpret_exists (accepts_version vfilter % fst) contents
+        Formula_list.accepts accepts_person pfilter conceptors
+      | Versions vfilter ->
+        let%lwt versions = List.map fst <$> Model.Set.contents' set in
+        Formula_list.accepts accepts_version vfilter versions
       | Kind kfilter ->
         Kind.Dance.Filter.accepts kfilter @@ Model.Set.kind' set
+      | Owners lfilter ->
+        let owners = NEList.to_list @@ Entry.(Access.Private.owners % access) set in
+        let%lwt owners = Lwt_list.map_p (Lwt.map Option.get % Model.User.get) owners in
+        Formula_list.accepts accepts_user lfilter owners
 
   and accepts_source filter source =
     Formula.interpret filter @@ function

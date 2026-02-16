@@ -1,4 +1,5 @@
 open Nes
+open Common
 open Html
 
 let delete ?label_suffix ~onclick ~model () =
@@ -7,9 +8,13 @@ let delete ?label_suffix ~onclick ~model () =
     ~onclick: (fun _ ->
       match%lwt onclick () with
       | Ok() ->
-        Toast.open_ ~title: "Deleted" [
-          txt @@ "The " ^ model ^ " has now been deleted from Dancelor. Run, you fools!";
-        ];
+        Toast.open_
+          ~title: "Deleted"
+          [txt @@ "The " ^ model ^ " has now been deleted from Dancelor. Run, you fools!";
+          ]
+          ~buttons: [
+            Button.make_a ~label: "Go to home" ~icon: (Other Dancelor_home) ~classes: ["btn-primary"] ~href: (S.const Endpoints.Page.(href Index)) ()
+          ];
         lwt_unit
       | Error Madge_client.Http {status = `Bad_request; _} ->
         Toast.open_ ~title: "Could not delete" [

@@ -30,6 +30,7 @@ let create ?context id =
     ]
     ~share: (Dance dance)
     ~actions: [
+      (Add_to.button_to_book ~source_type: "dance" ~source_format: Formatters.Dance.name' dance (Model.Book.Dance (dance, Dance_only)));
       (
         match%lwt Permission.can_update_public dance with
         | None -> lwt_nil

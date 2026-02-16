@@ -33,9 +33,7 @@ include Search.Build(struct
   let score_true = Formula.interpret_true
 
   let tiebreakers =
-    Lwt_list.[decreasing (lwt % Model.Source.date') (Option.compare PartialDate.compare);
-    increasing (lwt % NEString.to_string % Model.Source.name') String.Sensible.compare;
-    ]
+    Lwt_list.[increasing (lwt % NEString.to_string % Model.Source.name') String.Sensible.compare]
 end)
 
 let get_cover env id =

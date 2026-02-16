@@ -6,24 +6,19 @@ module type S = sig
 
   val accepts : t -> Model_builder.Core.Book.entry -> float Lwt.t
 
-  val exists_editor' : Core.Person.t -> t
+  val editors' : Core.Person.t Formula_list.t -> t
 
-  val memversion : Model_builder.Core.Version.entry -> predicate
-  val memversion' : Model_builder.Core.Version.entry -> t
+  val sets : Core.Set.t Formula_list.t -> predicate
+  val sets' : Core.Set.t Formula_list.t -> t
 
-  val memset : Model_builder.Core.Set.entry -> predicate
-  val memset' : Model_builder.Core.Set.entry -> t
+  val versions : Core.Version.t Formula_list.t -> predicate
+  val versions' : Core.Version.t Formula_list.t -> t
 
-  val memtunedeep' : Model_builder.Core.Tune.entry -> t
-  (** Matches if the given tune appears in any version at any depth in the book,
-      that is directly in the book or in a set of the book. *)
+  val versions_deep : Core.Version.t Formula_list.t -> predicate
+  val versions_deep' : Core.Version.t Formula_list.t -> t
 
-  val memversiondeep' : Model_builder.Core.Version.entry -> t
-  (** Matches if the given version appears at any depth in the book, that is
-      directly in the book or in a set of the book. *)
-
-  val existstunedeep' : Core.Tune.t -> t
-  val exists_version_deep' : Core.Version.t -> t
+  val owners : Core.User.t Formula_list.t -> predicate
+  val owners' : Core.User.t Formula_list.t -> t
 
   val text_formula_converter : predicate Text_formula_converter.t
   val from_text_formula : Text_formula.t -> (t, string) Result.t

@@ -38,6 +38,29 @@ let show_lilypond_dialog version =
           ()
       ]
 
+let add_to_set_dialog version user =
+  Add_to.dialog
+    user
+    version
+    ~source_type: "version"
+    ~source_format: Formatters.Version.name'
+    ~target_type: "set"
+    ~target_icon: Icon.(Model Set)
+    ~target_descr: Model.Set.name'
+    ~target_format: Formatters.Set.name'
+    ~target_href: Endpoints.Page.href_set
+    ~target_create_editor: Set_editor.create
+    ~target_filter_from_string: Filter.Set.from_string
+    ~target_filter_owners': Filter.Set.owners'
+    ~target_result: (Any_result.make_set_result ?context: None ?params: None)
+    ~target_search: (Madge_client.call_exn Endpoints.Api.(route @@ Set Search))
+    ~target_update: (Madge_client.call_exn Endpoints.Api.(route @@ Set Update))
+    ~target_get: Model.Set.get
+    ~target_add_source_to_content: (fun set ->
+      let%lwt contents = Model.Set.contents set in
+      lwt @@ Model.Set.set_contents (contents @ [(version, Model.Version_parameters.none)]) set
+    )
+
 let madge_call_or_404_on_option route maybe_id =
   Option.fold
     maybe_id
@@ -101,6 +124,21 @@ let create ?context tune_id id =
               ~dropdown: true
               ~onclick: (fun () -> show_lilypond_dialog version)
               ()
+      );
+      (
+        match version with
+        | None -> lwt_nil
+        | Some version ->
+          Lwt.l2
+            (@)
+            (Add_to.button ~target_type: "set" (add_to_set_dialog version))
+            (
+              Add_to.button_to_book
+                ~source_type: "version"
+                ~source_format: Formatters.Version.name'
+                version
+                (Model.Book.versions @@ NEList.singleton (version, Model.Version_parameters.none))
+            )
       );
       (
         Option.fold
@@ -298,10 +336,10 @@ let create ?context tune_id id =
       );
       quick_explorer_links @@
         List.filter_map Fun.id [
-          Option.flip_map version (fun version -> ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memversion') version));
-          Some ("sets containing this tune", Filter.(Any.set' % Set.exists_version' % Version.tuneis') <$> lwt tune);
-          Option.flip_map version (fun version -> ("books containing this version", lwt @@ Filter.(Any.book' % Book.memversiondeep') version));
-          Some ("books containing this tune", Filter.(Any.book' % Book.exists_version_deep' % Version.tuneis') <$> lwt tune);
+          Option.flip_map version (fun version -> ("sets containing this version", lwt @@ Filter.(Any.set' % Set.versions' % Formula_list.exists' % Version.is') version));
+          Some ("sets containing this tune", Filter.(Any.set' % Set.versions' % Formula_list.exists' % Version.tuneis') <$> lwt tune);
+          Option.flip_map version (fun version -> ("books containing this version", lwt @@ Filter.(Any.book' % Book.versions_deep' % Formula_list.exists' % Version.is') version));
+          Some ("books containing this tune", Filter.(Any.book' % Book.versions_deep' % Formula_list.exists' % Version.tuneis') <$> lwt tune);
         ];
       div [
         h3 [txt "Versions of this tune"];
