@@ -178,3 +178,8 @@ let contains_duplicates ?(eq = Stdlib.(=)) xs =
     | _ :: xs -> aux xs
   in
   aux xs
+
+let rec take n = function
+  | [] -> []
+  | _ when n <= 0 -> []
+  | x :: xs -> x :: take (n - 1) xs

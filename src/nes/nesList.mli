@@ -100,3 +100,7 @@ val group : by: ('a -> 'a -> bool) -> 'a list -> 'a list list
 val contains_duplicates : ?eq: ('a -> 'a -> bool) -> 'a list -> bool
 (** Checks whether the list contains duplicate values. This function only
     requires an equality (which defaults to [Stdlib.(=)]) but runs in [O(n²)]. *)
+
+val take : int -> 'a list -> 'a list
+(** [take n], applied to a list [xs], returns the prefix of [xs] of length [n],
+    or [xs] itself if [n >= length xs]. *)

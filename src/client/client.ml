@@ -145,3 +145,5 @@ let () =
       Lwt.async (Main_page.load % dispatch % get_uri);
       Js._false
     )
+
+let () = History.add @@ get_uri ()
