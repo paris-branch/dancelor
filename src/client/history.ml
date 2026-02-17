@@ -1,5 +1,6 @@
 open Js_of_ocaml
 open Nes
+open Common
 
 (* FIXME: use Uri.t instead of string *)
 type history = (Datetime.t * string) list [@@deriving yojson]
@@ -29,3 +30,39 @@ let update f = set @@ f @@ get ()
 
 let add (uri : Uri.t) : unit =
   update (fun history -> (Datetime.now (), Uri.to_string uri) :: List.take (limit - 1) history)
+
+(** Returns all the sets whose page is present in the history. *)
+let get_sets () =
+  let set_val : type a r. (a, Model.Set.t Entry.id option, r) Endpoints.Page.t -> a = function
+    | Set -> (fun _ id -> Some id)
+    (* everything else we ignore *)
+    | endpoint -> Endpoints.Page.consume None endpoint
+  in
+  let set_val uri : Model.Set.t Entry.id option =
+    Option.join @@
+    Option.map (fun f -> f ()) @@
+    List.map_first_some
+      (fun (Endpoints.Page.W' endpoint) ->
+        Madge.apply' (Endpoints.Page.route endpoint) (fun () -> set_val endpoint) (Madge.Request.make ~meth: GET ~uri ~body: "")
+      )
+      (Endpoints.Page.all' ())
+  in
+  List.filter_map (set_val % Uri.of_string % snd) (get ())
+
+(** Returns all the books whose page is present in the history. *)
+let get_books () =
+  let book_val : type a r. (a, Model.Book.t Entry.id option, r) Endpoints.Page.t -> a = function
+    | Book -> (fun _ id -> Some id)
+    (* everything else we ignore *)
+    | endpoint -> Endpoints.Page.consume None endpoint
+  in
+  let book_val uri : Model.Book.t Entry.id option =
+    Option.join @@
+    Option.map (fun f -> f ()) @@
+    List.map_first_some
+      (fun (Endpoints.Page.W' endpoint) ->
+        Madge.apply' (Endpoints.Page.route endpoint) (fun () -> book_val endpoint) (Madge.Request.make ~meth: GET ~uri ~body: "")
+      )
+      (Endpoints.Page.all' ())
+  in
+  List.filter_map (book_val % Uri.of_string % snd) (get ())
