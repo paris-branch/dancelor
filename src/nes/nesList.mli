@@ -101,6 +101,10 @@ val contains_duplicates : ?eq: ('a -> 'a -> bool) -> 'a list -> bool
 (** Checks whether the list contains duplicate values. This function only
     requires an equality (which defaults to [Stdlib.(=)]) but runs in [O(n²)]. *)
 
+val deduplicate : ?eq: ('a -> 'a -> bool) -> 'a list -> 'a list
+(** Keep only the first of each equivalence classes given by [?eq], which
+    defaults to [Stdlib.(=)]. Runs in [O(n²)]. *)
+
 val take : int -> 'a list -> 'a list
 (** [take n], applied to a list [xs], returns the prefix of [xs] of length [n],
     or [xs] itself if [n >= length xs]. *)

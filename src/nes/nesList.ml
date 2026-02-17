@@ -179,6 +179,13 @@ let contains_duplicates ?(eq = Stdlib.(=)) xs =
   in
   aux xs
 
+let deduplicate ?(eq = Stdlib.(=)) xs =
+  let rec aux = function
+    | [] -> []
+    | x :: xs -> x :: List.filter (fun x' -> not @@ eq x x') (aux xs)
+  in
+  aux xs
+
 let rec take n = function
   | [] -> []
   | _ when n <= 0 -> []
