@@ -117,28 +117,41 @@ let href_any_full ?context any =
   | Tune tune -> href_tune ?context (Entry.id tune)
   | User _ -> assert false (* FIXME: user visualisation page *)
 
+(** Function that consumes all endpoints and returns nothing. It is meant to be
+    used in the catch-all case of a pattern matching. *)
+let consume : type a w r. w -> (a, w, r) t -> a = fun value endpoint ->
+  match endpoint with
+  | Index -> value
+  | Any -> const value
+  | Book -> const2 value
+  | Book_add -> value
+  | Book_edit -> const value
+  | Dance -> const2 value
+  | Dance_add -> value
+  | Dance_edit -> const value
+  | Person -> const2 value
+  | Person_add -> value
+  | Person_edit -> const value
+  | Set -> const2 value
+  | Set_add -> value
+  | Set_edit -> const value
+  | Source -> const2 value
+  | Source_add -> value
+  | Source_edit -> const value
+  | Tune -> const2 value
+  | Version -> (fun _ _ _ -> value)
+  | Tune_add -> value
+  | Tune_edit -> const value
+  | Version_add -> value
+  | Version_edit -> const value
+  | Explore -> const value
+  | User_create -> value
+  | User_prepare_reset_password -> value
+  | User_password_reset -> const2 value
+
 module Make_describe (Model : Model_builder.S) = struct
   let describe = fun uri ->
     let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
-      | Index -> lwt_none
-      | Explore -> const lwt_none
-      | Version_add -> lwt_none
-      | Version_edit -> const lwt_none
-      | Tune_add -> lwt_none
-      | Tune_edit -> const lwt_none
-      | Set_add -> lwt_none
-      | Set_edit -> const lwt_none
-      | Book_add -> lwt_none
-      | Book_edit -> const lwt_none
-      | Person_add -> lwt_none
-      | Person_edit -> const lwt_none
-      | Source_add -> lwt_none
-      | Source_edit -> const lwt_none
-      | Dance_add -> lwt_none
-      | Dance_edit -> const lwt_none
-      | User_create -> lwt_none
-      | User_prepare_reset_password -> lwt_none
-      | User_password_reset -> const2 lwt_none
       | Any -> (fun id -> lwt_some ("any", Entry.Id.to_string id))
       | Version ->
         (fun _ _ id ->
@@ -175,6 +188,7 @@ module Make_describe (Model : Model_builder.S) = struct
           let%lwt name = NEString.to_string % Model.Source.name' % Option.get <$> Model.Source.get id in
           lwt_some ("source", name)
         )
+      | endpoint -> consume lwt_none endpoint
     in
     let madge_match_apply_all : (string * string) option Lwt.t wrapped' list -> (unit -> (string * string) option Lwt.t) option =
       List.map_first_some @@ fun (W' page) ->
