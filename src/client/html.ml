@@ -34,6 +34,13 @@ module S = struct
   let from' (placeholder : 'a) (promise : 'a Lwt.t) : 'a t =
     from_lwt_stream placeholder (Lwt_stream.return_lwt promise)
 
+  (** Creates a stream of Lwt values from a signal. The signal value at the time
+      of creation will be part of the stream. *)
+  let to_lwt (signal : 'a t) : 'a Lwt_stream.t =
+    let (stream, push, store_ref) = Lwt_stream.create_with_reference () in
+    store_ref (map (push % some) signal);
+    stream
+
   (** [bind_s' signal placeholder promise] is a signal that begins by holding
       [placeholder]. For all the values held by [signal], [promise] is called
       such that, upon resolution, the output signal gets a new value.
