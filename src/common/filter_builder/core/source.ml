@@ -19,7 +19,7 @@ let text_formula_converter =
         raw (ok % name' % Formula_string.matches');
         unary_id ~name: "is" (is, is_val);
         unary_lift ~name: "name" (name, name_val) ~converter: Formula_string.text_formula_converter;
-        unary_lift ~name: "editor" (editors, editors_val) ~converter: (Formula_list.text_formula_converter (Person.name' % Formula_string.matches') Person.text_formula_converter);
+        unary_lift ~name: "editors" (editors, editors_val) ~converter: (Formula_list.text_formula_converter (Person.name' % Formula_string.matches') Person.text_formula_converter);
       ]
   )
 
