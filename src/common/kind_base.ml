@@ -2,14 +2,15 @@ open Nes
 
 type t =
   | Jig
-  | Polka
   | Reel
   | Strathspey
   | Waltz
+  | Polka
   | Other
 [@@deriving eq, ord, show {with_path = false}]
 
-let all = [Jig; Reel; Strathspey; Polka; Waltz]
+(* NOTE: The order matters as it is used by eg. the tune editor. *)
+let all = [Jig; Reel; Strathspey; Waltz; Polka; Other]
 
 let to_char = function
   | Jig -> 'J'

@@ -3,7 +3,7 @@ open Nes
 (** {1 Base Kind} *)
 
 type t =
-  Jig | Polka | Reel | Strathspey | Waltz | Other
+  Jig | Reel | Strathspey | Waltz | Polka | Other
 [@@deriving eq, ord, show]
 
 val all : t list
