@@ -50,7 +50,7 @@ let optimise =
       | (Dances f1, Dances f2) -> some @@ Dances (op f1 f2)
       | _ -> None
     )
-    ~predicate: (function
+    (function
       | (Is _ as p) -> p
       | Name sfilter -> name @@ Formula_string.optimise sfilter
       | Composers pfilter -> composers @@ Formula_list.optimise Person.optimise pfilter

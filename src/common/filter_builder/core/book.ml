@@ -54,7 +54,7 @@ let optimise =
       | (Versions_deep f1, Versions_deep f2) -> some @@ versions_deep (op f1 f2)
       | _ -> None
     )
-    ~predicate: (function
+    (function
       | (Is _ as p) -> p
       | Title sfilter -> title @@ Formula_string.optimise sfilter
       | Versions vfilter -> versions @@ Formula_list.optimise Version.optimise vfilter

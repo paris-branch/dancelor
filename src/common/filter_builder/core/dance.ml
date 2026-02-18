@@ -46,7 +46,7 @@ let optimise =
       | (Devisers f1, Devisers f2) -> some @@ devisers (op f1 f2)
       | _ -> None
     )
-    ~predicate: (function
+    (function
       | (Is _ as p) -> p
       | Name sfilter -> name @@ Formula_string.optimise sfilter
       | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter

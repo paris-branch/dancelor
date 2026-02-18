@@ -147,7 +147,7 @@ module Filter = struct
         | (Version f1, Version f2) -> some @@ version (op f1 f2)
         | _ -> None
       )
-      ~predicate: (function
+      (function
         | (Is _ as p) | (Simple as p) -> p
         | Version vfilter -> version @@ Kind_version.Filter.optimise vfilter
       )

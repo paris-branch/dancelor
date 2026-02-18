@@ -53,7 +53,7 @@ let optimise =
       | (Tune f1, Tune f2) -> some @@ tune (op f1 f2)
       | _ -> None
     )
-    ~predicate: (function
+    (function
       | (Is _ as p) | (Key _ as p) -> p
       | Tune tfilter -> tune @@ Tune.optimise tfilter
       | Sources sfilter -> sources @@ Formula_list.optimise Source.optimise sfilter

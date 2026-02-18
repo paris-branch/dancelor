@@ -48,6 +48,7 @@ val interpret_or : float -> float -> float
 val interpret_or_l : float list -> float
 
 val interpret_exists : ('x -> float Lwt.t) -> 'x list -> float Lwt.t
+val interpret_forall : ('x -> float Lwt.t) -> 'x list -> float Lwt.t
 
 val interpret : 'p t -> ('p -> float Lwt.t) -> float Lwt.t
 (** Interpret a whole formula given a function to interpret predicates. *)
@@ -67,17 +68,20 @@ val cnf_val : 'p t -> 'p list list option
 type binop = {op: 'a. 'a t -> 'a t -> 'a t}
 
 val optimise :
-  binop: (binop -> 'p -> 'p -> 'p option) ->
-  predicate: ('p -> 'p) ->
+  ?binop: (binop -> 'p -> 'p -> 'p option) ->
+  ?and_: ('p -> 'p -> 'p option) ->
+  ?or_: ('p -> 'p -> 'p option) ->
+  ('p -> 'p) ->
   'p t ->
   'p t
 (** Optimise a formula, for instance with rules such as [⊥ ∧ ... → ⊥], given a
-    function [~predicate] to optimise predicates and a function [~binop] that
-    can be used to lift the conjunction/disjunction of predicates into the
-    predicates themselves. For instance, on [F(A) ∨ F(B)], [optimise] will call
-    [lift or_ (F(A)) (F(B))] which could yield [F(A ∨ B)] if the underlying
-    predicates support this. [~binop] should be compatible with associativity
-    and commutativity. *)
+    function to optimise predicates and, optionally, either a function [?binop]
+    or functions [?and_] and [?or_] that can be used to lift conjunctions and
+    disjunctions of predicates into the predicates themselves. For instance, on
+    [F(A) ∨ F(B)], [optimise] will call [lift or_ (F(A)) (F(B))] which could
+    yield [F(A ∨ B)] if the underlying predicates support this. [?binop],
+    [?and_] and [?or_] should be compatible with associativity and
+    commutativity. *)
 
 val convert : ('p -> 'q t) -> 'p t -> 'q t
 (** Convert a formula over predicates of type ['p] into a formula over

@@ -32,8 +32,7 @@ let is' x = Formula.pred @@ is x
 
 let optimise =
   Formula.optimise
-    ~binop: (fun _ _ _ -> None)
-    ~predicate: (function
+    (function
       | (Is _ as p) -> p
       | Username sfilter -> username @@ Formula_string.optimise sfilter
     )

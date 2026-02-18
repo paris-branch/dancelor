@@ -160,7 +160,7 @@ module Filter = struct
         | (Base f1, Base f2) -> some @@ base (op f1 f2)
         | _ -> None
       )
-      ~predicate: (function
+      (function
         | (Is _ as p)
         | (Bars_eq _ as p)
         | (Bars_ne _ as p)

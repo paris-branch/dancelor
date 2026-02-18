@@ -35,8 +35,7 @@ let is' x = Formula.pred @@ is x
 
 let optimise =
   Formula.optimise
-    ~binop: (fun _ _ _ -> None)
-    ~predicate: (function
+    (function
       | (Is _ as p) -> p
       | Name sfilter -> name @@ Formula_string.optimise sfilter
       | Editors pfilter -> editors @@ Formula_list.optimise Person.optimise pfilter

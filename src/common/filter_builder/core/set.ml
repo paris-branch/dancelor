@@ -53,7 +53,7 @@ let optimise =
       | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
       | _ -> None
     )
-    ~predicate: (function
+    (function
       | (Is _ as p) -> p
       | Name sfilter -> name @@ Formula_string.optimise sfilter
       | Conceptors pfilter -> conceptors @@ Formula_list.optimise Person.optimise pfilter

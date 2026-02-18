@@ -153,7 +153,7 @@ let optimise =
           | (Version f1, Version f2) -> some @@ version (op f1 f2)
           | _ -> None
         )
-        ~predicate: (function
+        (function
           | (Raw _ as p) | (Type _ as p) -> p
           | Source pfilter -> source @@ Source.optimise pfilter
           | Person pfilter -> person @@ Person.optimise pfilter

@@ -34,11 +34,7 @@ let text_formula_converter =
     ]
   )
 
-let optimise f =
-  Formula.optimise
-    ~binop: (fun _ _ _ -> None)
-    ~predicate: (fun p -> p)
-    f
+let optimise f = Formula.optimise Fun.id f
 
 let accepts filter value =
   Formula.interpret filter @@ function

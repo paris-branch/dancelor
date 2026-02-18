@@ -117,7 +117,7 @@ module Filter = struct
   let optimise =
     Formula.optimise
       ~binop: (fun _ _ _ -> None)
-      ~predicate: (function
+      (function
         | (Is _ as p) -> p
       )
 end
