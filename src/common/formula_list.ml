@@ -23,6 +23,7 @@ let optimise sub_optimise =
   Formula.optimise
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with
+      (* FIXME: this is simply not true; And does not commute with Exists *)
       | (Exists f1, Exists f2) -> some @@ exists (op f1 f2)
     )
     ~predicate: (function

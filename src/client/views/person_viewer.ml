@@ -65,11 +65,11 @@ let create ?context id =
       quick_explorer_links'
         (lwt person)
         [
-          ("tunes they composed", Filter.(Any.tune' % Tune.exists_composer' % Person.is'));
-          ("versions of tunes they composed", Filter.(Any.version' % Version.tune' % Tune.exists_composer' % Person.is'));
-          ("dances they devised", Filter.(Any.dance' % Dance.exists_deviser' % Person.is'));
+          ("tunes they composed", Filter.(Any.tune' % Tune.composers' % Formula_list.exists' % Person.is'));
+          ("versions of tunes they composed", Filter.(Any.version' % Version.tune' % Tune.composers' % Formula_list.exists' % Person.is'));
+          ("dances they devised", Filter.(Any.dance' % Dance.devisers' % Formula_list.exists' % Person.is'));
           ("sets they conceived", Filter.(Any.set' % Set.conceptors' % Formula_list.exists' % Person.is'));
           ("books they edited", Filter.(Any.book' % Book.editors' % Formula_list.exists' % Person.is'));
-          ("sources they edited", Filter.(Any.source' % Source.exists_editor' % Person.is'));
+          ("sources they edited", Filter.(Any.source' % Source.editors' % Formula_list.exists' % Person.is'));
         ];
     ]

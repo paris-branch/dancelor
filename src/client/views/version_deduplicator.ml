@@ -319,7 +319,7 @@ let dialog ~tune ~version () =
         Formula.(
           and_l
             [
-              Filter.Version.tuneis' tune;
+              Filter.(Version.tune' % Tune.is') tune;
               not (Filter.Version.is' version);
             ]
         )

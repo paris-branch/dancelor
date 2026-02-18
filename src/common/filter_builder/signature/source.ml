@@ -6,7 +6,7 @@ module type S = sig
 
   val accepts : t -> Model_builder.Core.Source.entry -> float Lwt.t
 
-  val exists_editor' : Core.Person.t -> t
+  val editors' : Core.Person.t Formula_list.t -> t
 
   val is : Model_builder.Core.Source.entry -> predicate
   val is' : Model_builder.Core.Source.entry -> t

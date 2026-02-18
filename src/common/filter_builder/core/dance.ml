@@ -5,7 +5,7 @@ type predicate =
   | Name of string
   | Name_matches of string
   | Kind of Kind.Dance.Filter.t
-  | Exists_deviser of Person.t (** deviser is defined and passes the filter *)
+  | Devisers of Person.t Formula_list.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
@@ -14,7 +14,7 @@ type t = predicate Formula.t
 let name' = Formula.pred % name
 let name_matches' = Formula.pred % name_matches
 let kind' = Formula.pred % kind
-let exists_deviser' = Formula.pred % exists_deviser
+let devisers' = Formula.pred % devisers
 
 let text_formula_converter =
   Text_formula_converter.(
@@ -24,8 +24,8 @@ let text_formula_converter =
         unary_string ~name: "name" (name, name_val);
         unary_string ~name: "name-matches" (name_matches, name_matches_val);
         unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Dance.Filter.text_formula_converter;
-        unary_lift ~name: "exists-deviser" (exists_deviser, exists_deviser_val) ~converter: Person.text_formula_converter;
-        unary_lift ~name: "by" (exists_deviser, exists_deviser_val) ~converter: Person.text_formula_converter;
+        unary_lift ~name: "devisers" (devisers, devisers_val) ~converter: (Formula_list.text_formula_converter Person.name_matches' Person.text_formula_converter);
+        unary_lift ~name: "by" (devisers, devisers_val) ~converter: (Formula_list.text_formula_converter Person.name_matches' Person.text_formula_converter);
         (* alias for deviser; FIXME: make this clearer *)
         unary_id ~name: "is" (is, is_val);
       ]
@@ -46,11 +46,11 @@ let optimise =
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with
       | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
-      | (Exists_deviser f1, Exists_deviser f2) -> some @@ exists_deviser (op f1 f2)
+      | (Devisers f1, Devisers f2) -> some @@ devisers (op f1 f2)
       | _ -> None
     )
     ~predicate: (function
       | (Is _ as p) | (Name _ as p) | (Name_matches _ as p) -> p
       | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter
-      | Exists_deviser pfilter -> exists_deviser @@ Person.optimise pfilter
+      | Devisers pfilter -> devisers @@ Formula_list.optimise Person.optimise pfilter
     )

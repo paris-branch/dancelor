@@ -17,14 +17,11 @@ module type S = sig
   val kind : Kind.Base.Filter.t -> predicate
   val kind' : Kind.Base.Filter.t -> t
 
-  val exists_composer : Core.Person.t -> predicate
-  val exists_composer' : Core.Person.t -> t
+  val composers : Core.Person.t Formula_list.t -> predicate
+  val composers' : Core.Person.t Formula_list.t -> t
 
-  val exists_composer_is : Model_builder.Core.Person.entry -> predicate
-  val exists_composer_is' : Model_builder.Core.Person.entry -> t
-
-  val exists_dance : Core.Dance.t -> predicate
-  val exists_dance' : Core.Dance.t -> t
+  val dances : Core.Dance.t Formula_list.t -> predicate
+  val dances' : Core.Dance.t Formula_list.t -> t
 
   val text_formula_converter : predicate Text_formula_converter.t
   (** Converter from text formulas to formulas on tunes. *)

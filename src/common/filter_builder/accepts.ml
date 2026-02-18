@@ -68,10 +68,9 @@ module Make (Model : Model_builder.S) = struct
         lwt @@ Formula.interpret_or_l @@ List.map (String.inclusion_proximity ~char_equal ~needle: string % NEString.to_string) @@ NEList.to_list @@ Model.Dance.names' dance
       | Kind kfilter ->
         Kind.Dance.Filter.accepts kfilter @@ Model.Dance.kind' dance
-      | Exists_deviser pfilter ->
+      | Devisers pfilter ->
         let%lwt devisers = Model.Dance.devisers' dance in
-        let%lwt scores = Lwt_list.map_s (accepts_person pfilter) devisers in
-        lwt (Formula.interpret_or_l scores)
+        Formula_list.accepts accepts_person pfilter devisers
 
   and accepts_person filter person =
     Formula.interpret filter @@ function
@@ -117,9 +116,9 @@ module Make (Model : Model_builder.S) = struct
           Formula.interpret_or
             (String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Source.name' source)
             (Option.fold ~none: Formula.interpret_false ~some: (String.inclusion_proximity ~char_equal ~needle: string % NEString.to_string) (Model.Source.short_name' source))
-      | Exists_editor pfilter ->
+      | Editors pfilter ->
         let%lwt editors = Model.Source.editors' source in
-        Formula.interpret_exists (accepts_person pfilter) editors
+        Formula_list.accepts accepts_person pfilter editors
 
   and accepts_tune filter tune =
     Formula.interpret filter @@ function
@@ -129,16 +128,14 @@ module Make (Model : Model_builder.S) = struct
         lwt @@ Formula.interpret_or_l @@ List.map (String.proximity ~char_equal string % NEString.to_string) @@ NEList.to_list @@ Model.Tune.names' tune
       | Name_matches string ->
         lwt @@ Formula.interpret_or_l @@ List.map (String.inclusion_proximity ~char_equal ~needle: string % NEString.to_string) @@ NEList.to_list @@ Model.Tune.names' tune
-      | Exists_composer pfilter ->
-        let%lwt composers = Model.Tune.composers' tune in
-        let%lwt scores = Lwt_list.map_s (accepts_person pfilter % Model.Tune.composer_composer) composers in
-        lwt (Formula.interpret_or_l scores)
+      | Composers pfilter ->
+        let%lwt composers = List.map Model.Tune.composer_composer <$> Model.Tune.composers' tune in
+        Formula_list.accepts accepts_person pfilter composers
       | Kind kfilter ->
         Kind.Base.Filter.accepts kfilter @@ Model.Tune.kind' tune
-      | Exists_dance dfilter ->
+      | Dances dfilter ->
         let%lwt dances = Model.Tune.dances' tune in
-        let%lwt scores = Lwt_list.map_s (accepts_dance dfilter) dances in
-        lwt (Formula.interpret_or_l scores)
+        Formula_list.accepts accepts_dance dfilter dances
 
   and accepts_version filter version =
     Formula.interpret filter @@ function
@@ -149,7 +146,7 @@ module Make (Model : Model_builder.S) = struct
         accepts_tune tfilter tune
       | Key key' ->
         lwt @@ Formula.interpret_bool (Model.Version.key' version = key')
-      | Exists_source sfilter ->
+      | Sources sfilter ->
         let%lwt sources = List.map (fun {Model.Version.source; _} -> source) <$> Model.Version.sources' version in
-        Formula.interpret_exists (accepts_source sfilter) sources
+        Formula_list.accepts accepts_source sfilter sources
 end
