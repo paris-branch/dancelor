@@ -51,17 +51,15 @@ let is' x = Formula.pred @@ is x
 type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
 
 let optimise =
-  let lift {op} f1 f2 =
-    match (f1, f2) with
-    | (Conceptors f1, Conceptors f2) -> some @@ conceptors (op f1 f2)
-    | (Versions f1, Versions f2) -> some @@ versions (op f1 f2)
-    | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
-    | _ -> None
-  in
   Formula.optimise
-    ~lift_and: (lift {op = Formula.and_})
-    ~lift_or: (lift {op = Formula.or_})
-    (function
+    ~binop: (fun {op} f1 f2 ->
+      match (f1, f2) with
+      | (Conceptors f1, Conceptors f2) -> some @@ conceptors (op f1 f2)
+      | (Versions f1, Versions f2) -> some @@ versions (op f1 f2)
+      | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
+      | _ -> None
+    )
+    ~predicate: (function
       | (Is _ as p) | (Name _ as p) | (Name_matches _ as p) -> p
       | Conceptors pfilter -> conceptors @@ Formula_list.optimise Person.optimise pfilter
       | Versions vfilter -> versions @@ Formula_list.optimise Version.optimise vfilter

@@ -128,34 +128,32 @@ let type_based_cleanup =
 type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
 
 let optimise =
-  let lift {op} f1 f2 =
-    match (f1, f2) with
-    (* [person:] eats [type:person] *)
-    | (Type Source, Source f) | (Source f, Type Source) -> some @@ source f
-    | (Type Person, Person f) | (Person f, Type Person) -> some @@ person f
-    | (Type Dance, Dance f) | (Dance f, Type Dance) -> some @@ dance f
-    | (Type Book, Book f) | (Book f, Type Book) -> some @@ book f
-    | (Type Set, Set f) | (Set f, Type Set) -> some @@ set f
-    | (Type Tune, Tune f) | (Tune f, Type Tune) -> some @@ tune f
-    | (Type Version, Version f) | (Version f, Type Version) -> some @@ version f
-    (* [person:<f1> ∧ person:<f2> -> person:(<f1> ∧ <f2>)] *)
-    | (Source f1, Source f2) -> some @@ source (op f1 f2)
-    | (Person f1, Person f2) -> some @@ person (op f1 f2)
-    | (Dance f1, Dance f2) -> some @@ dance (op f1 f2)
-    | (Book f1, Book f2) -> some @@ book (op f1 f2)
-    | (Set f1, Set f2) -> some @@ set (op f1 f2)
-    | (Tune f1, Tune f2) -> some @@ tune (op f1 f2)
-    | (Version f1, Version f2) -> some @@ version (op f1 f2)
-    | _ -> None
-  in
+  (* FIXME: Because of [type_based_cleanup], the following is not idempotent.
+     Hence the call to [fixpoint] below. *)
   fixpoint
     (
-      (* FIXME: Because of [type_based_cleanup], the following is not
-         idempotent. Hence the [fixpoint] above. *)
       Formula.optimise
-        ~lift_and: (lift {op = Formula.and_})
-        ~lift_or: (lift {op = Formula.or_})
-        (function
+        ~binop: (fun {op} f1 f2 ->
+          match (f1, f2) with
+          (* [person:] eats [type:person] *)
+          | (Type Source, Source f) | (Source f, Type Source) -> some @@ source f
+          | (Type Person, Person f) | (Person f, Type Person) -> some @@ person f
+          | (Type Dance, Dance f) | (Dance f, Type Dance) -> some @@ dance f
+          | (Type Book, Book f) | (Book f, Type Book) -> some @@ book f
+          | (Type Set, Set f) | (Set f, Type Set) -> some @@ set f
+          | (Type Tune, Tune f) | (Tune f, Type Tune) -> some @@ tune f
+          | (Type Version, Version f) | (Version f, Type Version) -> some @@ version f
+          (* [person:<f1> ∧ person:<f2> -> person:(<f1> ∧ <f2>)] *)
+          | (Source f1, Source f2) -> some @@ source (op f1 f2)
+          | (Person f1, Person f2) -> some @@ person (op f1 f2)
+          | (Dance f1, Dance f2) -> some @@ dance (op f1 f2)
+          | (Book f1, Book f2) -> some @@ book (op f1 f2)
+          | (Set f1, Set f2) -> some @@ set (op f1 f2)
+          | (Tune f1, Tune f2) -> some @@ tune (op f1 f2)
+          | (Version f1, Version f2) -> some @@ version (op f1 f2)
+          | _ -> None
+        )
+        ~predicate: (function
           | (Raw _ as p) | (Type _ as p) -> p
           | Source pfilter -> source @@ Source.optimise pfilter
           | Person pfilter -> person @@ Person.optimise pfilter

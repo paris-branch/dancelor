@@ -48,21 +48,16 @@ let to_string = Text_formula.to_string % to_text_formula
 let is x = is @@ Entry.id x
 let is' x = Formula.pred @@ is x
 
-(* Little trick to convince OCaml that polymorphism is OK. *)
-type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
-
 let optimise =
-  let lift {op} f1 f2 =
-    match (f1, f2) with
-    | (Versions f1, Versions f2) -> some @@ versions (op f1 f2)
-    | (Sets f1, Sets f2) -> some @@ sets (op f1 f2)
-    | (Versions_deep f1, Versions_deep f2) -> some @@ versions_deep (op f1 f2)
-    | _ -> None
-  in
   Formula.optimise
-    ~lift_and: (lift {op = Formula.and_})
-    ~lift_or: (lift {op = Formula.or_})
-    (function
+    ~binop: (fun {op} f1 f2 ->
+      match (f1, f2) with
+      | (Versions f1, Versions f2) -> some @@ versions (op f1 f2)
+      | (Sets f1, Sets f2) -> some @@ sets (op f1 f2)
+      | (Versions_deep f1, Versions_deep f2) -> some @@ versions_deep (op f1 f2)
+      | _ -> None
+    )
+    ~predicate: (function
       | (Is _ as p)
       | (Title _ as p)
       | (Title_matches _ as p) ->

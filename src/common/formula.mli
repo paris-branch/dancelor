@@ -64,20 +64,20 @@ val cnf_val : 'p t -> 'p list list option
 
 (** {3 Miscellaneous} *)
 
+type binop = {op: 'a. 'a t -> 'a t -> 'a t}
+
 val optimise :
-  ?lift_and: ('p -> 'p -> 'p option) ->
-  ?lift_or: ('p -> 'p -> 'p option) ->
-  ('p -> 'p) ->
+  binop: (binop -> 'p -> 'p -> 'p option) ->
+  predicate: ('p -> 'p) ->
   'p t ->
   'p t
 (** Optimise a formula, for instance with rules such as [⊥ ∧ ... → ⊥], given a
-    function to optimise predicates. Optionally, one can also give [?lift_and]
-    and [?lift_or] functions that can be used to lift the
-    conjunction/disjunction of predicates into the predicates themselves. For
-    instance, on [F(A) ∨ F(B)], [optimise] will call [lift_or (F(A)) (F(B))]
-    which could yield [F(A ∨ B)] if the underlying predicates support this.
-    [lift_and] and [lift_or] should be compatible with associativity and
-    commutativity. *)
+    function [~predicate] to optimise predicates and a function [~binop] that
+    can be used to lift the conjunction/disjunction of predicates into the
+    predicates themselves. For instance, on [F(A) ∨ F(B)], [optimise] will call
+    [lift or_ (F(A)) (F(B))] which could yield [F(A ∨ B)] if the underlying
+    predicates support this. [~binop] should be compatible with associativity
+    and commutativity. *)
 
 val convert : ('p -> 'q t) -> 'p t -> 'q t
 (** Convert a formula over predicates of type ['p] into a formula over

@@ -34,5 +34,11 @@ let is x = is @@ Entry.id x
 let is' x = Formula.pred @@ is x
 
 let optimise =
-  Formula.optimise @@ function
-    | (Is _ as p) | (Name _ as p) | (Name_matches _ as p) -> p
+  Formula.optimise
+    ~binop: (fun _ _ _ -> None)
+    ~predicate: (function
+      | (Is _ as p)
+      | (Name _ as p)
+      | (Name_matches _ as p) ->
+        p
+    )

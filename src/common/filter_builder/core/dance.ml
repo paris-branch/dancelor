@@ -41,20 +41,15 @@ let to_string = Text_formula.to_string % to_text_formula
 let is x = is @@ Entry.id x
 let is' x = Formula.pred @@ is x
 
-(* Little trick to convince OCaml that polymorphism is OK. *)
-type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
-
 let optimise =
-  let lift {op} f1 f2 =
-    match (f1, f2) with
-    | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
-    | (Exists_deviser f1, Exists_deviser f2) -> some @@ exists_deviser (op f1 f2)
-    | _ -> None
-  in
   Formula.optimise
-    ~lift_and: (lift {op = Formula.and_})
-    ~lift_or: (lift {op = Formula.or_})
-    (function
+    ~binop: (fun {op} f1 f2 ->
+      match (f1, f2) with
+      | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
+      | (Exists_deviser f1, Exists_deviser f2) -> some @@ exists_deviser (op f1 f2)
+      | _ -> None
+    )
+    ~predicate: (function
       | (Is _ as p) | (Name _ as p) | (Name_matches _ as p) -> p
       | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter
       | Exists_deviser pfilter -> exists_deviser @@ Person.optimise pfilter

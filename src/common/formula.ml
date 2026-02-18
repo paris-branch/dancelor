@@ -128,7 +128,10 @@ let cnf_val f =
   let disj_val f = List.(all_some @@ map pred_val (disjuncts f)) in
   List.(all_some @@ map disj_val (conjuncts f))
 
-let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise_predicate formula =
+(* Little trick to convince OCaml that polymorphism is OK. *)
+type binop = {op: 'a. 'a t -> 'a t -> 'a t}
+
+let optimise ~binop ~predicate formula =
   let rec optimise_head = function
     | Not True -> False
     | Not False -> True
@@ -139,7 +142,7 @@ let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise
       (
         match (List.bd_ft (conjuncts f1), List.hd_tl (conjuncts f2)) with
         | ((f1, Pred p1), (Pred p2, f2)) ->
-          Option.fold ~none: f ~some: (fun p12 -> optimise @@ and_l (f1 @ [pred p12] @ f2)) (lift_and p1 p2)
+          Option.fold ~none: f ~some: (fun p12 -> optimise @@ and_l (f1 @ [pred p12] @ f2)) (binop {op = and_} p1 p2)
         | _ -> f
       )
     | Or (True, _) | Or (_, True) -> True
@@ -148,7 +151,7 @@ let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise
       (
         match (List.bd_ft (disjuncts f1), List.hd_tl (disjuncts f2)) with
         | ((f1, Pred p1), (Pred p2, f2)) ->
-          Option.fold ~none: f ~some: (fun p12 -> optimise @@ or_l (f1 @ [pred p12] @ f2)) (lift_or p1 p2)
+          Option.fold ~none: f ~some: (fun p12 -> optimise @@ or_l (f1 @ [pred p12] @ f2)) (binop {op = or_} p1 p2)
         | _ -> f
       )
     | head -> head
@@ -160,6 +163,6 @@ let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise
       | Not f -> Not (optimise f)
       | And (f1, f2) -> And (optimise f1, optimise f2)
       | Or (f1, f2) -> Or (optimise f1, optimise f2)
-      | Pred p -> Pred (optimise_predicate p)
+      | Pred p -> Pred (predicate p)
   in
   optimise formula
