@@ -2,8 +2,7 @@ open Nes
 
 type predicate =
   | Is of Model_builder.Core.Set.t Entry.Id.t (* FIXME: move to entry-level formulas *)
-  | Name of string
-  | Name_matches of string
+  | Name of Formula_string.t
   | Conceptors of Person.t Formula_list.t
   | Versions of Version.t Formula_list.t
   | Kind of Kind.Dance.Filter.t
@@ -14,7 +13,6 @@ type t = predicate Formula.t
 [@@deriving eq, show {with_path = false}, yojson]
 
 let name' = Formula.pred % name
-let name_matches' = Formula.pred % name_matches
 let conceptors' = Formula.pred % conceptors
 let versions' = Formula.pred % versions
 let kind' = Formula.pred % kind
@@ -24,15 +22,14 @@ let text_formula_converter =
   Text_formula_converter.(
     make
       [
-        raw (ok % name_matches');
-        unary_string ~name: "name" (name, name_val);
-        unary_string ~name: "name-matches" (name_matches, name_matches_val);
-        unary_lift ~name: "conceptors" (conceptors, conceptors_val) ~converter: (Formula_list.text_formula_converter Person.name_matches' Person.text_formula_converter);
-        unary_lift ~name: "by" (conceptors, conceptors_val) ~converter: (Formula_list.text_formula_converter Person.name_matches' Person.text_formula_converter);
+        raw (ok % name' % Formula_string.matches');
+        unary_lift ~name: "name" (name, name_val) ~converter: Formula_string.text_formula_converter;
+        unary_lift ~name: "conceptors" (conceptors, conceptors_val) ~converter: (Formula_list.text_formula_converter (Person.name' % Formula_string.matches') Person.text_formula_converter);
+        unary_lift ~name: "by" (conceptors, conceptors_val) ~converter: (Formula_list.text_formula_converter (Person.name' % Formula_string.matches') Person.text_formula_converter);
         (* ^ alias for conceptor; FIXME: make this clearer *)
-        unary_lift ~name: "versions" (versions, versions_val) ~converter: (Formula_list.text_formula_converter (Version.tune' % Tune.name_matches') Version.text_formula_converter);
+        unary_lift ~name: "versions" (versions, versions_val) ~converter: (Formula_list.text_formula_converter (Version.tune' % Tune.name' % Formula_string.matches') Version.text_formula_converter);
         unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Dance.Filter.text_formula_converter;
-        unary_lift ~name: "owners" (owners, owners_val) ~converter: (Formula_list.text_formula_converter User.username_matches' User.text_formula_converter);
+        unary_lift ~name: "owners" (owners, owners_val) ~converter: (Formula_list.text_formula_converter (User.username' % Formula_string.matches') User.text_formula_converter);
         unary_id ~name: "is" (is, is_val);
       ]
   )
@@ -47,9 +44,6 @@ let to_string = Text_formula.to_string % to_text_formula
 let is x = is @@ Entry.id x
 let is' x = Formula.pred @@ is x
 
-(* Little trick to convince OCaml that polymorphism is OK. *)
-type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
-
 let optimise =
   Formula.optimise
     ~binop: (fun {op} f1 f2 ->
@@ -60,7 +54,8 @@ let optimise =
       | _ -> None
     )
     ~predicate: (function
-      | (Is _ as p) | (Name _ as p) | (Name_matches _ as p) -> p
+      | (Is _ as p) -> p
+      | Name sfilter -> name @@ Formula_string.optimise sfilter
       | Conceptors pfilter -> conceptors @@ Formula_list.optimise Person.optimise pfilter
       | Versions vfilter -> versions @@ Formula_list.optimise Version.optimise vfilter
       | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter

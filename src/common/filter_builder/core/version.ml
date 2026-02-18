@@ -25,7 +25,7 @@ let text_formula_converter =
             unary_lift ~wrap_back: Not_raw ~name: "tune" (tune, tune_val) ~converter: Tune.text_formula_converter;
             unary_raw ~name: "key" (key, key_val) ~cast: (Music.Key.of_string_opt, Music.Key.to_string) ~type_: "key";
             unary_id ~name: "is" (is, is_val);
-            unary_lift ~name: "sources" (sources, sources_val) ~converter: (Formula_list.text_formula_converter Source.name_matches' Source.text_formula_converter);
+            unary_lift ~name: "sources" (sources, sources_val) ~converter: (Formula_list.text_formula_converter (Source.name' % Formula_string.matches') Source.text_formula_converter);
           ]
       )
       (
