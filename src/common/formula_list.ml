@@ -3,6 +3,7 @@
 open Nes
 
 type 'f predicate =
+  | Empty
   | Exists of 'f
   | Forall of 'f
 [@@deriving eq, show, yojson, variants]
@@ -10,6 +11,7 @@ type 'f predicate =
 type 'f t = 'f predicate Formula.t
 [@@deriving eq, show, yojson]
 
+let empty' = Formula.pred empty
 let exists' f = Formula.pred (exists f)
 let forall' f = Formula.pred (forall f)
 
@@ -17,6 +19,7 @@ let text_formula_converter sub_raw sub_tfc =
   Text_formula_converter.(
     make [
       raw (ok % exists' % sub_raw);
+      nullary ~name: "empty" empty;
       unary_lift ~name: "exists" (exists, exists_val) ~converter: sub_tfc;
       unary_lift ~name: "forall" (forall, forall_val) ~converter: sub_tfc;
     ]
@@ -37,9 +40,11 @@ let optimise sub_optimise =
     (function
       | Exists f -> exists @@ sub_optimise f
       | Forall f -> exists @@ sub_optimise f
+      | Empty as p -> p
     )
 
 let accepts sub_accepts filter values =
   Formula.interpret filter @@ function
     | Exists sub_filter -> Formula.interpret_exists (sub_accepts sub_filter) values
     | Forall sub_filter -> Formula.interpret_forall (sub_accepts sub_filter) values
+    | Empty -> lwt @@ Formula.interpret_bool (values = [])
