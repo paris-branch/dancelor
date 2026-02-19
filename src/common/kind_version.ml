@@ -153,18 +153,13 @@ module Filter = struct
   let from_string ?filename input =
     Result.bind (Text_formula.from_string ?filename input) from_text_formula
 
-  (* Little trick to convince OCaml that polymorphism is OK. *)
-  type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
-
   let optimise =
-    let lift {op} f1 f2 =
-      match (f1, f2) with
-      | (Base f1, Base f2) -> some @@ base (op f1 f2)
-      | _ -> None
-    in
     Formula.optimise
-      ~lift_and: (lift {op = Formula.and_})
-      ~lift_or: (lift {op = Formula.or_})
+      ~binop: (fun {op} f1 f2 ->
+        match (f1, f2) with
+        | (Base f1, Base f2) -> some @@ base (op f1 f2)
+        | _ -> None
+      )
       (function
         | (Is _ as p)
         | (Bars_eq _ as p)

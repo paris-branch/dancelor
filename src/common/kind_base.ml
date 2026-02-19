@@ -115,6 +115,9 @@ module Filter = struct
   let from_text_formula = Text_formula.to_formula text_formula_converter
 
   let optimise =
-    Formula.optimise @@ function
-      | (Is _ as p) -> p
+    Formula.optimise
+      ~binop: (fun _ _ _ -> None)
+      (function
+        | (Is _ as p) -> p
+      )
 end

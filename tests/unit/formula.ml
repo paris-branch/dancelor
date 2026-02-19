@@ -143,12 +143,11 @@ module Formula_int = struct
 
   let gen = Gen.Formula.gen QCheck2.Gen.int
 
-  let lift_and x y = Some (min x y)
-  let lift_or x y = Some (max x y)
   let optimise =
-    Formula.optimise ~lift_and ~lift_or @@ function
+    Formula.optimise ~and_: (fun x y -> Some (min x y)) ~or_: (fun x y -> Some (max x y)) (function
       | n when n mod 2 = 1 -> n - 1
       | n -> n
+    )
 end
 
 let () =

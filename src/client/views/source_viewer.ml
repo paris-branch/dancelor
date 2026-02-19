@@ -70,6 +70,6 @@ let create ?context id =
         ];
       quick_explorer_links
         [
-          ("versions from this source", lwt @@ Filter.(Any.version' % Version.memsource') source);
+          ("versions from this source", lwt @@ Filter.(Any.version' % Version.sources' % Formula_list.exists' % Source.is') source);
         ];
     ]
