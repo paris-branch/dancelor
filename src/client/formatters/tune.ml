@@ -28,7 +28,7 @@ let composers' ?short ?links tune = composers ?short ?links (Entry.value tune)
 
 let description tune =
   with_span_placeholder @@
-    let kind = Kind.Base.to_pretty_string @@ Model.Tune.kind tune in
+    let kind = Kind.Base.to_long_string ~capitalised: false @@ Model.Tune.kind tune in
     match%lwt Model.Tune.composers tune with
     | [] ->
       lwt [txt (String.capitalize_ascii kind)]

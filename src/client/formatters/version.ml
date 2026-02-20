@@ -154,7 +154,7 @@ let kind_and_structure version =
     | No_content ->
       lwt [txt "(no cont.)"]
     | Destructured _ ->
-      lwt [txt @@ "∗ " ^ Kind.Base.to_string kind ^ " (destr.)"]
+      lwt [txt @@ "∗ " ^ Kind.Base.to_short_string kind ^ " (destr.)"]
     | Monolithic {bars; structure; _} ->
       lwt [txt @@ Kind.Version.to_string (bars, kind) ^ " (" ^ NEString.to_string (Model.Version.Structure.to_string structure) ^ ")"]
 

@@ -4,8 +4,9 @@
   exception Unexpected_character of char
 }
 
-let alpha = ['a'-'z' 'A'-'Z']
 let digit = ['0'-'9']
+let alpha = ['a'-'w' 'y'-'z' 'A'-'W' 'Y'-'Z'] (* the whole alphabet but x *)
+let letter =  alpha | digit | ['[' ']' '/']
 
 rule token = parse
   | ' ' { token lexbuf }
@@ -14,6 +15,6 @@ rule token = parse
   | '+' { PLUS }
   | 'x' { TIMES }
   | digit+ as n { NUMBER (int_of_string n) }
-  | alpha+ as w { WORD w }
+  | (alpha letter*) as w { WORD w }
   | _ as c { raise (Unexpected_character c) }
   | eof { EOF }

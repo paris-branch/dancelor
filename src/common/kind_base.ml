@@ -2,43 +2,47 @@ open Nes
 
 type t =
   | Jig
-  | Polka
   | Reel
   | Strathspey
   | Waltz
+  | Polka
+  | Jig_9_8
   | Other
 [@@deriving eq, ord, show {with_path = false}]
 
-let all = [Jig; Reel; Strathspey; Polka; Waltz]
+(* NOTE: The order matters as it is used by eg. the tune editor. *)
+let all = [Jig; Reel; Strathspey; Waltz; Polka; Jig_9_8; Other]
 
-let to_char = function
-  | Jig -> 'J'
-  | Polka -> 'P'
-  | Reel -> 'R'
-  | Strathspey -> 'S'
-  | Waltz -> 'W'
-  | Other -> 'O'
+let to_short_string = function
+  | Jig -> "J"
+  | Reel -> "R"
+  | Strathspey -> "S"
+  | Waltz -> "W"
+  | Polka -> "P"
+  | Jig_9_8 -> "J98"
+  | Other -> "O"
 
-let of_char c =
-  match Char.uppercase_ascii c with
-  | 'J' -> Jig
-  | 'P' -> Polka
-  | 'R' -> Reel
-  | 'S' -> Strathspey
-  | 'W' -> Waltz
-  | 'O' -> Other
-  | _ -> invalid_arg "Common.Kind.Base.of_char"
-
-let to_string b =
-  String.make 1 (to_char b)
+let to_long_string ~capitalised base =
+  (if capitalised then String.capitalize_ascii else Fun.id)
+    (
+      match base with
+      | Jig -> "jig"
+      | Reel -> "reel"
+      | Strathspey -> "strathspey"
+      | Waltz -> "waltz"
+      | Polka -> "polka"
+      | Jig_9_8 -> "jig[9/8]"
+      | Other -> "other"
+    )
 
 let of_string s =
   match String.lowercase_ascii s with
   | "j" | "jig" -> Jig
-  | "p" | "polka" -> Polka
   | "r" | "reel" -> Reel
   | "s" | "strathspey" -> Strathspey
   | "w" | "waltz" -> Waltz
+  | "p" | "polka" -> Polka
+  | "j98" | "jig[9/8]" -> Jig_9_8
   | "o" | "other" -> Other
   | _ -> invalid_arg "Common.Kind.Base.of_string"
 
@@ -49,7 +53,7 @@ let of_string_opt s =
     | Invalid_argument _ -> None
 
 let to_yojson b =
-  `String (to_string b)
+  `String (to_long_string ~capitalised: false b)
 
 let of_yojson = function
   | `String s ->
@@ -61,23 +65,13 @@ let of_yojson = function
     )
   | _ -> Error "Common.Kind.Base.of_yojson: not a JSON string"
 
-let to_pretty_string ?(capitalised = false) base =
-  (
-    match base with
-    | Jig -> "jig"
-    | Polka -> "polka"
-    | Reel -> "reel"
-    | Strathspey -> "strathspey"
-    | Waltz -> "waltz"
-    | Other -> "other"
-  )
-  |> if capitalised then String.capitalize_ascii else Fun.id
-
 let tempo = function
-  | Jig -> ("4.", 108)
-  | Polka | Reel -> ("2", 108)
+  | Jig -> ("4.", 104)
+  | Reel -> ("2", 108)
   | Strathspey -> ("2", 60)
   | Waltz -> ("2.", 60)
+  | Polka -> ("2", 108)
+  | Jig_9_8 -> ("4.", 104)
   | Other -> ("2", 108)
 
 type base_kind = t (* needed for the interface of filters *)
@@ -108,7 +102,7 @@ module Filter = struct
                 ~none: (kspf error "could not interpret \"%s\" as a base kind" string)
                 (of_string_opt string)
             );
-          unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string ~capitalised: true) ~type_: "base kind";
+          unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_long_string ~capitalised: true) ~type_: "base kind";
         ]
     )
 

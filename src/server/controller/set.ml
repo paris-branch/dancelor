@@ -50,7 +50,7 @@ let build_pdf env id set_params rendering_params =
     let subjects =
       match Kind.Dance.to_simple @@ Model.Set.kind' set with
       | None -> ["Medley"]
-      | Some (n, bars, base) -> [Kind.Base.to_pretty_string ~capitalised: true base; spf "%dx%d" n bars]
+      | Some (n, bars, base) -> [Kind.Base.to_long_string ~capitalised: true base; spf "%dx%d" n bars]
     in
     lwt Renderer.{title; authors; subjects}
   in

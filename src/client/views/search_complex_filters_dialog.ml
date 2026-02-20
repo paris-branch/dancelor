@@ -117,7 +117,7 @@ let kind_choices filter =
         List.map
           (fun kind ->
             choice
-              [txt (Kind.Base.to_pretty_string ~capitalised: true kind)]
+              [txt (Kind.Base.to_long_string ~capitalised: true kind)]
               ~value: kind
               ~checked: (checked kind)
           )

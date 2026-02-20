@@ -16,17 +16,15 @@ let editor =
         ~placeholder: "eg. The Cairdin O't"
         ()
     ) ^::
-  Input.prepare
-    ~type_: Text
+  Choices.prepare_radios
     ~label: "Kind"
-    ~placeholder: "eg. R or Strathspey"
-    ~serialise: Kind.Base.to_string
-    ~validate: (
-      S.const %
-        Option.to_result ~none: "Enter a valid kind, eg. R or Strathspey." %
-        Kind.Base.of_string_opt
-    )
-    () ^::
+    (
+      List.map
+        (fun kind ->
+          Choices.choice ~value: kind [txt @@ Kind.Base.to_long_string ~capitalised: true kind]
+        )
+        Kind.Base.all
+    ) ^::
   Star.prepare
     ~label: "Composer"
     (

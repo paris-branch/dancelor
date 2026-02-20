@@ -125,7 +125,7 @@ let make_tune_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) tu
     (
       prefix @
       [L.td (Lwt.pause ();%lwt lwt [Formatters.Tune.name' ~link: (onclick = None) ?context tune]);
-      L.td (Lwt.pause ();%lwt lwt [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune]);
+      L.td (Lwt.pause ();%lwt lwt [txt @@ Kind.Base.to_long_string ~capitalised: true @@ Tune.kind' tune]);
       L.td (Lwt.pause ();%lwt lwt [Formatters.Tune.composers' ~links: (onclick = None) tune]);
       ] @
       suffix
@@ -158,7 +158,7 @@ let make_versions_result ?classes ?onclick ?(prefix = []) ?(suffix = []) version
         lwt [
           txt @@
             match all_kinds with
-            | [kind] -> Kind.Base.to_string kind ^ (if NEList.is_singleton versions_and_params then "" else "s")
+            | [kind] -> Kind.Base.to_short_string kind ^ (if NEList.is_singleton versions_and_params then "" else "s")
             | _ -> "Medley"
         ]
       )
