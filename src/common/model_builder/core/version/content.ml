@@ -122,6 +122,7 @@ let lilypond ?structure ~kind ~key parts transitions =
     | Strathspey -> "4/4"
     | Waltz -> "3/4"
     | Polka -> "2/2"
+    | Jig_9_8 -> "9/8"
     | Other -> "2/2" (* FIXME: we should not let Other be used for destructured tunes *)
   in let key =
     (Music.Pitch.to_lilypond_string @@ Music.Key.pitch key) ^

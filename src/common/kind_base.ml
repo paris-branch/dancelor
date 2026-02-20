@@ -6,11 +6,12 @@ type t =
   | Strathspey
   | Waltz
   | Polka
+  | Jig_9_8
   | Other
 [@@deriving eq, ord, show {with_path = false}]
 
 (* NOTE: The order matters as it is used by eg. the tune editor. *)
-let all = [Jig; Reel; Strathspey; Waltz; Polka; Other]
+let all = [Jig; Reel; Strathspey; Waltz; Polka; Jig_9_8; Other]
 
 let to_short_string = function
   | Jig -> "J"
@@ -18,6 +19,7 @@ let to_short_string = function
   | Strathspey -> "S"
   | Waltz -> "W"
   | Polka -> "P"
+  | Jig_9_8 -> "J98"
   | Other -> "O"
 
 let to_long_string ~capitalised base =
@@ -29,16 +31,18 @@ let to_long_string ~capitalised base =
       | Strathspey -> "strathspey"
       | Waltz -> "waltz"
       | Polka -> "polka"
+      | Jig_9_8 -> "jig[9/8]"
       | Other -> "other"
     )
 
 let of_string s =
   match String.lowercase_ascii s with
   | "j" | "jig" -> Jig
-  | "p" | "polka" -> Polka
   | "r" | "reel" -> Reel
   | "s" | "strathspey" -> Strathspey
   | "w" | "waltz" -> Waltz
+  | "p" | "polka" -> Polka
+  | "j98" | "jig[9/8]" -> Jig_9_8
   | "o" | "other" -> Other
   | _ -> invalid_arg "Common.Kind.Base.of_string"
 
@@ -62,10 +66,12 @@ let of_yojson = function
   | _ -> Error "Common.Kind.Base.of_yojson: not a JSON string"
 
 let tempo = function
-  | Jig -> ("4.", 108)
-  | Polka | Reel -> ("2", 108)
+  | Jig -> ("4.", 104)
+  | Reel -> ("2", 108)
   | Strathspey -> ("2", 60)
   | Waltz -> ("2.", 60)
+  | Polka -> ("2", 108)
+  | Jig_9_8 -> ("4.", 104)
   | Other -> ("2", 108)
 
 type base_kind = t (* needed for the interface of filters *)
