@@ -7,22 +7,11 @@ let to_string (repeats, base) =
   spf "%d %s" repeats (Kind_base.to_short_string base)
 
 let of_string s =
-  let s = NesString.remove_char ' ' s in
+  let (part1, part2) = Option.get @@ String.split_2_on_char ' ' s in
   try
-    ssf
-      s
-      "%d%[a-zA-Z]"
-      (fun repeats base -> (repeats, Kind_base.of_string base))
+    (int_of_string part1, Kind_base.of_string part2)
   with
-    | End_of_file | Scanf.Scan_failure _ ->
-      try
-        ssf
-          s
-          "%[a-zA-Z]%d"
-          (fun base repeats -> (repeats, Kind_base.of_string base))
-      with
-        | End_of_file | Scanf.Scan_failure _ ->
-          invalid_arg "Dancelor_common.Model.Kind.version_of_string"
+    | _ -> (int_of_string part2, Kind_base.of_string part1)
 
 let%test _ = to_string (32, Waltz) = "32 W"
 let%test _ = to_string (64, Reel) = "64 R"
