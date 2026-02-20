@@ -21,7 +21,7 @@ let editor =
     (
       List.map
         (fun kind ->
-          Choices.choice ~value: kind [txt @@ Kind.Base.to_pretty_string ~capitalised: true kind]
+          Choices.choice ~value: kind [txt @@ Kind.Base.to_long_string ~capitalised: true kind]
         )
         Kind.Base.all
     ) ^::

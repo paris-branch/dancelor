@@ -75,7 +75,7 @@ let version_to_renderer_tune ?(version_params = Model.Version_parameters.none) v
   let%lwt tune = Model.Version.tune version in
   let kind = Model.Tune.kind' tune in
   let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
-  let chords_kind = Kind.Base.to_pretty_string ~capitalised: false kind in
+  let chords_kind = Kind.Base.to_long_string ~capitalised: false kind in
   let show_bar_numbers =
     Model.Version.(Content.is_monolithic @@ content version)
     || Model.Version_parameters.structure version_params <> None

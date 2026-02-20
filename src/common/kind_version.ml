@@ -4,7 +4,7 @@ type t = int * Kind_base.t
 [@@deriving eq, show {with_path = false}]
 
 let to_string (repeats, base) =
-  spf "%d %s" repeats (Kind_base.to_string base)
+  spf "%d %s" repeats (Kind_base.to_short_string base)
 
 let of_string s =
   let s = NesString.remove_char ' ' s in
@@ -65,7 +65,7 @@ let of_yojson = function
   | _ -> Error "Dancelor_common.Model.Kind.version_of_yojson: not a JSON string"
 
 let to_pretty_string (repeats, base) =
-  spf "%d %s" repeats (Kind_base.to_pretty_string ~capitalised: true base)
+  spf "%d %s" repeats (Kind_base.to_long_string ~capitalised: true base)
 
 (* Filters  *)
 
