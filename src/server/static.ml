@@ -25,6 +25,10 @@ let index =
           link ~rel: [`Icon] ~a: [a_mime_type "image/png"; a_sizes (Some [(16, 16)])] ~href: ("/favicon-16x16.png?" ^ boot_time) ();
           link ~rel: [`Manifest] ~href: ("/site.webmanifest?" ^ boot_time) ();
 
+          (* Ahrefs ownership proof and analytics *)
+          meta ~a: [a_name "ahrefs-site-verification"; a_content "4c418f04303adf3925d1c6bdef51b71cab26cd179ab478ecd1996cf71ce52ba4"] ();
+          script ~a: [a_src "https://analytics.ahrefs.com/analytics.js"; a_user_data "key" "HmcihempNgdCWYAHGvIYsg"; a_async ()] (txt "");
+
           (* Dancelor *)
           script ~a: [a_script_type `Javascript; a_src ("/client.js?" ^ boot_time)] (txt "");
         ]
