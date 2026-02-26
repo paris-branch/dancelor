@@ -3,9 +3,8 @@ open Html
 
 let create () =
   Page.make'
-    ~title: lwt_empty
+    ~title: (lwt "Welcome to Dancelor!")
     [
-      h2 [txt "Welcome to Dancelor!"];
       txt
         "Something will eventually get added here, but for now you just have \
          this little text. You might want to ";

@@ -119,7 +119,7 @@ let render p =
             div ~a: [a_class ["d-flex"; "justify-content-between"]] [
               actions_mirror;
               div ~a: [a_class ["text-center"; "col"]] [
-                h2 [with_span_placeholder @@ ((List.singleton % txt) <$> p.title)];
+                h1 [with_span_placeholder @@ ((List.singleton % txt) <$> p.title)];
                 div (List.map (h5 % List.singleton) p.subtitles);
               ];
               actions_html;
