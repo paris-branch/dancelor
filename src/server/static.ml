@@ -20,6 +20,7 @@ let index =
 
           (* Style *)
           meta ~a: [a_name "viewport"; a_content "width=device-width, initial-scale=1, maximum-scale=1"] ();
+          meta ~a: [a_name "description"; a_content "Dancelor — Scottish country dance music database for managing tunes, sets, books, and more."] ();
           link ~rel: [`Stylesheet] ~href: ("/fonts.css?" ^ boot_time) ();
           link ~rel: [`Stylesheet] ~href: ("/style.css?" ^ boot_time) ();
 
