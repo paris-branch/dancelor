@@ -66,7 +66,7 @@ type ('result, 'product, 'value, 'state) s = {
   disassemble: ('product -> 'value Lwt.t);
   preview: ('product -> bool Lwt.t);
   format: ('result -> Html_types.div_content_fun Html.elt);
-  href: ('result -> string);
+  href: ('result -> Uri.t);
   bundle: ('value, 'state) bundle;
 }
 
@@ -194,7 +194,7 @@ let initialise (type result)(type value)(type product)(type state)
         ]
     in
     let redirect result =
-      Dom_html.window##.location##.href := Js.string (href result)
+      Dom_html.window##.location##.href := Js.string (Uri.to_string @@ href result)
     in
     match mode with
     | Create _ | Create_with_local_storage ->

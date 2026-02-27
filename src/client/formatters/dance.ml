@@ -11,9 +11,7 @@ let name_gen dance_gen =
     match dance_gen with
     | Right (dance, true, context) ->
       a
-        ~a: [
-          R.a_href @@ S.map (fun context -> Endpoints.Page.href_dance ?context @@ Entry.id dance) (switch_signal_option context)
-        ]
+        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_dance ?context @@ Entry.id dance) (switch_signal_option context)]
         [txt @@ NEString.to_string @@ Model.Dance.one_name' dance]
     | Right (dance, _, _) -> txt (NEString.to_string @@ Model.Dance.one_name' dance)
     | Left dance -> txt (NEString.to_string @@ Model.Dance.one_name dance)

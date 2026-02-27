@@ -98,7 +98,6 @@ module Make_apply_controller (E : Endpoints) : Apply_controller with type env = 
           | Some f -> Some (E.name endpoint, f)
         )
     in
-    (* FIXME: We should just get a URI. *)
     match match_apply_all E.all with
     | None ->
       respond_not_found

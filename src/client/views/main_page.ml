@@ -15,7 +15,7 @@ let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 
 let quick_search_to_explorer value =
   let href = Endpoints.Page.(href Explore) (Some value) in
-  Dom_html.window##.location##.href := Js.string href;
+  Dom_html.window##.location##.href := Js.string (Uri.to_string href);
   Js_of_ocaml_lwt.Lwt_js.sleep 10.
 
 let quick_search =
@@ -126,9 +126,9 @@ let header =
         ~a: [a_class ["container-md"]]
         [
           a
-            ~a: [a_class ["navbar-brand"; "my-n2"; "py-0"; "flex-fill"]; a_href "/"]
+            ~a: [a_class ["navbar-brand"; "my-n2"; "py-0"; "flex-fill"]; a_href (Uri.of_string "/")]
             [
-              img ~a: [a_height 60] ~src: "/logo.svg" ~alt: "Dancelor" ();
+              img ~a: [a_height 60] ~src: (Uri.of_string "/logo.svg") ~alt: "Dancelor" ();
             ];
           Button.make
             ~icon: (Action Search)
@@ -190,11 +190,11 @@ let footer =
       div
         ~a: [a_class ["container-md"; "d-flex"; "flex-column"; "flex-sm-row"]]
         [
-          a ~a: [a_class ["text-light"; "my-1"]; a_href "/"] [txt "Dancelor"];
+          a ~a: [a_class ["text-light"; "my-1"]; a_href (Uri.of_string "/")] [txt "Dancelor"];
           a
             ~a: [
               a_class ["icon-link"; "text-light"; "my-1"];
-              a_href "https://github.com/paris-branch/dancelor";
+              a_href (Uri.of_string "https://github.com/paris-branch/dancelor");
               a_target "_blank";
             ]
             [
