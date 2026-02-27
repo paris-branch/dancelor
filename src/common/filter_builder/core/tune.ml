@@ -3,7 +3,7 @@ open Nes
 type predicate =
   | Is of Model_builder.Core.Tune.t Entry.Id.t
   | Name of Formula_string.t
-  | Composers of Person.t Formula_list.t
+  | Composers of (Model_builder.Core.Person.t, Person.t) Formula_entry.t Formula_list.t
   | Kind of Kind.Base.Filter.t
   | Dances of Dance.t Formula_list.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
@@ -17,14 +17,17 @@ let kind' = Formula.pred % kind
 let dances' = Formula.pred % dances
 
 let text_formula_converter =
+  let unary_lift_composers ~name =
+    Text_formula_converter.unary_lift ~name (composers, composers_val) ~converter: (Formula_list.text_formula_converter (Formula_entry.value' % Person.name' % Formula_string.matches') (Formula_entry.text_formula_converter (Person.name' % Formula_string.matches') Person.text_formula_converter));
+  in
   Text_formula_converter.(
     make
       [
         raw (ok % name' % Formula_string.matches');
         unary_lift ~name: "name" (name, name_val) ~converter: Formula_string.text_formula_converter;
-        unary_lift ~name: "composers" (composers, composers_val) ~converter: (Formula_list.text_formula_converter (Person.name' % Formula_string.matches') Person.text_formula_converter);
-        unary_lift ~name: "by" (composers, composers_val) ~converter: (Formula_list.text_formula_converter (Person.name' % Formula_string.matches') Person.text_formula_converter);
-        (* alias for composers; FIXME: make this clearer *)
+        unary_lift_composers ~name: "composers";
+        unary_lift_composers ~name: "by";
+        (* alias for composers *)
         unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Base.Filter.text_formula_converter;
         unary_lift ~name: "dances" (dances, dances_val) ~converter: (Formula_list.text_formula_converter (Dance.name' % Formula_string.matches') Dance.text_formula_converter);
         unary_id ~name: "is" (is, is_val);
@@ -53,7 +56,7 @@ let optimise =
     (function
       | (Is _ as p) -> p
       | Name sfilter -> name @@ Formula_string.optimise sfilter
-      | Composers pfilter -> composers @@ Formula_list.optimise Person.optimise pfilter
+      | Composers pfilter -> composers @@ Formula_list.optimise (Formula_entry.optimise Person.optimise) pfilter
       | Kind kfilter -> kind @@ Kind.Base.Filter.optimise kfilter
       | Dances dfilter -> dances @@ Formula_list.optimise Dance.optimise dfilter
     )

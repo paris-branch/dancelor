@@ -8,7 +8,7 @@ open Components
 (** Restricted predicates supported by the complex filter dialog. They are
     always of the form of a conjunction of disjunctions. *)
 type restricted_predicate =
-  | Person of Filter.Person.predicate list list
+  | Person of (Person.t, Filter.Person.t) Formula_entry.predicate list list
   | Dance of Filter.Dance.predicate list list
   | Source of Filter.Source.predicate list list
   | Book of Filter.Book.predicate list list

@@ -43,14 +43,14 @@ let delete env id =
 
 include Search.Build(struct
   type value = Model.Person.entry
-  type filter = Filter.Person.t
+  type filter = (Model.Person.t, Filter.Person.t) Formula_entry.t
 
   let get_all env =
     Lwt_stream.filter (Permission.can_get_public env) @@ Lwt_stream.of_seq @@ Database.Person.get_all ()
 
-  let optimise_filter = Filter.Person.optimise
+  let optimise_filter = Formula_entry.optimise Filter.Person.optimise
   let filter_is_empty = (=) Formula.False
-  let filter_accepts = Filter.Person.accepts
+  let filter_accepts = Formula_entry.accepts Filter.Person.accepts
   let score_true = Formula.interpret_true
 
   let tiebreakers =

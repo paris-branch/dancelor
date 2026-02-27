@@ -17,8 +17,8 @@ module type S = sig
   val kind : Kind.Base.Filter.t -> predicate
   val kind' : Kind.Base.Filter.t -> t
 
-  val composers : Core.Person.t Formula_list.t -> predicate
-  val composers' : Core.Person.t Formula_list.t -> t
+  val composers : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.t Formula_list.t -> predicate
+  val composers' : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.t Formula_list.t -> t
 
   val dances : Core.Dance.t Formula_list.t -> predicate
   val dances' : Core.Dance.t Formula_list.t -> t

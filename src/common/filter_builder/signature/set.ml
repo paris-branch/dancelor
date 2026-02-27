@@ -12,8 +12,8 @@ module type S = sig
   val versions : Core.Version.t Formula_list.t -> predicate
   val versions' : Core.Version.t Formula_list.t -> t
 
-  val conceptors : Core.Person.t Formula_list.t -> predicate
-  val conceptors' : Core.Person.t Formula_list.t -> t
+  val conceptors : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.t Formula_list.t -> predicate
+  val conceptors' : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.t Formula_list.t -> t
 
   val kind : Kind.Dance.Filter.t -> predicate
   val kind' : Kind.Dance.Filter.t -> t

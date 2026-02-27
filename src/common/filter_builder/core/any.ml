@@ -9,7 +9,7 @@ type predicate =
   | Type of Model_builder.Core.Any.Type.t
   (* lifting predicates: *)
   | Source of Source.t
-  | Person of Person.t
+  | Person of (Model_builder.Core.Person.t, Person.t) Formula_entry.t
   | Dance of Dance.t
   | Book of Book.t
   | Set of Set.t
@@ -51,7 +51,7 @@ let make_text_formula_converter ?(human = false) () =
             unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
             unary_raw ~name: "type" (type_, type__val) ~cast: (Model_builder.Core.Any.Type.of_string_opt, Model_builder.Core.Any.Type.to_string) ~type_: "valid type";
             unary_lift ~name: "is-source-such-that" (source, source_val) ~converter: Source.text_formula_converter ~wrap_back;
-            unary_lift ~name: "is-person-such-that" (person, person_val) ~converter: Person.text_formula_converter ~wrap_back;
+            unary_lift ~name: "is-person-such-that" (person, person_val) ~converter: (Formula_entry.text_formula_converter (Person.name' % Formula_string.matches') Person.text_formula_converter) ~wrap_back;
             unary_lift ~name: "is-dance-such-that" (dance, dance_val) ~converter: Dance.text_formula_converter ~wrap_back;
             unary_lift ~name: "is-book-such-that" (book, book_val) ~converter: Book.text_formula_converter ~wrap_back;
             unary_lift ~name: "is-set-such-that" (set, set_val) ~converter: Set.text_formula_converter ~wrap_back;
@@ -64,7 +64,7 @@ let make_text_formula_converter ?(human = false) () =
           [
             (* Other converters, lifted to Any *)
             map source Source.text_formula_converter ~error: ((^) "As source: ");
-            map person Person.text_formula_converter ~error: ((^) "As person: ");
+            map person (Formula_entry.text_formula_converter (Person.name' % Formula_string.matches') Person.text_formula_converter) ~error: ((^) "As person: ");
             map dance Dance.text_formula_converter ~error: ((^) "As dance: ");
             map book Book.text_formula_converter ~error: ((^) "As book: ");
             map set Set.text_formula_converter ~error: ((^) "As set: ");
@@ -156,7 +156,7 @@ let optimise =
         (function
           | (Raw _ as p) | (Type _ as p) -> p
           | Source pfilter -> source @@ Source.optimise pfilter
-          | Person pfilter -> person @@ Person.optimise pfilter
+          | Person pfilter -> person @@ Formula_entry.optimise Person.optimise pfilter
           | Dance dfilter -> dance @@ Dance.optimise dfilter
           | Book bfilter -> book @@ Book.optimise bfilter
           | Set sfilter -> set @@ Set.optimise sfilter
@@ -187,7 +187,16 @@ let to_pretty_string =
     add_explicit_type %
     optimise
 
+(* FIXME: once all the filters are entry-based, this version of specialise
+   should go away *)
 let specialise ~from_text_formula ~type_ ~unLift =
+  Formula.convert @@ function
+    | Raw str -> Result.get_ok (from_text_formula (Text_formula.raw' str))
+    | Type t when Model_builder.Core.Any.Type.equal t type_ -> Formula.true_
+    | Type _ -> Formula.false_
+    | pred -> Option.value (unLift pred) ~default: Formula.false_
+
+let specialise_entry ~from_text_formula ~type_ ~unLift =
   Formula.convert @@ function
     | Raw str -> Result.get_ok (from_text_formula (Text_formula.raw' str))
     | Type t when Model_builder.Core.Any.Type.equal t type_ -> Formula.true_
@@ -197,7 +206,7 @@ let specialise ~from_text_formula ~type_ ~unLift =
 let specialise formula = (
   specialise ~from_text_formula: Book.from_text_formula ~type_: Book ~unLift: book_val formula,
   specialise ~from_text_formula: Dance.from_text_formula ~type_: Dance ~unLift: dance_val formula,
-  specialise ~from_text_formula: Person.from_text_formula ~type_: Person ~unLift: person_val formula,
+  specialise ~from_text_formula: (Formula_entry.from_text_formula (Person.name' % Formula_string.matches') Person.text_formula_converter) ~type_: Person ~unLift: person_val formula,
   specialise ~from_text_formula: Set.from_text_formula ~type_: Set ~unLift: set_val formula,
   specialise ~from_text_formula: Source.from_text_formula ~type_: Source ~unLift: source_val formula,
   specialise ~from_text_formula: Tune.from_text_formula ~type_: Tune ~unLift: tune_val formula,

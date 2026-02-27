@@ -6,7 +6,7 @@ module type S = sig
     | Type of Model_builder.Core.Any.Type.t
     (* lifting predicates: *)
     | Source of Core.Source.t
-    | Person of Core.Person.t
+    | Person of (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.t
     | Dance of Core.Dance.t
     | Book of Core.Book.t
     | Set of Core.Set.t
@@ -37,8 +37,8 @@ module type S = sig
   (** Lift a filter on sources to make a filter on “any”. This filter asserts
       that the “any” element is a source that matches the given filter. *)
 
-  val person : Core.Person.t -> predicate
-  val person' : Core.Person.t -> t
+  val person : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.t -> predicate
+  val person' : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.t -> t
   (** Lift a filter on persons to make a filter on “any”. This filter asserts
       that the “any” element is a person that matches the given filter. *)
 
@@ -91,7 +91,13 @@ module type S = sig
   val type_based_cleanup : t -> t
   (** Part of {!optimise} exposed for testing purposes. *)
 
-  val specialise : t -> Core.Book.t * Core.Dance.t * Core.Person.t * Core.Set.t * Core.Source.t * Core.Tune.t * Core.Version.t
+  val specialise :
+    t ->
+    Core.Book.t * Core.Dance.t * (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.t
+    * Core.Set.t
+    * Core.Source.t
+    * Core.Tune.t
+    * Core.Version.t
   (** Given a formula on any model, returns formulas specialised for all models.
       This is basically the commutativity of the union: the semantics of a
       formula on any (which is the union of all models) is the union of the
