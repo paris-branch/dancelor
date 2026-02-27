@@ -157,7 +157,7 @@ let
       \title{${escapeLatexString book.title}}
       \author{${escapeLatexString book.editor}}
       \specificity{${escapeLatexString specificity}}
-      ${optionalString (!book.simple) "\\maketitle\\break\n"}
+      ${optionalString (!book.simple) "\\maketitle\n"}
       ${forConcat book.contents (
         page:
         if page.part != null then
