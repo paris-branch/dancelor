@@ -350,9 +350,10 @@ let create ?context tune_id id =
                 <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
                     Filter.(Version.tune' % Tune.is') tune
               in
+              let%lwt is_connected = Environment.is_connected in
               lwt @@
                 if versions = [] then
-                    [txt "There are no versions for this tune."]
+                    [Alert.make ~level: Info [txtf "There are no versions for this tune.%s" (if is_connected then "" else " Did you maybe forget to sign in?")]]
                 else
                     [Tables.versions versions]
           )
