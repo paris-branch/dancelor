@@ -6,7 +6,7 @@ type predicate =
   | Versions of Version.t Formula_list.t
   | Sets of Set.t Formula_list.t
   | Versions_deep of Version.t Formula_list.t
-  | Editors of Person.t Formula_list.t
+  | Editors of (Model_builder.Core.Person.t, Person.t) Formula_entry.t Formula_list.t
   | Owners of User.t Formula_list.t (* FIXME: move to entry-level formulas *)
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
@@ -29,7 +29,7 @@ let text_formula_converter =
         unary_lift ~name: "versions" (versions, versions_val) ~converter: (Formula_list.text_formula_converter (Version.tune' % Tune.name' % Formula_string.matches') Version.text_formula_converter);
         unary_lift ~name: "sets" (sets, sets_val) ~converter: (Formula_list.text_formula_converter (Set.name' % Formula_string.matches') Set.text_formula_converter);
         unary_lift ~name: "versions-deep" (versions_deep, versions_deep_val) ~converter: (Formula_list.text_formula_converter (Version.tune' % Tune.name' % Formula_string.matches') Version.text_formula_converter);
-        unary_lift ~name: "editor" (editors, editors_val) ~converter: (Formula_list.text_formula_converter (Person.name' % Formula_string.matches') Person.text_formula_converter);
+        unary_lift ~name: "editors" (editors, editors_val) ~converter: (Formula_list.text_formula_converter (Formula_entry.value' % Person.name' % Formula_string.matches') (Formula_entry.text_formula_converter (Person.name' % Formula_string.matches') Person.text_formula_converter));
         unary_lift ~name: "owners" (owners, owners_val) ~converter: (Formula_list.text_formula_converter (User.username' % Formula_string.matches') User.text_formula_converter);
         unary_id ~name: "is" (is, is_val);
       ]
@@ -60,6 +60,6 @@ let optimise =
       | Versions vfilter -> versions @@ Formula_list.optimise Version.optimise vfilter
       | Sets sfilter -> sets @@ Formula_list.optimise Set.optimise sfilter
       | Versions_deep vfilter -> versions_deep @@ Formula_list.optimise Version.optimise vfilter
-      | Editors pfilter -> editors @@ Formula_list.optimise Person.optimise pfilter
+      | Editors pfilter -> editors @@ Formula_list.optimise (Formula_entry.optimise Person.optimise) pfilter
       | Owners lfilter -> owners @@ Formula_list.optimise User.optimise lfilter
     )

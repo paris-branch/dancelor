@@ -48,7 +48,7 @@ module Make (Model : Model_builder.S) = struct
             ]
       | Editors pfilter ->
         let%lwt editors = Model.Book.authors' book in
-        Formula_list.accepts accepts_person pfilter editors
+        Formula_list.accepts accepts_person' pfilter editors
       | Owners lfilter ->
         let owners = NEList.to_list @@ Entry.(Access.Private.owners % access) book in
         let%lwt owners = Lwt_list.map_p (Lwt.map Option.get % Model.User.get) owners in
@@ -65,14 +65,15 @@ module Make (Model : Model_builder.S) = struct
         Kind.Dance.Filter.accepts kfilter @@ Model.Dance.kind' dance
       | Devisers pfilter ->
         let%lwt devisers = Model.Dance.devisers' dance in
-        Formula_list.accepts accepts_person pfilter devisers
+        Formula_list.accepts accepts_person' pfilter devisers
 
   and accepts_person filter person =
     Formula.interpret filter @@ function
-      | Core.Person.Is person' ->
-        lwt @@ Formula.interpret_bool @@ Entry.Id.unsafe_equal (Entry.id person) person'
-      | Name sfilter ->
-        Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Person.name' person
+      | Core.Person.Name sfilter ->
+        Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Person.name person
+
+  and accepts_person' filter entry =
+    Formula_entry.accepts accepts_person filter entry
 
   and accepts_set filter set =
     Formula.interpret filter @@ function
@@ -82,7 +83,7 @@ module Make (Model : Model_builder.S) = struct
         Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Set.name' set
       | Conceptors pfilter ->
         let%lwt conceptors = Model.Set.conceptors' set in
-        Formula_list.accepts accepts_person pfilter conceptors
+        Formula_list.accepts accepts_person' pfilter conceptors
       | Versions vfilter ->
         let%lwt versions = List.map fst <$> Model.Set.contents' set in
         Formula_list.accepts accepts_version vfilter versions
@@ -104,7 +105,7 @@ module Make (Model : Model_builder.S) = struct
           (Option.fold ~none: (lwt Formula.interpret_false) ~some: (Formula_string.accepts sfilter % NEString.to_string) @@ Model.Source.short_name' source)
       | Editors pfilter ->
         let%lwt editors = Model.Source.editors' source in
-        Formula_list.accepts accepts_person pfilter editors
+        Formula_list.accepts accepts_person' pfilter editors
 
   and accepts_tune filter tune =
     Formula.interpret filter @@ function
@@ -114,7 +115,7 @@ module Make (Model : Model_builder.S) = struct
         Formula.interpret_or_l <$> Lwt_list.map_s (Formula_string.accepts sfilter % NEString.to_string) @@ NEList.to_list @@ Model.Tune.names' tune
       | Composers pfilter ->
         let%lwt composers = List.map Model.Tune.composer_composer <$> Model.Tune.composers' tune in
-        Formula_list.accepts accepts_person pfilter composers
+        Formula_list.accepts accepts_person' pfilter composers
       | Kind kfilter ->
         Kind.Base.Filter.accepts kfilter @@ Model.Tune.kind' tune
       | Dances dfilter ->
