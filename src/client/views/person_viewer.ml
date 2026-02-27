@@ -4,7 +4,7 @@ open Model
 open Html
 open Utils
 
-let create ?context id =
+let view context id =
   Main_page.madge_call_or_404 (Person Get) id @@ fun person ->
   Page.make'
     ~parent_title: "Person"

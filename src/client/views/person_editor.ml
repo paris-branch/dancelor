@@ -55,3 +55,10 @@ let create mode =
     ~check_product: Model.Person.equal
     ~format: (Formatters.Person.name' ~link: true)
     ~href: (Endpoints.Page.href_person % Entry.id)
+
+let add () =
+  create Create_with_local_storage
+
+let edit id =
+  let%lwt person = Option.get <$> Model.Person.get id in
+  create (Edit person)
