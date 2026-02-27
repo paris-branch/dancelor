@@ -62,9 +62,10 @@ module Search = struct
             ~a: [a_class ["mb-3"]]
             (
               S.from' [] @@
-                match%lwt Madge_client.call_exn Common.Endpoints.Api.(route @@ User Status) with
-                | Some _ -> lwt_nil
-                | None -> lwt [Alert.make ~level: Info [txt "You are not connected, and therefore are only seeing public items."]]
+                if%lwt Environment.is_connected then
+                  lwt_nil
+                else
+                  lwt [Alert.make ~level: Info [txt "You are not connected, and therefore are only seeing public items."]]
             )
         );
         (

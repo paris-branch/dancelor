@@ -12,7 +12,7 @@ let update_uri input =
     (Js.string "")
     (Js.some (Js.string (Uri.to_string uri)))
 
-let create ?query () =
+let view query =
   let search =
     Search.make
       ~search: (fun slice input ->

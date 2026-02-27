@@ -26,10 +26,16 @@ val (^::):
 (** {2 High-level interface} *)
 
 type ('result, 'state) mode =
-  | Quick_edit of 'state
-  | Quick_create of string * ('result -> unit)
+  | Create of 'state
+  (** Create a model; gets a full state for initialisation. *)
   | Create_with_local_storage
+  (** Create a model; gets initialised from local storage and writes to local
+      storage as well. *)
+  | Quick_create of string * ('result -> unit)
+  (** Create a model; gets a string for initialisation and a callback to call
+      when “save” is clicked; meant to be called from a dialog. *)
   | Edit of 'result
+  | Quick_edit of 'state
 [@@deriving variants]
 
 val make_page :

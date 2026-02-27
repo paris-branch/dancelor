@@ -101,7 +101,7 @@ let nav_item_create =
                   (Icon.Dance, href Dance_add, "Dance");
                   (Icon.Source, href Source_add, "Source");
                   (Icon.Tune, href Tune_add, "Tune");
-                  (Icon.Version, href Version_add, "Version");
+                  (Icon.Version, href Version_add None, "Version");
                   (Icon.Set, href Set_add, "Set");
                   (Icon.Book, href Book_add, "Book");
                 ]

@@ -48,10 +48,11 @@ let write_local_storage (type value)(type state) ~key (editor : (value, state) C
 (* Mode *)
 
 type ('result, 'state) mode =
-  | Quick_edit of 'state
-  | Quick_create of string * ('result -> unit)
+  | Create of 'state
   | Create_with_local_storage
+  | Quick_create of string * ('result -> unit)
   | Edit of 'result
+  | Quick_edit of 'state
 [@@deriving variants]
 
 (* Prepared editors *)
@@ -125,21 +126,21 @@ let initialise (type result)(type value)(type product)(type state)
      from the local storage. *)
   let%lwt initial_value =
     match mode with
-    | Quick_create (initial_text, _) -> lwt @@ Bundle.from_initial_text initial_text
-    | Quick_edit state -> lwt state
+    | Create state -> lwt state
     | Create_with_local_storage -> lwt @@ read_local_storage ~key bundle
+    | Quick_create (initial_text, _) -> lwt @@ Bundle.from_initial_text initial_text
     | Edit entry -> Bundle.value_to_state <=< disassemble =<< unsubmit entry
+    | Quick_edit state -> lwt state
   in
 
   (* Now that we have an initial value, we can actually initialise the editor to
      get things running. *)
   let%lwt editor = Component.initialise bundle initial_value in
 
-  (* If there was no initial text, then we connected to the local storage. We
-     now enable saving the state of the editor when it changes.. *)
+  (* Enable saving the state whenever the editor changes. *)
   (
     match mode with
-    | Quick_create _ | Quick_edit _ | Edit _ -> ()
+    | Create _ | Quick_create _ | Quick_edit _ | Edit _ -> ()
     | Create_with_local_storage ->
       let store = write_local_storage ~key bundle in
       let iter = S.map store @@ Component.state editor in
@@ -196,14 +197,14 @@ let initialise (type result)(type value)(type product)(type state)
       Dom_html.window##.location##.href := Js.string (Uri.to_string @@ href result)
     in
     match mode with
-    | Quick_create (_, on_save) -> [button on_save]
-    | Quick_edit _ -> [button (fun _ -> ())]
-    | Edit _ -> [button redirect]
-    | Create_with_local_storage ->
+    | Create _ | Create_with_local_storage ->
       [
         button ~label: "Save and stay" show_toast;
         button ~label: "Save and see" redirect;
       ]
+    | Quick_create (_, on_save) -> [button on_save]
+    | Edit _ -> [button redirect]
+    | Quick_edit _ -> [button (fun _ -> ())]
   in
 
   (* Make a page holding the editor and the appropriate buttons and actions. *)
@@ -213,7 +214,7 @@ let initialise (type result)(type value)(type product)(type state)
         lwt @@
         (
           match mode with
-          | Quick_create _ | Create_with_local_storage -> "Add a " ^ key
+          | Create _ | Create_with_local_storage | Quick_create _ -> "Add a " ^ key
           | Quick_edit _ | Edit _ -> "Edit a " ^ key
         ) ^
         title_suffix
