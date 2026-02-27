@@ -117,14 +117,13 @@ module Filter = struct
         (
           (* Dance kind-specific converter *)
           make
+            ~raw: (fun string ->
+              Option.fold
+                ~some: (ok % is')
+                ~none: (kspf error "could not interpret \"%s\" as a dance kind" string)
+                (of_string_opt string)
+            )
             [
-              raw
-                (fun string ->
-                  Option.fold
-                    ~some: (ok % is')
-                    ~none: (kspf error "could not interpret \"%s\" as a dance kind" string)
-                    (of_string_opt string)
-                );
               nullary ~name: "simple" Simple;
               unary_lift ~name: "version" (version, version_val) ~converter: Kind_version.Filter.text_formula_converter;
               unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "dance kind";

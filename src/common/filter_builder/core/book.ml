@@ -23,8 +23,8 @@ let owners' = Formula.pred % owners
 let text_formula_converter =
   Text_formula_converter.(
     make
+      ~raw: (ok % title' % Formula_string.matches')
       [
-        raw (ok % title' % Formula_string.matches');
         unary_lift ~name: "title" (title, title_val) ~converter: Formula_string.text_formula_converter;
         unary_lift ~name: "versions" (versions, versions_val) ~converter: (Formula_list.text_formula_converter (Version.tune' % Tune.name' % Formula_string.matches') Version.text_formula_converter);
         unary_lift ~name: "sets" (sets, sets_val) ~converter: (Formula_list.text_formula_converter (Set.name' % Formula_string.matches') Set.text_formula_converter);

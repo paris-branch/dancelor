@@ -21,6 +21,7 @@ let text_formula_converter =
       (
         (* Version-specific converter. *)
         make
+          ~raw: (ok % tune' % Tune.name' % Formula_string.matches')
           [
             unary_lift ~wrap_back: Not_raw ~name: "tune" (tune, tune_val) ~converter: Tune.text_formula_converter;
             unary_raw ~name: "key" (key, key_val) ~cast: (Music.Key.of_string_opt, Music.Key.to_string) ~type_: "key";

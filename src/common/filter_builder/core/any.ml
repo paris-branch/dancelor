@@ -46,8 +46,8 @@ let make_text_formula_converter ?(human = false) () =
       (
         (* Any-specific converter *)
         make
+          ~raw: (ok % raw')
           [
-            raw (ok % raw');
             unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
             unary_raw ~name: "type" (type_, type__val) ~cast: (Model_builder.Core.Any.Type.of_string_opt, Model_builder.Core.Any.Type.to_string) ~type_: "valid type";
             unary_lift ~name: "is-source-such-that" (source, source_val) ~converter: Source.text_formula_converter ~wrap_back;

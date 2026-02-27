@@ -15,11 +15,12 @@ let value' f = Formula.pred @@ value f
 
 let text_formula_converter sub_raw sub_tfc =
   Text_formula_converter.(
-    make [
-      raw (ok % value' % sub_raw);
-      unary_id ~name: "is" (is, is_val);
-      unary_lift ~name: "value" (value, value_val) ~converter: sub_tfc ~wrap_back: Never;
-    ]
+    make
+      ~raw: (ok % value' % sub_raw)
+      [
+        unary_id ~name: "is" (is, is_val);
+        unary_lift ~name: "value" (value, value_val) ~converter: sub_tfc ~wrap_back: Never;
+      ]
   )
 
 let from_text_formula sub_raw sub_tfc = Text_formula_converter.to_formula (text_formula_converter sub_raw sub_tfc)

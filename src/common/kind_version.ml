@@ -114,14 +114,13 @@ module Filter = struct
         (
           (* Version kind-specific converter *)
           make
+            ~raw: (fun string ->
+              Option.fold
+                ~some: (ok % is')
+                ~none: (kspf error "could not interpret \"%s\" as a version kind" string)
+                (of_string_opt string)
+            )
             [
-              raw
-                (fun string ->
-                  Option.fold
-                    ~some: (ok % is')
-                    ~none: (kspf error "could not interpret \"%s\" as a version kind" string)
-                    (of_string_opt string)
-                );
               unary_int ~name: "bars-eq" (bars_eq, bars_eq_val);
               unary_int ~name: "bars-ne" (bars_ne, bars_ne_val);
               unary_int ~name: "bars-gt" (bars_gt, bars_gt_val);
