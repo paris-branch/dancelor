@@ -22,12 +22,11 @@ let text_formula_converter =
   in
   Text_formula_converter.(
     make
+      ~raw: (ok % name' % Formula_string.matches')
       [
-        raw (ok % name' % Formula_string.matches');
         unary_lift ~name: "name" (name, name_val) ~converter: Formula_string.text_formula_converter;
         unary_lift_composers ~name: "composers";
         unary_lift_composers ~name: "by";
-        (* alias for composers *)
         unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Base.Filter.text_formula_converter;
         unary_lift ~name: "dances" (dances, dances_val) ~converter: (Formula_list.text_formula_converter (Dance.name' % Formula_string.matches') Dance.text_formula_converter);
         unary_id ~name: "is" (is, is_val);

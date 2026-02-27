@@ -23,13 +23,6 @@ val of_formula : 'p t -> 'p Formula.t -> Text_formula_type.t
 type 'p case
 (** Abstract type of one case. *)
 
-val raw :
-  (string -> ('p Formula.t, string) Result.t) ->
-  'p case
-(** Make a case for standalone strings. For instance, in the formula ["bonjour
-    baguette:oui monsieur :chocolat"], the {!raw} case will apply to ["bonjour"]
-    and ["monsieur"]. *)
-
 val nullary : name: string -> 'p -> 'p case
 (** Make a case for a nullary predicate of the given name converting to the
     given predicate. For instance, in the formula ["bonjour baguette:oui
@@ -96,8 +89,14 @@ val unary_lift :
 
 (** {2 Building} *)
 
-val make : 'p case list -> 'p t
-(** Make a converter from a list of {!type-case}s. *)
+val make :
+  raw: (string -> ('p Formula.t, string) result) ->
+  'p case list ->
+  'p t
+(** Make a converter from a list of {!type-case}s. The [~raw] argument is the
+    case for standalone strings. For instance, in the formula ["bonjour
+    baguette:oui monsieur :chocolat"], the [~raw] function will be applied to
+    ["bonjour"] and ["monsieur"]. *)
 
 val map : ?error: (string -> string) -> ('p Formula.t -> 'q) -> 'p t -> 'q t
 (** Map over a converter given a function. This allows to lift formulas on ['p]

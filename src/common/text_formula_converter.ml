@@ -18,8 +18,19 @@ type _ t =
   | Map : (('p Formula.t -> 'q) * (string -> string) * 'p t) -> 'q t
   | Merge : tiebreaker * 'p t * 'p t -> 'p t
 
-let make cs = Cases cs
+let make ~raw cs =
+  let raw_case = {
+    to_ = (function
+      | Type.Raw s -> Some (raw s)
+      | _ -> None
+    );
+    from = const None;
+  }
+  in
+  Cases (raw_case :: cs)
+
 let map ?(error = Fun.id) f c = Map (f, error, c)
+
 let merge ?(tiebreaker = Both) c1 c2 = Merge (tiebreaker, c1, c2)
 
 let merge_l = function
@@ -61,14 +72,6 @@ let of_formula converter formula =
   match aux' converter formula with
   | None -> failwith "Text_formula_converter.of_formula: incomplete formula converter"
   | Some tf -> tf
-
-let raw f =
-  let to_ = function
-    | Type.Raw s -> Some (f s)
-    | _ -> None
-  in
-  let from = const None in
-    {to_; from}
 
 let nullary ~name p =
   let to_ = function

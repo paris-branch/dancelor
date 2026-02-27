@@ -31,12 +31,11 @@ let text_formula_converter =
   in
   Text_formula_converter.(
     make
+      ~raw: (ok % name' % Formula_string.matches')
       [
-        raw (ok % name' % Formula_string.matches');
         unary_lift ~name: "name" (name, name_val) ~converter: Formula_string.text_formula_converter;
         unary_lift_conceptors ~name: "conceptors";
         unary_lift_conceptors ~name: "by";
-        (* alias for conceptors *)
         unary_lift ~name: "versions" (versions, versions_val) ~converter: (Formula_list.text_formula_converter (Version.tune' % Tune.name' % Formula_string.matches') Version.text_formula_converter);
         unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Dance.Filter.text_formula_converter;
         unary_lift ~name: "owners" (owners, owners_val) ~converter: (Formula_list.text_formula_converter (User.username' % Formula_string.matches') User.text_formula_converter);

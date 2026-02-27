@@ -13,8 +13,8 @@ let username' = Formula.pred % username
 let text_formula_converter =
   Text_formula_converter.(
     make
+      ~raw: (ok % username' % Formula_string.matches')
       [
-        raw (ok % username' % Formula_string.matches');
         unary_id ~name: "is" (is, is_val);
         unary_lift ~name: "username" (username, username_val) ~converter: Formula_string.text_formula_converter;
       ]

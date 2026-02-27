@@ -94,14 +94,13 @@ module Filter = struct
   let text_formula_converter =
     Text_formula_converter.(
       make
+        ~raw: (fun string ->
+          Option.fold
+            ~some: (ok % is')
+            ~none: (kspf error "could not interpret \"%s\" as a base kind" string)
+            (of_string_opt string)
+        )
         [
-          raw
-            (fun string ->
-              Option.fold
-                ~some: (ok % is')
-                ~none: (kspf error "could not interpret \"%s\" as a base kind" string)
-                (of_string_opt string)
-            );
           unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_long_string ~capitalised: true) ~type_: "base kind";
         ]
     )

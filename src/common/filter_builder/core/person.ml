@@ -12,8 +12,8 @@ let name' = Formula.pred % name
 let text_formula_converter =
   Text_formula_converter.(
     make
+      ~raw: (ok % name' % Formula_string.matches')
       [
-        raw (ok % name' % Formula_string.matches');
         unary_lift ~name: "name" (name, name_val) ~converter: Formula_string.text_formula_converter;
       ]
   )

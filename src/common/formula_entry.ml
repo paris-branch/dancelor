@@ -15,14 +15,15 @@ let value' f = Formula.pred @@ value f
 
 let text_formula_converter sub_raw sub_tfc =
   Text_formula_converter.(
-    make [
-      raw (ok % value' % sub_raw);
-      unary_id ~name: "is" (is, is_val);
-      unary_lift ~name: "value" (value, value_val) ~converter: sub_tfc;
+    make
+      ~raw: (ok % value' % sub_raw)
+      [
+        unary_id ~name: "is" (is, is_val);
+        unary_lift ~name: "value" (value, value_val) ~converter: sub_tfc;
       (* FIXME: should we use ~wrap_back: Never, for nicer text formulas? but
          this breaks the roundtrip tests and it isn't bothering use for now (but
          we've only applied this to Person, which has like no predicates). *)
-    ]
+      ]
   )
 
 let from_text_formula sub_raw sub_tfc = Text_formula_converter.to_formula (text_formula_converter sub_raw sub_tfc)
