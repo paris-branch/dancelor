@@ -16,6 +16,7 @@ let serve_index path =
     let boot_time = Datetime.to_string Environment.boot_time in
     Format.asprintf "%a" (pp ()) @@
       html
+        ~a: [a_lang "en"]
         (
           head (title (txt "Dancelor")) [
             meta ~a: [a_charset "utf-8"] ();
