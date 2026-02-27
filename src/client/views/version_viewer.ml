@@ -66,7 +66,7 @@ let madge_call_or_404_on_option route maybe_id =
     ~none: (fun f -> f None)
     ~some: (fun id f -> Main_page.madge_call_or_404 route id (f % some))
 
-let create ?context tune_id id =
+let view context tune_id id =
   Main_page.madge_call_or_404 (Tune Get) tune_id @@ fun tune ->
   madge_call_or_404_on_option (Version Get) id @@ fun specific_version ->
   let%lwt versions_of_this_tune =
@@ -350,12 +350,26 @@ let create ?context tune_id id =
                 <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
                     Filter.(Version.tune' % Tune.is') tune
               in
+              let%lwt is_connected = Environment.is_connected in
               lwt @@
                 if versions = [] then
-                    [txt "There are no versions for this tune."]
+                  [
+                    Alert.make ~level: Info [
+                      txt "There are no versions for this tune. ";
+                      span (
+                        if is_connected then
+                          [
+                            txt "Do you maybe want to ";
+                            a ~a: [a_href @@ Endpoints.Page.(href Version_add (Some tune_id))] [txt "add one"];
+                            txt "?";
+                          ]
+                        else [txt "Did you maybe forget to sign in?"]
+                      )
+                    ]
+                  ]
                 else
                     [Tables.versions versions]
-          )
+          );
       ];
       div [
         h3 [txt "Dances that recommend this tune"];
@@ -373,3 +387,6 @@ let create ?context tune_id id =
           )
       ];
     ]
+
+let view_version context tune_id version_id = view context tune_id (Some version_id)
+let view_tune context tune_id = view context tune_id None

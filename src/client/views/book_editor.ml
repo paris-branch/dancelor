@@ -338,3 +338,10 @@ let create mode =
     ~unsubmit
     ~disassemble
     ~check_product: (fun (book1, access1) (book2, access2) -> Model.Book.equal book1 book2 && Entry.Access.Private.equal access1 access2)
+
+let add () =
+  create Create_with_local_storage
+
+let edit book_id =
+  let%lwt book = Option.get <$> Model.Book.get book_id in
+  create (Edit book)
