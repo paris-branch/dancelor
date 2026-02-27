@@ -353,10 +353,23 @@ let view context tune_id id =
               let%lwt is_connected = Environment.is_connected in
               lwt @@
                 if versions = [] then
-                    [Alert.make ~level: Info [txtf "There are no versions for this tune.%s" (if is_connected then "" else " Did you maybe forget to sign in?")]]
+                  [
+                    Alert.make ~level: Info [
+                      txt "There are no versions for this tune. ";
+                      span (
+                        if is_connected then
+                          [
+                            txt "Do you maybe want to ";
+                            a ~a: [a_href @@ Endpoints.Page.(href Version_add (Some tune_id))] [txt "add one"];
+                            txt "?";
+                          ]
+                        else [txt "Did you maybe forget to sign in?"]
+                      )
+                    ]
+                  ]
                 else
                     [Tables.versions versions]
-          )
+          );
       ];
       div [
         h3 [txt "Dances that recommend this tune"];
