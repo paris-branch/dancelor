@@ -43,7 +43,7 @@ type (_, _, _) t =
   | Tune_add : ('w, 'w, Void.t) t
   | Tune_edit : ((Core.Tune.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Tune : ((Context.t option -> Core.Tune.t Entry.Id.t -> 'w), 'w, Void.t) t
-  | Version_add : ('w, 'w, Void.t) t
+  | Version_add : (Core.Tune.t Entry.Id.t option -> 'w, 'w, Void.t) t
   | Version_edit : ((Core.Version.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Version : ((Context.t option -> Core.Tune.t Entry.Id.t -> Core.Version.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Index : ('w, 'w, Void.t) t
@@ -79,7 +79,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Version -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Tune)) @@ variable (module Entry.Id.S(Core.Version)) @@ void ()
     | Tune_add -> literal "tune" @@ literal "add" @@ void ()
     | Tune_edit -> literal "tune" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Tune)) @@ void ()
-    | Version_add -> literal "version" @@ literal "add" @@ void ()
+    | Version_add -> query_opt "tune" (module Entry.Id.J(Core.Tune)) @@ literal "version" @@ literal "add" @@ void ()
     | Version_edit -> literal "version" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Version)) @@ void ()
     | Index -> void ()
     | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
@@ -87,12 +87,10 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | User_prepare_reset_password -> literal "user" @@ literal "prepare-reset-password" @@ void ()
     | User_password_reset -> literal "user" @@ literal "reset-password" @@ query "username" (module Core.User.Username) @@ query "token" (module Core.User.Password_reset_token_clear) @@ void ()
 
-let href : type a r. (a, string, r) t -> a = fun page ->
+let href : type a r. (a, Uri.t, r) t -> a = fun page ->
   with_request (route page) @@ fun (module _) request ->
   assert (Request.meth request = GET);
-  match Uri.to_string (Request.uri request) with
-  | "" -> "/"
-  | uri -> uri
+  Request.uri request
 
 let href_book ?context book = href Book context book
 let href_dance ?context dance = href Dance context dance
@@ -142,7 +140,7 @@ let consume : type a w r. w -> (a, w, r) t -> a = fun value endpoint ->
   | Version -> (fun _ _ _ -> value)
   | Tune_add -> value
   | Tune_edit -> const value
-  | Version_add -> value
+  | Version_add -> const value
   | Version_edit -> const value
   | Explore -> const value
   | User_create -> value

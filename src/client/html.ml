@@ -79,6 +79,12 @@ module C = struct
 
   (** Variant of {!txt} that takes a formatter. *)
   let txtf fmt = kspf txt fmt
+
+  (* Override to enforce type discipline *)
+  let a_href = a_href % Uri.to_string
+  let a_data = a_data % Uri.to_string
+  let audio ?src = audio ?src: (Option.map Uri.to_string src)
+  let img ~src = img ~src: (Uri.to_string src)
 end
 include C
 (** Constant HTML nodes. *)
@@ -91,8 +97,11 @@ module R = struct
 
   let a_class elts = R.a_class elts
   let a_style elts = R.a_style elts
-  let a_href val_ = R.a_href val_
   let a_value val_ = R.a_value val_
+
+  (* Override to enforce type discipline *)
+  let a_href val_ = R.a_href (S.map Uri.to_string val_)
+  let a_data val_ = R.a_data (S.map Uri.to_string val_)
 
   let div ?a elts = R.div ?a (RList.from_signal elts)
   let section ?a elts = R.section ?a (RList.from_signal elts)

@@ -41,7 +41,7 @@ include Madge.Make_endpoints(struct
       | Boot_time -> literal "boot-time" @@ get (module Datetime)
 end)
 
-let href : type a r. (a, string, r) t -> a = fun endpoint ->
+let href : type a r. (a, Uri.t, r) t -> a = fun endpoint ->
   with_request (route endpoint) @@ fun (module _) request ->
   assert (Request.meth request = GET);
-  Uri.to_string (Request.uri request)
+  Request.uri request

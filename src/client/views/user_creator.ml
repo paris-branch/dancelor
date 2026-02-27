@@ -18,7 +18,7 @@ let open_token_result_dialog user token =
       ];
       p [
         let href = Endpoints.Page.(href User_password_reset) (Model.User.username' user) token in
-        a ~a: [a_href href] [txt href]
+        a ~a: [a_href href] [txt @@ Uri.to_string href]
       ];
       p [
         txt " for them to create a password.";

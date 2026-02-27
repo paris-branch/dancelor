@@ -36,7 +36,7 @@ let create () =
         txt "export everything to PDF, ready to print and bring to the dance; ";
         txt "and share with your fellow musicians. ";
         txt "Whether you are a seasoned band leader or a musician just starting out, ";
-        a ~a: [a_href "/explore"] [txt "come explore the database"];
+        a ~a: [a_href @@ Uri.of_string "/explore"] [txt "come explore the database"];
         txt "!"
       ];
       h4 [txt "Frequently asked questions"];
@@ -60,7 +60,7 @@ let create () =
       faq_item ~id: "faq-scddb" ~question: "How is Dancelor different from the SCDDB?" [
         p [
           txt "The SCDDB (";
-          a ~a: [a_href @@ Uri.to_string Common.SCDDB.root] [txt "my.strathspey.org"];
+          a ~a: [a_href Common.SCDDB.root] [txt "my.strathspey.org"];
           txt ") is the most comprehensive database of metadata for Scottish country ";
           txt "dancing, and we love it! ";
           txt "However, the SCDDB does not host sheet music. ";
@@ -81,9 +81,9 @@ let create () =
       faq_item ~id: "faq-free" ~question: "Is Dancelor free?" [
         p [
           txt "Yes! Dancelor is not only free to use, it is also ";
-          a ~a: [a_href "https://www.gnu.org/philosophy/free-sw.html"] [txt "free as in freedom"];
+          a ~a: [a_href @@ Uri.of_string "https://www.gnu.org/philosophy/free-sw.html"] [txt "free as in freedom"];
           txt ": the source code is open and available on ";
-          a ~a: [a_href "https://github.com/paris-branch/dancelor"] [txt "GitHub"];
+          a ~a: [a_href @@ Uri.of_string "https://github.com/paris-branch/dancelor"] [txt "GitHub"];
           txt ". The database of tunes, however, is not publicly downloadable, ";
           txt "mostly to protect copyrighted content."
         ]
@@ -108,7 +108,7 @@ let create () =
         p [
           txt "Once you have an account, you can add tunes directly from the website. ";
           txt "Tune contents are entered in a simplified version of the ";
-          a ~a: [a_href "https://lilypond.org"] [txt "LilyPond"];
+          a ~a: [a_href @@ Uri.of_string "https://lilypond.org"] [txt "LilyPond"];
           txt " notation, a free music engraving program. ";
           txt "If you are unsure about anything, feel free to \"Report an issue\"; we will help."
         ]
@@ -126,7 +126,7 @@ let create () =
         p [
           txt "Please let us know! You can use the \"Report an issue\" button ";
           txt "at the bottom of each page or ";
-          a ~a: [a_href "https://github.com/paris-branch/dancelor/issues"] [txt "open an issue on GitHub"];
+          a ~a: [a_href @@ Uri.of_string "https://github.com/paris-branch/dancelor/issues"] [txt "open an issue on GitHub"];
           txt ". Whether it is a wrong note, a missing tune, or incorrect metadata, ";
           txt "we appreciate every report."
         ]

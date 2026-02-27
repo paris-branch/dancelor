@@ -8,7 +8,10 @@
 }:
 
 let
-  inherit (pkgs) lib;
+  inherit (pkgs)
+    lib
+    writeText
+    ;
 
   inherit (builtins)
     replaceStrings
@@ -17,9 +20,9 @@ let
 
   inherit (lib)
     concatMapStringsSep
-    escapeShellArg
     mkOption
     types
+    optionalString
     ;
 
   inherit (pkgs)
@@ -131,14 +134,54 @@ let
     };
   };
 
-  makeBookPdf = withArgumentType "makeBookPdf" bookPdfArgType (
+  makeBookTex =
     {
       book,
       specificity,
       headers,
       pdf_metadata,
     }:
-    runCommand "book-${book.slug}"
+    writeText "book-${book.slug}.tex" ''
+      \newif\ifsimple
+      \simple${if book.simple then "true" else "false"}
+      \newif\ifheaders
+      \headers${if headers then "true" else "false"}
+      \input{preamble}
+      \usepackage[
+        pdftitle={${escapeLatexString pdf_metadata.title}}
+        pdfauthor={${concatMapStringsSep "; " escapeLatexString pdf_metadata.authors}}
+        pdfsubject={${concatMapStringsSep "; " escapeLatexString pdf_metadata.subjects}}
+        pdfcreator={Dancelor},
+      ]{hyperref}
+      \begin{document}
+      \title{${escapeLatexString book.title}}
+      \author{${escapeLatexString book.editor}}
+      \specificity{${escapeLatexString specificity}}
+      ${optionalString (!book.simple) "\\maketitle\n"}
+      ${forConcat book.contents (
+        page:
+        if page.part != null then
+          ''
+            \part{${escapeLatexString page.part.name}}
+          ''
+        else if page.set != null then
+          ''
+            \begin{set}{${escapeLatexString page.set.name}}{${escapeLatexString page.set.conceptor}}{${escapeLatexString page.set.kind}}
+              ${forConcat page.set.contents (tune: ''
+                \tune{${escapeLatexString tune.name}}{${escapeLatexString tune.instructions}}{${escapeLatexString tune.composer}}{${makeTuneSnippets tune}/snippet.pdf}
+              '')}
+            \end{set}
+          ''
+        else
+          throw "Unexpected page type: ${toJSON page}"
+      )}
+      ${optionalString (!book.simple) "\\tableofcontents\n"}
+      \end{document}
+    '';
+
+  makeBookPdf = withArgumentType "makeBookPdf" bookPdfArgType (
+    book@{ ... }:
+    runCommand "book-${book.book.slug}"
       {
         preferLocalBuild = true;
         allowSubstitutes = false;
@@ -171,72 +214,8 @@ let
       }
       ''
         ${setupFontconfigCache}
-
         cp ${./book}/*.tex .
-        {
-          printf '\\newif\\ifsimple\n'
-          printf '\\simple${if book.simple then "true" else "false"}\n'
-          printf '\\newif\\ifheaders\n'
-          printf '\\headers${if headers then "true" else "false"}\n'
-          printf '\\input{preamble}\n'
-          printf '\\usepackage[\n'
-          printf '  pdftitle={%s},\n' ${escapeShellArg (escapeLatexString pdf_metadata.title)}
-          printf '  pdfauthor={%s},\n' ${
-            escapeShellArg (concatMapStringsSep "; " escapeLatexString pdf_metadata.authors)
-          }
-          printf '  pdfsubject={%s},\n' ${
-            escapeShellArg (concatMapStringsSep "; " escapeLatexString pdf_metadata.subjects)
-          }
-          printf '  pdfcreator={Dancelor},\n'
-          printf ']{hyperref}\n'
-          printf '\\begin{document}\n'
-          printf '\\title{%s}\n' ${escapeShellArg (escapeLatexString book.title)}
-          printf '\\author{%s}\n' ${escapeShellArg (escapeLatexString book.editor)}
-          printf '\\specificity{%s}\n' ${escapeShellArg (escapeLatexString specificity)}
-          ${
-            if !book.simple then
-              ''
-                printf '\\maketitle\n\\break\n'
-              ''
-            else
-              ""
-          }
-          ${forConcat book.contents (
-            page:
-            if page.part != null then
-              ''
-                printf '\\part{%s}\n' ${escapeShellArg (escapeLatexString page.part.name)}
-              ''
-            else if page.set != null then
-              ''
-                printf '\\begin{set}{%s}{%s}{%s}\n' \
-                  ${escapeShellArg (escapeLatexString page.set.name)} \
-                  ${escapeShellArg (escapeLatexString page.set.conceptor)} \
-                  ${escapeShellArg (escapeLatexString page.set.kind)}
-
-                ${forConcat page.set.contents (tune: ''
-                  printf '\\tune{%s}{%s}{%s}{%s}\n' \
-                    ${escapeShellArg (escapeLatexString tune.name)} \
-                    ${escapeShellArg (escapeLatexString tune.instructions)} \
-                    ${escapeShellArg (escapeLatexString tune.composer)} \
-                    ${makeTuneSnippets tune}/snippet.pdf
-                '')}
-
-                printf '\\end{set}\n'
-              ''
-            else
-              throw "Unexpected page type: ${toJSON page}"
-          )}
-          ${
-            if !book.simple then
-              ''
-                printf '\\tableofcontents\n'
-              ''
-            else
-              ""
-          }
-          printf '\\end{document}\n'
-        } > book.tex
+        cp ${makeBookTex book} book.tex
         texfot latexmk -pdfxe book
         mkdir $out
         mv book.pdf $out

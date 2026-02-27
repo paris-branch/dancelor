@@ -105,3 +105,10 @@ let create mode =
     ~check_product: Model.Source.equal
     ~format: (Formatters.Source.name' ~link: true)
     ~href: (Endpoints.Page.href_source % Entry.id)
+
+let add () =
+  create Create_with_local_storage
+
+let edit id =
+  let%lwt source = Option.get <$> Model.Source.get id in
+  create (Edit source)

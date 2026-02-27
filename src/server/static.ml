@@ -52,13 +52,13 @@ let serve_index path =
   let headers = Cohttp.Header.of_list [("Content-Type", "text/html")] in
   Cohttp_lwt_unix.Server.respond_string ~headers ~status: `OK ~body: index ()
 
-let static_pages = ["/"; "/explore"]
+let static_pages = List.map Uri.of_string ["/"; "/explore"]
 
 let serve_sitemap env =
   Log.info (fun m -> m "Generating and serving sitemap.xml");
   let%lwt (_, anys) = Controller.Any.search env Slice.everything Formula.true_ in
   let urls = static_pages @ List.map Endpoints.Page.href_any_full anys in
-  let urls = List.map (fun path -> Uri.with_uri ~path: (Some path) base_url) urls in
+  let urls = List.map (fun url -> Uri.with_path base_url (Uri.path url)) urls in
   let%lwt sitemap =
     let buf = Buffer.create 10240 in
     let fmt = Format.formatter_of_buffer buf in
