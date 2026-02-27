@@ -2,8 +2,7 @@ open Js_of_ocaml
 open Nes
 open Common
 
-(* FIXME: use Uri.t instead of string *)
-type history = (Datetime.t * string) list [@@deriving yojson]
+type history = (Datetime.t * Uri.t) list [@@deriving yojson]
 
 let empty_history : history = []
 
@@ -29,7 +28,7 @@ let set history =
 let update f = set @@ f @@ get ()
 
 let add (uri : Uri.t) : unit =
-  update (fun history -> (Datetime.now (), Uri.to_string uri) :: List.take (limit - 1) history)
+  update (fun history -> (Datetime.now (), uri) :: List.take (limit - 1) history)
 
 (** Returns all the sets whose page is present in the history. *)
 let get_sets () =
@@ -47,7 +46,7 @@ let get_sets () =
       )
       (Endpoints.Page.all' ())
   in
-  List.filter_map (set_val % Uri.of_string % snd) (get ())
+  List.filter_map (set_val % snd) (get ())
 
 (** Returns all the books whose page is present in the history. *)
 let get_books () =
@@ -65,4 +64,4 @@ let get_books () =
       )
       (Endpoints.Page.all' ())
   in
-  List.filter_map (book_val % Uri.of_string % snd) (get ())
+  List.filter_map (book_val % snd) (get ())

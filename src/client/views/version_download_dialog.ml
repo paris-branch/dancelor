@@ -78,11 +78,11 @@ let open_pdf_generation_dialog status_signal =
         Job.show_live_status
           status_signal
           ~on_succeeded: (fun href ->
-            Dom_html.window##.location##.href := Js.string href;
+            Dom_html.window##.location##.href := Js.string (Uri.to_string href);
             [txt
               "The document generation job succeeded. You will be redirected \
                 soon to: ";
-            a ~a: [a_href href] [txt href];
+            a ~a: [a_href href] [txt @@ Uri.to_string href];
             ]
           )
       )]

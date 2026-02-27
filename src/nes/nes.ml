@@ -16,6 +16,10 @@ module Option = NesOption
 module Result = NesResult
 module Fun = NesFun
 
+(* Extensions to existing non-Stdlib modules *)
+
+module Uri = NesUri
+
 (* New modules *)
 
 module Cache = NesCache

@@ -26,10 +26,16 @@ val (^::):
 (** {2 High-level interface} *)
 
 type ('result, 'state) mode =
-  | Quick_edit of 'state
-  | Quick_create of string * ('result -> unit)
+  | Create of 'state
+  (** Create a model; gets a full state for initialisation. *)
   | Create_with_local_storage
+  (** Create a model; gets initialised from local storage and writes to local
+      storage as well. *)
+  | Quick_create of string * ('result -> unit)
+  (** Create a model; gets a string for initialisation and a callback to call
+      when “save” is clicked; meant to be called from a dialog. *)
   | Edit of 'result
+  | Quick_edit of 'state
 [@@deriving variants]
 
 val make_page :
@@ -42,8 +48,7 @@ val make_page :
   check_product: ('product -> 'product -> bool) ->
   ?preview: ('product -> bool Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
-  href: ('result -> string) ->
-  (* FIXME: URI? *)
+  href: ('result -> Uri.t) ->
   mode: ('result, 'state) mode ->
   ('value, 'state) bundle ->
   Page.t Lwt.t
@@ -91,7 +96,7 @@ val prepare :
   check_product: ('product -> 'product -> bool) ->
   ?preview: ('product -> bool Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
-  href: ('result -> string) ->
+  href: ('result -> Uri.t) ->
   ('value, 'state) bundle ->
   ('result, 'product, 'value, 'state) s
 
@@ -103,7 +108,7 @@ val prepare_nosubmit :
   check_result: ('result -> 'result -> bool) ->
   ?preview: ('result -> bool Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
-  href: ('result -> string) ->
+  href: ('result -> Uri.t) ->
   ('value, 'state) bundle ->
   ('result, 'result, 'value, 'state) s
 (** Variant of {!prepare} for an editor that does not include submission. In

@@ -2,7 +2,7 @@ open Nes
 open Js_of_ocaml
 open Html
 
-let get_uri () = Js.to_string Dom_html.window##.location##.href
+let get_uri () = Uri.of_string @@ Js.to_string Dom_html.window##.location##.href
 
 let create status =
   Page.make'
@@ -13,7 +13,7 @@ let create status =
     [
       p [
         txt "While trying to access: ";
-        a ~a: [a_href @@ get_uri ()] [txt @@ Uri.pct_decode @@ get_uri ()]
+        a ~a: [a_href @@ get_uri ()] [txt @@ Uri.pct_decode @@ Uri.to_string @@ get_uri ()]
       ];
       p [
         txt @@
