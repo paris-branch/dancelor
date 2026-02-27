@@ -14,7 +14,7 @@ let report _env issue =
     if issue.source_is_dancelor then
       lwt (!Config.github_repository, issue.title)
     else
-      let%lwt (model, name) = Option.get <$> describe @@ Uri.of_string issue.page in
+      let%lwt (model, name) = Option.get <$> describe issue.page in
       lwt (!Config.github_database_repository, Format.sprintf "%s “%s”: %s" model name issue.title)
   in
   assert (repo <> "");
@@ -27,7 +27,7 @@ let report _env issue =
         | Left user -> Model.User.Username.to_string @@ Model.User.username' user (* FIXME: when there is a profile page for users, link to it *)
         | Right string -> string
       )
-      issue.page
+      (Uri.to_string issue.page)
       (
         if issue.description = "" then ""
         else spf "\n**Description**:\n\n%s\n" issue.description
@@ -46,4 +46,5 @@ let report _env issue =
   let uri = String.trim output.stdout in
   assert (Str.string_match id_regexp uri 0);
   let id = int_of_string @@ Str.matched_group 1 uri in
+  let uri = Uri.of_string uri in
   lwt Response.{title; id; uri}

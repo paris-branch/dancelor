@@ -10,7 +10,7 @@ let update_uri input =
   Dom_html.window##.history##replaceState
     "fixme-the-state"
     (Js.string "")
-    (Js.some (Js.string uri))
+    (Js.some (Js.string (Uri.to_string uri)))
 
 let create ?query () =
   let search =

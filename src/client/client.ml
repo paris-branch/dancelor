@@ -102,7 +102,7 @@ let () =
               ~title: "Uncaught API call error"
               [
                 txt "While querying ";
-                a ~a: [a_href (Uri.to_string @@ Madge.Request.uri request)] [txt @@ Uri.path @@ Madge.Request.uri request];
+                a ~a: [a_href @@ Madge.Request.uri request] [txt @@ Uri.path @@ Madge.Request.uri request];
                 txt ", Dancelor encountered “";
                 txt (Cohttp.Code.string_of_status status);
                 txt
@@ -115,7 +115,7 @@ let () =
               ~title: "Server unreachable"
               [
                 txt "While querying ";
-                a ~a: [a_href (Uri.to_string @@ Madge.Request.uri request)] [txt @@ Uri.path @@ Madge.Request.uri request];
+                a ~a: [a_href @@ Madge.Request.uri request] [txt @@ Uri.path @@ Madge.Request.uri request];
                 txt ", the Dancelor server was unreachable (“";
                 txt (Cohttp.Code.string_of_status status);
                 txt

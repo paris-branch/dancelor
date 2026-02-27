@@ -87,12 +87,10 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | User_prepare_reset_password -> literal "user" @@ literal "prepare-reset-password" @@ void ()
     | User_password_reset -> literal "user" @@ literal "reset-password" @@ query "username" (module Core.User.Username) @@ query "token" (module Core.User.Password_reset_token_clear) @@ void ()
 
-let href : type a r. (a, string, r) t -> a = fun page ->
+let href : type a r. (a, Uri.t, r) t -> a = fun page ->
   with_request (route page) @@ fun (module _) request ->
   assert (Request.meth request = GET);
-  match Uri.to_string (Request.uri request) with
-  | "" -> "/"
-  | uri -> uri
+  Request.uri request
 
 let href_book ?context book = href Book context book
 let href_dance ?context dance = href Dance context dance

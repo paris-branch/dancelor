@@ -42,8 +42,7 @@ val make_page :
   check_product: ('product -> 'product -> bool) ->
   ?preview: ('product -> bool Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
-  href: ('result -> string) ->
-  (* FIXME: URI? *)
+  href: ('result -> Uri.t) ->
   mode: ('result, 'state) mode ->
   ('value, 'state) bundle ->
   Page.t Lwt.t
@@ -91,7 +90,7 @@ val prepare :
   check_product: ('product -> 'product -> bool) ->
   ?preview: ('product -> bool Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
-  href: ('result -> string) ->
+  href: ('result -> Uri.t) ->
   ('value, 'state) bundle ->
   ('result, 'product, 'value, 'state) s
 
@@ -103,7 +102,7 @@ val prepare_nosubmit :
   check_result: ('result -> 'result -> bool) ->
   ?preview: ('result -> bool Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
-  href: ('result -> string) ->
+  href: ('result -> Uri.t) ->
   ('value, 'state) bundle ->
   ('result, 'result, 'value, 'state) s
 (** Variant of {!prepare} for an editor that does not include submission. In

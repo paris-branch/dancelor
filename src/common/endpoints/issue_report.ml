@@ -4,7 +4,7 @@ module Request = struct
   type t = {
     reporter: (Model_builder.Core.User.entry, string) either;
     (** either a connected user, or a self description *)
-    page: string; (* FIXME: Uri.t *)
+    page: Uri.t;
     source_is_dancelor: bool;
     (** whether the problem comes from the Dancelor software or the model on the page *)
     title: string;
@@ -18,7 +18,7 @@ module Response = struct
   type t = {
     title: string;
     id: int;
-    uri: string; (* FIXME: Uri.t *)
+    uri: Uri.t;
   }
   [@@deriving yojson]
 end

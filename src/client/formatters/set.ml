@@ -30,9 +30,7 @@ let name_gen ?params set_gen =
     match set_gen with
     | Right (set, true, context) ->
       a
-        ~a: [
-          R.a_href @@ S.map (fun context -> Endpoints.Page.href_set ?context @@ Entry.id set) (switch_signal_option context)
-        ]
+        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_set ?context @@ Entry.id set) (switch_signal_option context)]
         [txt @@ NEString.to_string @@ Model.Set.name' set]
     | Right (set, _, _) -> txt (NEString.to_string @@ Model.Set.name' set)
     | Left set -> txt (NEString.to_string @@ Model.Set.name set)] @

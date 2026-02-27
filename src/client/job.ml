@@ -11,7 +11,7 @@ type status =
   | Pending
   | Running of string list
   | Failed of string list
-  | Succeeded of string
+  | Succeeded of Uri.t
 [@@deriving yojson]
 
 (** Same as {!job}, but the client code must provide the promise. It is advised
@@ -153,7 +153,7 @@ let show_live_status ~on_succeeded status_signal =
 type wait_status =
   | Waiting
   | Failed
-  | Succeeded of string
+  | Succeeded of Uri.t
 
 let status_to_wait_status : status -> wait_status = function
   | Succeeded href -> Succeeded href

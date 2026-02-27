@@ -28,6 +28,7 @@
           ppx_deriving_yojson
           ppx_import
           ppx_inline_test
+          uri
         ];
       };
 
