@@ -50,13 +50,13 @@ let make_text_formula_converter ?(human = false) () =
             raw (ok % raw');
             unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
             unary_raw ~name: "type" (type_, type__val) ~cast: (Model_builder.Core.Any.Type.of_string_opt, Model_builder.Core.Any.Type.to_string) ~type_: "valid type";
-            unary_lift ~name: "source" (source, source_val) ~converter: Source.text_formula_converter ~wrap_back;
-            unary_lift ~name: "person" (person, person_val) ~converter: Person.text_formula_converter ~wrap_back;
-            unary_lift ~name: "dance" (dance, dance_val) ~converter: Dance.text_formula_converter ~wrap_back;
-            unary_lift ~name: "book" (book, book_val) ~converter: Book.text_formula_converter ~wrap_back;
-            unary_lift ~name: "set" (set, set_val) ~converter: Set.text_formula_converter ~wrap_back;
-            unary_lift ~name: "tune" (tune, tune_val) ~converter: Tune.text_formula_converter ~wrap_back;
-            unary_lift ~name: "version" (version, version_val) ~converter: Version.text_formula_converter ~wrap_back;
+            unary_lift ~name: "is-source-such-that" (source, source_val) ~converter: Source.text_formula_converter ~wrap_back;
+            unary_lift ~name: "is-person-such-that" (person, person_val) ~converter: Person.text_formula_converter ~wrap_back;
+            unary_lift ~name: "is-dance-such-that" (dance, dance_val) ~converter: Dance.text_formula_converter ~wrap_back;
+            unary_lift ~name: "is-book-such-that" (book, book_val) ~converter: Book.text_formula_converter ~wrap_back;
+            unary_lift ~name: "is-set-such-that" (set, set_val) ~converter: Set.text_formula_converter ~wrap_back;
+            unary_lift ~name: "is-tune-such-that" (tune, tune_val) ~converter: Tune.text_formula_converter ~wrap_back;
+            unary_lift ~name: "is-version-such-that" (version, version_val) ~converter: Version.text_formula_converter ~wrap_back;
           ];
       )
       (
