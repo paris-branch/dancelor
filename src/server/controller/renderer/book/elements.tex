@@ -50,7 +50,7 @@
   \addsettotoc{#1}{#3}%
   \recordsetstartpage{}%
   \vbox{
-    \makebox[\linewidth]{\huge #1}
+    {\linespread{0.8}\selectfont\centering\huge #1\par}
     \ifstrempty{#2}{}{\makebox[\linewidth]{#2}}
     \ifstrempty{#3}{}{\makebox[\linewidth]{#3}}
   }%
