@@ -30,7 +30,7 @@ val make_a :
   ?disabled: bool S.t ->
   ?dropdown: bool ->
   ?classes: string list ->
-  href: string S.t ->
+  href: Uri.t S.t ->
   ?more_a: [< Html_types.a_attrib >`Class `Href `Title] attrib list ->
   unit ->
   [> Html_types.a_] elt

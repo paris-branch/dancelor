@@ -56,7 +56,6 @@ let open_dialog page =
       ""
   in
   let request_signal =
-    let page = Uri.to_string page in
     S.map Result.to_option @@
     RS.bind (match maybe_reporter_input with Left (user, _) -> S.const (ok (left user)) | Right reporter_input -> S.map (Result.map right) (Component.signal reporter_input)) @@ fun reporter ->
     RS.bind (Component.signal title_input) @@ fun title ->

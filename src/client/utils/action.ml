@@ -33,6 +33,6 @@ let scddb type_ id =
   Button.make_a
     ~label: "See on SCDDB"
     ~icon: (Action See_outside)
-    ~href: (S.const @@ Uri.to_string @@ Common.SCDDB.entry_uri type_ id)
+    ~href: (S.const @@ Common.SCDDB.entry_uri type_ id)
     ~dropdown: true
     ()

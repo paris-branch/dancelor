@@ -118,14 +118,14 @@ let make_and_render ?context ~this_page any_lwt =
                   ~icon: (Action Move_left)
                   ~disabled: (S.const @@ Option.is_none previous)
                   ~tooltip: "Go to the previous element in the context."
-                  ~href: (S.const @@ Option.fold ~none: "" ~some: (Endpoints.Page.href_any_full ~context: (neighbour_context ~left: true context)) previous)
+                  ~href: (S.const @@ Option.fold ~none: Uri.empty ~some: (Endpoints.Page.href_any_full ~context: (neighbour_context ~left: true context)) previous)
                   ();
                 Button.make_a
                   ~classes: ["btn-secondary"]
                   ~icon: (Action Move_right)
                   ~disabled: (S.const @@ Option.is_none next)
                   ~tooltip: "Go to the next element in the context."
-                  ~href: (S.const @@ Option.fold ~none: "" ~some: (Endpoints.Page.href_any_full ~context: (neighbour_context ~left: false context)) next)
+                  ~href: (S.const @@ Option.fold ~none: Uri.empty ~some: (Endpoints.Page.href_any_full ~context: (neighbour_context ~left: false context)) next)
                   ();
               ]
             );

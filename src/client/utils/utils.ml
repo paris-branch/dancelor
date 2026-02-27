@@ -71,7 +71,7 @@ let quick_explorer_links links =
                     ~a: [
                       R.a_href
                         (
-                          S.from' "" (
+                          S.from' Uri.empty (
                             (Endpoints.Page.(href Explore) % some % Filter.Any.to_string)
                             <$> filter_lwt
                           )
@@ -92,4 +92,4 @@ let quick_explorer_links' model_lwt links =
 let href_any_for_sharing any =
   let current = Uri.of_string (Js.to_string Dom_html.window##.location##.href) in
   let path = Endpoints.Page.(href Any) @@ Entry.id @@ Model_builder.Core.Any.to_entry any in
-  Uri.to_string @@ Uri.with_query (Uri.with_path current path) []
+  Uri.to_string @@ Uri.with_query (Uri.with_path current (Uri.path path)) []

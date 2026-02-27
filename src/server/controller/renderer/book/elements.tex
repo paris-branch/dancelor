@@ -5,7 +5,9 @@
 \usepackage{graphicx}
 
 %% Title page, simple compare to usual TeX title pages, but with an extra notion
-%% of “specificity” (eg. Bb instruments, or bass clef).
+%% of “specificity” (eg. Bb instruments, or bass clef). The `\leavevmode` before
+%% `\@author` is a bit of an ugly trick to go to horizontal mode, which prevents
+%% `\\` from complaining with ”There's no line here to end“ when `\@author` is empty.
 \makeatletter
 \def\@specificity{}
 \def\title#1{\def\@title{#1}\markboth{#1}{}}
@@ -16,7 +18,7 @@
   \null\vfill%
   \begin{center}%
     {\Huge \@title}\\[30mm]%
-    {\large \@author}\\%
+    {\leavevmode\large \@author}\\%
   \end{center}%
   \vfill%
   \begin{center}%
