@@ -6,44 +6,51 @@ module Log = (val Logger.create "static": Logs.LOG)
 
 let base_url = Uri.of_string "https://dancelor.org"
 
-(* NOTE: We use the boot time of Dancelor to invalidate caching of `client.js`.
-   This means that clients will have to re-download every time Dancelor starts,
-   but that isn't so often, and most of the time it is because of a change where
-   we would want to invalidate things anyway. *)
-let index =
-  let boot_time = Datetime.to_string Environment.boot_time in
-  Format.asprintf "%a" (pp ()) @@
-    html
-      (
-        head (title (txt "Dancelor")) [
-          meta ~a: [a_charset "utf-8"] ();
+let serve_index path =
+  Log.debug (fun m -> m "Serving main file.");
+  (* NOTE: We use the boot time of Dancelor to invalidate caching of `client.js`.
+     This means that clients will have to re-download every time Dancelor starts,
+     but that isn't so often, and most of the time it is because of a change where
+     we would want to invalidate things anyway. *)
+  let index =
+    let boot_time = Datetime.to_string Environment.boot_time in
+    Format.asprintf "%a" (pp ()) @@
+      html
+        ~a: [a_lang "en"]
+        (
+          head (title (txt "Dancelor")) [
+            meta ~a: [a_charset "utf-8"] ();
+            link ~rel: [`Canonical] ~href: (Uri.to_string @@ Uri.with_path base_url path) ();
 
-          (* Style *)
-          meta ~a: [a_name "viewport"; a_content "width=device-width, initial-scale=1, maximum-scale=1"] ();
-          meta ~a: [a_name "description"; a_content "Dancelor — Scottish country dance music database for managing tunes, sets, books, and more."] ();
-          link ~rel: [`Stylesheet] ~href: ("/fonts.css?" ^ boot_time) ();
-          link ~rel: [`Stylesheet] ~href: ("/style.css?" ^ boot_time) ();
+            (* Style *)
+            meta ~a: [a_name "viewport"; a_content "width=device-width, initial-scale=1, maximum-scale=1"] ();
+            meta ~a: [a_name "description"; a_content "Dancelor — A community-edited database of Scottish country dance music. Search for tunes, assemble sets and books, and export to PDF, ready to print and bring to the dance."] ();
+            link ~rel: [`Stylesheet] ~href: ("/fonts.css?" ^ boot_time) ();
+            link ~rel: [`Stylesheet] ~href: ("/style.css?" ^ boot_time) ();
 
-          (* Favicon *)
-          link ~rel: [`Icon] ~a: [a_mime_type "image/png"; a_sizes (Some [(32, 32)])] ~href: ("/favicon-32x32.png?" ^ boot_time) ();
-          link ~rel: [`Icon] ~a: [a_mime_type "image/png"; a_sizes (Some [(16, 16)])] ~href: ("/favicon-16x16.png?" ^ boot_time) ();
-          link ~rel: [`Manifest] ~href: ("/site.webmanifest?" ^ boot_time) ();
+            (* Favicon *)
+            link ~rel: [`Icon] ~a: [a_mime_type "image/png"; a_sizes (Some [(32, 32)])] ~href: ("/favicon-32x32.png?" ^ boot_time) ();
+            link ~rel: [`Icon] ~a: [a_mime_type "image/png"; a_sizes (Some [(16, 16)])] ~href: ("/favicon-16x16.png?" ^ boot_time) ();
+            link ~rel: [`Manifest] ~href: ("/site.webmanifest?" ^ boot_time) ();
 
-          (* Ahrefs ownership proof and analytics *)
-          meta ~a: [a_name "ahrefs-site-verification"; a_content "4c418f04303adf3925d1c6bdef51b71cab26cd179ab478ecd1996cf71ce52ba4"] ();
-          script ~a: [a_src "https://analytics.ahrefs.com/analytics.js"; a_user_data "key" "HmcihempNgdCWYAHGvIYsg"; a_async ()] (txt "");
+            (* Ahrefs ownership proof and analytics *)
+            meta ~a: [a_name "ahrefs-site-verification"; a_content "4c418f04303adf3925d1c6bdef51b71cab26cd179ab478ecd1996cf71ce52ba4"] ();
+            script ~a: [a_src "https://analytics.ahrefs.com/analytics.js"; a_user_data "key" "HmcihempNgdCWYAHGvIYsg"; a_async ()] (txt "");
 
-          (* Dancelor *)
-          script ~a: [a_script_type `Javascript; a_src ("/client.js?" ^ boot_time)] (txt "");
-        ]
-      )
-      (
-        body
-          ~a: [a_class ["placeholder-glow"]]
-          [
-            script ~a: [a_src "/bootstrap.bundle.min.js"] (txt "");
+            (* Dancelor *)
+            script ~a: [a_script_type `Javascript; a_src ("/client.js?" ^ boot_time)] (txt "");
           ]
-      )
+        )
+        (
+          body
+            ~a: [a_class ["placeholder-glow"]]
+            [
+              script ~a: [a_src "/bootstrap.bundle.min.js"] (txt "");
+            ]
+        )
+  in
+  let headers = Cohttp.Header.of_list [("Content-Type", "text/html")] in
+  Cohttp_lwt_unix.Server.respond_string ~headers ~status: `OK ~body: index ()
 
 let static_pages = ["/"; "/explore"]
 
@@ -98,8 +105,4 @@ let serve env path =
   else if path = "/robots.txt" then
     serve_robots_txt ()
   else
-    (
-      Log.debug (fun m -> m "Serving main file.");
-      let headers = Cohttp.Header.of_list [("Content-Type", "text/html")] in
-      Cohttp_lwt_unix.Server.respond_string ~headers ~status: `OK ~body: index ()
-    )
+    serve_index path

@@ -2,6 +2,9 @@
 
     This module contains helpers to create and parse SCDDB URIs. *)
 
+val root : Uri.t
+(** The root URI of the SCDDB. *)
+
 (** {2 Definitions} *)
 
 type entry_type =

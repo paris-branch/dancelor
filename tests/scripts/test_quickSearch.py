@@ -20,7 +20,7 @@ class TestQuickSearch():
     self.driver.find_element(By.XPATH, "//input").send_keys("tam lin")
     self.driver.find_element(By.XPATH, "//*[contains(text(), \'Tam Lin Thrice\')]").click()
     ## and check the result
-    self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//h2"), "Tam Lin Thrice"))
+    self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//h1"), "Tam Lin Thrice"))
     self.wait.until(EC.title_is("Tam Lin Thrice | Set | Dancelor"))
 
   def test_fromOtherPage(self):
@@ -32,7 +32,7 @@ class TestQuickSearch():
     self.driver.find_element(By.XPATH, "//input").send_keys("tam lin")
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Tam Lin Thrice')]").click()
     ## and check the result
-    self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//h2"), "Tam Lin Thrice"))
+    self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//h1"), "Tam Lin Thrice"))
     self.wait.until(EC.title_is("Tam Lin Thrice | Set | Dancelor"))
 
   # def test_keys(self):
@@ -47,7 +47,7 @@ class TestQuickSearch():
   #   self.driver.find_element(By.XPATH, "//input").send_keys(Keys.DOWN)
   #   self.driver.find_element(By.XPATH, "//input").send_keys(Keys.ENTER)
   #   ## Check the result
-  #   self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//h2[@class='title']"), "Tam Lin Thrice"))
+  #   self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//h1[@class='title']"), "Tam Lin Thrice"))
   #   self.wait.until(EC.title_is("Tam Lin Thrice | Set | Dancelor"))
 
   def test_slashToFocus(self):
@@ -60,7 +60,7 @@ class TestQuickSearch():
     self.driver.switch_to.active_element.send_keys("tam lin")
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Tam Lin Thrice')]").click()
     ## Check the result
-    self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//h2"), "Tam Lin Thrice"))
+    self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//h1"), "Tam Lin Thrice"))
     self.wait.until(EC.title_is("Tam Lin Thrice | Set | Dancelor"))
 
   def test_buttonToExplorer(self):
@@ -69,7 +69,7 @@ class TestQuickSearch():
     self.driver.find_element(By.XPATH, "//button[text()[contains(., 'Search')]]").click()
     self.driver.find_element(By.XPATH, "//input").send_keys("tam lin")
     self.driver.find_element(By.XPATH, "//div[@class = 'modal-footer']//button[text()[contains(., 'Explore')]]").click()
-    self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//h2"), "Explore"))
+    self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//h1"), "Explore"))
     # self.wait.until(EC.text_to_be_present_in_element_value((By.XPATH, "//input"), "tam lin"))
 
   def test_enterToExplorer(self):
@@ -78,5 +78,5 @@ class TestQuickSearch():
     self.driver.find_element(By.XPATH, "//button[text()[contains(., 'Search')]]").click()
     self.driver.find_element(By.XPATH, "//input").send_keys("tam lin")
     self.driver.find_element(By.XPATH, "//input").send_keys(Keys.ENTER)
-    self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//h2"), "Explore"))
+    self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//h1"), "Explore"))
     # self.wait.until(EC.text_to_be_present_in_element_value((By.XPATH, "//input"), "tam lin"))

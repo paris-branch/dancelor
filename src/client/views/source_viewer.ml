@@ -47,15 +47,15 @@ let create ?context id =
     ]
     [
       div
-        ~a: [a_class ["d-flex"; "flex-column"; "flex-sm-row"; "mt-2"]]
+        ~a: [a_class ["row"]]
         [
           div
-            ~a: [a_class ["flex-shrink-1"]]
+            ~a: [a_class ["col-12"; "col-sm"]]
             [
-              img ~a: [a_style "max-width: 100%;"] ~alt: "Cover" ~src: (Endpoints.Api.(href @@ Source Cover) id) ()
+              img ~a: [a_style "width: 100%;"] ~alt: "Cover" ~src: (Endpoints.Api.(href @@ Source Cover) id) ()
             ];
           div
-            ~a: [a_class ["mt-2"; "mt-sm-0"; "ms-sm-2"]]
+            ~a: [a_class ["col-12"; "col-sm"]]
             [
               p
                 [
