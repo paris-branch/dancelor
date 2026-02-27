@@ -28,7 +28,7 @@ let dispatch uri =
     | Person_add -> Person_editor.add ()
     | Person_edit -> Person_editor.edit
     | Version -> Version_viewer.view_version
-    | Version_add -> Version_editor.add ()
+    | Version_add -> Version_editor.add
     | Version_edit -> Version_editor.edit
     | Tune -> Version_viewer.view_tune
     | Tune_add -> Tune_editor.add ()

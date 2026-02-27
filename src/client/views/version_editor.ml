@@ -320,18 +320,11 @@ let disassemble version =
   let content = Model.Version.content version in
   lwt (tune, (key, (arrangers, (remark, (sources, (disambiguation, (content, ())))))))
 
-(* FIXME: There used to be a way to start a version editor with a tune already
-   selected and we lost it. It is only marginally important, but it would be
-   nice to bring it back. *)
-
-let create mode =
-  (* FIXME: if [mode] is an edition, then we should assert_can_update_public *)
-  Main_page.assert_can_create_public @@ fun () ->
-  Editor.make_page
+let prepare () =
+  Editor.prepare
     ~key: "version"
     ~icon: (Model Version)
     editor
-    ~mode
     ~href: (fun version -> Endpoints.Page.href_version (Model_builder.Core.Version.tune' version) (some @@ Entry.id version))
     ~format: (Formatters.Version.name' ~link: true)
     ~assemble
@@ -341,8 +334,27 @@ let create mode =
     ~preview
     ~check_product: Model.Version.equal
 
-let add () = create Create_with_local_storage
+let create_gen mode =
+  (* FIXME: if [mode] is an edition, then we should assert_can_update_public *)
+  Main_page.assert_can_create_public @@ fun () ->
+  let editor = prepare () in
+  let mode =
+    match mode with
+    | `With_mode mode -> mode
+    | `Make_mode_from_tune_id tune_id ->
+      (* FIXME: ugly hacking of editor state; I wish we had a better mechanism for this *)
+      let (_, rest_of_state) = Editor.empty editor in
+      Editor.Create (Some tune_id, rest_of_state)
+  in
+  Editor.page =<< Editor.initialise editor mode
 
-let edit version_id =
-  let%lwt version = Option.get <$> Model.Version.get version_id in
+(* Needs to be exposed for other editors. *)
+let create mode = create_gen (`With_mode mode)
+
+let add = function
+  | None -> create Create_with_local_storage
+  | Some tune_id -> create_gen (`Make_mode_from_tune_id tune_id)
+
+let edit id =
+  let%lwt version = Option.get <$> Model.Version.get id in
   create (Edit version)
