@@ -209,3 +209,10 @@ let create mode =
     ~format: (Formatters.Set.name' ~link: true)
     ~href: (Endpoints.Page.href_set % Entry.id)
     ~check_product: (fun (set1, access1) (set2, access2) -> Model.Set.equal set1 set2 && Entry.Access.Private.equal access1 access2)
+
+let add () =
+  create Create_with_local_storage
+
+let edit id =
+  let%lwt set = Option.get <$> Model.Set.get id in
+  create (Edit set)

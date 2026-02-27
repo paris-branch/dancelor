@@ -66,7 +66,7 @@ let madge_call_or_404_on_option route maybe_id =
     ~none: (fun f -> f None)
     ~some: (fun id f -> Main_page.madge_call_or_404 route id (f % some))
 
-let create ?context tune_id id =
+let view context tune_id id =
   Main_page.madge_call_or_404 (Tune Get) tune_id @@ fun tune ->
   madge_call_or_404_on_option (Version Get) id @@ fun specific_version ->
   let%lwt versions_of_this_tune =
@@ -374,3 +374,6 @@ let create ?context tune_id id =
           )
       ];
     ]
+
+let view_version context tune_id version_id = view context tune_id (Some version_id)
+let view_tune context tune_id = view context tune_id None

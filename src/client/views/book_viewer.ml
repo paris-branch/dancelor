@@ -115,7 +115,7 @@ let table_contents ~this_id contents =
 
 open Html
 
-let create ?context id =
+let view context id =
   Main_page.madge_call_or_404 (Book Get) id @@ fun book ->
   Page.make'
     ~parent_title: "Book"

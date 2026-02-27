@@ -121,3 +121,10 @@ let create mode =
     ~unsubmit
     ~disassemble
     ~check_product: Model.Dance.equal
+
+let add () =
+  create Create_with_local_storage
+
+let edit id =
+  let%lwt dance = Option.get <$> Model.Dance.get id in
+  create (Edit dance)

@@ -143,3 +143,10 @@ let create mode =
     ~unsubmit
     ~disassemble
     ~check_product: Model.Tune.equal
+
+let add () =
+  create Create_with_local_storage
+
+let edit id =
+  let%lwt tune = Option.get <$> Model.Tune.get id in
+  create (Edit tune)

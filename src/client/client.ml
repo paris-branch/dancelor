@@ -17,28 +17,28 @@ let dispatch uri =
   let dispatch : type a r. (a, Page.t Lwt.t, r) Endpoints.Page.t -> a = function
     | Index -> Index.create ()
     | Any -> redirect_any
-    | Explore -> (fun query -> Explorer.create ?query ())
-    | Book -> (fun context id -> Book_viewer.create ?context id)
-    | Book_add -> Book_editor.create Create_with_local_storage
-    | Book_edit -> Book_editor.create <=< (Components.Editor.edit % Option.get <%> Model.Book.get)
-    | Dance -> (fun context id -> Dance_viewer.create ?context id)
-    | Dance_add -> Dance_editor.create Create_with_local_storage
-    | Dance_edit -> Dance_editor.create <=< (Components.Editor.edit % Option.get <%> Model.Dance.get)
-    | Person -> (fun context id -> Person_viewer.create ?context id)
-    | Person_add -> Person_editor.create Create_with_local_storage
-    | Person_edit -> Person_editor.create <=< (Components.Editor.edit % Option.get <%> Model.Person.get)
-    | Version -> (fun context tune_id id -> Version_viewer.create ?context tune_id (Some id))
-    | Version_add -> Version_editor.create Create_with_local_storage
-    | Version_edit -> Version_editor.create <=< (Components.Editor.edit % Option.get <%> Model.Version.get)
-    | Tune -> (fun context id -> Version_viewer.create ?context id None)
-    | Tune_add -> Tune_editor.create Create_with_local_storage
-    | Tune_edit -> Tune_editor.create <=< (Components.Editor.edit % Option.get <%> Model.Tune.get)
-    | Set -> (fun context id -> Set_viewer.create ?context id)
-    | Set_add -> Set_editor.create Create_with_local_storage
-    | Set_edit -> Set_editor.create <=< (Components.Editor.edit % Option.get <%> Model.Set.get)
-    | Source -> (fun context id -> Source_viewer.create ?context id)
-    | Source_add -> Source_editor.create Create_with_local_storage
-    | Source_edit -> Source_editor.create <=< (Components.Editor.edit % Option.get <%> Model.Source.get)
+    | Explore -> Explorer.view
+    | Book -> Book_viewer.view
+    | Book_add -> Book_editor.add ()
+    | Book_edit -> Book_editor.edit
+    | Dance -> Dance_viewer.view
+    | Dance_add -> Dance_editor.add ()
+    | Dance_edit -> Dance_editor.edit
+    | Person -> Person_viewer.view
+    | Person_add -> Person_editor.add ()
+    | Person_edit -> Person_editor.edit
+    | Version -> Version_viewer.view_version
+    | Version_add -> Version_editor.add ()
+    | Version_edit -> Version_editor.edit
+    | Tune -> Version_viewer.view_tune
+    | Tune_add -> Tune_editor.add ()
+    | Tune_edit -> Tune_editor.edit
+    | Set -> Set_viewer.view
+    | Set_add -> Set_editor.add ()
+    | Set_edit -> Set_editor.edit
+    | Source -> Source_viewer.view
+    | Source_add -> Source_editor.add ()
+    | Source_edit -> Source_editor.edit
     | User_create -> User_creator.create ()
     | User_prepare_reset_password -> User_password_reset_preparer.create ()
     | User_password_reset -> User_password_resetter.create

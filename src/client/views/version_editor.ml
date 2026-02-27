@@ -340,3 +340,9 @@ let create mode =
     ~disassemble
     ~preview
     ~check_product: Model.Version.equal
+
+let add () = create Create_with_local_storage
+
+let edit version_id =
+  let%lwt version = Option.get <$> Model.Version.get version_id in
+  create (Edit version)
