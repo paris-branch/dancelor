@@ -9,10 +9,10 @@ type 'p t
 
 (** {2 Using} *)
 
-val to_formula : 'p t -> Text_formula_type.t -> ('p Formula.t, string) Result.t
+val text_formula_to_formula : 'p t -> Text_formula_type.t -> ('p Formula.t, string) Result.t
 (** Convert a text formula to a formula using the given converter. *)
 
-val of_formula : 'p t -> 'p Formula.t -> Text_formula_type.t
+val formula_to_text_formula : 'p t -> 'p Formula.t -> Text_formula_type.t
 (** Convert a formula to a text formula using the given converter. *)
 
 (** {2 Case}

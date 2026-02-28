@@ -23,7 +23,7 @@ let text_formula_converter =
       ]
   )
 
-let from_text_formula = Text_formula_converter.to_formula text_formula_converter
+let from_text_formula = Text_formula.to_formula text_formula_converter
 let from_string ?filename input =
   Result.bind (Text_formula.from_string ?filename input) from_text_formula
 

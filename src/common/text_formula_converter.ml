@@ -4,12 +4,9 @@ module Type = Text_formula_type
 module Printer = Text_formula_printer
 
 type 'p case = {
-  to_: (Type.predicate, ('p Formula.t, string) Result.t) Link.t;
-  from: ('p, Type.t) Link.t;
+  text_predicate_to_formula: Type.predicate -> ('p Formula.t, string) Result.t option; (** Given a text formula predicate, produce either a ['p Formula.t] or an [Error] if the case matches, or [None]. *)
+  predicate_to_text_formula: 'p -> Type.t option; (** Given a ['p]redicate, produce a text formula if the case matches, or [None]. *)
 }
-
-let to_ case = case.to_
-let from case = case.from
 
 type tiebreaker = Left | Right | Both
 
@@ -20,11 +17,11 @@ type _ t =
 
 let make ~raw cs =
   let raw_case = {
-    to_ = (function
+    text_predicate_to_formula = (function
       | Type.Raw s -> Some (raw s)
       | _ -> None
     );
-    from = const None;
+    predicate_to_text_formula = const None;
   }
   in
   Cases (raw_case :: cs)
@@ -38,60 +35,62 @@ let merge_l = function
   | [c] -> c
   | c :: cs -> List.fold_left merge c cs
 
-let predicate_to_formula c tp =
-  let rec aux : type p. p t -> (p Formula.t, string) Result.t = function
-    | Cases cases -> Link.link' ~default: (kaspf error "No converter for predicate: %a." Printer.pp_predicate tp) (List.map to_ cases) tp
-    | Map (f, error, c) -> Result.map_error error @@ Result.map (Formula.pred % f) @@ aux c
+let text_predicate_to_formula c tp =
+  let rec text_predicate_to_formula : type p. p t -> (p Formula.t, string) Result.t = function
+    | Cases cases ->
+      Option.value
+        ~default: (kaspf error "No converter for predicate: %a." Printer.pp_predicate tp)
+        (List.map_first_some (fun case -> case.text_predicate_to_formula tp) cases)
+    | Map (f, error, c) -> Result.map_both ~ok: (Formula.pred % f) ~error @@ text_predicate_to_formula c
     | Merge (tiebreaker, c1, c2) ->
-      match (aux c1, aux c2) with
+      match (text_predicate_to_formula c1, text_predicate_to_formula c2) with
       | Ok f1, Ok f2 when tiebreaker = Both -> Ok (Formula.or_ f1 f2)
       | _, Ok f2 when tiebreaker = Right -> Ok f2
       | Ok f1, _ -> Ok f1
       | _, Ok f2 -> Ok f2
       | Error e1, Error e2 -> Error (e1 ^ "\n" ^ e2)
   in
-  aux c
+  text_predicate_to_formula c
 
-let to_formula converter = Formula.convert_res (predicate_to_formula converter)
+let text_formula_to_formula converter = Formula.convert_res (text_predicate_to_formula converter)
 
-let of_formula converter formula =
-  let rec aux : type p. p t -> p -> Type.t option = fun c p ->
+let formula_to_text_formula converter formula =
+  let rec predicate_to_text_formula : type p. p t -> p -> Type.t option = fun c p ->
     match c with
-    | Cases cases -> Link.link (List.map from cases) p
+    | Cases cases -> List.map_first_some (fun case -> case.predicate_to_text_formula p) cases
     | Map (_, _, _) -> None
     | Merge (tiebreaker, c1, c2) ->
-      match (aux c1 p, aux c2 p) with
+      match (predicate_to_text_formula c1 p, predicate_to_text_formula c2 p) with
       | Some f1, Some f2 when tiebreaker = Both -> Some (Formula.or_ f1 f2)
       | _, Some f2 when tiebreaker = Right -> Some f2
       | Some f1, _ -> Some f1
       | _, Some f2 -> Some f2
       | None, None -> None
-  and aux' : type p. p t -> p Formula.t -> Type.t option = fun c f ->
-    Formula.convert_opt (aux c) f
   in
-  match aux' converter formula with
+  match Formula.convert_opt (predicate_to_text_formula converter) formula with
   | None -> failwith "Text_formula_converter.of_formula: incomplete formula converter"
   | Some tf -> tf
 
-let nullary ~name p =
-  let to_ = function
+let nullary ~name p = {
+  text_predicate_to_formula = (function
     | Type.Nullary name' when name' = name -> Some (Ok (Formula.pred p))
     | _ -> None
-  in
-  (* FIXME: predicate equality *)
-  let from p' =
+  );
+  predicate_to_text_formula = (fun p' ->
+    (* FIXME: predicate equality *)
     match p = p' with
     | true -> Some (Type.nullary' name)
     | false -> None
-  in
-    {to_; from}
+  );
+}
 
-let unary ~name f from =
-  let to_ = function
+let unary ~name f predicate_to_text_formula = {
+  text_predicate_to_formula = (function
     | Type.Unary (name', tp) when name = name' -> Some (Result.map Formula.pred (f tp))
     | _ -> None
-  in
-    {to_; from}
+  );
+  predicate_to_text_formula;
+}
 
 type wrap_back = Always | Never | Not_pred | Not_raw | Custom of (Type.t -> Type.t)
 
@@ -127,5 +126,5 @@ let unary_id = unary_raw ~cast: (Entry.Id.of_string, Entry.Id.to_string) ~type_:
 let unary_lift ?(wrap_back = Always) ~name ~converter (lift, unlift) =
   unary
     ~name
-    (Result.map lift % to_formula converter)
-    (Option.map (apply_wrap_back ~name wrap_back % of_formula converter) % unlift)
+    (Result.map lift % text_formula_to_formula converter)
+    (Option.map (apply_wrap_back ~name wrap_back % formula_to_text_formula converter) % unlift)

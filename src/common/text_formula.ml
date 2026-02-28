@@ -85,5 +85,5 @@ let from_string = Parser.from_string
 let pp = Printer.pp
 let to_string = Printer.to_string
 
-let to_formula = Converter.to_formula
-let of_formula = Converter.of_formula
+let to_formula = Converter.text_formula_to_formula
+let of_formula = Converter.formula_to_text_formula
