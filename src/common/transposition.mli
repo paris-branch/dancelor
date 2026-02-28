@@ -6,6 +6,9 @@ val identity : t
 (** Make a transposition from a (potentially negative) number of semitones. *)
 val from_semitones : int -> t
 
+(** Make a transposition from a (potentially negative) number of octaves. *)
+val from_octaves : int -> t
+
 val target_pitch : source: Music.Pitch.t -> t -> Music.Pitch.t
 
 val to_semitones : t -> int

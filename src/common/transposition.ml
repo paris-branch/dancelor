@@ -6,7 +6,9 @@ type t = int (* number of semitones *)
 let identity = 0
 let compose = (+)
 
-let from_semitones = id
 let to_semitones = id
+
+let from_semitones = id
+let from_octaves = ( * ) 12
 
 let target_pitch ~source t = Music.Pitch.add source t

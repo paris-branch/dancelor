@@ -1,5 +1,5 @@
 type t =
-  Treble | Bass
+  Treble | Alto | Tenor | Bass
 [@@deriving eq, show, yojson]
 
 val to_string : t -> string

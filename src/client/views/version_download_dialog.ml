@@ -42,9 +42,27 @@ let create () =
         [
           choice' [txt @@ Music.Clef.(to_symbol Treble)] ~checked: true;
           choice'
-            [txt @@ Music.Clef.(to_symbol Bass)]
+            [txt @@ Music.Clef.(to_symbol Alto)]
             ~value: (
-              Version_parameters.make ~clef: Bass ~transposition: (Transposition.from_semitones (-12)) (),
+              Version_parameters.make ~clef: Alto (),
+              Rendering_parameters.make ~clef: "alto clef" ()
+            );
+          choice'
+            [txtf "%s (8vb)" Music.Clef.(to_symbol Alto)]
+            ~value: (
+              Version_parameters.make ~clef: Alto ~transposition: (Transposition.from_octaves (-1)) (),
+              Rendering_parameters.make ~clef: "alto clef" ()
+            );
+          choice'
+            [txt @@ Music.Clef.(to_symbol Tenor)]
+            ~value: (
+              Version_parameters.make ~clef: Tenor (),
+              Rendering_parameters.make ~clef: "tenor clef" ()
+            );
+          choice'
+            [txtf "%s (8vb)" Music.Clef.(to_symbol Bass)]
+            ~value: (
+              Version_parameters.make ~clef: Bass ~transposition: (Transposition.from_octaves (-1)) (),
               Rendering_parameters.make ~clef: "bass clef" ()
             );
         ]
