@@ -3,6 +3,16 @@ open Formula
 module Type = Text_formula_type
 module Printer = Text_formula_printer
 
+module Link = struct
+  type ('a, 'b) t = 'a -> 'b option
+
+  let link fs x =
+    List.map_first_some (fun f -> f x) fs
+
+  let link' ~default fs x =
+    Option.value ~default (link fs x)
+end
+
 type 'p case = {
   to_: (Type.predicate, ('p Formula.t, string) Result.t) Link.t;
   from: ('p, Type.t) Link.t;
@@ -41,7 +51,7 @@ let merge_l = function
 let predicate_to_formula c tp =
   let rec aux : type p. p t -> (p Formula.t, string) Result.t = function
     | Cases cases -> Link.link' ~default: (kaspf error "No converter for predicate: %a." Printer.pp_predicate tp) (List.map to_ cases) tp
-    | Map (f, error, c) -> Result.map_error error @@ Result.map (Formula.pred % f) @@ aux c
+    | Map (f, error, c) -> Result.map_both ~ok: (Formula.pred % f) ~error @@ aux c
     | Merge (tiebreaker, c1, c2) ->
       match (aux c1, aux c2) with
       | Ok f1, Ok f2 when tiebreaker = Both -> Ok (Formula.or_ f1 f2)

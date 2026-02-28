@@ -28,7 +28,6 @@ module Depart = NesDepart
 module PartialDate = NesPartialDate
 module Slice = NesSlice
 module Json = NesJson
-module Link = NesLink
 module Void = NesVoid
 module Password = NesPassword
 module HashedSecret = NesHashedSecret
