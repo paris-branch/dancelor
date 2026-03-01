@@ -65,6 +65,12 @@ let create () =
               Version_parameters.make ~clef: Bass ~transposition: (Transposition.from_octaves (-1)) (),
               Rendering_parameters.make ~clef: "bass clef" ()
             );
+          choice'
+            [txtf "%s (2 8vb)" Music.Clef.(to_symbol Bass)]
+            ~value: (
+              Version_parameters.make ~clef: Bass ~transposition: (Transposition.from_octaves (-2)) (),
+              Rendering_parameters.make ~clef: "bass clef" ()
+            );
         ]
     )
   in
