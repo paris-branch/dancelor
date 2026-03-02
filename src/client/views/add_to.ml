@@ -10,7 +10,7 @@ let dialog
     ~source_format
     ~target_format
     ~target_href
-    ~target_filter_from_string
+    ~target_converter
     ~target_filter_owners'
     ~(target_result : ?onclick: 'a -> ?context: 'b -> 'c -> 'd)
     ~target_search
@@ -51,7 +51,7 @@ let dialog
   let quick_search =
     Components.Search.Quick.make
       ~search: (fun slice input ->
-        let%rlwt filter = lwt (target_filter_from_string input) in
+        let%rlwt filter = lwt (Text_formula.string_to_formula target_converter input) in
         (* FIXME: Rather than the entries owned by the user, we should filter
            on the entries that the user is allowed to edit, that is we should
            have filters for permissions. *)
@@ -84,7 +84,7 @@ let dialog_to_book ~source_type ~source_format user source source_page =
     ~target_icon: Icon.(Model Book)
     ~target_format: Formatters.Book.title'
     ~target_href: Endpoints.Page.href_book
-    ~target_filter_from_string: Filter.Book.from_string
+    ~target_converter: Filter.Book.converter
     ~target_filter_owners': Filter.Book.owners'
     ~target_result: (Any_result.make_book_result ?classes: None ?prefix: None ?suffix: None)
     ~target_search: (Madge_client.call_exn Endpoints.Api.(route @@ Book Search))

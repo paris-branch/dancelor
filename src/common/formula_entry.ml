@@ -26,10 +26,6 @@ let converter sub_converter =
       ]
   )
 
-let from_text_formula sub_converter = Text_formula.to_formula (converter sub_converter)
-let from_string sub_converter ?filename input =
-  Result.bind (Text_formula.from_string ?filename input) (from_text_formula sub_converter)
-
 let optimise sub_optimise =
   Formula.optimise
     ~binop: (fun {op} f1 f2 ->

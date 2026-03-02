@@ -48,7 +48,7 @@ let add_to_set_dialog version user =
     ~target_icon: Icon.(Model Set)
     ~target_format: Formatters.Set.name'
     ~target_href: Endpoints.Page.href_set
-    ~target_filter_from_string: Filter.Set.from_string
+    ~target_converter: Filter.Set.converter
     ~target_filter_owners': Filter.Set.owners'
     ~target_result: (Any_result.make_set_result ?classes: None ?prefix: None ?suffix: None ?params: None)
     ~target_search: (Madge_client.call_exn Endpoints.Api.(route @@ Set Search))

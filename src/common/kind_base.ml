@@ -105,8 +105,6 @@ module Filter = struct
         ]
     )
 
-  let from_text_formula = Text_formula.to_formula converter
-
   let optimise =
     Formula.optimise
       ~binop: (fun _ _ _ -> None)

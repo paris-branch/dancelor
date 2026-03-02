@@ -4,8 +4,6 @@ module type S = sig
   type predicate = Core.Version.predicate
   type t = Core.Version.t
 
-  val accepts : t -> Model_builder.Core.Version.entry -> float Lwt.t
-
   val is : Model_builder.Core.Version.entry -> predicate
   val is' : Model_builder.Core.Version.entry -> t
 
@@ -19,9 +17,7 @@ module type S = sig
   val sources' : Core.Source.t Formula_list.t -> t
 
   val converter : predicate Text_formula_converter.t
-  val from_text_formula : Text_formula.t -> (t, string) Result.t
-  val from_string : ?filename: string -> string -> (t, string) Result.t
-  val to_string : t -> string
-
   val optimise : t -> t
+
+  val accepts : t -> Model_builder.Core.Version.entry -> float Lwt.t
 end

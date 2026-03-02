@@ -191,7 +191,7 @@ let editor =
     ~model_name: "tune"
     ~create_dialog_content: Tune_editor.create
     ~search: (fun slice input ->
-      let%rlwt filter = lwt (Filter.Tune.from_string input) in
+      let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Tune.converter input in
       ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) slice filter
     )
     ~unserialise: Model.Tune.get
@@ -218,7 +218,7 @@ let editor =
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create
         ~search: (fun slice input ->
-          let%rlwt filter = lwt @@ Formula_entry.from_string Filter.Person.converter input in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter Filter.Person.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
         ~unserialise: Model.Person.get
@@ -244,7 +244,7 @@ let editor =
             ~model_name: "source"
             ~create_dialog_content: Source_editor.create
             ~search: (fun slice input ->
-              let%rlwt filter = lwt (Filter.Source.from_string input) in
+              let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Source.converter input in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
             )
             ~unserialise: Model.Source.get

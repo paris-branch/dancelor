@@ -135,10 +135,6 @@ module Filter = struct
         )
     )
 
-  let from_text_formula = Text_formula.to_formula converter
-  let from_string ?filename input =
-    Result.bind (Text_formula.from_string ?filename input) from_text_formula
-
   let optimise =
     Formula.optimise
       ~binop: (fun {op} f1 f2 ->

@@ -45,8 +45,6 @@ module Filter : sig
   val base_is' : Kind_base.t -> t
 
   val converter : predicate Text_formula_converter.t
-  val from_text_formula : Text_formula.t -> (t, string) Result.t
-  val from_string : ?filename: string -> string -> (t, string) Result.t
 
   val optimise : t -> t
 end

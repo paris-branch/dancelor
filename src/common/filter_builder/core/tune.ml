@@ -33,13 +33,6 @@ let converter =
       ]
   )
 
-let from_text_formula = Text_formula.to_formula converter
-let from_string ?filename input =
-  Result.bind (Text_formula.from_string ?filename input) from_text_formula
-
-let to_text_formula = Text_formula.of_formula converter
-let to_string = Text_formula.to_string % to_text_formula
-
 let is x = is @@ Entry.id x
 let is' x = Formula.pred @@ is x
 

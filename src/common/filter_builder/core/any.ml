@@ -187,28 +187,19 @@ let to_pretty_string =
     add_explicit_type %
     optimise
 
-(* FIXME: once all the filters are entry-based, this version of specialise
-   should go away *)
-let specialise ~from_text_formula ~type_ ~unLift =
+let specialise ~converter ~type_ ~unLift =
   Formula.convert @@ function
-    | Raw str -> Result.get_ok (from_text_formula (Text_formula.raw' str))
-    | Type t when Model_builder.Core.Any.Type.equal t type_ -> Formula.true_
-    | Type _ -> Formula.false_
-    | pred -> Option.value (unLift pred) ~default: Formula.false_
-
-let specialise_entry ~from_text_formula ~type_ ~unLift =
-  Formula.convert @@ function
-    | Raw str -> Result.get_ok (from_text_formula (Text_formula.raw' str))
+    | Raw str -> Result.get_ok (Text_formula_converter.raw converter str)
     | Type t when Model_builder.Core.Any.Type.equal t type_ -> Formula.true_
     | Type _ -> Formula.false_
     | pred -> Option.value (unLift pred) ~default: Formula.false_
 
 let specialise formula = (
-  specialise ~from_text_formula: Book.from_text_formula ~type_: Book ~unLift: book_val formula,
-  specialise ~from_text_formula: Dance.from_text_formula ~type_: Dance ~unLift: dance_val formula,
-  specialise ~from_text_formula: (Formula_entry.from_text_formula Person.converter) ~type_: Person ~unLift: person_val formula,
-  specialise ~from_text_formula: Set.from_text_formula ~type_: Set ~unLift: set_val formula,
-  specialise ~from_text_formula: Source.from_text_formula ~type_: Source ~unLift: source_val formula,
-  specialise ~from_text_formula: Tune.from_text_formula ~type_: Tune ~unLift: tune_val formula,
-  specialise ~from_text_formula: Version.from_text_formula ~type_: Version ~unLift: version_val formula
+  specialise ~converter: Book.converter ~type_: Book ~unLift: book_val formula,
+  specialise ~converter: Dance.converter ~type_: Dance ~unLift: dance_val formula,
+  specialise ~converter: (Formula_entry.converter Person.converter) ~type_: Person ~unLift: person_val formula,
+  specialise ~converter: Set.converter ~type_: Set ~unLift: set_val formula,
+  specialise ~converter: Source.converter ~type_: Source ~unLift: source_val formula,
+  specialise ~converter: Tune.converter ~type_: Tune ~unLift: tune_val formula,
+  specialise ~converter: Version.converter ~type_: Version ~unLift: version_val formula
 )

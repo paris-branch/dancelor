@@ -43,7 +43,7 @@ let versions_and_parameters ?(label = "Versions") () =
             ~model_name: "version"
             ~create_dialog_content: Version_editor.create
             ~search: (fun slice input ->
-              let%rlwt filter = lwt (Filter.Version.from_string input) in
+              let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Version.converter input in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
             )
             ~unserialise: Model.Version.get
@@ -67,7 +67,7 @@ let set_and_parameters ?(label = "Set") () =
         ~model_name: "set"
         ~create_dialog_content: Set_editor.create
         ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Set.from_string input) in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Set.converter input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
         )
         ~unserialise: Model.Set.get
@@ -87,7 +87,7 @@ let dance_and_dance_page =
         ~model_name: "dance"
         ~create_dialog_content: Dance_editor.create
         ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Dance.from_string input) in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Dance.converter input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
         )
         ~unserialise: Model.Dance.get
@@ -130,7 +130,7 @@ let editor user =
       Selector.prepare
         ~label: "Editor"
         ~search: (fun slice input ->
-          let%rlwt filter = lwt @@ Formula_entry.from_string Filter.Person.converter input in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter Filter.Person.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
         ~unserialise: Model.Person.get
@@ -219,7 +219,7 @@ let editor user =
         ~model_name: "source"
         ~create_dialog_content: Source_editor.create
         ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Source.from_string input) in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Source.converter input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
         )
         ~unserialise: Model.Source.get
@@ -249,7 +249,7 @@ let editor user =
         ~make_result: (Any_result.make_user_result ?context: None)
         ~results_when_no_search: (Option.to_list <$> Environment.user)
         ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.User.from_string input) in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.User.converter input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
         )
         ~unserialise: Model.User.get
@@ -285,7 +285,7 @@ let editor user =
                 ~make_descr: (lwt % Model.User.Username.to_string % Model.User.username')
                 ~make_result: (Any_result.make_user_result ?context: None)
                 ~search: (fun slice input ->
-                  let%rlwt filter = lwt (Filter.User.from_string input) in
+                  let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.User.converter input in
                   ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
                 )
                 ~unserialise: Model.User.get
