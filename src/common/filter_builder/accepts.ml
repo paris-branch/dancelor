@@ -27,7 +27,7 @@ module Make (Model : Model_builder.S) = struct
             )
             content
         in
-        Formula_list.accepts accepts_version vfilter versions
+        Formula_list.accepts (Formula_entry.accepts accepts_version) vfilter versions
       | Sets sfilter ->
         let%lwt content = Model.Book.contents' book in
         let%lwt sets =
@@ -56,15 +56,13 @@ module Make (Model : Model_builder.S) = struct
 
   and accepts_dance filter dance =
     Formula.interpret filter @@ function
-      | Core.Dance.Is dance' ->
-        lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id dance) dance'
-      | Name sfilter ->
+      | Core.Dance.Name sfilter ->
         Formula.interpret_or_l
-        <$> Lwt_list.map_s (Formula_string.accepts sfilter % NEString.to_string) @@ NEList.to_list @@ Model.Dance.names' dance
+        <$> Lwt_list.map_s (Formula_string.accepts sfilter % NEString.to_string) @@ NEList.to_list @@ Model.Dance.names dance
       | Kind kfilter ->
-        Kind.Dance.Filter.accepts kfilter @@ Model.Dance.kind' dance
+        Kind.Dance.Filter.accepts kfilter @@ Model.Dance.kind dance
       | Devisers pfilter ->
-        let%lwt devisers = Model.Dance.devisers' dance in
+        let%lwt devisers = Model.Dance.devisers dance in
         Formula_list.accepts accepts_person' pfilter devisers
 
   and accepts_person filter person =
@@ -86,7 +84,7 @@ module Make (Model : Model_builder.S) = struct
         Formula_list.accepts accepts_person' pfilter conceptors
       | Versions vfilter ->
         let%lwt versions = List.map fst <$> Model.Set.contents' set in
-        Formula_list.accepts accepts_version vfilter versions
+        Formula_list.accepts (Formula_entry.accepts accepts_version) vfilter versions
       | Kind kfilter ->
         Kind.Dance.Filter.accepts kfilter @@ Model.Set.kind' set
       | Owners lfilter ->
@@ -96,42 +94,36 @@ module Make (Model : Model_builder.S) = struct
 
   and accepts_source filter source =
     Formula.interpret filter @@ function
-      | Core.Source.Is source' ->
-        lwt @@ Formula.interpret_bool @@ Entry.Id.unsafe_equal (Entry.id source) source'
-      | Name sfilter ->
+      | Core.Source.Name sfilter ->
         Lwt.l2
           Formula.interpret_or
-          (Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Source.name' source)
-          (Option.fold ~none: (lwt Formula.interpret_false) ~some: (Formula_string.accepts sfilter % NEString.to_string) @@ Model.Source.short_name' source)
+          (Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Source.name source)
+          (Option.fold ~none: (lwt Formula.interpret_false) ~some: (Formula_string.accepts sfilter % NEString.to_string) @@ Model.Source.short_name source)
       | Editors pfilter ->
-        let%lwt editors = Model.Source.editors' source in
+        let%lwt editors = Model.Source.editors source in
         Formula_list.accepts accepts_person' pfilter editors
 
   and accepts_tune filter tune =
     Formula.interpret filter @@ function
-      | Core.Tune.Is tune' ->
-        lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id tune) tune'
-      | Name sfilter ->
-        Formula.interpret_or_l <$> Lwt_list.map_s (Formula_string.accepts sfilter % NEString.to_string) @@ NEList.to_list @@ Model.Tune.names' tune
+      | Core.Tune.Name sfilter ->
+        Formula.interpret_or_l <$> Lwt_list.map_s (Formula_string.accepts sfilter % NEString.to_string) @@ NEList.to_list @@ Model.Tune.names tune
       | Composers pfilter ->
-        let%lwt composers = List.map Model.Tune.composer_composer <$> Model.Tune.composers' tune in
+        let%lwt composers = List.map Model.Tune.composer_composer <$> Model.Tune.composers tune in
         Formula_list.accepts accepts_person' pfilter composers
       | Kind kfilter ->
-        Kind.Base.Filter.accepts kfilter @@ Model.Tune.kind' tune
+        Kind.Base.Filter.accepts kfilter @@ Model.Tune.kind tune
       | Dances dfilter ->
-        let%lwt dances = Model.Tune.dances' tune in
-        Formula_list.accepts accepts_dance dfilter dances
+        let%lwt dances = Model.Tune.dances tune in
+        Formula_list.accepts (Formula_entry.accepts accepts_dance) dfilter dances
 
   and accepts_version filter version =
     Formula.interpret filter @@ function
-      | Core.Version.Is version' ->
-        lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id version) version'
-      | Tune tfilter ->
-        let%lwt tune = Model.Version.tune' version in
-        accepts_tune tfilter tune
+      | Core.Version.Tune tfilter ->
+        let%lwt tune = Model.Version.tune version in
+        Formula_entry.accepts accepts_tune tfilter tune
       | Key key' ->
-        lwt @@ Formula.interpret_bool (Model.Version.key' version = key')
+        lwt @@ Formula.interpret_bool (Model.Version.key version = key')
       | Sources sfilter ->
-        let%lwt sources = List.map (fun {Model.Version.source; _} -> source) <$> Model.Version.sources' version in
-        Formula_list.accepts accepts_source sfilter sources
+        let%lwt sources = List.map (fun {Model.Version.source; _} -> source) <$> Model.Version.sources version in
+        Formula_list.accepts (Formula_entry.accepts accepts_source) sfilter sources
 end

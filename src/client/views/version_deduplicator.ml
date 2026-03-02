@@ -187,10 +187,8 @@ let confirmation_dialog ~this_version ~other_version =
   (* changes to sets *)
   let%lwt sets =
     snd
-    <$> Madge_client.call_exn
-        Endpoints.Api.(route @@ Set Search)
-        Slice.everything
-        Filter.(Set.versions' (Formula_list.exists' (Version.is' this_version)))
+    <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) Slice.everything @@
+      Filter.Set.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
   in
   List.iter
     (fun set ->
@@ -212,10 +210,8 @@ let confirmation_dialog ~this_version ~other_version =
   (* changes to books *)
   let%lwt books =
     snd
-    <$> Madge_client.call_exn
-        Endpoints.Api.(route @@ Book Search)
-        Slice.everything
-        Filter.(Book.versions' (Formula_list.exists' (Version.is' this_version)))
+    <$> Madge_client.call_exn Endpoints.Api.(route @@ Book Search) Slice.everything @@
+      Filter.Book.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
   in
   List.iter
     (fun book ->
@@ -319,8 +315,8 @@ let dialog ~tune ~version () =
         Formula.(
           and_l
             [
-              Filter.(Version.tune' % Tune.is') tune;
-              not (Filter.Version.is' version);
+              Formula_entry.value' (Filter.(Version.tune' % Formula_entry.is') tune);
+              not (Formula_entry.is' version);
             ]
         )
   in

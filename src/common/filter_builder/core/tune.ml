@@ -1,11 +1,10 @@
 open Nes
 
 type predicate =
-  | Is of Model_builder.Core.Tune.t Entry.Id.t
   | Name of Formula_string.t
   | Composers of (Model_builder.Core.Person.t, Person.t) Formula_entry.t Formula_list.t
   | Kind of Kind.Base.Filter.t
-  | Dances of Dance.t Formula_list.t
+  | Dances of (Model_builder.Core.Dance.t, Dance.t) Formula_entry.t Formula_list.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
@@ -28,13 +27,9 @@ let converter =
         unary_lift_composers ~name: "composers";
         unary_lift_composers ~name: "by";
         unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Base.Filter.converter;
-        unary_lift ~name: "dances" (dances, dances_val) ~converter: (Formula_list.converter Dance.converter);
-        unary_id ~name: "is" (is, is_val);
+        unary_lift ~name: "dances" (dances, dances_val) ~converter: (Formula_list.converter (Formula_entry.converter Dance.converter));
       ]
   )
-
-let is x = is @@ Entry.id x
-let is' x = Formula.pred @@ is x
 
 let optimise =
   Formula.optimise
@@ -46,9 +41,8 @@ let optimise =
       | _ -> None
     )
     (function
-      | (Is _ as p) -> p
       | Name sfilter -> name @@ Formula_string.optimise sfilter
       | Composers pfilter -> composers @@ Formula_list.optimise (Formula_entry.optimise Person.optimise) pfilter
       | Kind kfilter -> kind @@ Kind.Base.Filter.optimise kfilter
-      | Dances dfilter -> dances @@ Formula_list.optimise Dance.optimise dfilter
+      | Dances dfilter -> dances @@ Formula_list.optimise (Formula_entry.optimise Dance.optimise) dfilter
     )

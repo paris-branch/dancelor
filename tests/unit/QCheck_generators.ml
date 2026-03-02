@@ -286,6 +286,8 @@ module Filter = struct
   module Version = struct
     type predicate = [%import: Common.Filter_builder.Core.Version.predicate [@with Common.Entry.Id.t := Id.t;
       Common.Model_builder.Core.Version.t := Model.Version.t;
+      Common.Model_builder.Core.Tune.t := Model.Tune.t;
+      Common.Model_builder.Core.Source.t := Model.Source.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
       Common.Formula_string.t := Formula_string.t;
@@ -305,6 +307,7 @@ module Filter = struct
 
   module Set = struct
     type predicate = [%import: Common.Filter_builder.Core.Set.predicate [@with Common.Entry.Id.t := Id.t;
+      Common.Model_builder.Core.Version.t := Model.Version.t;
       Common.Model_builder.Core.Person.t := Model.Person.t;
       Common.Model_builder.Core.Set.t := Model.Set.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
@@ -326,6 +329,7 @@ module Filter = struct
 
   module Book = struct
     type predicate = [%import: Common.Filter_builder.Core.Book.predicate [@with Common.Entry.Id.t := Id.t;
+      Common.Model_builder.Core.Version.t := Model.Version.t;
       Common.Model_builder.Core.Person.t := Model.Person.t;
       Common.Model_builder.Core.Book.t := Model.Book.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
@@ -348,7 +352,11 @@ module Filter = struct
 
   module Any = struct
     type predicate = [%import: Common.Filter_builder.Core.Any.predicate [@with Common.Entry.Id.t := Id.t;
+      Common.Model_builder.Core.Version.t := Model.Version.t;
       Common.Model_builder.Core.Person.t := Model.Person.t;
+      Common.Model_builder.Core.Tune.t := Model.Tune.t;
+      Common.Model_builder.Core.Dance.t := Model.Dance.t;
+      Common.Model_builder.Core.Source.t := Model.Source.t;
       Common.Model_builder.Core.Any.Type.t := Model.Any.Type.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;

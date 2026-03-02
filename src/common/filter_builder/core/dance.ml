@@ -1,7 +1,6 @@
 open Nes
 
 type predicate =
-  | Is of Model_builder.Core.Dance.t Entry.id
   | Name of Formula_string.t
   | Kind of Kind.Dance.Filter.t
   | Devisers of (Model_builder.Core.Person.t, Person.t) Formula_entry.t Formula_list.t
@@ -26,12 +25,8 @@ let converter =
         unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Dance.Filter.converter;
         unary_lift_devisers ~name: "devisers";
         unary_lift_devisers ~name: "by";
-        unary_id ~name: "is" (is, is_val);
       ]
   )
-
-let is x = is @@ Entry.id x
-let is' x = Formula.pred @@ is x
 
 let optimise =
   Formula.optimise
@@ -42,7 +37,6 @@ let optimise =
       | _ -> None
     )
     (function
-      | (Is _ as p) -> p
       | Name sfilter -> name @@ Formula_string.optimise sfilter
       | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter
       | Devisers pfilter -> devisers @@ Formula_list.optimise (Formula_entry.optimise Person.optimise) pfilter

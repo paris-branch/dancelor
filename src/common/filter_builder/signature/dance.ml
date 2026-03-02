@@ -5,9 +5,6 @@ module type S = sig
   type t = Core.Dance.t
   [@@deriving eq, show]
 
-  val is : Model_builder.Core.Dance.entry -> predicate
-  val is' : Model_builder.Core.Dance.entry -> t
-
   val kind : Kind.Dance.Filter.t -> predicate
   val kind' : Kind.Dance.Filter.t -> t
 
@@ -17,5 +14,5 @@ module type S = sig
   val converter : predicate Text_formula_converter.t
   val optimise : t -> t
 
-  val accepts : t -> Model_builder.Core.Dance.entry -> float Lwt.t
+  val accepts : t -> Model_builder.Core.Dance.t -> float Lwt.t
 end

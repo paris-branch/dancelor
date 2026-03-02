@@ -80,7 +80,7 @@ let view context id =
                 let%lwt tunes =
                   snd
                   <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) Slice.everything @@
-                    Filter.Tune.dances' @@ Formula_list.exists' @@ Filter.Dance.is' dance
+                    Formula_entry.value' @@ Filter.Tune.dances' @@ Formula_list.exists' @@ Formula_entry.is' dance
                 in
                 lwt
                   [

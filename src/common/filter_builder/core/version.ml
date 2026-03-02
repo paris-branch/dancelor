@@ -1,10 +1,9 @@
 open Nes
 
 type predicate =
-  | Is of Model_builder.Core.Version.t Entry.Id.t
-  | Tune of Tune.t
+  | Tune of (Model_builder.Core.Tune.t, Tune.t) Formula_entry.t
   | Key of Music.Key.t
-  | Sources of Source.t Formula_list.t
+  | Sources of (Model_builder.Core.Source.t, Source.t) Formula_entry.t Formula_list.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
@@ -21,22 +20,18 @@ let converter =
       (
         (* Version-specific converter. *)
         make
-          ~raw: (ok % tune' % Tune.name' % Formula_string.matches')
+          ~raw: (ok % tune' % Formula_entry.value' % Tune.name' % Formula_string.matches')
           [
-            unary_lift ~wrap_back: Not_raw ~name: "tune" (tune, tune_val) ~converter: Tune.converter;
+            unary_lift ~wrap_back: Not_raw ~name: "tune" (tune, tune_val) ~converter: (Formula_entry.converter Tune.converter);
             unary_raw ~name: "key" (key, key_val) ~cast: (Music.Key.of_string_opt, Music.Key.to_string) ~type_: "key";
-            unary_id ~name: "is" (is, is_val);
-            unary_lift ~name: "sources" (sources, sources_val) ~converter: (Formula_list.converter Source.converter);
+            unary_lift ~name: "sources" (sources, sources_val) ~converter: (Formula_list.converter (Formula_entry.converter Source.converter));
           ]
       )
       (
         (* Tune converter, lifted to versions. Lose in case of tiebreak. *)
-        map tune Tune.converter ~error: ((^) "As tune lifted to version: ")
+        map tune (Formula_entry.converter Tune.converter) ~error: ((^) "As tune lifted to version: ")
       )
   )
-
-let is x = is @@ Entry.id x
-let is' x = Formula.pred @@ is x
 
 let optimise =
   Formula.optimise
@@ -46,7 +41,7 @@ let optimise =
       | _ -> None
     )
     (function
-      | (Is _ as p) | (Key _ as p) -> p
-      | Tune tfilter -> tune @@ Tune.optimise tfilter
-      | Sources sfilter -> sources @@ Formula_list.optimise Source.optimise sfilter
+      | (Key _ as p) -> p
+      | Tune tfilter -> tune @@ Formula_entry.optimise Tune.optimise tfilter
+      | Sources sfilter -> sources @@ Formula_list.optimise (Formula_entry.optimise Source.optimise) sfilter
     )

@@ -73,7 +73,7 @@ let editor =
     (
       Selector.prepare
         ~search: (fun slice input ->
-          let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Dance.converter input in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter Filter.Dance.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
         )
         ~unserialise: Model.Dance.get

@@ -6,7 +6,7 @@ module Filter = Filter_builder.Core
 type (_, _, _) t =
 (* Actions without specific source *)
 | Create : ((Source.t -> 'w), 'w, Source.entry) t
-| Search : ((Slice.t -> Filter.Source.t -> 'w), 'w, (int * Source.entry list)) t
+| Search : ((Slice.t -> (Source.t, Filter.Source.t) Formula_entry.t -> 'w), 'w, (int * Source.entry list)) t
 (* Actions on a specific source *)
 | Get : ((Source.t Entry.Id.t -> 'w), 'w, Source.entry) t
 | Update : ((Source.t Entry.Id.t -> Source.t -> 'w), 'w, Source.entry) t
@@ -20,7 +20,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   function
     (* Actions without specific source *)
     | Create -> body "source" (module Source) @@ post (module Entry.JPublic(Source))
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Source) @@ get (module JPair(JInt)(JList(Entry.JPublic(Source))))
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.J(Source)(Filter.Source)) @@ get (module JPair(JInt)(JList(Entry.JPublic(Source))))
     (* Actions on a specific source *)
     | Get -> variable (module Entry.Id.S(Source)) @@ get (module Entry.JPublic(Source))
     | Update -> variable (module Entry.Id.S(Source)) @@ body "source" (module Source) @@ put (module Entry.JPublic(Source))

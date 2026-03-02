@@ -15,15 +15,23 @@ let value' f = Formula.pred @@ value f
 
 let converter sub_converter =
   Text_formula_converter.(
-    make
-      ~raw: (Result.map value' % raw sub_converter)
-      [
-        unary_id ~name: "is" (is, is_val);
-        unary_lift ~name: "value" (value, value_val) ~converter: sub_converter;
-        (* FIXME: should we use ~wrap_back: Never, for nicer text formulas? but
-           this breaks the roundtrip tests and it isn't bothering use for now (but
-           we've only applied this to Person, which has like no predicates). *)
-      ]
+    merge
+      ~tiebreaker: Left
+      (
+        make
+          ~raw: (Result.map value' % raw sub_converter)
+          [
+            unary_id ~name: "is" (is, is_val);
+            unary_lift ~name: "value" (value, value_val) ~converter: sub_converter;
+            (* FIXME: should we use ~wrap_back: Never, for nicer text formulas? but
+               this breaks the roundtrip tests and it isn't bothering use for now (but
+               we've only applied this to Person, which has like no predicates). *)
+          ]
+      )
+      (
+        (* Sub converters, lifted to entries. Lose in case of tiebreak. *)
+        map value sub_converter ~error: ((^) "As entry value: ")
+      )
   )
 
 let optimise sub_optimise =

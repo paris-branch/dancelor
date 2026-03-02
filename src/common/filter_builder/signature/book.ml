@@ -10,11 +10,11 @@ module type S = sig
   val sets : Core.Set.t Formula_list.t -> predicate
   val sets' : Core.Set.t Formula_list.t -> t
 
-  val versions : Core.Version.t Formula_list.t -> predicate
-  val versions' : Core.Version.t Formula_list.t -> t
+  val versions : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.t Formula_list.t -> predicate
+  val versions' : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.t Formula_list.t -> t
 
-  val versions_deep : Core.Version.t Formula_list.t -> predicate
-  val versions_deep' : Core.Version.t Formula_list.t -> t
+  val versions_deep : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.t Formula_list.t -> predicate
+  val versions_deep' : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.t Formula_list.t -> t
 
   val owners : Core.User.t Formula_list.t -> predicate
   val owners' : Core.User.t Formula_list.t -> t

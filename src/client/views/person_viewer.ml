@@ -65,11 +65,11 @@ let view context id =
       quick_explorer_links'
         (lwt person)
         [
-          ("tunes they composed", Filter.(Any.tune' % Tune.composers' % Formula_list.exists' % Formula_entry.is'));
-          ("versions of tunes they composed", Filter.(Any.version' % Version.tune' % Tune.composers' % Formula_list.exists' % Formula_entry.is'));
-          ("dances they devised", Filter.(Any.dance' % Dance.devisers' % Formula_list.exists' % Formula_entry.is'));
+          ("tunes they composed", Filter.(Any.tune' % Formula_entry.value' % Tune.composers' % Formula_list.exists' % Formula_entry.is'));
+          ("versions of tunes they composed", Filter.(Any.version' % Formula_entry.value' % Version.tune' % Formula_entry.value' % Tune.composers' % Formula_list.exists' % Formula_entry.is'));
+          ("dances they devised", Filter.(Any.dance' % Formula_entry.value' % Dance.devisers' % Formula_list.exists' % Formula_entry.is'));
           ("sets they conceived", Filter.(Any.set' % Set.conceptors' % Formula_list.exists' % Formula_entry.is'));
           ("books they edited", Filter.(Any.book' % Book.editors' % Formula_list.exists' % Formula_entry.is'));
-          ("sources they edited", Filter.(Any.source' % Source.editors' % Formula_list.exists' % Formula_entry.is'));
+          ("sources they edited", Filter.(Any.source' % Formula_entry.value' % Source.editors' % Formula_list.exists' % Formula_entry.is'));
         ];
     ]

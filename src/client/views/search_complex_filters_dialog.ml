@@ -9,12 +9,12 @@ open Components
     always of the form of a conjunction of disjunctions. *)
 type restricted_predicate =
   | Person of (Person.t, Filter.Person.t) Formula_entry.predicate list list
-  | Dance of Filter.Dance.predicate list list
-  | Source of Filter.Source.predicate list list
+  | Dance of (Dance.t, Filter.Dance.t) Formula_entry.predicate list list
+  | Source of (Source.t, Filter.Source.t) Formula_entry.predicate list list
   | Book of Filter.Book.predicate list list
   | Set of Filter.Set.predicate list list
-  | Tune of Filter.Tune.predicate list list
-  | Version of Filter.Version.predicate list list
+  | Tune of (Tune.t, Filter.Tune.t) Formula_entry.predicate list list
+  | Version of (Version.t, Filter.Version.t) Formula_entry.predicate list list
 [@@deriving variants]
 
 (** Restricted formulas supported by the complex filter dialog. This is a bunch
@@ -104,10 +104,10 @@ let kind_choices filter =
   let checked kind =
     (* NOTE: Will stop working when we push the disjunction inside the kind filters *)
     match filter with
-    | Some (Dance filter) -> List.exists (List.mem (Filter.Dance.kind @@ Kind.Dance.Filter.base_is' kind)) filter
+    | Some (Dance filter) -> List.exists (List.mem (Formula_entry.value @@ Filter.Dance.kind' @@ Kind.Dance.Filter.base_is' kind)) filter
     | Some (Set filter) -> List.exists (List.mem (Filter.Set.kind @@ Kind.Dance.Filter.base_is' kind)) filter
-    | Some (Tune filter) -> List.exists (List.mem (Filter.Tune.kind @@ Kind.Base.Filter.is' kind)) filter
-    | Some (Version filter) -> List.exists (List.mem (Filter.Version.tune @@ Filter.Tune.kind' @@ Kind.Base.Filter.is' kind)) filter
+    | Some (Tune filter) -> List.exists (List.mem (Formula_entry.value @@ Filter.Tune.kind' @@ Kind.Base.Filter.is' kind)) filter
+    | Some (Version filter) -> List.exists (List.mem (Formula_entry.value @@ Filter.Version.tune' @@ Formula_entry.value' @@ Filter.Tune.kind' @@ Kind.Base.Filter.is' kind)) filter
     | _ -> false
   in
   Choices.(
@@ -138,7 +138,7 @@ let dance_bundled_choices ~kind_choices _filter =
         [
           choices_formula
             ~s: (S.map Result.get_ok (Component.signal kind_choices))
-            ~f: (Filter.Dance.kind' % Kind.Dance.Filter.base_is');
+            ~f: (Formula_entry.value' % Filter.Dance.kind' % Kind.Dance.Filter.base_is');
         ]
   in
   let html = [
@@ -182,7 +182,7 @@ let tune_bundled_choices ~kind_choices _filter =
         [
           choices_formula
             ~s: (S.map Result.get_ok (Component.signal kind_choices))
-            ~f: (Filter.Tune.kind' % Kind.Base.Filter.is');
+            ~f: (Formula_entry.value' % Filter.Tune.kind' % Kind.Base.Filter.is');
         ]
   in
   let html = [
@@ -217,7 +217,7 @@ let major_key_choices filter =
   let checked key =
     (* NOTE: Will stop working when we introduce key filters *)
     match filter with
-    | Some (Version filter) -> List.exists (List.mem (Filter.Version.key key)) filter
+    | Some (Version filter) -> List.exists (List.mem (Formula_entry.value @@ Filter.Version.key' key)) filter
     | _ -> false
   in
   Choices.(
@@ -259,7 +259,7 @@ let minor_key_choices filter =
   let checked key =
     (* NOTE: Will stop working when we introduce key filters *)
     match filter with
-    | Some (Version filter) -> List.exists (List.mem (Filter.Version.key key)) filter
+    | Some (Version filter) -> List.exists (List.mem (Formula_entry.value @@ Filter.Version.key' key)) filter
     | _ -> false
   in
   Choices.(
@@ -286,7 +286,7 @@ let version_bundled_choices ~kind_choices filter =
         [
           choices_formula
             ~s: (S.map Result.get_ok (Component.signal kind_choices))
-            ~f: (Filter.Version.tune' % Filter.Tune.kind' % Kind.Base.Filter.is');
+            ~f: (Formula_entry.value' % Filter.Version.tune' % Formula_entry.value' % Filter.Tune.kind' % Kind.Base.Filter.is');
           choices_formula
             ~s: (
               S.l2
@@ -294,7 +294,7 @@ let version_bundled_choices ~kind_choices filter =
                 (S.map Result.get_ok (Component.signal major_key_choices))
                 (S.map Result.get_ok (Component.signal minor_key_choices))
             )
-            ~f: Filter.Version.key';
+            ~f: (Formula_entry.value' % Filter.Version.key');
         ]
   in
   let html = [
