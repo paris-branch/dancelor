@@ -10,66 +10,74 @@ type 'p case = {
 
 type tiebreaker = Left | Right | Both
 
-type _ t =
-  | Cases : 'p case list -> 'p t
-  | Map : (('p Formula.t -> 'q) * (string -> string) * 'p t) -> 'q t
-  | Merge : tiebreaker * 'p t * 'p t -> 'p t
+type 'p t = {
+  cases: 'p case list;
+}
 
-let make ~raw cs =
+let text_predicate_to_formula converter text_predicate =
+  Option.value
+    ~default: (kaspf error "No converter for predicate: %a." Printer.pp_predicate text_predicate)
+    (List.map_first_some (fun case -> case.text_predicate_to_formula text_predicate) converter.cases)
+
+let text_formula_to_formula converter = Formula.convert_res (text_predicate_to_formula converter)
+
+let predicate_to_text_formula converter predicate =
+  List.map_first_some (fun case -> case.predicate_to_text_formula predicate) converter.cases
+
+let formula_to_text_formula converter formula =
+  match Formula.convert_opt (predicate_to_text_formula converter) formula with
+  | None -> failwith "Text_formula_converter.of_formula: incomplete formula converter"
+  | Some tf -> tf
+
+let make ~raw cases =
   let raw_case = {
-    text_predicate_to_formula = (function
-      | Type.Raw s -> Some (raw s)
-      | _ -> None
-    );
+    text_predicate_to_formula = (function Type.Raw s -> Some (raw s) | _ -> None);
     predicate_to_text_formula = const None;
   }
   in
-  Cases (raw_case :: cs)
+    {cases = raw_case :: cases}
 
-let map ?(error = Fun.id) f c = Map (f, error, c)
+let map ?(error = Fun.id) f converter = {
+  cases =
+  List.map
+    (fun case ->
+      {
+        text_predicate_to_formula = Option.map (Result.map_both ~ok: (Formula.pred % f) ~error) % case.text_predicate_to_formula;
+        predicate_to_text_formula = const None;
+      }
+    )
+    converter.cases;
+}
 
-let merge ?(tiebreaker = Both) c1 c2 = Merge (tiebreaker, c1, c2)
+let merge ?(tiebreaker = Both) converter1 converter2 = {
+  cases = [
+    {
+      text_predicate_to_formula = (fun text_predicate ->
+        Some (
+          match (text_predicate_to_formula converter1 text_predicate, text_predicate_to_formula converter2 text_predicate) with
+          | Ok f1, Ok f2 when tiebreaker = Both -> Ok (Formula.or_ f1 f2)
+          | _, Ok f2 when tiebreaker = Right -> Ok f2
+          | Ok f1, _ -> Ok f1
+          | _, Ok f2 -> Ok f2
+          | Error e1, Error e2 -> Error (e1 ^ "\n" ^ e2)
+        )
+      );
+      predicate_to_text_formula = (fun predicate ->
+        match (predicate_to_text_formula converter1 predicate, predicate_to_text_formula converter2 predicate) with
+        | Some f1, Some f2 when tiebreaker = Both -> Some (Formula.or_ f1 f2)
+        | _, Some f2 when tiebreaker = Right -> Some f2
+        | Some f1, _ -> Some f1
+        | _, Some f2 -> Some f2
+        | None, None -> None
+      );
+    }
+  ];
+}
 
 let merge_l = function
   | [] -> invalid_arg "Text_formula_converter.merge_l"
   | [c] -> c
   | c :: cs -> List.fold_left merge c cs
-
-let text_predicate_to_formula c tp =
-  let rec text_predicate_to_formula : type p. p t -> (p Formula.t, string) Result.t = function
-    | Cases cases ->
-      Option.value
-        ~default: (kaspf error "No converter for predicate: %a." Printer.pp_predicate tp)
-        (List.map_first_some (fun case -> case.text_predicate_to_formula tp) cases)
-    | Map (f, error, c) -> Result.map_both ~ok: (Formula.pred % f) ~error @@ text_predicate_to_formula c
-    | Merge (tiebreaker, c1, c2) ->
-      match (text_predicate_to_formula c1, text_predicate_to_formula c2) with
-      | Ok f1, Ok f2 when tiebreaker = Both -> Ok (Formula.or_ f1 f2)
-      | _, Ok f2 when tiebreaker = Right -> Ok f2
-      | Ok f1, _ -> Ok f1
-      | _, Ok f2 -> Ok f2
-      | Error e1, Error e2 -> Error (e1 ^ "\n" ^ e2)
-  in
-  text_predicate_to_formula c
-
-let text_formula_to_formula converter = Formula.convert_res (text_predicate_to_formula converter)
-
-let formula_to_text_formula converter formula =
-  let rec predicate_to_text_formula : type p. p t -> p -> Type.t option = fun c p ->
-    match c with
-    | Cases cases -> List.map_first_some (fun case -> case.predicate_to_text_formula p) cases
-    | Map (_, _, _) -> None
-    | Merge (tiebreaker, c1, c2) ->
-      match (predicate_to_text_formula c1 p, predicate_to_text_formula c2 p) with
-      | Some f1, Some f2 when tiebreaker = Both -> Some (Formula.or_ f1 f2)
-      | _, Some f2 when tiebreaker = Right -> Some f2
-      | Some f1, _ -> Some f1
-      | _, Some f2 -> Some f2
-      | None, None -> None
-  in
-  match Formula.convert_opt (predicate_to_text_formula converter) formula with
-  | None -> failwith "Text_formula_converter.of_formula: incomplete formula converter"
-  | Some tf -> tf
 
 let nullary ~name p = {
   text_predicate_to_formula = (function
