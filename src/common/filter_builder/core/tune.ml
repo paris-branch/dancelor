@@ -16,28 +16,28 @@ let composers' = Formula.pred % composers
 let kind' = Formula.pred % kind
 let dances' = Formula.pred % dances
 
-let text_formula_converter =
+let converter =
   let unary_lift_composers ~name =
-    Text_formula_converter.unary_lift ~name (composers, composers_val) ~converter: (Formula_list.text_formula_converter (Formula_entry.value' % Person.name' % Formula_string.matches') (Formula_entry.text_formula_converter (Person.name' % Formula_string.matches') Person.text_formula_converter));
+    Text_formula_converter.unary_lift ~name (composers, composers_val) ~converter: (Formula_list.converter (Formula_entry.value' % Person.name' % Formula_string.matches') (Formula_entry.converter (Person.name' % Formula_string.matches') Person.converter));
   in
   Text_formula_converter.(
     make
       ~raw: (ok % name' % Formula_string.matches')
       [
-        unary_lift ~name: "name" (name, name_val) ~converter: Formula_string.text_formula_converter;
+        unary_lift ~name: "name" (name, name_val) ~converter: Formula_string.converter;
         unary_lift_composers ~name: "composers";
         unary_lift_composers ~name: "by";
-        unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Base.Filter.text_formula_converter;
-        unary_lift ~name: "dances" (dances, dances_val) ~converter: (Formula_list.text_formula_converter (Dance.name' % Formula_string.matches') Dance.text_formula_converter);
+        unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Base.Filter.converter;
+        unary_lift ~name: "dances" (dances, dances_val) ~converter: (Formula_list.converter (Dance.name' % Formula_string.matches') Dance.converter);
         unary_id ~name: "is" (is, is_val);
       ]
   )
 
-let from_text_formula = Text_formula.to_formula text_formula_converter
+let from_text_formula = Text_formula.to_formula converter
 let from_string ?filename input =
   Result.bind (Text_formula.from_string ?filename input) from_text_formula
 
-let to_text_formula = Text_formula.of_formula text_formula_converter
+let to_text_formula = Text_formula.of_formula converter
 let to_string = Text_formula.to_string % to_text_formula
 
 let is x = is @@ Entry.id x

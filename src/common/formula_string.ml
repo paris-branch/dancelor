@@ -13,7 +13,7 @@ type t = predicate Formula.t
 let eq' s = Formula.pred (eq s)
 let matches' s = Formula.pred (matches s)
 
-let text_formula_converter =
+let converter =
   Text_formula_converter.(
     make
       ~raw: (ok % matches')

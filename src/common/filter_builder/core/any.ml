@@ -36,7 +36,7 @@ let version' = Formula.pred % version
 (** The [?human] flag specifies whether we should print eg. [Version
     <vfilter>] as ["type:version <vfilter>"]. This is correct but it will
     not generate the correct inverse of [of_string]. *)
-let make_text_formula_converter ?(human = false) () =
+let make_converter ?(human = false) () =
   Text_formula_converter.(
     (* We find formulas of the form [type:version predicate-on-version]
        better for humans than [version:predicate-on-version]. *)
@@ -50,35 +50,35 @@ let make_text_formula_converter ?(human = false) () =
           [
             unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
             unary_raw ~name: "type" (type_, type__val) ~cast: (Model_builder.Core.Any.Type.of_string_opt, Model_builder.Core.Any.Type.to_string) ~type_: "valid type";
-            unary_lift ~name: "is-source-such-that" (source, source_val) ~converter: Source.text_formula_converter ~wrap_back;
-            unary_lift ~name: "is-person-such-that" (person, person_val) ~converter: (Formula_entry.text_formula_converter (Person.name' % Formula_string.matches') Person.text_formula_converter) ~wrap_back;
-            unary_lift ~name: "is-dance-such-that" (dance, dance_val) ~converter: Dance.text_formula_converter ~wrap_back;
-            unary_lift ~name: "is-book-such-that" (book, book_val) ~converter: Book.text_formula_converter ~wrap_back;
-            unary_lift ~name: "is-set-such-that" (set, set_val) ~converter: Set.text_formula_converter ~wrap_back;
-            unary_lift ~name: "is-tune-such-that" (tune, tune_val) ~converter: Tune.text_formula_converter ~wrap_back;
-            unary_lift ~name: "is-version-such-that" (version, version_val) ~converter: Version.text_formula_converter ~wrap_back;
+            unary_lift ~name: "is-source-such-that" (source, source_val) ~converter: Source.converter ~wrap_back;
+            unary_lift ~name: "is-person-such-that" (person, person_val) ~converter: (Formula_entry.converter (Person.name' % Formula_string.matches') Person.converter) ~wrap_back;
+            unary_lift ~name: "is-dance-such-that" (dance, dance_val) ~converter: Dance.converter ~wrap_back;
+            unary_lift ~name: "is-book-such-that" (book, book_val) ~converter: Book.converter ~wrap_back;
+            unary_lift ~name: "is-set-such-that" (set, set_val) ~converter: Set.converter ~wrap_back;
+            unary_lift ~name: "is-tune-such-that" (tune, tune_val) ~converter: Tune.converter ~wrap_back;
+            unary_lift ~name: "is-version-such-that" (version, version_val) ~converter: Version.converter ~wrap_back;
           ];
       )
       (
         merge_l
           [
             (* Other converters, lifted to Any *)
-            map source Source.text_formula_converter ~error: ((^) "As source: ");
-            map person (Formula_entry.text_formula_converter (Person.name' % Formula_string.matches') Person.text_formula_converter) ~error: ((^) "As person: ");
-            map dance Dance.text_formula_converter ~error: ((^) "As dance: ");
-            map book Book.text_formula_converter ~error: ((^) "As book: ");
-            map set Set.text_formula_converter ~error: ((^) "As set: ");
-            map tune Tune.text_formula_converter ~error: ((^) "As tune: ");
-            map version Version.text_formula_converter ~error: ((^) "As version: ");
+            map source Source.converter ~error: ((^) "As source: ");
+            map person (Formula_entry.converter (Person.name' % Formula_string.matches') Person.converter) ~error: ((^) "As person: ");
+            map dance Dance.converter ~error: ((^) "As dance: ");
+            map book Book.converter ~error: ((^) "As book: ");
+            map set Set.converter ~error: ((^) "As set: ");
+            map tune Tune.converter ~error: ((^) "As tune: ");
+            map version Version.converter ~error: ((^) "As version: ");
           ]
       )
   )
-let text_formula_converter = make_text_formula_converter ()
+let converter = make_converter ()
 
-let from_text_formula = Text_formula.to_formula text_formula_converter
+let from_text_formula = Text_formula.to_formula converter
 let from_string ?filename input = Result.bind (Text_formula.from_string ?filename input) from_text_formula
 
-let to_string = Text_formula.to_string % Text_formula.of_formula text_formula_converter
+let to_string = Text_formula.to_string % Text_formula.of_formula converter
 
 (** Clean up a formula by analysing the types of given predicates. For
     instance, ["type:version (version:key:A :or book::source)"] can be
@@ -183,7 +183,7 @@ let to_pretty_string =
       | p -> Formula.pred p
   in
   Text_formula.to_string %
-    Text_formula.of_formula (make_text_formula_converter ~human: true ()) %
+    Text_formula.of_formula (make_converter ~human: true ()) %
     add_explicit_type %
     optimise
 
@@ -206,7 +206,7 @@ let specialise_entry ~from_text_formula ~type_ ~unLift =
 let specialise formula = (
   specialise ~from_text_formula: Book.from_text_formula ~type_: Book ~unLift: book_val formula,
   specialise ~from_text_formula: Dance.from_text_formula ~type_: Dance ~unLift: dance_val formula,
-  specialise ~from_text_formula: (Formula_entry.from_text_formula (Person.name' % Formula_string.matches') Person.text_formula_converter) ~type_: Person ~unLift: person_val formula,
+  specialise ~from_text_formula: (Formula_entry.from_text_formula (Person.name' % Formula_string.matches') Person.converter) ~type_: Person ~unLift: person_val formula,
   specialise ~from_text_formula: Set.from_text_formula ~type_: Set ~unLift: set_val formula,
   specialise ~from_text_formula: Source.from_text_formula ~type_: Source ~unLift: source_val formula,
   specialise ~from_text_formula: Tune.from_text_formula ~type_: Tune ~unLift: tune_val formula,

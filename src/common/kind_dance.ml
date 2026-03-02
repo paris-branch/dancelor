@@ -110,7 +110,7 @@ module Filter = struct
             (Kind_version.Filter.accepts vfilter)
             (version_kinds kind)
 
-  let text_formula_converter =
+  let converter =
     Text_formula_converter.(
       merge
         ~tiebreaker: Left
@@ -125,17 +125,17 @@ module Filter = struct
             )
             [
               nullary ~name: "simple" Simple;
-              unary_lift ~name: "version" (version, version_val) ~converter: Kind_version.Filter.text_formula_converter;
+              unary_lift ~name: "version" (version, version_val) ~converter: Kind_version.Filter.converter;
               unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "dance kind";
             ]
         )
         (
           (* Version kind converter, lifted to dance kinds; lose in case of tiebreak. *)
-          map version Kind_version.Filter.text_formula_converter
+          map version Kind_version.Filter.converter
         )
     )
 
-  let from_text_formula = Text_formula.to_formula text_formula_converter
+  let from_text_formula = Text_formula.to_formula converter
   let from_string ?filename input =
     Result.bind (Text_formula.from_string ?filename input) from_text_formula
 

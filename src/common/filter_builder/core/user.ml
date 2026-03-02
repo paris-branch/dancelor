@@ -10,21 +10,21 @@ type t = predicate Formula.t
 
 let username' = Formula.pred % username
 
-let text_formula_converter =
+let converter =
   Text_formula_converter.(
     make
       ~raw: (ok % username' % Formula_string.matches')
       [
         unary_id ~name: "is" (is, is_val);
-        unary_lift ~name: "username" (username, username_val) ~converter: Formula_string.text_formula_converter;
+        unary_lift ~name: "username" (username, username_val) ~converter: Formula_string.converter;
       ]
   )
 
-let from_text_formula = Text_formula.to_formula text_formula_converter
+let from_text_formula = Text_formula.to_formula converter
 let from_string ?filename input =
   Result.bind (Text_formula.from_string ?filename input) from_text_formula
 
-let to_text_formula = Text_formula.of_formula text_formula_converter
+let to_text_formula = Text_formula.of_formula converter
 let to_string = Text_formula.to_string % to_text_formula
 
 let is x = is @@ Entry.id x

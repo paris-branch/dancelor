@@ -15,7 +15,7 @@ let empty' = Formula.pred empty
 let exists' f = Formula.pred (exists f)
 let forall' f = Formula.pred (forall f)
 
-let text_formula_converter sub_raw sub_tfc =
+let converter sub_raw sub_tfc =
   Text_formula_converter.(
     make
       ~raw: (ok % exists' % sub_raw)

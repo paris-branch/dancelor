@@ -23,7 +23,7 @@ module type S = sig
   val dances : Core.Dance.t Formula_list.t -> predicate
   val dances' : Core.Dance.t Formula_list.t -> t
 
-  val text_formula_converter : predicate Text_formula_converter.t
+  val converter : predicate Text_formula_converter.t
   (** Converter from text formulas to formulas on tunes. *)
 
   val from_text_formula : Text_formula.t -> (t, string) Result.t

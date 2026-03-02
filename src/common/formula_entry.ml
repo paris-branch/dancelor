@@ -13,7 +13,7 @@ type ('v, 'f) t = ('v, 'f) predicate Formula.t
 let is' entry = Formula.pred @@ is @@ Entry.id entry
 let value' f = Formula.pred @@ value f
 
-let text_formula_converter sub_raw sub_tfc =
+let converter sub_raw sub_tfc =
   Text_formula_converter.(
     make
       ~raw: (ok % value' % sub_raw)
@@ -26,7 +26,7 @@ let text_formula_converter sub_raw sub_tfc =
       ]
   )
 
-let from_text_formula sub_raw sub_tfc = Text_formula.to_formula (text_formula_converter sub_raw sub_tfc)
+let from_text_formula sub_raw sub_tfc = Text_formula.to_formula (converter sub_raw sub_tfc)
 let from_string sub_raw sub_tfc ?filename input =
   Result.bind (Text_formula.from_string ?filename input) (from_text_formula sub_raw sub_tfc)
 
@@ -50,7 +50,7 @@ let accepts sub_accepts (filter : ('value, 'sub_filter) t) (entry : ('value, 'ac
 (* Allow building a Madge jsonable formula entry. Honestly, this is more like a
    hack at this point. FIXME by introducing a general module type for filters
    and making everything work nicely with modules. This is already something we
-   need to make this text_formula_converter business less disgusting. *)
+   need to make this converter business less disgusting. *)
 
 module type MODEL = sig type t end
 

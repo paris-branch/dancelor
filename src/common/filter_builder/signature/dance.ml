@@ -16,7 +16,7 @@ module type S = sig
   val devisers : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.t Formula_list.t -> predicate
   val devisers' : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.t Formula_list.t -> t
 
-  val text_formula_converter : predicate Text_formula_converter.t
+  val converter : predicate Text_formula_converter.t
   val from_text_formula : Text_formula.t -> (t, string) Result.t
   val from_string : ?filename: string -> string -> (t, string) Result.t
   val to_string : t -> string

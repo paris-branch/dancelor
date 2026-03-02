@@ -14,7 +14,7 @@ let tune' = Formula.pred % tune
 let key' = Formula.pred % key
 let sources' = Formula.pred % sources
 
-let text_formula_converter =
+let converter =
   Text_formula_converter.(
     merge
       ~tiebreaker: Left
@@ -23,25 +23,25 @@ let text_formula_converter =
         make
           ~raw: (ok % tune' % Tune.name' % Formula_string.matches')
           [
-            unary_lift ~wrap_back: Not_raw ~name: "tune" (tune, tune_val) ~converter: Tune.text_formula_converter;
+            unary_lift ~wrap_back: Not_raw ~name: "tune" (tune, tune_val) ~converter: Tune.converter;
             unary_raw ~name: "key" (key, key_val) ~cast: (Music.Key.of_string_opt, Music.Key.to_string) ~type_: "key";
             unary_id ~name: "is" (is, is_val);
-            unary_lift ~name: "sources" (sources, sources_val) ~converter: (Formula_list.text_formula_converter (Source.name' % Formula_string.matches') Source.text_formula_converter);
+            unary_lift ~name: "sources" (sources, sources_val) ~converter: (Formula_list.converter (Source.name' % Formula_string.matches') Source.converter);
           ]
       )
       (
         (* Tune converter, lifted to versions. Lose in case of tiebreak. *)
-        map tune Tune.text_formula_converter ~error: ((^) "As tune lifted to version: ")
+        map tune Tune.converter ~error: ((^) "As tune lifted to version: ")
       )
   )
 
-let from_text_formula = Text_formula.to_formula text_formula_converter
+let from_text_formula = Text_formula.to_formula converter
 let from_string ?filename input =
   Result.bind
     (Text_formula.from_string ?filename input)
     from_text_formula
 
-let to_text_formula = Text_formula.of_formula text_formula_converter
+let to_text_formula = Text_formula.of_formula converter
 let to_string = Text_formula.to_string % to_text_formula
 
 let is x = is @@ Entry.id x
