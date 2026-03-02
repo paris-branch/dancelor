@@ -4,10 +4,15 @@
     formulas. *)
 
 type 'p t
-(** Abstract type of a converter from text formulas to formulas with predicates
-    of type ['p]. *)
+(** Abstract type of a converter between text formulas and formulas with
+    predicates of type ['p]. *)
 
 (** {2 Using} *)
+
+val raw : 'p t -> string -> ('p Formula.t, string) Result.t
+(** Convert a “raw” string to a formula using the given converter. In the
+    formula ["bonjour baguette:oui monsieur :chocolat"], raw strings would be
+    ["bonjour"] and ["monsieur"]. *)
 
 val text_formula_to_formula : 'p t -> Text_formula_type.t -> ('p Formula.t, string) Result.t
 (** Convert a text formula to a formula using the given converter. *)

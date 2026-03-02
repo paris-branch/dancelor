@@ -13,22 +13,22 @@ type ('v, 'f) t = ('v, 'f) predicate Formula.t
 let is' entry = Formula.pred @@ is @@ Entry.id entry
 let value' f = Formula.pred @@ value f
 
-let converter sub_raw sub_tfc =
+let converter sub_converter =
   Text_formula_converter.(
     make
-      ~raw: (ok % value' % sub_raw)
+      ~raw: (Result.map value' % raw sub_converter)
       [
         unary_id ~name: "is" (is, is_val);
-        unary_lift ~name: "value" (value, value_val) ~converter: sub_tfc;
-      (* FIXME: should we use ~wrap_back: Never, for nicer text formulas? but
-         this breaks the roundtrip tests and it isn't bothering use for now (but
-         we've only applied this to Person, which has like no predicates). *)
+        unary_lift ~name: "value" (value, value_val) ~converter: sub_converter;
+        (* FIXME: should we use ~wrap_back: Never, for nicer text formulas? but
+           this breaks the roundtrip tests and it isn't bothering use for now (but
+           we've only applied this to Person, which has like no predicates). *)
       ]
   )
 
-let from_text_formula sub_raw sub_tfc = Text_formula.to_formula (converter sub_raw sub_tfc)
-let from_string sub_raw sub_tfc ?filename input =
-  Result.bind (Text_formula.from_string ?filename input) (from_text_formula sub_raw sub_tfc)
+let from_text_formula sub_converter = Text_formula.to_formula (converter sub_converter)
+let from_string sub_converter ?filename input =
+  Result.bind (Text_formula.from_string ?filename input) (from_text_formula sub_converter)
 
 let optimise sub_optimise =
   Formula.optimise

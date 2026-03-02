@@ -20,14 +20,7 @@ let owners' = Formula.pred % owners
 
 let converter =
   let unary_lift_conceptors ~name =
-    Text_formula_converter.unary_lift
-      ~name
-      (conceptors, conceptors_val)
-      ~converter: (
-        Formula_list.converter
-          (Formula_entry.value' % Person.name' % Formula_string.matches')
-          (Formula_entry.converter (Person.name' % Formula_string.matches') Person.converter)
-      )
+    Text_formula_converter.unary_lift ~name (conceptors, conceptors_val) ~converter: (Formula_list.converter (Formula_entry.converter Person.converter))
   in
   Text_formula_converter.(
     make
@@ -36,9 +29,9 @@ let converter =
         unary_lift ~name: "name" (name, name_val) ~converter: Formula_string.converter;
         unary_lift_conceptors ~name: "conceptors";
         unary_lift_conceptors ~name: "by";
-        unary_lift ~name: "versions" (versions, versions_val) ~converter: (Formula_list.converter (Version.tune' % Tune.name' % Formula_string.matches') Version.converter);
+        unary_lift ~name: "versions" (versions, versions_val) ~converter: (Formula_list.converter Version.converter);
         unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Dance.Filter.converter;
-        unary_lift ~name: "owners" (owners, owners_val) ~converter: (Formula_list.converter (User.username' % Formula_string.matches') User.converter);
+        unary_lift ~name: "owners" (owners, owners_val) ~converter: (Formula_list.converter User.converter);
         unary_id ~name: "is" (is, is_val);
       ]
   )

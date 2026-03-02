@@ -8,11 +8,12 @@ type 'p case = {
   predicate_to_text_formula: 'p -> Type.t option; (** Given a ['p]redicate, produce a text formula if the case matches, or [None]. *)
 }
 
-type tiebreaker = Left | Right | Both
-
 type 'p t = {
+  raw: string -> ('p Formula.t, string) result; (** Given a string outside predicates, produce either a ['p Formula.t] or an [Error]. *)
   cases: 'p case list;
 }
+
+let raw converter = converter.raw
 
 let text_predicate_to_formula converter text_predicate =
   Option.value
@@ -35,9 +36,10 @@ let make ~raw cases =
     predicate_to_text_formula = const None;
   }
   in
-    {cases = raw_case :: cases}
+    {raw; cases = raw_case :: cases}
 
 let map ?(error = Fun.id) f converter = {
+  raw = Result.map_both ~ok: (Formula.pred % f) ~error % converter.raw;
   cases =
   List.map
     (fun case ->
@@ -49,30 +51,37 @@ let map ?(error = Fun.id) f converter = {
     converter.cases;
 }
 
-let merge ?(tiebreaker = Both) converter1 converter2 = {
-  cases = [
-    {
-      text_predicate_to_formula = (fun text_predicate ->
-        Some (
-          match (text_predicate_to_formula converter1 text_predicate, text_predicate_to_formula converter2 text_predicate) with
-          | Ok f1, Ok f2 when tiebreaker = Both -> Ok (Formula.or_ f1 f2)
-          | _, Ok f2 when tiebreaker = Right -> Ok f2
-          | Ok f1, _ -> Ok f1
-          | _, Ok f2 -> Ok f2
-          | Error e1, Error e2 -> Error (e1 ^ "\n" ^ e2)
-        )
-      );
-      predicate_to_text_formula = (fun predicate ->
-        match (predicate_to_text_formula converter1 predicate, predicate_to_text_formula converter2 predicate) with
-        | Some f1, Some f2 when tiebreaker = Both -> Some (Formula.or_ f1 f2)
-        | _, Some f2 when tiebreaker = Right -> Some f2
-        | Some f1, _ -> Some f1
-        | _, Some f2 -> Some f2
-        | None, None -> None
-      );
-    }
-  ];
-}
+type tiebreaker = Left | Right | Both
+
+let merge ?(tiebreaker = Both) converter1 converter2 =
+  let merge_results r1 r2 =
+    match (r1, r2) with
+    | Ok f1, Ok f2 when tiebreaker = Both -> Ok (Formula.or_ f1 f2)
+    | _, Ok f2 when tiebreaker = Right -> Ok f2
+    | Ok f1, _ -> Ok f1
+    | _, Ok f2 -> Ok f2
+    | Error e1, Error e2 -> Error (e1 ^ "\n" ^ e2)
+  in
+  let merge_options o1 o2 = Result.to_option (merge_results (Option.to_result ~none: "" o1) (Option.to_result ~none: "" o2)) in
+  {
+    raw = (fun str -> merge_results (converter1.raw str) (converter2.raw str));
+    cases = [
+      {
+        text_predicate_to_formula = (fun text_predicate ->
+          Some (
+            merge_results
+              (text_predicate_to_formula converter1 text_predicate)
+              (text_predicate_to_formula converter2 text_predicate)
+          )
+        );
+        predicate_to_text_formula = (fun predicate ->
+          merge_options
+            (predicate_to_text_formula converter1 predicate)
+            (predicate_to_text_formula converter2 predicate)
+        );
+      }
+    ];
+  }
 
 let merge_l = function
   | [] -> invalid_arg "Text_formula_converter.merge_l"

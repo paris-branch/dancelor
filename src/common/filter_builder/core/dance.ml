@@ -16,7 +16,7 @@ let devisers' = Formula.pred % devisers
 
 let converter =
   let unary_lift_devisers ~name =
-    Text_formula_converter.unary_lift ~name (devisers, devisers_val) ~converter: (Formula_list.converter (Formula_entry.value' % Person.name' % Formula_string.matches') (Formula_entry.converter (Person.name' % Formula_string.matches') Person.converter));
+    Text_formula_converter.unary_lift ~name (devisers, devisers_val) ~converter: (Formula_list.converter (Formula_entry.converter Person.converter));
   in
   Text_formula_converter.(
     make

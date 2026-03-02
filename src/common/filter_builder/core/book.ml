@@ -26,11 +26,11 @@ let converter =
       ~raw: (ok % title' % Formula_string.matches')
       [
         unary_lift ~name: "title" (title, title_val) ~converter: Formula_string.converter;
-        unary_lift ~name: "versions" (versions, versions_val) ~converter: (Formula_list.converter (Version.tune' % Tune.name' % Formula_string.matches') Version.converter);
-        unary_lift ~name: "sets" (sets, sets_val) ~converter: (Formula_list.converter (Set.name' % Formula_string.matches') Set.converter);
-        unary_lift ~name: "versions-deep" (versions_deep, versions_deep_val) ~converter: (Formula_list.converter (Version.tune' % Tune.name' % Formula_string.matches') Version.converter);
-        unary_lift ~name: "editors" (editors, editors_val) ~converter: (Formula_list.converter (Formula_entry.value' % Person.name' % Formula_string.matches') (Formula_entry.converter (Person.name' % Formula_string.matches') Person.converter));
-        unary_lift ~name: "owners" (owners, owners_val) ~converter: (Formula_list.converter (User.username' % Formula_string.matches') User.converter);
+        unary_lift ~name: "versions" (versions, versions_val) ~converter: (Formula_list.converter Version.converter);
+        unary_lift ~name: "sets" (sets, sets_val) ~converter: (Formula_list.converter Set.converter);
+        unary_lift ~name: "versions-deep" (versions_deep, versions_deep_val) ~converter: (Formula_list.converter Version.converter);
+        unary_lift ~name: "editors" (editors, editors_val) ~converter: (Formula_list.converter (Formula_entry.converter Person.converter));
+        unary_lift ~name: "owners" (owners, owners_val) ~converter: (Formula_list.converter User.converter);
         unary_id ~name: "is" (is, is_val);
       ]
   )

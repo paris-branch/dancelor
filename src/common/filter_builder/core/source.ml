@@ -19,7 +19,7 @@ let converter =
       [
         unary_id ~name: "is" (is, is_val);
         unary_lift ~name: "name" (name, name_val) ~converter: Formula_string.converter;
-        unary_lift ~name: "editors" (editors, editors_val) ~converter: (Formula_list.converter (Formula_entry.value' % Person.name' % Formula_string.matches') (Formula_entry.converter (Person.name' % Formula_string.matches') Person.converter));
+        unary_lift ~name: "editors" (editors, editors_val) ~converter: (Formula_list.converter (Formula_entry.converter Person.converter));
       ]
   )
 

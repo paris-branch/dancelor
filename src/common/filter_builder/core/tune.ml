@@ -18,7 +18,7 @@ let dances' = Formula.pred % dances
 
 let converter =
   let unary_lift_composers ~name =
-    Text_formula_converter.unary_lift ~name (composers, composers_val) ~converter: (Formula_list.converter (Formula_entry.value' % Person.name' % Formula_string.matches') (Formula_entry.converter (Person.name' % Formula_string.matches') Person.converter));
+    Text_formula_converter.unary_lift ~name (composers, composers_val) ~converter: (Formula_list.converter (Formula_entry.converter Person.converter));
   in
   Text_formula_converter.(
     make
@@ -28,7 +28,7 @@ let converter =
         unary_lift_composers ~name: "composers";
         unary_lift_composers ~name: "by";
         unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Base.Filter.converter;
-        unary_lift ~name: "dances" (dances, dances_val) ~converter: (Formula_list.converter (Dance.name' % Formula_string.matches') Dance.converter);
+        unary_lift ~name: "dances" (dances, dances_val) ~converter: (Formula_list.converter Dance.converter);
         unary_id ~name: "is" (is, is_val);
       ]
   )

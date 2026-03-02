@@ -33,7 +33,7 @@ let editor =
       Selector.prepare
         ~label: "Deviser"
         ~search: (fun slice input ->
-          let%rlwt filter = lwt @@ Formula_entry.from_string (Filter.Person.name' % Formula_string.matches') Filter.Person.converter input in
+          let%rlwt filter = lwt @@ Formula_entry.from_string Filter.Person.converter input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
         ~unserialise: Model.Person.get
