@@ -149,14 +149,14 @@ let set_omniscience env value =
 
 include Search.Build(struct
   type value = Model.User.entry
-  type filter = Filter.User.t
+  type filter = (Model.User.t, Filter.User.t) Formula_entry.public
 
   let get_all env =
     Lwt_stream.filter (Permission.can_get_public env) @@ Lwt_stream.of_seq @@ Database.User.get_all ()
 
-  let optimise_filter = Filter.User.optimise
+  let optimise_filter = Formula_entry.optimise_public Filter.User.optimise
   let filter_is_empty = (=) Formula.False
-  let filter_accepts = Filter.User.accepts
+  let filter_accepts = Formula_entry.accepts_public Filter.User.accepts
   let score_true = Formula.interpret_true
 
   let tiebreakers =

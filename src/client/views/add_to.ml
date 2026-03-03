@@ -55,7 +55,7 @@ let dialog
         (* FIXME: Rather than the entries owned by the user, we should filter
            on the entries that the user is allowed to edit, that is we should
            have filters for permissions. *)
-        let filter = Formula.and_ filter (target_filter_owners' Filter.(Formula_list.exists' (User.is' user))) in
+        let filter = Formula.and_ filter (target_filter_owners' @@ Formula_list.exists' @@ Formula_entry.is' user) in
         ok <$> target_search slice filter
       )
       ()

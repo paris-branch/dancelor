@@ -6,10 +6,7 @@ module type S = Signature.S
 module Build (Model : Model_builder.S) : S = struct
   module Accepts = Accepts.Make(Model)
 
-  module User = struct
-    include Core.User
-    let accepts = Accepts.accepts_user
-  end
+  module User = Core.User
 
   module Source = struct
     include Core.Source

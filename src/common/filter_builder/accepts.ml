@@ -3,14 +3,7 @@ open Nes
 module Make (Model : Model_builder.S) = struct
   let char_equal = Char.Sensible.equal
 
-  let rec accepts_user filter user =
-    Formula.interpret filter @@ function
-      | Core.User.Is user' ->
-        lwt @@ Formula.interpret_bool @@ Entry.Id.unsafe_equal (Entry.id user) user'
-      | Username sfilter ->
-        Formula_string.accepts sfilter @@ Model.User.Username.to_string @@ Model.User.username' user
-
-  and accepts_book filter book =
+  let rec accepts_book filter book =
     Formula.interpret filter @@ function
       | Core.Book.Is book' ->
         lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id book) book'
@@ -52,7 +45,7 @@ module Make (Model : Model_builder.S) = struct
       | Owners lfilter ->
         let owners = NEList.to_list @@ Entry.(Access.Private.owners % access) book in
         let%lwt owners = Lwt_list.map_p (Lwt.map Option.get % Model.User.get) owners in
-        Formula_list.accepts accepts_user lfilter owners
+        Formula_list.accepts (Formula_entry.accepts_public Core.User.accepts) lfilter owners
 
   and accepts_dance filter dance =
     Formula.interpret filter @@ function
@@ -90,7 +83,7 @@ module Make (Model : Model_builder.S) = struct
       | Owners lfilter ->
         let owners = NEList.to_list @@ Entry.(Access.Private.owners % access) set in
         let%lwt owners = Lwt_list.map_p (Lwt.map Option.get % Model.User.get) owners in
-        Formula_list.accepts accepts_user lfilter owners
+        Formula_list.accepts (Formula_entry.accepts_public Core.User.accepts) lfilter owners
 
   and accepts_source filter source =
     Formula.interpret filter @@ function

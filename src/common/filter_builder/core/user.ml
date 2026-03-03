@@ -1,7 +1,6 @@
 open Nes
 
 type predicate =
-  | Is of Model_builder.Core.User.t Entry.id
   | Username of Formula_string.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
@@ -15,17 +14,17 @@ let converter =
     make
       ~raw: (ok % username' % Formula_string.matches')
       [
-        unary_id ~name: "is" (is, is_val);
         unary_lift ~name: "username" (username, username_val) ~converter: Formula_string.converter;
       ]
   )
 
-let is x = is @@ Entry.id x
-let is' x = Formula.pred @@ is x
-
 let optimise =
   Formula.optimise
     (function
-      | (Is _ as p) -> p
       | Username sfilter -> username @@ Formula_string.optimise sfilter
     )
+
+let accepts filter user =
+  Formula.interpret filter @@ function
+    | Username sfilter ->
+      Formula_string.accepts sfilter @@ Model_builder.Core.User.Username.to_string @@ Model_builder.Core.User.username user

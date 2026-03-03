@@ -34,7 +34,7 @@ let create () =
       ~make_result: (Any_result.make_user_result ?context: None)
       ~results_when_no_search: lwt_nil
       ~search: (fun slice input ->
-        let%rlwt filter = lwt (Text_formula.string_to_formula Filter.User.converter input) in
+        let%rlwt filter = lwt (Text_formula.string_to_formula (Formula_entry.converter_public Filter.User.converter) input) in
         ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
       )
       ~unserialise: Model.User.get
