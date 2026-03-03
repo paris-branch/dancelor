@@ -45,7 +45,7 @@ module Make (Model : Model_builder.S) = struct
       | Owners lfilter ->
         let owners = NEList.to_list @@ Entry.(Access.Private.owners % access) book in
         let%lwt owners = Lwt_list.map_p (Lwt.map Option.get % Model.User.get) owners in
-        Formula_list.accepts (Formula_entry.accepts_public Core.User.accepts) lfilter owners
+        Formula_list.accepts (Formula_entry.accepts_public Formula_user.accepts) lfilter owners
 
   and accepts_dance filter dance =
     Formula.interpret filter @@ function
@@ -83,7 +83,7 @@ module Make (Model : Model_builder.S) = struct
       | Owners lfilter ->
         let owners = NEList.to_list @@ Entry.(Access.Private.owners % access) set in
         let%lwt owners = Lwt_list.map_p (Lwt.map Option.get % Model.User.get) owners in
-        Formula_list.accepts (Formula_entry.accepts_public Core.User.accepts) lfilter owners
+        Formula_list.accepts (Formula_entry.accepts_public Formula_user.accepts) lfilter owners
 
   and accepts_source filter source =
     Formula.interpret filter @@ function

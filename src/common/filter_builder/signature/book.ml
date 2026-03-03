@@ -16,8 +16,8 @@ module type S = sig
   val versions_deep : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public Formula_list.t -> predicate
   val versions_deep' : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public Formula_list.t -> t
 
-  val owners : (Model_builder.Core.User.t, Core.User.t) Formula_entry.public Formula_list.t -> predicate
-  val owners' : (Model_builder.Core.User.t, Core.User.t) Formula_entry.public Formula_list.t -> t
+  val owners : (Model_builder.Core.User.t, Formula_user.t) Formula_entry.public Formula_list.t -> predicate
+  val owners' : (Model_builder.Core.User.t, Formula_user.t) Formula_entry.public Formula_list.t -> t
 
   val converter : predicate Text_formula_converter.t
   val optimise : t -> t

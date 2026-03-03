@@ -48,7 +48,7 @@ type (_, _, _) t =
   | Create : ((User.t -> 'w), 'w, User.entry * User.Password_reset_token_clear.t) t
   | Prepare_reset_password : ((User.Username.t -> 'w), 'w, User.Password_reset_token_clear.t) t
   | Reset_password : ((User.Username.t -> User.Password_reset_token_clear.t -> User.Password_clear.t -> 'w), 'w, unit) t
-  | Search : ((Slice.t -> (User.t, Filter.User.t) Formula_entry.public -> 'w), 'w, (int * (User.t, Entry.Access.public) Entry.t list)) t
+  | Search : ((Slice.t -> (User.t, Formula_user.t) Formula_entry.public -> 'w), 'w, (int * (User.t, Entry.Access.public) Entry.t list)) t
   | Set_omniscience : ((bool -> 'w), 'w, unit) t
 [@@deriving madge_wrapped_endpoints]
 
@@ -62,5 +62,5 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Create -> literal "create" @@ body "user" (module User) @@ post (module JPair(Entry.JPublic(User))(User.Password_reset_token_clear))
     | Prepare_reset_password -> literal "prepare-reset-password" @@ body "username" (module User.Username) @@ post (module User.Password_reset_token_clear)
     | Reset_password -> literal "reset-password" @@ body "username" (module User.Username) @@ body "token" (module User.Password_reset_token_clear) @@ body "password" (module User.Password_clear) @@ post (module JUnit)
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(User)(Filter.User)) @@ get (module JPair(JInt)(JList(Entry.JPublic(User))))
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(User)(Formula_user)) @@ get (module JPair(JInt)(JList(Entry.JPublic(User))))
     | Set_omniscience -> literal "set-omniscience" @@ body "value" (module JBool) @@ put (module JUnit)

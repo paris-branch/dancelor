@@ -1,8 +1,8 @@
 module type S = sig
   (** {1 User filter} *)
 
-  type predicate = Core.User.predicate
-  type t = Core.User.t
+  type predicate = Formula_user.predicate
+  type t = Formula_user.t
 
   val converter : predicate Text_formula_converter.t
   val optimise : t -> t

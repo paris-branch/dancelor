@@ -21,6 +21,19 @@ module Id = struct
     pure @@ Option.get @@ Common.Entry.Id.of_string str
 end
 
+module Entry = struct
+  (* The following are dirty tricks, necessary to convince [ppx_deriving_qcheck]
+     that it can generate an [t Id.t]. These “models” are only to be used in a
+     context where we use their id; there, it is fine since [Id.gen] ignores its
+     first argument. *)
+
+  module User = struct
+    (* FIXME: not sure this one is actually fine *)
+    type t = Common.Model_builder.Core.User.t
+    let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
+  end
+end
+
 module Formula = struct
   type 'p t = [%import: 'p Common.Formula.t] [@@deriving qcheck2]
 
@@ -47,16 +60,20 @@ module Formula_list = struct
   [@@deriving qcheck2]
 end
 
-module Formula_entry = struct
-  module Access = struct
-    module Public = struct
-      type predicate = [%import: Common.Formula_entry.Access.Public.predicate [@with Common.Formula.t := Formula.t]]
-      [@@deriving qcheck2]
-      type t = predicate Formula.t
-      [@@deriving qcheck2]
-    end
-  end
+module Formula_user = struct
+  type predicate = [%import: Common.Formula_user.predicate [@with Common.Entry.Id.t := Id.t;
+    Common.Entry.id := Id.t;
+    Common.Model_builder.Core.User.t := Model.User.t;
+    Common.Formula_string.t := Formula_string.t;
+    ]
+  ]
+  [@@deriving qcheck2]
+  type t = [%import: Common.Formula_user.t [@with Common.Formula.t := Formula.t;]
+  ]
+  [@@deriving qcheck2]
+end
 
+module Formula_entry = struct
   type ('value, 'filter, 'access_filter) predicate_gen = [%import: ('value, 'filter, 'access_filter) Common.Formula_entry.predicate_gen [@with Common.Entry.Id.t := Id.t]
   ]
   [@@deriving qcheck2]
@@ -65,9 +82,34 @@ module Formula_entry = struct
   ]
   [@@deriving qcheck2]
 
-  type ('value, 'filter) public = [%import: ('value, 'filter) Common.Formula_entry.public [@with Common.Formula.t := Formula.t;
-    Access.Public.t := Access.Public.t;
+  type access_public_predicate = [%import: Common.Formula_entry.access_public_predicate [@with Common.Formula.t := Formula.t;
+    Nes.Void.t := Void.t;
     ]
+  ]
+  [@@deriving qcheck2]
+
+  type access_public = access_public_predicate Formula.t
+  [@@deriving qcheck2]
+
+  type ('value, 'filter) public = [%import: ('value, 'filter) Common.Formula_entry.public [@with Common.Formula.t := Formula.t;]
+  ]
+  [@@deriving qcheck2]
+
+  type access_private_predicate = [%import: Common.Formula_entry.access_private_predicate [@with Common.Formula.t := Formula.t;
+    public := public;
+    Common.Formula_list.t := Formula_list.t;
+    Common.Formula_user.t := Formula_user.t;
+    Common.Entry.User.t := Entry.User.t;
+    Nes.Void.t := Void.t;
+    ]
+  ]
+  [@@deriving qcheck2]
+
+  type access_private = [%import: Common.Formula_entry.access_private [@with Common.Formula.t := Formula.t;]
+  ]
+  [@@deriving qcheck2]
+
+  type ('value, 'filter) private_ = [%import: ('value, 'filter) Common.Formula_entry.private_ [@with Common.Formula.t := Formula.t;]
   ]
   [@@deriving qcheck2]
 end
@@ -167,12 +209,6 @@ module Model = struct
      context where we use their id; there, it is fine since [Id.gen] ignores its
      first argument. *)
 
-  module User = struct
-    (* FIXME: not sure this one is actually fine *)
-    type t = Common.Model_builder.Core.User.t
-    let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
-  end
-
   module Source = struct
     type t = Common.Model_builder.Core.Source.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
@@ -218,19 +254,6 @@ module Model = struct
 end
 
 module Filter = struct
-  module User = struct
-    type predicate = [%import: Common.Filter_builder.Core.User.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.Entry.id := Id.t;
-      Common.Model_builder.Core.User.t := Model.User.t;
-      Common.Formula_string.t := Formula_string.t;
-      ]
-    ]
-    [@@deriving qcheck2]
-    type t = [%import: Common.Filter_builder.Core.User.t [@with Common.Formula.t := Formula.t;]
-    ]
-    [@@deriving qcheck2]
-  end
-
   module Person = struct
     type predicate = [%import: Common.Filter_builder.Core.Person.predicate [@with Common.Entry.Id.t := Id.t;
       Common.Entry.id := Id.t;
@@ -336,7 +359,8 @@ module Filter = struct
       Common.Formula_string.t := Formula_string.t;
       Common.Formula_entry.t := Formula_entry.t;
       Common.Formula_entry.public := Formula_entry.public;
-      Common.Entry.User.t := Model.User.t;
+      Common.Formula_user.t := Formula_user.t;
+      Common.Entry.User.t := Entry.User.t;
       Common__Filter_builder__Core.Person.t := Person.t;
       Common__Filter_builder__Core.Version.t := Version.t;
       Common__Filter_builder__Core.User.t := User.t;
@@ -360,7 +384,8 @@ module Filter = struct
       Common.Formula_string.t := Formula_string.t;
       Common.Formula_entry.t := Formula_entry.t;
       Common.Formula_entry.public := Formula_entry.public;
-      Common.Entry.User.t := Model.User.t;
+      Common.Entry.User.t := Entry.User.t;
+      Common.Formula_user.t := Formula_user.t;
       Common__Filter_builder__Core.Person.t := Person.t;
       Common__Filter_builder__Core.Version.t := Version.t;
       Common__Filter_builder__Core.Set.t := Set.t;
