@@ -55,7 +55,7 @@ let value' filter = Formula.pred @@ value filter
 let access' filter = Formula.pred @@ access filter
 let owners' filter = Formula.pred @@ owners filter
 
-let converter sub_converter access_converter =
+let converter_gen sub_converter access_converter =
   Text_formula_converter.(
     merge
       ~tiebreaker: Left
@@ -81,7 +81,7 @@ let converter sub_converter access_converter =
   )
 
 let converter_public sub_converter =
-  converter sub_converter (
+  converter_gen sub_converter (
     Text_formula_converter.(
       make ~raw: (const @@ Error "access does not accept raw converter") [
         nullary ~name: "unit" ()
@@ -90,7 +90,7 @@ let converter_public sub_converter =
   )
 
 let converter_private sub_converter =
-  converter sub_converter (
+  converter_gen sub_converter (
     Text_formula_converter.(
       make
         ~raw: (const @@ Error "access does not accept raw converter")
@@ -100,7 +100,7 @@ let converter_private sub_converter =
     )
   )
 
-let optimise optimise_value optimise_access =
+let optimise_gen optimise_value optimise_access =
   Formula.optimise
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with
@@ -113,9 +113,18 @@ let optimise optimise_value optimise_access =
       | Access filter -> access @@ optimise_access filter
     )
 
-let optimise_public optimise_value = optimise optimise_value (Formula.optimise (fun ()-> ()))
-let optimise_private optimise_value = optimise optimise_value (fun x -> x (* FIXME *))
-(* FIXME: | Owners lfilter -> owners @@ Formula_list.optimise (Formula_entry.optimise_public Formula_user.optimise) lfilter *)
+let optimise_public optimise_value = optimise_gen optimise_value (Formula.optimise (fun () -> ()))
+
+let optimise_private optimise_value =
+  optimise_gen optimise_value @@
+    Formula.optimise
+      ~binop: (fun {op} f1 f2 ->
+        match (f1, f2) with
+        | (Owners f1, Owners f2) -> some @@ owners (op f1 f2)
+      )
+      (function
+        | Owners filter -> owners @@ Formula_list.optimise (optimise_public Formula_user.optimise) filter
+      )
 
 let accepts_gen
     (accepts_value : 'filter -> 'value -> float Lwt.t)
