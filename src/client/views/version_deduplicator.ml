@@ -188,7 +188,7 @@ let confirmation_dialog ~this_version ~other_version =
   let%lwt sets =
     snd
     <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) Slice.everything @@
-      Filter.Set.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
+      Formula_entry.value' @@ Filter.Set.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
   in
   List.iter
     (fun set ->
@@ -211,7 +211,7 @@ let confirmation_dialog ~this_version ~other_version =
   let%lwt books =
     snd
     <$> Madge_client.call_exn Endpoints.Api.(route @@ Book Search) Slice.everything @@
-      Filter.Book.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
+      Formula_entry.value' @@ Filter.Book.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
   in
   List.iter
     (fun book ->

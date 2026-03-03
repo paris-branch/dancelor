@@ -67,7 +67,7 @@ let set_and_parameters ?(label = "Set") () =
         ~model_name: "set"
         ~create_dialog_content: Set_editor.create
         ~search: (fun slice input ->
-          let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Set.converter input in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_private Filter.Set.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
         )
         ~unserialise: Model.Set.get

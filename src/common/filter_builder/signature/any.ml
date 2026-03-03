@@ -8,8 +8,8 @@ module type S = sig
     | Source of (Model_builder.Core.Source.t, Core.Source.t) Formula_entry.public
     | Person of (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.public
     | Dance of (Model_builder.Core.Dance.t, Core.Dance.t) Formula_entry.public
-    | Book of Core.Book.t
-    | Set of Core.Set.t
+    | Book of (Model_builder.Core.Book.t, Core.Book.t) Formula_entry.private_
+    | Set of (Model_builder.Core.Set.t, Core.Set.t) Formula_entry.private_
     | Tune of (Model_builder.Core.Tune.t, Core.Tune.t) Formula_entry.public
     | Version of (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public
   (** Type of predicates on “any” elements. *)
@@ -47,13 +47,13 @@ module type S = sig
   (** Lift a filter on dances to make a filter on “any”. This filter asserts
       that the “any” element is a dance that matches the given filter. *)
 
-  val book : Core.Book.t -> predicate
-  val book' : Core.Book.t -> t
+  val book : (Model_builder.Core.Book.t, Core.Book.t) Formula_entry.private_ -> predicate
+  val book' : (Model_builder.Core.Book.t, Core.Book.t) Formula_entry.private_ -> t
   (** Lift a filter on books to make a filter on “any”. This filter asserts that
       the “any” element is a book that matches the given filter. *)
 
-  val set : Core.Set.t -> predicate
-  val set' : Core.Set.t -> t
+  val set : (Model_builder.Core.Set.t, Core.Set.t) Formula_entry.private_ -> predicate
+  val set' : (Model_builder.Core.Set.t, Core.Set.t) Formula_entry.private_ -> t
   (** Lift a filter on sets to make a filter on “any”. This filter asserts that
       the “any” element is a set that matches the given filter. *)
 
@@ -93,10 +93,10 @@ module type S = sig
 
   val specialise :
     t ->
-    Core.Book.t
+    (Model_builder.Core.Book.t, Core.Book.t) Formula_entry.private_
     * (Model_builder.Core.Dance.t, Core.Dance.t) Formula_entry.public
     * (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.public
-    * Core.Set.t
+    * (Model_builder.Core.Set.t, Core.Set.t) Formula_entry.private_
     * (Model_builder.Core.Source.t, Core.Source.t) Formula_entry.public
     * (Model_builder.Core.Tune.t, Core.Tune.t) Formula_entry.public
     * (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public

@@ -6,7 +6,7 @@ module Filter = Filter_builder.Core
 type (_, _, _) t =
 (* Actions without specific set *)
 | Create : ((Set.t -> Entry.Access.Private.t -> 'w), 'w, Set.entry) t
-| Search : ((Slice.t -> Filter.Set.t -> 'w), 'w, (int * Set.entry list)) t
+| Search : ((Slice.t -> (Set.t, Filter.Set.t) Formula_entry.private_ -> 'w), 'w, (int * Set.entry list)) t
 (* Actions on a specific set *)
 | Get : ((Set.t Entry.Id.t -> 'w), 'w, Set.entry) t
 | Update : ((Set.t Entry.Id.t -> Set.t -> Entry.Access.Private.t -> 'w), 'w, Set.entry) t
@@ -20,7 +20,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   function
     (* Actions without specific set *)
     | Create -> body "set" (module Set) @@ body "access" (module Entry.Access.Private) @@ post (module Entry.JPrivate(Set))
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Set) @@ get (module JPair(JInt)(JList(Entry.JPrivate(Set))))
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPrivate(Set)(Filter.Set)) @@ get (module JPair(JInt)(JList(Entry.JPrivate(Set))))
     (* Actions on a specific set *)
     | Get -> variable (module Entry.Id.S(Set)) @@ get (module Entry.JPrivate(Set))
     | Update -> variable (module Entry.Id.S(Set)) @@ body "set" (module Set) @@ body "access" (module Entry.Access.Private) @@ put (module Entry.JPrivate(Set))

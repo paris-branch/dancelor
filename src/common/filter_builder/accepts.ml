@@ -5,12 +5,10 @@ module Make (Model : Model_builder.S) = struct
 
   let rec accepts_book filter book =
     Formula.interpret filter @@ function
-      | Core.Book.Is book' ->
-        lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id book) book'
-      | Title sfilter ->
-        Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Book.title' book
+      | Core.Book.Title sfilter ->
+        Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Book.title book
       | Versions vfilter ->
-        let%lwt content = Model.Book.contents' book in
+        let%lwt content = Model.Book.contents book in
         let versions =
           List.concat_map
             (function
@@ -22,7 +20,7 @@ module Make (Model : Model_builder.S) = struct
         in
         Formula_list.accepts (Formula_entry.accepts_public accepts_version) vfilter versions
       | Sets sfilter ->
-        let%lwt content = Model.Book.contents' book in
+        let%lwt content = Model.Book.contents book in
         let%lwt sets =
           Lwt_list.filter_map_s
             (function
@@ -31,21 +29,17 @@ module Make (Model : Model_builder.S) = struct
             )
             content
         in
-        Formula_list.accepts accepts_set sfilter sets
+        Formula_list.accepts (Formula_entry.accepts_private Model.User.get accepts_set) sfilter sets
       | Versions_deep vfilter ->
         (* recursive call to check the compound formula *)
         flip accepts_book book @@
           Formula.or_l
             Core.[Book.versions' vfilter;
-            Book.sets' (Formula_list.exists' (Set.versions' vfilter));
+            Book.sets' (Formula_list.exists' (Formula_entry.value' (Set.versions' vfilter)));
             ]
       | Editors pfilter ->
-        let%lwt editors = Model.Book.authors' book in
+        let%lwt editors = Model.Book.authors book in
         Formula_list.accepts accepts_person' pfilter editors
-      | Owners lfilter ->
-        let owners = NEList.to_list @@ Entry.(Access.Private.owners % access) book in
-        let%lwt owners = Lwt_list.map_p (Lwt.map Option.get % Model.User.get) owners in
-        Formula_list.accepts (Formula_entry.accepts_public Formula_user.accepts) lfilter owners
 
   and accepts_dance filter dance =
     Formula.interpret filter @@ function
@@ -68,22 +62,16 @@ module Make (Model : Model_builder.S) = struct
 
   and accepts_set filter set =
     Formula.interpret filter @@ function
-      | Core.Set.Is set' ->
-        lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id set) set'
-      | Name sfilter ->
-        Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Set.name' set
+      | Core.Set.Name sfilter ->
+        Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Set.name set
       | Conceptors pfilter ->
-        let%lwt conceptors = Model.Set.conceptors' set in
+        let%lwt conceptors = Model.Set.conceptors set in
         Formula_list.accepts accepts_person' pfilter conceptors
       | Versions vfilter ->
-        let%lwt versions = List.map fst <$> Model.Set.contents' set in
+        let%lwt versions = List.map fst <$> Model.Set.contents set in
         Formula_list.accepts (Formula_entry.accepts_public accepts_version) vfilter versions
       | Kind kfilter ->
-        Kind.Dance.Filter.accepts kfilter @@ Model.Set.kind' set
-      | Owners lfilter ->
-        let owners = NEList.to_list @@ Entry.(Access.Private.owners % access) set in
-        let%lwt owners = Lwt_list.map_p (Lwt.map Option.get % Model.User.get) owners in
-        Formula_list.accepts (Formula_entry.accepts_public Formula_user.accepts) lfilter owners
+        Kind.Dance.Filter.accepts kfilter @@ Model.Set.kind set
 
   and accepts_source filter source =
     Formula.interpret filter @@ function

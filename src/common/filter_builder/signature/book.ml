@@ -7,8 +7,8 @@ module type S = sig
   val editors : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.public Formula_list.t -> predicate
   val editors' : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.public Formula_list.t -> t
 
-  val sets : Core.Set.t Formula_list.t -> predicate
-  val sets' : Core.Set.t Formula_list.t -> t
+  val sets : (Model_builder.Core.Set.t, Core.Set.t) Formula_entry.private_ Formula_list.t -> predicate
+  val sets' : (Model_builder.Core.Set.t, Core.Set.t) Formula_entry.private_ Formula_list.t -> t
 
   val versions : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public Formula_list.t -> predicate
   val versions' : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public Formula_list.t -> t
@@ -16,11 +16,8 @@ module type S = sig
   val versions_deep : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public Formula_list.t -> predicate
   val versions_deep' : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public Formula_list.t -> t
 
-  val owners : (Model_builder.Core.User.t, Formula_user.t) Formula_entry.public Formula_list.t -> predicate
-  val owners' : (Model_builder.Core.User.t, Formula_user.t) Formula_entry.public Formula_list.t -> t
-
   val converter : predicate Text_formula_converter.t
   val optimise : t -> t
 
-  val accepts : t -> Model_builder.Core.Book.entry -> float Lwt.t
+  val accepts : t -> Model_builder.Core.Book.t -> float Lwt.t
 end

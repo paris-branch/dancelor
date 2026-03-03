@@ -11,8 +11,8 @@ type restricted_predicate =
   | Person of (Person.t, Filter.Person.t) Formula_entry.predicate_public list list
   | Dance of (Dance.t, Filter.Dance.t) Formula_entry.predicate_public list list
   | Source of (Source.t, Filter.Source.t) Formula_entry.predicate_public list list
-  | Book of Filter.Book.predicate list list
-  | Set of Filter.Set.predicate list list
+  | Book of (Book.t, Filter.Book.t) Formula_entry.predicate_private list list
+  | Set of (Set.t, Filter.Set.t) Formula_entry.predicate_private list list
   | Tune of (Tune.t, Filter.Tune.t) Formula_entry.predicate_public list list
   | Version of (Version.t, Filter.Version.t) Formula_entry.predicate_public list list
 [@@deriving variants]
@@ -105,7 +105,7 @@ let kind_choices filter =
     (* NOTE: Will stop working when we push the disjunction inside the kind filters *)
     match filter with
     | Some (Dance filter) -> List.exists (List.mem (Formula_entry.value @@ Filter.Dance.kind' @@ Kind.Dance.Filter.base_is' kind)) filter
-    | Some (Set filter) -> List.exists (List.mem (Filter.Set.kind @@ Kind.Dance.Filter.base_is' kind)) filter
+    | Some (Set filter) -> List.exists (List.mem (Formula_entry.value @@ Filter.Set.kind' @@ Kind.Dance.Filter.base_is' kind)) filter
     | Some (Tune filter) -> List.exists (List.mem (Formula_entry.value @@ Filter.Tune.kind' @@ Kind.Base.Filter.is' kind)) filter
     | Some (Version filter) -> List.exists (List.mem (Formula_entry.value @@ Filter.Version.tune' @@ Formula_entry.value' @@ Filter.Tune.kind' @@ Kind.Base.Filter.is' kind)) filter
     | _ -> false
@@ -164,7 +164,7 @@ let set_bundled_choices ~kind_choices _filter =
         [
           choices_formula
             ~s: (S.map Result.get_ok (Component.signal kind_choices))
-            ~f: (Filter.Set.kind' % Kind.Dance.Filter.base_is');
+            ~f: (Formula_entry.value' % Filter.Set.kind' % Kind.Dance.Filter.base_is');
         ]
   in
   let html = [
