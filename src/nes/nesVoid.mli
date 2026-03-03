@@ -1,7 +1,7 @@
 (** {1 Void} *)
 
-type t
+type t [@@deriving eq, show, yojson]
 (** Void type: entirely uninhabited. *)
 
-val to_yojson : t -> Yojson.Safe.t
-val of_yojson : Yojson.Safe.t -> (t, string) result
+val f : t -> 'anything
+(** Since there are no void values, they can be converted to anything. *)

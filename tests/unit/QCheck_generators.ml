@@ -48,11 +48,26 @@ module Formula_list = struct
 end
 
 module Formula_entry = struct
-  type ('v, 'f) predicate = [%import: ('v, 'f) Common.Formula_entry.predicate [@with Common.Entry.Id.t := Id.t]
+  module Access = struct
+    module Public = struct
+      type predicate = [%import: Common.Formula_entry.Access.Public.predicate [@with Common.Formula.t := Formula.t]]
+      [@@deriving qcheck2]
+      type t = predicate Formula.t
+      [@@deriving qcheck2]
+    end
+  end
+
+  type ('value, 'filter, 'access_filter) predicate = [%import: ('value, 'filter, 'access_filter) Common.Formula_entry.predicate [@with Common.Entry.Id.t := Id.t]
   ]
   [@@deriving qcheck2]
 
-  type ('v, 'f) t = [%import: ('v, 'f) Common.Formula_entry.t [@with Common.Formula.t := Formula.t]
+  type ('value, 'filter, 'access_filter) t = [%import: ('value, 'filter, 'access_filter) Common.Formula_entry.t [@with Common.Formula.t := Formula.t]
+  ]
+  [@@deriving qcheck2]
+
+  type ('value, 'filter) public = [%import: ('value, 'filter) Common.Formula_entry.public [@with Common.Formula.t := Formula.t;
+    Access.Public.t := Access.Public.t;
+    ]
   ]
   [@@deriving qcheck2]
 end
@@ -237,6 +252,7 @@ module Filter = struct
       Common.Formula_string.t := Formula_string.t;
       Common.Formula_list.t := Formula_list.t;
       Common.Formula_entry.t := Formula_entry.t;
+      Common.Formula_entry.public := Formula_entry.public;
       Common__Filter_builder__Core.Person.t := Person.t;
       ]
     ]
@@ -255,6 +271,7 @@ module Filter = struct
       Common.Formula_string.t := Formula_string.t;
       Common.Formula_list.t := Formula_list.t;
       Common.Formula_entry.t := Formula_entry.t;
+      Common.Formula_entry.public := Formula_entry.public;
       Common__Filter_builder__Core.Person.t := Person.t;
       ]
     ]
@@ -273,6 +290,7 @@ module Filter = struct
       Common.Formula_string.t := Formula_string.t;
       Common.Formula_list.t := Formula_list.t;
       Common.Formula_entry.t := Formula_entry.t;
+      Common.Formula_entry.public := Formula_entry.public;
       Common__Filter_builder__Core.Person.t := Person.t;
       Common__Filter_builder__Core.Dance.t := Dance.t;
       ]
@@ -293,6 +311,7 @@ module Filter = struct
       Common.Formula_string.t := Formula_string.t;
       Common.Formula_list.t := Formula_list.t;
       Common.Formula_entry.t := Formula_entry.t;
+      Common.Formula_entry.public := Formula_entry.public;
       Common__Filter_builder__Core.Source.t := Source.t;
       Common__Filter_builder__Core.Person.t := Person.t;
       Common__Filter_builder__Core.Dance.t := Dance.t;
@@ -316,6 +335,7 @@ module Filter = struct
       Common.Formula_list.t := Formula_list.t;
       Common.Formula_string.t := Formula_string.t;
       Common.Formula_entry.t := Formula_entry.t;
+      Common.Formula_entry.public := Formula_entry.public;
       Common__Filter_builder__Core.Person.t := Person.t;
       Common__Filter_builder__Core.Version.t := Version.t;
       Common__Filter_builder__Core.User.t := User.t;
@@ -338,6 +358,7 @@ module Filter = struct
       Common.Formula_list.t := Formula_list.t;
       Common.Formula_string.t := Formula_string.t;
       Common.Formula_entry.t := Formula_entry.t;
+      Common.Formula_entry.public := Formula_entry.public;
       Common__Filter_builder__Core.Person.t := Person.t;
       Common__Filter_builder__Core.Version.t := Version.t;
       Common__Filter_builder__Core.Set.t := Set.t;
@@ -362,6 +383,7 @@ module Filter = struct
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
       Common.Formula_entry.t := Formula_entry.t;
+      Common.Formula_entry.public := Formula_entry.public;
       Common__Filter_builder__Core.Source.t := Source.t;
       Common__Filter_builder__Core.Person.t := Person.t;
       Common__Filter_builder__Core.Dance.t := Dance.t;

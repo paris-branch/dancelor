@@ -8,13 +8,13 @@ open Components
 (** Restricted predicates supported by the complex filter dialog. They are
     always of the form of a conjunction of disjunctions. *)
 type restricted_predicate =
-  | Person of (Person.t, Filter.Person.t) Formula_entry.predicate list list
-  | Dance of (Dance.t, Filter.Dance.t) Formula_entry.predicate list list
-  | Source of (Source.t, Filter.Source.t) Formula_entry.predicate list list
+  | Person of (Person.t, Filter.Person.t) Formula_entry.predicate_public list list
+  | Dance of (Dance.t, Filter.Dance.t) Formula_entry.predicate_public list list
+  | Source of (Source.t, Filter.Source.t) Formula_entry.predicate_public list list
   | Book of Filter.Book.predicate list list
   | Set of Filter.Set.predicate list list
-  | Tune of (Tune.t, Filter.Tune.t) Formula_entry.predicate list list
-  | Version of (Version.t, Filter.Version.t) Formula_entry.predicate list list
+  | Tune of (Tune.t, Filter.Tune.t) Formula_entry.predicate_public list list
+  | Version of (Version.t, Filter.Version.t) Formula_entry.predicate_public list list
 [@@deriving variants]
 
 (** Restricted formulas supported by the complex filter dialog. This is a bunch

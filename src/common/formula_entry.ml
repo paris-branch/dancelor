@@ -2,18 +2,44 @@
 
 open Nes
 
-type ('v, 'f) predicate =
-  | Is of 'v Entry.Id.t
-  | Value of 'f
+module Access = struct
+  module Public = struct
+    type predicate = unit [@@deriving eq, show, yojson]
+    type t = predicate Formula.t [@@deriving eq, show, yojson]
+    let converter : predicate Text_formula_converter.t =
+      Text_formula_converter.(
+        make ~raw: (const @@ Error "access does not accept raw converter") [
+          nullary ~name: "unit" ()
+        ]
+      )
+    let optimise (filter : t) = Formula.optimise (fun () -> ()) filter
+    let accepts (filter : t) (_access : Entry.Access.public) =
+      Formula.interpret filter (fun () -> lwt Formula.interpret_true)
+  end
+end
+
+type ('value, 'filter, 'access_filter) predicate =
+  | Is of 'value Entry.Id.t
+  | Value of 'filter
+  | Access of 'access_filter
 [@@deriving eq, show, yojson, variants]
 
-type ('v, 'f) t = ('v, 'f) predicate Formula.t
+type ('value, 'filter, 'access_filter) t = ('value, 'filter, 'access_filter) predicate Formula.t
+[@@deriving eq, show, yojson]
+
+type ('value, 'filter) predicate_public =
+('value, 'filter, Access.Public.t) predicate
+[@@deriving eq, show, yojson]
+
+type ('value, 'filter) public =
+('value, 'filter, Access.Public.t) t
 [@@deriving eq, show, yojson]
 
 let is' entry = Formula.pred @@ is @@ Entry.id entry
-let value' f = Formula.pred @@ value f
+let value' filter = Formula.pred @@ value filter
+let access' filter = Formula.pred @@ access filter
 
-let converter sub_converter =
+let converter sub_converter access_converter =
   Text_formula_converter.(
     merge
       ~tiebreaker: Left
@@ -26,15 +52,21 @@ let converter sub_converter =
             (* FIXME: should we use ~wrap_back: Never, for nicer text formulas? but
                this breaks the roundtrip tests and it isn't bothering use for now (but
                we've only applied this to Person, which has like no predicates). *)
+            unary_lift ~name: "access" (access, access_val) ~converter: access_converter;
           ]
       )
       (
         (* Sub converters, lifted to entries. Lose in case of tiebreak. *)
-        map value sub_converter ~error: ((^) "As entry value: ")
+        merge_l [
+          map value sub_converter ~error: ((^) "As entry value: ");
+          map access access_converter ~error: ((^) "As entry access: ");
+        ]
       )
   )
 
-let optimise sub_optimise =
+let converter_public sub_converter = converter sub_converter Access.Public.converter
+
+let optimise optimise_value optimise_access =
   Formula.optimise
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with
@@ -43,29 +75,43 @@ let optimise sub_optimise =
     )
     (function
       | Is _ as p -> p
-      | Value f -> value @@ sub_optimise f
+      | Value filter -> value @@ optimise_value filter
+      | Access filter -> access @@ optimise_access filter
     )
 
-let accepts sub_accepts (filter : ('value, 'sub_filter) t) (entry : ('value, 'access) Entry.t) =
+let optimise_public optimise_value = optimise optimise_value Access.Public.optimise
+
+let accepts accepts_value accepts_access (filter : ('value, 'filter, 'access_filter) t) (entry : ('value, 'access) Entry.t) =
   Formula.interpret filter @@ function
     | Is id -> lwt @@ Formula.interpret_bool (Entry.Id.equal' id (Entry.id entry))
-    | Value sub_filter -> sub_accepts sub_filter (Entry.value entry)
+    | Value filter -> accepts_value filter (Entry.value entry)
+    | Access filter -> accepts_access filter (Entry.access entry)
+
+let accepts_public accepts_value = accepts accepts_value Access.Public.accepts
 
 (* Allow building a Madge jsonable formula entry. Honestly, this is more like a
    hack at this point. FIXME by introducing a general module type for filters
    and making everything work nicely with modules. This is already something we
    need to make this converter business less disgusting. *)
 
-module type MODEL = sig type t end
+module type VALUE = sig type t end
 
-module J (M : MODEL) (J : Madge.JSONABLE) : Madge.JSONABLE with type t = (M.t, J.t) t = struct
+module J
+    (Value : VALUE)
+    (Filter : Madge.JSONABLE)
+    (Access_filter : Madge.JSONABLE)
+  : Madge.JSONABLE with
+  type t = (Value.t, Filter.t, Access_filter.t) t
+= struct
   (* Little hack to convince yojson that it can serialise a ('v, 'f) t when we
      never serialise 'v. *)
-  module M = struct
-    include M
+  module Value = struct
+    include Value
     let to_yojson _ = assert false
     let of_yojson _ = assert false
   end
-  type ('v, 'f) s = ('v, 'f) t [@@deriving yojson]
-  type t = (M.t, J.t) s [@@deriving yojson]
+  type ('value, 'filter, 'access_filter) s = ('value, 'filter, 'access_filter) t [@@deriving yojson]
+  type t = (Value.t, Filter.t, Access_filter.t) s [@@deriving yojson]
 end
+
+module JPublic (Value : VALUE) (Filter : Madge.JSONABLE) : Madge.JSONABLE with type t = (Value.t, Filter.t) public = J(Value)(Filter)(Access.Public)

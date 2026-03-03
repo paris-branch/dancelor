@@ -39,7 +39,7 @@ let editor =
             ~model_name: "person"
             ~create_dialog_content: Person_editor.create
             ~search: (fun slice input ->
-              let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter Filter.Person.converter) input in
+              let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
             )
             ~unserialise: Model.Person.get
@@ -73,7 +73,7 @@ let editor =
     (
       Selector.prepare
         ~search: (fun slice input ->
-          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter Filter.Dance.converter) input in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Dance.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
         )
         ~unserialise: Model.Dance.get

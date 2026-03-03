@@ -3,10 +3,10 @@ open Nes
 type predicate =
   | Is of Model_builder.Core.Book.t Entry.Id.t (* FIXME: move to entry-level formulas *)
   | Title of Formula_string.t
-  | Versions of (Model_builder.Core.Version.t, Version.t) Formula_entry.t Formula_list.t
-  | Versions_deep of (Model_builder.Core.Version.t, Version.t) Formula_entry.t Formula_list.t
+  | Versions of (Model_builder.Core.Version.t, Version.t) Formula_entry.public Formula_list.t
+  | Versions_deep of (Model_builder.Core.Version.t, Version.t) Formula_entry.public Formula_list.t
   | Sets of Set.t Formula_list.t
-  | Editors of (Model_builder.Core.Person.t, Person.t) Formula_entry.t Formula_list.t
+  | Editors of (Model_builder.Core.Person.t, Person.t) Formula_entry.public Formula_list.t
   | Owners of User.t Formula_list.t (* FIXME: move to entry-level formulas *)
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
@@ -26,10 +26,10 @@ let converter =
       ~raw: (ok % title' % Formula_string.matches')
       [
         unary_lift ~name: "title" (title, title_val) ~converter: Formula_string.converter;
-        unary_lift ~name: "versions" (versions, versions_val) ~converter: (Formula_list.converter (Formula_entry.converter Version.converter));
+        unary_lift ~name: "versions" (versions, versions_val) ~converter: (Formula_list.converter (Formula_entry.converter_public Version.converter));
         unary_lift ~name: "sets" (sets, sets_val) ~converter: (Formula_list.converter Set.converter);
-        unary_lift ~name: "versions-deep" (versions_deep, versions_deep_val) ~converter: (Formula_list.converter (Formula_entry.converter Version.converter));
-        unary_lift ~name: "editors" (editors, editors_val) ~converter: (Formula_list.converter (Formula_entry.converter Person.converter));
+        unary_lift ~name: "versions-deep" (versions_deep, versions_deep_val) ~converter: (Formula_list.converter (Formula_entry.converter_public Version.converter));
+        unary_lift ~name: "editors" (editors, editors_val) ~converter: (Formula_list.converter (Formula_entry.converter_public Person.converter));
         unary_lift ~name: "owners" (owners, owners_val) ~converter: (Formula_list.converter User.converter);
         unary_id ~name: "is" (is, is_val);
       ]
@@ -50,9 +50,9 @@ let optimise =
     (function
       | (Is _ as p) -> p
       | Title sfilter -> title @@ Formula_string.optimise sfilter
-      | Versions vfilter -> versions @@ Formula_list.optimise (Formula_entry.optimise Version.optimise) vfilter
+      | Versions vfilter -> versions @@ Formula_list.optimise (Formula_entry.optimise_public Version.optimise) vfilter
       | Sets sfilter -> sets @@ Formula_list.optimise Set.optimise sfilter
-      | Versions_deep vfilter -> versions_deep @@ Formula_list.optimise (Formula_entry.optimise Version.optimise) vfilter
-      | Editors pfilter -> editors @@ Formula_list.optimise (Formula_entry.optimise Person.optimise) pfilter
+      | Versions_deep vfilter -> versions_deep @@ Formula_list.optimise (Formula_entry.optimise_public Version.optimise) vfilter
+      | Editors pfilter -> editors @@ Formula_list.optimise (Formula_entry.optimise_public Person.optimise) pfilter
       | Owners lfilter -> owners @@ Formula_list.optimise User.optimise lfilter
     )

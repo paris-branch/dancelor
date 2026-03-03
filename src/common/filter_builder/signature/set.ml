@@ -7,11 +7,11 @@ module type S = sig
   val is : Model_builder.Core.Set.entry -> predicate
   val is' : Model_builder.Core.Set.entry -> t
 
-  val versions : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.t Formula_list.t -> predicate
-  val versions' : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.t Formula_list.t -> t
+  val versions : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public Formula_list.t -> predicate
+  val versions' : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public Formula_list.t -> t
 
-  val conceptors : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.t Formula_list.t -> predicate
-  val conceptors' : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.t Formula_list.t -> t
+  val conceptors : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.public Formula_list.t -> predicate
+  val conceptors' : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.public Formula_list.t -> t
 
   val kind : Kind.Dance.Filter.t -> predicate
   val kind' : Kind.Dance.Filter.t -> t

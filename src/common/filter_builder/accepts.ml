@@ -27,7 +27,7 @@ module Make (Model : Model_builder.S) = struct
             )
             content
         in
-        Formula_list.accepts (Formula_entry.accepts accepts_version) vfilter versions
+        Formula_list.accepts (Formula_entry.accepts_public accepts_version) vfilter versions
       | Sets sfilter ->
         let%lwt content = Model.Book.contents' book in
         let%lwt sets =
@@ -71,7 +71,7 @@ module Make (Model : Model_builder.S) = struct
         Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Person.name person
 
   and accepts_person' filter entry =
-    Formula_entry.accepts accepts_person filter entry
+    Formula_entry.accepts_public accepts_person filter entry
 
   and accepts_set filter set =
     Formula.interpret filter @@ function
@@ -84,7 +84,7 @@ module Make (Model : Model_builder.S) = struct
         Formula_list.accepts accepts_person' pfilter conceptors
       | Versions vfilter ->
         let%lwt versions = List.map fst <$> Model.Set.contents' set in
-        Formula_list.accepts (Formula_entry.accepts accepts_version) vfilter versions
+        Formula_list.accepts (Formula_entry.accepts_public accepts_version) vfilter versions
       | Kind kfilter ->
         Kind.Dance.Filter.accepts kfilter @@ Model.Set.kind' set
       | Owners lfilter ->
@@ -114,16 +114,16 @@ module Make (Model : Model_builder.S) = struct
         Kind.Base.Filter.accepts kfilter @@ Model.Tune.kind tune
       | Dances dfilter ->
         let%lwt dances = Model.Tune.dances tune in
-        Formula_list.accepts (Formula_entry.accepts accepts_dance) dfilter dances
+        Formula_list.accepts (Formula_entry.accepts_public accepts_dance) dfilter dances
 
   and accepts_version filter version =
     Formula.interpret filter @@ function
       | Core.Version.Tune tfilter ->
         let%lwt tune = Model.Version.tune version in
-        Formula_entry.accepts accepts_tune tfilter tune
+        Formula_entry.accepts_public accepts_tune tfilter tune
       | Key key' ->
         lwt @@ Formula.interpret_bool (Model.Version.key version = key')
       | Sources sfilter ->
         let%lwt sources = List.map (fun {Model.Version.source; _} -> source) <$> Model.Version.sources version in
-        Formula_list.accepts (Formula_entry.accepts accepts_source) sfilter sources
+        Formula_list.accepts (Formula_entry.accepts_public accepts_source) sfilter sources
 end

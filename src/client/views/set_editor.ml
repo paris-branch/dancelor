@@ -53,7 +53,7 @@ let editor user =
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create
         ~search: (fun slice input ->
-          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter Filter.Person.converter) input in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
         ~unserialise: Model.Person.get
@@ -76,7 +76,7 @@ let editor user =
             ~model_name: "version"
             ~create_dialog_content: Version_editor.create
             ~search: (fun slice input ->
-              let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter Filter.Version.converter) input in
+              let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Version.converter) input in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
             )
             ~unserialise: Model.Version.get

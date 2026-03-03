@@ -1,7 +1,5 @@
-type t = |
-
-(** Since there are no void values, they can be converted to anything. *)
+type t = | [@@deriving eq, yojson]
 let f _ = assert false
 
-let to_yojson = f
-let of_yojson _ = Error "there are no void values"
+let show _ = "<void>"
+let pp fmt x = Format.pp_print_string fmt (show x)

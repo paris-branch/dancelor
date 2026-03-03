@@ -43,7 +43,7 @@ let versions_and_parameters ?(label = "Versions") () =
             ~model_name: "version"
             ~create_dialog_content: Version_editor.create
             ~search: (fun slice input ->
-              let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter Filter.Version.converter) input in
+              let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Version.converter) input in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
             )
             ~unserialise: Model.Version.get
@@ -87,7 +87,7 @@ let dance_and_dance_page =
         ~model_name: "dance"
         ~create_dialog_content: Dance_editor.create
         ~search: (fun slice input ->
-          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter Filter.Dance.converter) input in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Dance.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
         )
         ~unserialise: Model.Dance.get
@@ -130,7 +130,7 @@ let editor user =
       Selector.prepare
         ~label: "Editor"
         ~search: (fun slice input ->
-          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter Filter.Person.converter) input in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
         ~unserialise: Model.Person.get
@@ -219,7 +219,7 @@ let editor user =
         ~model_name: "source"
         ~create_dialog_content: Source_editor.create
         ~search: (fun slice input ->
-          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter Filter.Source.converter) input in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Source.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
         )
         ~unserialise: Model.Source.get

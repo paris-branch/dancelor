@@ -11,7 +11,14 @@ let to_string_no_exn ~name ~show ~gen ~to_string =
         ~name
         ~print: show
         gen
-        (fun f -> try ignore (to_string f); true with _exn -> false)
+        (fun f ->
+          try
+            ignore (to_string f); true
+          with
+            | exn ->
+              Format.printf "%s" (Printexc.to_string exn);
+              false
+        )
     )
 
 let to_string_from_string_roundtrip ~name ~show ~to_string ~from_string ~gen ~equal =

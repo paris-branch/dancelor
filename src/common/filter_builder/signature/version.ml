@@ -4,14 +4,14 @@ module type S = sig
   type predicate = Core.Version.predicate
   type t = Core.Version.t
 
-  val tune : (Model_builder.Core.Tune.t, Core.Tune.t) Formula_entry.t -> predicate
-  val tune' : (Model_builder.Core.Tune.t, Core.Tune.t) Formula_entry.t -> t
+  val tune : (Model_builder.Core.Tune.t, Core.Tune.t) Formula_entry.public -> predicate
+  val tune' : (Model_builder.Core.Tune.t, Core.Tune.t) Formula_entry.public -> t
 
   val key : Music.Key.t -> predicate
   val key' : Music.Key.t -> t
 
-  val sources : (Model_builder.Core.Source.t, Core.Source.t) Formula_entry.t Formula_list.t -> predicate
-  val sources' : (Model_builder.Core.Source.t, Core.Source.t) Formula_entry.t Formula_list.t -> t
+  val sources : (Model_builder.Core.Source.t, Core.Source.t) Formula_entry.public Formula_list.t -> predicate
+  val sources' : (Model_builder.Core.Source.t, Core.Source.t) Formula_entry.public Formula_list.t -> t
 
   val converter : predicate Text_formula_converter.t
   val optimise : t -> t

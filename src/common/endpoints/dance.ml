@@ -6,7 +6,7 @@ module Filter = Filter_builder.Core
 type (_, _, _) t =
 (* Actions without a specific dance *)
 | Create : ((Dance.t -> 'w), 'w, Dance.entry) t
-| Search : ((Slice.t -> (Dance.t, Filter.Dance.t) Formula_entry.t -> 'w), 'w, (int * Dance.entry list)) t
+| Search : ((Slice.t -> (Dance.t, Filter.Dance.t) Formula_entry.public -> 'w), 'w, (int * Dance.entry list)) t
 (* Actions on a specific dance *)
 | Get : ((Dance.t Entry.Id.t -> 'w), 'w, Dance.entry) t
 | Update : ((Dance.t Entry.Id.t -> Dance.t -> 'w), 'w, Dance.entry) t
@@ -18,7 +18,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   function
     (* Actions without a specific dance *)
     | Create -> body "dance" (module Dance) @@ post (module Entry.JPublic(Dance))
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.J(Dance)(Filter.Dance)) @@ get (module JPair(JInt)(JList(Entry.JPublic(Dance))))
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(Dance)(Filter.Dance)) @@ get (module JPair(JInt)(JList(Entry.JPublic(Dance))))
     (* Actions on a specific dance *)
     | Get -> variable (module Entry.Id.S(Dance)) @@ get (module Entry.JPublic(Dance))
     | Update -> variable (module Entry.Id.S(Dance)) @@ body "dance" (module Dance) @@ put (module Entry.JPublic(Dance))

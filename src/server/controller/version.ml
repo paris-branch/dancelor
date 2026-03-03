@@ -94,7 +94,7 @@ let score_list_vs_list words needles =
 
 include Search.Build(struct
   type value = Model.Version.entry
-  type filter = (Model.Version.t, Filter.Version.t) Formula_entry.t
+  type filter = (Model.Version.t, Filter.Version.t) Formula_entry.public
 
   let get_all env =
     let can_get_and_copyright_ok version =
@@ -106,9 +106,9 @@ include Search.Build(struct
     in
     Lwt_stream.filter_s can_get_and_copyright_ok @@ Lwt_stream.of_seq @@ Database.Version.get_all ()
 
-  let optimise_filter = Formula_entry.optimise Filter.Version.optimise
+  let optimise_filter = Formula_entry.optimise_public Filter.Version.optimise
   let filter_is_empty = (=) Formula.False
-  let filter_accepts = Formula_entry.accepts Filter.Version.accepts
+  let filter_accepts = Formula_entry.accepts_public Filter.Version.accepts
   let score_true = Formula.interpret_true
 
   let tiebreakers =

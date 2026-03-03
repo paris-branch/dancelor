@@ -3,7 +3,7 @@ open Nes
 type predicate =
   | Name of Formula_string.t
   | Kind of Kind.Dance.Filter.t
-  | Devisers of (Model_builder.Core.Person.t, Person.t) Formula_entry.t Formula_list.t
+  | Devisers of (Model_builder.Core.Person.t, Person.t) Formula_entry.public Formula_list.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
@@ -15,7 +15,7 @@ let devisers' = Formula.pred % devisers
 
 let converter =
   let unary_lift_devisers ~name =
-    Text_formula_converter.unary_lift ~name (devisers, devisers_val) ~converter: (Formula_list.converter (Formula_entry.converter Person.converter));
+    Text_formula_converter.unary_lift ~name (devisers, devisers_val) ~converter: (Formula_list.converter (Formula_entry.converter_public Person.converter));
   in
   Text_formula_converter.(
     make
@@ -39,5 +39,5 @@ let optimise =
     (function
       | Name sfilter -> name @@ Formula_string.optimise sfilter
       | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter
-      | Devisers pfilter -> devisers @@ Formula_list.optimise (Formula_entry.optimise Person.optimise) pfilter
+      | Devisers pfilter -> devisers @@ Formula_list.optimise (Formula_entry.optimise_public Person.optimise) pfilter
     )
