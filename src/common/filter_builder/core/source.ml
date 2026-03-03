@@ -23,6 +23,15 @@ let converter =
 
 let optimise =
   Formula.optimise
+    ~not_: (function
+      | Editors f -> some @@ editors @@ Formula.not f
+      | _ -> None
+    )
+    ~binop: (fun {op} f1 f2 ->
+      match (f1, f2) with
+      | (Editors f1, Editors f2) -> some @@ editors @@ op f1 f2
+      | _ -> None
+    )
     (function
       | Name sfilter -> name @@ Formula_string.optimise sfilter
       | Editors pfilter -> editors @@ Formula_list.optimise (Formula_entry.optimise_public Person.optimise) pfilter

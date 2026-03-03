@@ -30,6 +30,11 @@ let converter =
 
 let optimise =
   Formula.optimise
+    ~not_: (function
+      | Kind f -> some @@ kind @@ Formula.not f
+      | Devisers f -> some @@ devisers @@ Formula.not f
+      | _ -> None
+    )
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with
       | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)

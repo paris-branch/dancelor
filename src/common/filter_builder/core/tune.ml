@@ -33,6 +33,12 @@ let converter =
 
 let optimise =
   Formula.optimise
+    ~not_: (function
+      | Composers f -> some @@ composers @@ Formula.not f
+      | Kind f -> some @@ kind @@ Formula.not f
+      | Dances f -> some @@ dances @@ Formula.not f
+      | _ -> None
+    )
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with
       | (Composers f1, Composers f2) -> some @@ Composers (op f1 f2)

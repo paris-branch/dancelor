@@ -133,6 +133,16 @@ let optimise =
   fixpoint
     (
       Formula.optimise
+        ~not_: (function
+          | Source f -> some @@ source @@ Formula.not f
+          | Person f -> some @@ person @@ Formula.not f
+          | Dance f -> some @@ dance @@ Formula.not f
+          | Book f -> some @@ book @@ Formula.not f
+          | Set f -> some @@ set @@ Formula.not f
+          | Tune f -> some @@ tune @@ Formula.not f
+          | Version f -> some @@ version @@ Formula.not f
+          | _ -> None
+        )
         ~binop: (fun {op} f1 f2 ->
           match (f1, f2) with
           (* [person:] eats [type:person] *)

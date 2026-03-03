@@ -33,6 +33,12 @@ let converter =
 
 let optimise =
   Formula.optimise
+    ~not_: (function
+      | Conceptors f -> some @@ conceptors @@ Formula.not f
+      | Versions f -> some @@ versions @@ Formula.not f
+      | Kind f -> some @@ kind @@ Formula.not f
+      | _ -> None
+    )
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with
       | (Conceptors f1, Conceptors f2) -> some @@ conceptors (op f1 f2)

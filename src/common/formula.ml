@@ -134,7 +134,10 @@ let cnf_val f =
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type binop = {op: 'a. 'a t -> 'a t -> 'a t}
 
-let optimise ?binop: optimise_binop ?and_: optimise_and ?or_: optimise_or optimise_predicate formula =
+let optimise ?not_: optimise_not ?binop: optimise_binop ?and_: optimise_and ?or_: optimise_or optimise_predicate formula =
+  let optimise_not =
+    Option.value optimise_not ~default: (fun _ -> None)
+  in
   let optimise_and, optimise_or =
     match optimise_binop, optimise_and, optimise_or with
     | Some optimise_binop, None, None -> optimise_binop {op = and_}, optimise_binop {op = or_}
@@ -145,6 +148,7 @@ let optimise ?binop: optimise_binop ?and_: optimise_and ?or_: optimise_or optimi
     | Not True -> False
     | Not False -> True
     | Not (Not f) -> f
+    | Not (Pred p) -> Option.fold ~none: (Not (Pred p)) ~some: pred (optimise_not p)
     | And (True, f) | And (f, True) -> f
     | And (False, _) | And (_, False) -> False
     | And (f1, f2) as f ->
@@ -174,4 +178,7 @@ let optimise ?binop: optimise_binop ?and_: optimise_and ?or_: optimise_or optimi
       | Or (f1, f2) -> Or (optimise f1, optimise f2)
       | Pred p -> Pred (optimise_predicate p)
   in
-  optimise formula
+  (* FIXME: pretty disgusting, but that's to handle things such as the Not
+     travelling inwards while other things such as False and True travel
+     outwards. *)
+  fixpoint optimise formula

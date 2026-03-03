@@ -28,6 +28,11 @@ let converter sub_converter =
 
 let optimise sub_optimise =
   Formula.optimise
+    ~not_: (function
+      | Exists f -> some @@ forall (Formula.not f)
+      | Forall f -> some @@ exists (Formula.not f)
+      | _ -> None
+    )
     ~and_: (fun f1 f2 ->
       match (f1, f2) with
       | (Forall f1, Forall f2) -> some @@ forall (Formula.and_ f1 f2)

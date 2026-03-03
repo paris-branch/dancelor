@@ -35,9 +35,15 @@ let converter =
 
 let optimise =
   Formula.optimise
+    ~not_: (function
+      | Tune f -> some @@ tune @@ Formula.not f
+      | Sources f -> some @@ sources @@ Formula.not f
+      | _ -> None
+    )
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with
       | (Tune f1, Tune f2) -> some @@ tune (op f1 f2)
+      | (Sources f1, Sources f2) -> some @@ sources (op f1 f2)
       | _ -> None
     )
     (function

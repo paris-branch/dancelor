@@ -68,6 +68,7 @@ val cnf_val : 'p t -> 'p list list option
 type binop = {op: 'a. 'a t -> 'a t -> 'a t}
 
 val optimise :
+  ?not_: ('p -> 'p option) ->
   ?binop: (binop -> 'p -> 'p -> 'p option) ->
   ?and_: ('p -> 'p -> 'p option) ->
   ?or_: ('p -> 'p -> 'p option) ->

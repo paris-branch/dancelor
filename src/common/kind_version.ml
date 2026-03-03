@@ -139,6 +139,10 @@ module Filter = struct
 
   let optimise =
     Formula.optimise
+      ~not_: (function
+        | Base f -> some @@ base @@ Formula.not f
+        | _ -> None
+      )
       ~binop: (fun {op} f1 f2 ->
         match (f1, f2) with
         | (Base f1, Base f2) -> some @@ base (op f1 f2)
