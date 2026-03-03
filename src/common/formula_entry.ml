@@ -18,21 +18,21 @@ module Access = struct
   end
 end
 
-type ('value, 'filter, 'access_filter) predicate =
+type ('value, 'filter, 'access_filter) predicate_gen =
   | Is of 'value Entry.Id.t
   | Value of 'filter
   | Access of 'access_filter
 [@@deriving eq, show, yojson, variants]
 
-type ('value, 'filter, 'access_filter) t = ('value, 'filter, 'access_filter) predicate Formula.t
+type ('value, 'filter, 'access_filter) gen = ('value, 'filter, 'access_filter) predicate_gen Formula.t
 [@@deriving eq, show, yojson]
 
 type ('value, 'filter) predicate_public =
-('value, 'filter, Access.Public.t) predicate
+('value, 'filter, Access.Public.t) predicate_gen
 [@@deriving eq, show, yojson]
 
 type ('value, 'filter) public =
-('value, 'filter, Access.Public.t) t
+('value, 'filter, Access.Public.t) gen
 [@@deriving eq, show, yojson]
 
 let is' entry = Formula.pred @@ is @@ Entry.id entry
@@ -81,13 +81,13 @@ let optimise optimise_value optimise_access =
 
 let optimise_public optimise_value = optimise optimise_value Access.Public.optimise
 
-let accepts accepts_value accepts_access (filter : ('value, 'filter, 'access_filter) t) (entry : ('value, 'access) Entry.t) =
+let accepts_gen accepts_value accepts_access (filter : ('value, 'filter, 'access_filter) gen) (entry : ('value, 'access) Entry.t) =
   Formula.interpret filter @@ function
     | Is id -> lwt @@ Formula.interpret_bool (Entry.Id.equal' id (Entry.id entry))
     | Value filter -> accepts_value filter (Entry.value entry)
     | Access filter -> accepts_access filter (Entry.access entry)
 
-let accepts_public accepts_value = accepts accepts_value Access.Public.accepts
+let accepts_public accepts_value = accepts_gen accepts_value Access.Public.accepts
 
 (* Allow building a Madge jsonable formula entry. Honestly, this is more like a
    hack at this point. FIXME by introducing a general module type for filters
@@ -96,12 +96,12 @@ let accepts_public accepts_value = accepts accepts_value Access.Public.accepts
 
 module type VALUE = sig type t end
 
-module J
+module JGen
     (Value : VALUE)
     (Filter : Madge.JSONABLE)
     (Access_filter : Madge.JSONABLE)
   : Madge.JSONABLE with
-  type t = (Value.t, Filter.t, Access_filter.t) t
+  type t = (Value.t, Filter.t, Access_filter.t) gen
 = struct
   (* Little hack to convince yojson that it can serialise a ('v, 'f) t when we
      never serialise 'v. *)
@@ -110,8 +110,7 @@ module J
     let to_yojson _ = assert false
     let of_yojson _ = assert false
   end
-  type ('value, 'filter, 'access_filter) s = ('value, 'filter, 'access_filter) t [@@deriving yojson]
-  type t = (Value.t, Filter.t, Access_filter.t) s [@@deriving yojson]
+  type t = (Value.t, Filter.t, Access_filter.t) gen [@@deriving yojson]
 end
 
-module JPublic (Value : VALUE) (Filter : Madge.JSONABLE) : Madge.JSONABLE with type t = (Value.t, Filter.t) public = J(Value)(Filter)(Access.Public)
+module JPublic (Value : VALUE) (Filter : Madge.JSONABLE) : Madge.JSONABLE with type t = (Value.t, Filter.t) public = JGen(Value)(Filter)(Access.Public)

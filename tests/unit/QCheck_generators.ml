@@ -57,11 +57,11 @@ module Formula_entry = struct
     end
   end
 
-  type ('value, 'filter, 'access_filter) predicate = [%import: ('value, 'filter, 'access_filter) Common.Formula_entry.predicate [@with Common.Entry.Id.t := Id.t]
+  type ('value, 'filter, 'access_filter) predicate_gen = [%import: ('value, 'filter, 'access_filter) Common.Formula_entry.predicate_gen [@with Common.Entry.Id.t := Id.t]
   ]
   [@@deriving qcheck2]
 
-  type ('value, 'filter, 'access_filter) t = [%import: ('value, 'filter, 'access_filter) Common.Formula_entry.t [@with Common.Formula.t := Formula.t]
+  type ('value, 'filter, 'access_filter) gen = [%import: ('value, 'filter, 'access_filter) Common.Formula_entry.gen [@with Common.Formula.t := Formula.t]
   ]
   [@@deriving qcheck2]
 
