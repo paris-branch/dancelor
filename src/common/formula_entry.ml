@@ -2,11 +2,38 @@
 
 open Nes
 
+type meta_predicate =
+  | Newest
+[@@deriving eq, show, yojson, variants]
+
+type meta = meta_predicate Formula.t
+[@@deriving eq, show, yojson]
+
+let accepts_meta filter meta =
+  Formula.interpret filter @@ function
+    | Newest ->
+      (* Bit of a hack: we hardcode a notion of “all times”, and we map the
+         creation date of the entry to [0., 1.] depending on how close it is to
+         “all times” ago vs. how close it is to now. *)
+      let all_times = float_of_int @@ 5 * 364 * 24 * 3600 in
+      let reference = Datetime.make_in_the_past all_times in
+      let x = Datetime.diff (Entry.Meta.created_at meta) reference in
+      let x = if x < 0. then 0. else x in
+      lwt (x /. all_times)
+
+let meta_converter =
+  Text_formula_converter.(
+    make ~raw: (const @@ Error "meta does not accept raw converter") [
+      nullary ~name: "newest" Newest;
+    ]
+  )
+
 type ('value, 'filter, 'access_filter) predicate_gen =
   | Is of 'value Entry.Id.t
   | Value of 'filter
   | Access of 'access_filter
-[@@deriving eq, show, yojson]
+  | Meta of meta
+[@@deriving eq, show, yojson, variants]
 
 type ('value, 'filter, 'access_filter) gen = ('value, 'filter, 'access_filter) predicate_gen Formula.t
 [@@deriving eq, show, yojson]
@@ -27,7 +54,7 @@ type ('value, 'filter) public =
 
 type access_private_predicate =
   | Owners of (Entry.User.t, Formula_user.t) public Formula_list.t
-[@@deriving eq, show, yojson]
+[@@deriving eq, show, yojson, variants]
 
 type access_private = access_private_predicate Formula.t
 [@@deriving eq, show, yojson]
@@ -39,16 +66,6 @@ type ('value, 'filter) predicate_private =
 type ('value, 'filter) private_ =
 ('value, 'filter, access_private) gen
 [@@deriving eq, show, yojson]
-
-let is x = Is x
-let value x = Value x
-let access x = Access x
-let owners x = Owners x
-
-let is_val = function Is x -> Some x | _ -> None
-let value_val = function Value x -> Some x | _ -> None
-let access_val = function Access x -> Some x | _ -> None
-let owners_val = function Owners x -> Some x
 
 let is' entry = Formula.pred @@ is @@ Entry.id entry
 let value' filter = Formula.pred @@ value filter
@@ -69,6 +86,7 @@ let converter_gen sub_converter access_converter =
                this breaks the roundtrip tests and it isn't bothering use for now (but
                we've only applied this to Person, which has like no predicates). *)
             unary_lift ~name: "access" (access, access_val) ~converter: access_converter;
+            unary_lift ~name: "meta" (meta, meta_val) ~converter: meta_converter;
           ]
       )
       (
@@ -76,6 +94,7 @@ let converter_gen sub_converter access_converter =
         merge_l [
           map value sub_converter ~error: ((^) "As entry value: ");
           map access access_converter ~error: ((^) "As entry access: ");
+          map meta meta_converter ~error: ((^) "As entry meta: ");
         ]
       )
   )
@@ -111,6 +130,7 @@ let optimise_gen optimise_value optimise_access =
       | Is _ as p -> p
       | Value filter -> value @@ optimise_value filter
       | Access filter -> access @@ optimise_access filter
+      | Meta filter -> meta filter
     )
 
 let optimise_public optimise_value = optimise_gen optimise_value (Formula.optimise (fun () -> ()))
@@ -136,6 +156,7 @@ let accepts_gen
     | Is id -> lwt @@ Formula.interpret_bool (Entry.Id.equal' id (Entry.id entry))
     | Value filter -> accepts_value filter (Entry.value entry)
     | Access filter -> accepts_access filter (Entry.access entry)
+    | Meta filter -> accepts_meta filter (Entry.meta entry)
 
 let accepts_public accepts_value (filter : ('value, 'filter) public) (entry : 'value Entry.public) =
   accepts_gen accepts_value (fun filter _access -> Formula.interpret filter (fun () -> lwt Formula.interpret_true)) filter entry
