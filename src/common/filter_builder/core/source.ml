@@ -23,12 +23,18 @@ let converter =
 
 let optimise =
   Formula.optimise
+    ~up: (fun {is_tf} ->
+      function
+        | Name f -> is_tf f
+        | Editors f -> is_tf f
+    )
     ~not_: (function
+      | Name f -> some @@ name @@ Formula.not f
       | Editors f -> some @@ editors @@ Formula.not f
-      | _ -> None
     )
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with
+      | (Name f1, Name f2) -> some @@ name @@ op f1 f2
       | (Editors f1, Editors f2) -> some @@ editors @@ op f1 f2
       | _ -> None
     )

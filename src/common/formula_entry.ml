@@ -4,10 +4,16 @@ open Nes
 
 type meta_predicate =
   | Newest
-[@@deriving eq, show, yojson, variants]
+[@@deriving eq, show {with_path = false}, yojson, variants]
 
 type meta = meta_predicate Formula.t
 [@@deriving eq, show, yojson]
+
+let optimise_meta =
+  Formula.optimise
+    (function
+      | Newest as p -> p
+    )
 
 let accepts_meta filter meta =
   Formula.interpret filter @@ function
@@ -33,13 +39,14 @@ type ('value, 'filter, 'access_filter) predicate_gen =
   | Value of 'filter
   | Access of 'access_filter
   | Meta of meta
-[@@deriving eq, show, yojson, variants]
+[@@deriving eq, show {with_path = false}, yojson, variants]
 
 type ('value, 'filter, 'access_filter) gen = ('value, 'filter, 'access_filter) predicate_gen Formula.t
 [@@deriving eq, show, yojson]
 
-type access_public_predicate = unit
-[@@deriving eq, show, yojson]
+type access_public_predicate =
+  Public
+[@@deriving eq, show, yojson, variants]
 
 type access_public = access_public_predicate Formula.t
 [@@deriving eq, show, yojson]
@@ -81,21 +88,26 @@ let converter_gen sub_converter access_converter =
           ~raw: (Result.map value' % raw sub_converter)
           [
             unary_id ~name: "is" (is, is_val);
-            unary_lift ~name: "value" (value, value_val) ~converter: sub_converter;
-            (* FIXME: should we use ~wrap_back: Never, for nicer text formulas? but
-               this breaks the roundtrip tests and it isn't bothering use for now (but
-               we've only applied this to Person, which has like no predicates). *)
-            unary_lift ~name: "access" (access, access_val) ~converter: access_converter;
-            unary_lift ~name: "meta" (meta, meta_val) ~converter: meta_converter;
+            unary_lift ~name: "value" (value, value_val) ~converter: sub_converter ~wrap_back: Never;
+            unary_lift ~name: "access" (access, access_val) ~converter: access_converter ~wrap_back: Never;
+            unary_lift ~name: "meta" (meta, meta_val) ~converter: meta_converter ~wrap_back: Never;
           ]
       )
       (
-        (* Sub converters, lifted to entries. Lose in case of tiebreak. *)
-        merge_l [
-          map value sub_converter ~error: ((^) "As entry value: ");
-          map access access_converter ~error: ((^) "As entry access: ");
-          map meta meta_converter ~error: ((^) "As entry meta: ");
-        ]
+        (* Sub converters, lifted to entries. They lose in case of tiebreak.
+           NOTE: The access and meta converters win over the value
+           sub-converter, without which we risk giving priority to access and
+           meta of a sub-converter. For instance, [:public] for a version entry,
+           needs to match that version's access, and not the tune's access. *)
+        merge
+          ~tiebreaker: Right
+          (map value sub_converter ~error: ((^) "As entry value: "))
+          (
+            merge_l [
+              map access access_converter ~error: ((^) "As entry access: ");
+              map meta meta_converter ~error: ((^) "As entry meta: ");
+            ]
+          )
       )
   )
 
@@ -103,7 +115,7 @@ let converter_public sub_converter =
   converter_gen sub_converter (
     Text_formula_converter.(
       make ~raw: (const @@ Error "access does not accept raw converter") [
-        nullary ~name: "unit" ()
+        nullary ~name: "public" Public;
       ]
     )
   )
@@ -121,19 +133,37 @@ let converter_private sub_converter =
 
 let optimise_gen optimise_value optimise_access =
   Formula.optimise
+    ~up: (fun {is_tf} ->
+      function
+        | Value f -> is_tf f
+        | Access f -> is_tf f
+        | Meta f -> is_tf f
+        | _ -> false
+    )
+    ~not_: (function
+      | Value f -> some @@ value @@ Formula.not f
+      | Access f -> some @@ access @@ Formula.not f
+      | Meta f -> some @@ meta @@ Formula.not f
+      | _ -> None
+    )
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with
       | (Value f1, Value f2) -> some @@ value (op f1 f2)
+      | (Access f1, Access f2) -> some @@ access (op f1 f2)
+      | (Meta f1, Meta f2) -> some @@ meta (op f1 f2)
       | _ -> None
     )
     (function
       | Is _ as p -> p
       | Value filter -> value @@ optimise_value filter
       | Access filter -> access @@ optimise_access filter
-      | Meta filter -> meta filter
+      | Meta filter -> meta @@ optimise_meta filter
     )
 
-let optimise_public optimise_value = optimise_gen optimise_value (Formula.optimise (fun () -> ()))
+let optimise_public optimise_value =
+  optimise_gen optimise_value @@
+    Formula.optimise
+      (function Public -> Public)
 
 let optimise_private optimise_value =
   optimise_gen optimise_value @@
@@ -159,7 +189,7 @@ let accepts_gen
     | Meta filter -> accepts_meta filter (Entry.meta entry)
 
 let accepts_public accepts_value (filter : ('value, 'filter) public) (entry : 'value Entry.public) =
-  accepts_gen accepts_value (fun filter _access -> Formula.interpret filter (fun () -> lwt Formula.interpret_true)) filter entry
+  accepts_gen accepts_value (fun filter _access -> Formula.interpret filter (fun Public -> lwt Formula.interpret_true)) filter entry
 
 let accepts_private get_user accepts_value (filter : ('value, 'filter) private_) (entry : 'value Entry.private_) =
   let accepts_access_private filter access =

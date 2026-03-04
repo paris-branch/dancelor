@@ -21,7 +21,8 @@ let to_string_no_exn ~name ~show ~gen ~to_string =
         )
     )
 
-let to_string_from_string_roundtrip ~name ~show ~to_string ~from_string ~gen ~equal =
+(** Whether from_string % to_string = id, up to optimisation. *)
+let to_string_from_string_roundtrip ~name ~show ~to_string ~from_string ~gen ~optimise ~equal =
   QCheck_alcotest.to_alcotest
     (
       QCheck2.Test.make
@@ -31,11 +32,13 @@ let to_string_from_string_roundtrip ~name ~show ~to_string ~from_string ~gen ~eq
         ~print: (fun f ->
           "Filter:\n\n  " ^
           show f ^
+          "\n\nOptimised:\n\n  " ^
+          show (optimise f) ^
           "\n\nText formula:\n\n  " ^
           to_string f ^
           "\n\nOutput:\n\n  " ^
           match from_string (to_string f) with
-          | Ok f -> show f
+          | Ok f -> show f ^ "\n\nOptimised:\n\n  " ^ show (optimise f)
           | Error err -> "Error: " ^ err
         )
         gen
@@ -43,8 +46,8 @@ let to_string_from_string_roundtrip ~name ~show ~to_string ~from_string ~gen ~eq
           Result.equal
             ~ok: equal
             ~error: (=)
-            (from_string (to_string f))
-            (Ok f)
+            (Result.map optimise (from_string (to_string f)))
+            (Ok (optimise f))
         )
     )
 
@@ -87,16 +90,17 @@ module type OPTIMISE = sig
   val optimise : t -> t
 end
 
-module type MODEL_CONVERTER = sig
-  type predicate
-  include MODEL with type predicate := predicate
-  include CONVERTER with type predicate := predicate
-end
-
 module type MODEL_OPTIMISE = sig
   type predicate
   include MODEL with type predicate := predicate
   include OPTIMISE with type predicate := predicate
+end
+
+module type MODEL_CONVERTER = sig
+  type predicate
+  include MODEL with type predicate := predicate
+  include OPTIMISE with type predicate := predicate
+  include CONVERTER with type predicate := predicate
 end
 
 module type GEN = sig
@@ -123,6 +127,7 @@ let to_string_from_string_roundtrip' (type p)
     ~to_string: (Text_formula.formula_to_string M.converter)
     ~from_string: (Text_formula.string_to_formula M.converter)
     ~gen: G.gen
+    ~optimise: M.optimise
     ~equal: M.equal
 
 let optimise_idempotent' (type p)
@@ -146,13 +151,36 @@ module Formula_int = struct
   type t = int Formula.t
   [@@deriving eq, show]
 
-  let gen = Gen.Formula.gen QCheck2.Gen.int
+  let converter =
+    Text_formula_converter.(
+      make ~raw: (fun _ -> Error "no raw") [
+        unary_int ~name: "is" (Fun.id, Option.some);
+      ]
+    )
 
   let optimise =
     Formula.optimise ~and_: (fun x y -> Some (min x y)) ~or_: (fun x y -> Some (max x y)) (function
       | n when n mod 2 = 1 -> n - 1
       | n -> n
     )
+
+  let gen = Gen.Formula.gen QCheck2.Gen.int
+end
+
+module Formula_list_int = struct
+  type predicate = Formula_int.t Formula_list.predicate [@@deriving eq, show]
+  type t = predicate Formula.t [@@deriving eq, show]
+  let converter = Formula_list.converter Formula_int.converter
+  let optimise = Formula_list.optimise Formula_int.optimise
+  let gen : t QCheck2.Gen.t = Gen.Formula_list.gen Formula_int.gen
+end
+
+module Formula_entry_int = struct
+  type predicate = (int, Formula_int.t) Formula_entry.predicate_public [@@deriving eq, show]
+  type t = predicate Formula.t [@@deriving eq, show]
+  let converter = Formula_entry.converter_public Formula_int.converter
+  let optimise = Formula_entry.optimise_public Formula_int.optimise
+  let gen : t QCheck2.Gen.t = Gen.Formula_entry.gen_public QCheck2.Gen.int Formula_int.gen
 end
 
 let () =
@@ -162,6 +190,8 @@ let () =
       (
         "to_string raises no exception",
         [to_string_no_exn ~name: "Text_formula" ~show: Text_formula.show ~to_string: Text_formula.to_string ~gen: Gen.Text_formula.gen;
+        to_string_no_exn' ~name: "Formula_list(int)" (module Formula_list_int) (module Formula_list_int);
+        to_string_no_exn' ~name: "Formula_entry(int)" (module Formula_entry_int) (module Formula_entry_int);
         to_string_no_exn' ~name: "Source.Filter" (module Filter_builder.Core.Source) (module Gen.Filter.Source);
         to_string_no_exn' ~name: "Person.Filter" (module Filter_builder.Core.Person) (module Gen.Filter.Person);
         to_string_no_exn' ~name: "Dance.Filter" (module Filter_builder.Core.Dance) (module Gen.Filter.Dance);
@@ -175,7 +205,7 @@ let () =
       );
       (
         "from_string % to_string = id",
-        [to_string_from_string_roundtrip ~name: "Text_formula" ~show: Text_formula.show ~to_string: Text_formula.to_string ~from_string: Text_formula.from_string ~equal: Text_formula.equal ~gen: Gen.Text_formula.gen;
+        [to_string_from_string_roundtrip ~name: "Text_formula" ~show: Text_formula.show ~to_string: Text_formula.to_string ~from_string: Text_formula.from_string ~equal: Text_formula.equal ~gen: Gen.Text_formula.gen ~optimise: Fun.id;
         to_string_from_string_roundtrip' ~name: "Source.Filter" (module Filter_builder.Core.Source) (module Gen.Filter.Source);
         to_string_from_string_roundtrip' ~name: "Person.Filter" (module Filter_builder.Core.Person) (module Gen.Filter.Person);
         to_string_from_string_roundtrip' ~name: "Dance.Filter" (module Filter_builder.Core.Dance) (module Gen.Filter.Dance);

@@ -33,6 +33,13 @@ let converter =
 
 let optimise =
   Formula.optimise
+    ~up: (fun {is_tf} ->
+      function
+        | Conceptors f -> is_tf f
+        | Versions f -> is_tf f
+        | Kind f -> is_tf f
+        | _ -> false
+    )
     ~not_: (function
       | Conceptors f -> some @@ conceptors @@ Formula.not f
       | Versions f -> some @@ versions @@ Formula.not f

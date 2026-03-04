@@ -65,9 +65,15 @@ val cnf_val : 'p t -> 'p list list option
 
 (** {3 Miscellaneous} *)
 
+type is_true_or_false = {is_tf: 'a. 'a t -> bool}
+type is_true = {is_true: 'a. 'a t -> bool}
+type is_false = {is_false: 'a. 'a t -> bool}
 type binop = {op: 'a. 'a t -> 'a t -> 'a t}
 
 val optimise :
+  ?up: (is_true_or_false -> 'p -> bool) ->
+  ?up_true: (is_true -> 'p -> 'p t option) ->
+  ?up_false: (is_false -> 'p -> 'p t option) ->
   ?not_: ('p -> 'p option) ->
   ?binop: (binop -> 'p -> 'p -> 'p option) ->
   ?and_: ('p -> 'p -> 'p option) ->

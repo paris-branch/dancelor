@@ -6,7 +6,7 @@ type 'f predicate =
   | Empty
   | Exists of 'f
   | Forall of 'f
-[@@deriving eq, show, yojson, variants]
+[@@deriving eq, show {with_path = false}, yojson, variants]
 
 type 'f t = 'f predicate Formula.t
 [@@deriving eq, show, yojson]
@@ -28,6 +28,18 @@ let converter sub_converter =
 
 let optimise sub_optimise =
   Formula.optimise
+    ~up_true: (fun {is_true} ->
+      function
+        | Exists f when is_true f -> some @@ Formula.not @@ empty'
+        | Forall f when is_true f -> some Formula.true_
+        | _ -> None
+    )
+    ~up_false: (fun {is_false} ->
+      function
+        | Exists f when is_false f -> some Formula.false_
+        | Forall f when is_false f -> some empty'
+        | _ -> None
+    )
     ~not_: (function
       | Exists f -> some @@ forall (Formula.not f)
       | Forall f -> some @@ exists (Formula.not f)
@@ -45,7 +57,7 @@ let optimise sub_optimise =
     )
     (function
       | Exists f -> exists @@ sub_optimise f
-      | Forall f -> exists @@ sub_optimise f
+      | Forall f -> forall @@ sub_optimise f
       | Empty as p -> p
     )
 

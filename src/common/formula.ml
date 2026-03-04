@@ -132,9 +132,23 @@ let cnf_val f =
   List.(all_some @@ map disj_val (conjuncts f))
 
 (* Little trick to convince OCaml that polymorphism is OK. *)
+type is_true_or_false = {is_tf: 'a. 'a t -> bool}
+type is_true = {is_true: 'a. 'a t -> bool}
+type is_false = {is_false: 'a. 'a t -> bool}
 type binop = {op: 'a. 'a t -> 'a t -> 'a t}
 
-let optimise ?not_: optimise_not ?binop: optimise_binop ?and_: optimise_and ?or_: optimise_or optimise_predicate formula =
+let optimise ?up: optimise_up ?up_true: optimise_up_true ?up_false: optimise_up_false ?not_: optimise_not ?binop: optimise_binop ?and_: optimise_and ?or_: optimise_or optimise_predicate formula =
+  (* FIXME: sort conjunctions and disjunctions so that similar predicates end up side by side *)
+  (* FIXME: be a bit smarter about when we are going “downwards” and when we are
+     going “upwards”. Probably, we can keep track of whether we moved stuff like
+     AND, NOT, OR, etc., and try to remember where we need to go, without having
+     to [fixpoint] the whole thing. *)
+  let optimise_up_true, optimise_up_false =
+    match optimise_up, optimise_up_true, optimise_up_false with
+    | Some optimise_up, None, None -> (fun {is_true} p -> if optimise_up {is_tf = is_true} p then Some True else None), (fun {is_false} p -> if optimise_up {is_tf = is_false} p then Some False else None)
+    | None, _, _ -> Option.value optimise_up_true ~default: (fun _ _ -> None), Option.value optimise_up_false ~default: (fun _ _ -> None)
+    | _ -> invalid_arg "Formula.optimise: cannot provide ?up and ?up_true/?up_false"
+  in
   let optimise_not =
     Option.value optimise_not ~default: (fun _ -> None)
   in
@@ -176,7 +190,13 @@ let optimise ?not_: optimise_not ?binop: optimise_binop ?and_: optimise_and ?or_
       | Not f -> Not (optimise f)
       | And (f1, f2) -> And (optimise f1, optimise f2)
       | Or (f1, f2) -> Or (optimise f1, optimise f2)
-      | Pred p -> Pred (optimise_predicate p)
+      | Pred p ->
+        match optimise_up_false {is_false = (fun x -> x = False)} p with
+        | Some f -> f
+        | None ->
+          match optimise_up_true {is_true = (fun x -> x = True)} p with
+          | Some f -> f
+          | None -> Pred (optimise_predicate p)
   in
   (* FIXME: pretty disgusting, but that's to handle things such as the Not
      travelling inwards while other things such as False and True travel

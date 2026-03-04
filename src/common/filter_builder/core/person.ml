@@ -20,6 +20,17 @@ let converter =
 
 let optimise =
   Formula.optimise
+    ~up: (fun {is_tf} ->
+      function
+        | Name f -> is_tf f
+    )
+    ~not_: (function
+      | Name f -> some @@ name @@ Formula.not f
+    )
+    ~binop: (fun {op} f1 f2 ->
+      match (f1, f2) with
+      | (Name f1, Name f2) -> some @@ name @@ op f1 f2
+    )
     (function
       | Name sfilter -> name @@ Formula_string.optimise sfilter
     )

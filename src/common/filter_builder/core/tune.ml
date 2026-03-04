@@ -33,14 +33,22 @@ let converter =
 
 let optimise =
   Formula.optimise
+    ~up: (fun {is_tf} ->
+      function
+        | Name f -> is_tf f
+        | Composers f -> is_tf f
+        | Kind f -> is_tf f
+        | Dances f -> is_tf f
+    )
     ~not_: (function
+      | Name f -> some @@ name @@ Formula.not f
       | Composers f -> some @@ composers @@ Formula.not f
       | Kind f -> some @@ kind @@ Formula.not f
       | Dances f -> some @@ dances @@ Formula.not f
-      | _ -> None
     )
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with
+      | (Name f1, Name f2) -> some @@ name @@ op f1 f2
       | (Composers f1, Composers f2) -> some @@ Composers (op f1 f2)
       | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
       | (Dances f1, Dances f2) -> some @@ Dances (op f1 f2)

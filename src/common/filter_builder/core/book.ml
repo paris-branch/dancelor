@@ -32,15 +32,24 @@ let converter =
 
 let optimise =
   Formula.optimise
+    ~up: (fun {is_tf} ->
+      function
+        | Title f -> is_tf f
+        | Versions f -> is_tf f
+        | Versions_deep f -> is_tf f
+        | Sets f -> is_tf f
+        | Editors f -> is_tf f
+    )
     ~not_: (function
+      | Title f -> some @@ title @@ Formula.not f
       | Versions f -> some @@ versions @@ Formula.not f
       | Versions_deep f -> some @@ versions_deep @@ Formula.not f
       | Sets f -> some @@ sets @@ Formula.not f
       | Editors f -> some @@ editors @@ Formula.not f
-      | _ -> None
     )
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with
+      | (Title f1, Title f2) -> some @@ title (op f1 f2)
       | (Versions f1, Versions f2) -> some @@ versions (op f1 f2)
       | (Versions_deep f1, Versions_deep f2) -> some @@ versions_deep (op f1 f2)
       | (Sets f1, Sets f2) -> some @@ sets (op f1 f2)

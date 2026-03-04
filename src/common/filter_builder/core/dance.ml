@@ -30,13 +30,20 @@ let converter =
 
 let optimise =
   Formula.optimise
+    ~up: (fun {is_tf} ->
+      function
+        | Name f -> is_tf f
+        | Kind f -> is_tf f
+        | Devisers f -> is_tf f
+    )
     ~not_: (function
+      | Name f -> some @@ name @@ Formula.not f
       | Kind f -> some @@ kind @@ Formula.not f
       | Devisers f -> some @@ devisers @@ Formula.not f
-      | _ -> None
     )
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with
+      | (Name f1, Name f2) -> some @@ name @@ op f1 f2
       | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
       | (Devisers f1, Devisers f2) -> some @@ devisers (op f1 f2)
       | _ -> None
