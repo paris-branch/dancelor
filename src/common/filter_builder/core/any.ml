@@ -33,6 +33,17 @@ let set' = Formula.pred % set
 let tune' = Formula.pred % tune
 let version' = Formula.pred % version
 
+(** Custom [wrap_back] that serialises [Source(f)] as [type:source f] instead of
+    the verbose [is-source-such-that:f]. *)
+let type_wrap type_name =
+  let type_str = Model_builder.Core.Any.Type.to_string type_name in
+  Text_formula_converter.Custom (fun tf ->
+    let type_tf = Text_formula_type.unary' "type" (Text_formula_type.raw' type_str) in
+    match tf with
+    | Formula.True -> type_tf
+    | _ -> Formula.and_ type_tf tf
+  )
+
 let converter =
   Text_formula_converter.(
     (* We find formulas of the form [type:version predicate-on-version]
@@ -46,13 +57,13 @@ let converter =
           [
             unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
             unary_raw ~name: "type" (type_, type__val) ~cast: (Model_builder.Core.Any.Type.of_string_opt, Model_builder.Core.Any.Type.to_string) ~type_: "valid type";
-            unary_lift ~name: "is-source-such-that" (source, source_val) ~converter: (Formula_entry.converter_public Source.converter) ~wrap_back: Never;
-            unary_lift ~name: "is-person-such-that" (person, person_val) ~converter: (Formula_entry.converter_public Person.converter) ~wrap_back: Never;
-            unary_lift ~name: "is-dance-such-that" (dance, dance_val) ~converter: (Formula_entry.converter_public Dance.converter) ~wrap_back: Never;
-            unary_lift ~name: "is-book-such-that" (book, book_val) ~converter: (Formula_entry.converter_private Book.converter) ~wrap_back: Never;
-            unary_lift ~name: "is-set-such-that" (set, set_val) ~converter: (Formula_entry.converter_private Set.converter) ~wrap_back: Never;
-            unary_lift ~name: "is-tune-such-that" (tune, tune_val) ~converter: (Formula_entry.converter_public Tune.converter) ~wrap_back: Never;
-            unary_lift ~name: "is-version-such-that" (version, version_val) ~converter: (Formula_entry.converter_public Version.converter) ~wrap_back: Never;
+            unary_lift ~name: "is-source-such-that" (source, source_val) ~converter: (Formula_entry.converter_public Source.converter) ~wrap_back: (type_wrap Source);
+            unary_lift ~name: "is-person-such-that" (person, person_val) ~converter: (Formula_entry.converter_public Person.converter) ~wrap_back: (type_wrap Person);
+            unary_lift ~name: "is-dance-such-that" (dance, dance_val) ~converter: (Formula_entry.converter_public Dance.converter) ~wrap_back: (type_wrap Dance);
+            unary_lift ~name: "is-book-such-that" (book, book_val) ~converter: (Formula_entry.converter_private Book.converter) ~wrap_back: (type_wrap Book);
+            unary_lift ~name: "is-set-such-that" (set, set_val) ~converter: (Formula_entry.converter_private Set.converter) ~wrap_back: (type_wrap Set);
+            unary_lift ~name: "is-tune-such-that" (tune, tune_val) ~converter: (Formula_entry.converter_public Tune.converter) ~wrap_back: (type_wrap Tune);
+            unary_lift ~name: "is-version-such-that" (version, version_val) ~converter: (Formula_entry.converter_public Version.converter) ~wrap_back: (type_wrap Version);
           ];
       )
       (
@@ -128,16 +139,27 @@ let optimise =
   fixpoint
     (
       Formula.optimise
-        ~up: (fun {is_tf} ->
+        ~up_false: (fun {is_false} ->
           function
-            | Source f -> is_tf f
-            | Person f -> is_tf f
-            | Dance f -> is_tf f
-            | Book f -> is_tf f
-            | Set f -> is_tf f
-            | Tune f -> is_tf f
-            | Version f -> is_tf f
-            | _ -> false
+            | Source f when is_false f -> some Formula.false_
+            | Person f when is_false f -> some Formula.false_
+            | Dance f when is_false f -> some Formula.false_
+            | Book f when is_false f -> some Formula.false_
+            | Set f when is_false f -> some Formula.false_
+            | Tune f when is_false f -> some Formula.false_
+            | Version f when is_false f -> some Formula.false_
+            | _ -> None
+        )
+        ~up_true: (fun {is_true} ->
+          function
+            | Source f when is_true f -> some @@ type_' Source
+            | Person f when is_true f -> some @@ type_' Person
+            | Dance f when is_true f -> some @@ type_' Dance
+            | Book f when is_true f -> some @@ type_' Book
+            | Set f when is_true f -> some @@ type_' Set
+            | Tune f when is_true f -> some @@ type_' Tune
+            | Version f when is_true f -> some @@ type_' Version
+            | _ -> None
         )
         ~not_: (function
           | Source f -> some @@ source @@ Formula.not f
@@ -182,23 +204,7 @@ let optimise =
         type_based_cleanup
     )
 
-let to_pretty_string =
-  let type_and t lift = function
-    | Formula.True -> type_' t
-    | f -> Formula.and_ (type_' t) (lift f)
-  in
-  let add_explicit_type =
-    Formula.convert @@ function
-      | Source f -> type_and Source source' f
-      | Person f -> type_and Person person' f
-      | Dance f -> type_and Dance dance' f
-      | Book f -> type_and Book book' f
-      | Set f -> type_and Set set' f
-      | Tune f -> type_and Tune tune' f
-      | Version f -> type_and Version version' f
-      | p -> Formula.pred p
-  in
-  Text_formula.to_string % Text_formula.of_formula converter % add_explicit_type % optimise
+let to_pretty_string = to_string % optimise
 
 let specialise ~converter ~type_ ~unLift =
   Formula.convert @@ function

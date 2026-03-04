@@ -21,8 +21,8 @@ let to_string_no_exn ~name ~show ~gen ~to_string =
         )
     )
 
-(** Whether from_string % to_string = id, up to optimisation. *)
-let to_string_from_string_roundtrip ~name ~show ~to_string ~from_string ~gen ~optimise ~equal =
+(** Whether [optimise % from_string % to_string = optimise], up to optimisation. *)
+let optimise_from_string_to_string__eq__optimise ~name ~show ~to_string ~from_string ~gen ~optimise ~equal =
   QCheck_alcotest.to_alcotest
     (
       QCheck2.Test.make
@@ -39,6 +39,36 @@ let to_string_from_string_roundtrip ~name ~show ~to_string ~from_string ~gen ~op
           "\n\nOutput:\n\n  " ^
           match from_string (to_string f) with
           | Ok f -> show f ^ "\n\nOptimised:\n\n  " ^ show (optimise f)
+          | Error err -> "Error: " ^ err
+        )
+        gen
+        (fun f ->
+          Result.equal
+            ~ok: equal
+            ~error: (=)
+            (Result.map optimise (from_string (to_string f)))
+            (Ok (optimise f))
+        )
+    )
+
+(** Whether [from_string % to_string % optimise = optimise]. *)
+let from_string_to_string_optimise__eq__optimise ~name ~show ~to_string ~from_string ~gen ~optimise ~equal =
+  QCheck_alcotest.to_alcotest
+    (
+      QCheck2.Test.make
+        ~count: 1_000
+        ~long_factor: 100
+        ~name
+        ~print: (fun f ->
+          "Filter:\n\n  " ^
+          show f ^
+          "\n\nOptimised:\n\n  " ^
+          show (optimise f) ^
+          "\n\nText formula:\n\n  " ^
+          to_string (optimise f) ^
+          "\n\nOutput:\n\n  " ^
+          match from_string (to_string (optimise f)) with
+          | Ok f -> show f
           | Error err -> "Error: " ^ err
         )
         gen
@@ -116,12 +146,26 @@ let to_string_no_exn' (type p)
   =
   to_string_no_exn ~name ~show: M.show ~gen: G.gen ~to_string: (Text_formula.formula_to_string M.converter)
 
-let to_string_from_string_roundtrip' (type p)
+let optimise_from_string_to_string__eq__optimise' (type p)
     ~name
     (module M : MODEL_CONVERTER with type predicate = p)
     (module G : GEN with type predicate = p)
   =
-  to_string_from_string_roundtrip
+  optimise_from_string_to_string__eq__optimise
+    ~name
+    ~show: M.show
+    ~to_string: (Text_formula.formula_to_string M.converter)
+    ~from_string: (Text_formula.string_to_formula M.converter)
+    ~gen: G.gen
+    ~optimise: M.optimise
+    ~equal: M.equal
+
+let from_string_to_string_optimise__eq__optimise' (type p)
+    ~name
+    (module M : MODEL_CONVERTER with type predicate = p)
+    (module G : GEN with type predicate = p)
+  =
+  from_string_to_string_optimise__eq__optimise
     ~name
     ~show: M.show
     ~to_string: (Text_formula.formula_to_string M.converter)
@@ -204,23 +248,29 @@ let () =
         ]
       );
       (
-        "from_string % to_string = id",
-        [to_string_from_string_roundtrip ~name: "Text_formula" ~show: Text_formula.show ~to_string: Text_formula.to_string ~from_string: Text_formula.from_string ~equal: Text_formula.equal ~gen: Gen.Text_formula.gen ~optimise: Fun.id;
-        to_string_from_string_roundtrip' ~name: "Source.Filter" (module Filter_builder.Core.Source) (module Gen.Filter.Source);
-        to_string_from_string_roundtrip' ~name: "Person.Filter" (module Filter_builder.Core.Person) (module Gen.Filter.Person);
-        to_string_from_string_roundtrip' ~name: "Dance.Filter" (module Filter_builder.Core.Dance) (module Gen.Filter.Dance);
-        to_string_from_string_roundtrip' ~name: "Tune.Filter" (module Filter_builder.Core.Tune) (module Gen.Filter.Tune);
-        to_string_from_string_roundtrip' ~name: "Version.Filter" (module Filter_builder.Core.Version) (module Gen.Filter.Version);
-        to_string_from_string_roundtrip' ~name: "Set.Filter" (module Filter_builder.Core.Set) (module Gen.Filter.Set);
-        to_string_from_string_roundtrip' ~name: "Book.Filter" (module Filter_builder.Core.Book) (module Gen.Filter.Book);
-        to_string_from_string_roundtrip' ~name: "Any.Filter" (module Filter_builder.Core.Any) (module Gen.Filter.Any);
-        (* FIXME: Does not actually hold. *)
-        (* to_string_from_string_roundtrip  ~name:"Any.Filter (pretty)" *)
-        (*   ~gen: (QCheck2.Gen.map Model.Any.Filter.optimise Gen.Any.Filter.gen) *)
-        (*   ~show: Model.Any.Filter.show *)
-        (*   ~to_string: Model.Any.Filter.to_pretty_string *)
-        (*   ~from_string: Model.Any.Filter.(Result.map optimise % from_string) *)
-        (*   ~equal: Model.Any.Filter.equal; *)
+        "optimise % from_string % to_string = optimise",
+        [optimise_from_string_to_string__eq__optimise ~name: "Text_formula" ~show: Text_formula.show ~to_string: Text_formula.to_string ~from_string: Text_formula.from_string ~equal: Text_formula.equal ~gen: Gen.Text_formula.gen ~optimise: Fun.id;
+        optimise_from_string_to_string__eq__optimise' ~name: "Source.Filter" (module Filter_builder.Core.Source) (module Gen.Filter.Source);
+        optimise_from_string_to_string__eq__optimise' ~name: "Person.Filter" (module Filter_builder.Core.Person) (module Gen.Filter.Person);
+        optimise_from_string_to_string__eq__optimise' ~name: "Dance.Filter" (module Filter_builder.Core.Dance) (module Gen.Filter.Dance);
+        optimise_from_string_to_string__eq__optimise' ~name: "Tune.Filter" (module Filter_builder.Core.Tune) (module Gen.Filter.Tune);
+        optimise_from_string_to_string__eq__optimise' ~name: "Version.Filter" (module Filter_builder.Core.Version) (module Gen.Filter.Version);
+        optimise_from_string_to_string__eq__optimise' ~name: "Set.Filter" (module Filter_builder.Core.Set) (module Gen.Filter.Set);
+        optimise_from_string_to_string__eq__optimise' ~name: "Book.Filter" (module Filter_builder.Core.Book) (module Gen.Filter.Book);
+        optimise_from_string_to_string__eq__optimise' ~name: "Any.Filter" (module Filter_builder.Core.Any) (module Gen.Filter.Any);
+        ]
+      );
+      (
+        "from_string % to_string % optimise = optimise",
+        [from_string_to_string_optimise__eq__optimise ~name: "Text_formula" ~show: Text_formula.show ~to_string: Text_formula.to_string ~from_string: Text_formula.from_string ~equal: Text_formula.equal ~gen: Gen.Text_formula.gen ~optimise: Fun.id;
+        from_string_to_string_optimise__eq__optimise' ~name: "Source.Filter" (module Filter_builder.Core.Source) (module Gen.Filter.Source);
+        from_string_to_string_optimise__eq__optimise' ~name: "Person.Filter" (module Filter_builder.Core.Person) (module Gen.Filter.Person);
+        from_string_to_string_optimise__eq__optimise' ~name: "Dance.Filter" (module Filter_builder.Core.Dance) (module Gen.Filter.Dance);
+        from_string_to_string_optimise__eq__optimise' ~name: "Tune.Filter" (module Filter_builder.Core.Tune) (module Gen.Filter.Tune);
+        from_string_to_string_optimise__eq__optimise' ~name: "Version.Filter" (module Filter_builder.Core.Version) (module Gen.Filter.Version);
+        from_string_to_string_optimise__eq__optimise' ~name: "Set.Filter" (module Filter_builder.Core.Set) (module Gen.Filter.Set);
+        from_string_to_string_optimise__eq__optimise' ~name: "Book.Filter" (module Filter_builder.Core.Book) (module Gen.Filter.Book);
+        from_string_to_string_optimise__eq__optimise' ~name: "Any.Filter" (module Filter_builder.Core.Any) (module Gen.Filter.Any);
         ]
       );
       (
