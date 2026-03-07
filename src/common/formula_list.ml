@@ -15,14 +15,15 @@ let empty' = Formula.pred empty
 let exists' f = Formula.pred (exists f)
 let forall' f = Formula.pred (forall f)
 
-let text_formula_converter sub_raw sub_tfc =
+let converter sub_converter =
   Text_formula_converter.(
-    make [
-      raw (ok % exists' % sub_raw);
-      nullary ~name: "empty" empty;
-      unary_lift ~name: "exists" (exists, exists_val) ~converter: sub_tfc;
-      unary_lift ~name: "forall" (forall, forall_val) ~converter: sub_tfc;
-    ]
+    make
+      ~raw: (Result.map exists' % raw sub_converter)
+      [
+        nullary ~name: "empty" empty;
+        unary_lift ~name: "exists" (exists, exists_val) ~converter: sub_converter;
+        unary_lift ~name: "forall" (forall, forall_val) ~converter: sub_converter;
+      ]
   )
 
 let optimise sub_optimise =

@@ -30,5 +30,8 @@ let diff = (-.)
 let in_the_past t =
   (t -. now ()) < 0.
 
+let make_in_the_past d =
+  now () -. d
+
 let make_in_the_future d =
   now () +. d

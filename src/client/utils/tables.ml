@@ -27,7 +27,30 @@ let versions ?onclick versions =
     )
     versions
 
-let placeholder ?(show_thead = true) ?(show_tfoot = true) () = [
+let any ?context anys =
+  tablex
+    ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-1"]]
+    ~thead: (
+      thead
+        ~a: [a_class ["table-primary"; "pe-none"]]
+        [
+          tr [
+            th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]];
+            th [txt "Name"];
+            th [txt "Kind/date"];
+            th [txt "By"];
+            th []
+          ]
+        ]
+    )
+    ~tfoot: (
+      tfoot
+        ~a: [a_class ["table-primary"; "pe-none"]]
+        [tr [td []; td []; td []; td []; td []]]
+    )
+    [tbody (List.map (Any_result.make_result ?context) anys)]
+
+let placeholder ?(show_thead = true) ?(show_tfoot = true) ?(rows = 3) () = [
   div
     ~a: [a_class ["table-responsive"]]
     [
@@ -62,23 +85,15 @@ let placeholder ?(show_thead = true) ?(show_tfoot = true) () = [
           else None
         )
         [
-          tbody [
-            tr [
-              td [span_placeholder ()];
-              td [span_placeholder ()];
-              td [span_placeholder ()];
-            ];
-            tr [
-              td [span_placeholder ()];
-              td [span_placeholder ()];
-              td [span_placeholder ()];
-            ];
-            tr [
-              td [span_placeholder ()];
-              td [span_placeholder ()];
-              td [span_placeholder ()];
-            ];
-          ]
+          tbody (
+            List.init rows (fun _ ->
+              tr [
+                td [span_placeholder ()];
+                td [span_placeholder ()];
+                td [span_placeholder ()];
+              ];
+            )
+          )
         ]
     ]
 ]

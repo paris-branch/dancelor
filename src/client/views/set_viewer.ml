@@ -123,6 +123,6 @@ let view context id =
       quick_explorer_links'
         (lwt set)
         [
-          ("books containing this set", Filter.(Any.book' % Book.sets' % Formula_list.exists' % Set.is'));
+          ("books containing this set", Filter.(Any.book' % Formula_entry.value' % Book.sets' % Formula_list.exists' % Formula_entry.is'));
         ];
     ]

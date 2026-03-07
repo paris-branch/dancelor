@@ -29,7 +29,7 @@ end
 type (_, _, _) t =
 (* Actions without specific version *)
 | Create : ((Version.t -> 'w), 'w, Version.entry) t
-| Search : ((Slice.t -> Filter.Version.t -> 'w), 'w, (int * Version.entry list)) t
+| Search : ((Slice.t -> (Version.t, Filter.Version.t) Formula_entry.public -> 'w), 'w, (int * Version.entry list)) t
 (* Actions on a specific version *)
 | Get : ((Version.t Entry.Id.t -> 'w), 'w, Version.entry) t
 | Content : ((Version.t Entry.Id.t -> 'w), 'w, Version.Content.t copyright_response) t
@@ -65,7 +65,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   function
     (* Actions without specific version *)
     | Create -> body "version" (module Version) @@ post (module Entry.JPublic(Version_no_lilypond))
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Version) @@ get (module JPair(JInt)(JList(Entry.JPublic(Version_no_lilypond))))
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(Version)(Filter.Version)) @@ get (module JPair(JInt)(JList(Entry.JPublic(Version_no_lilypond))))
     (* Actions on a specific version *)
     | Get -> variable (module Entry.Id.S(Version)) @@ get (module Entry.JPublic(Version_no_lilypond))
     | Content -> literal "content" @@ variable (module Entry.Id.S(Version)) @@ get (module Copyright_response(Version.Content))

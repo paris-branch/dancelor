@@ -21,7 +21,7 @@ let lt' f = Formula.pred (lt f)
 let ge' f = Formula.pred (ge f)
 let le' f = Formula.pred (le f)
 
-let text_formula_converter =
+let converter =
   Text_formula_converter.(
     make [
       (* raw (ok % eq'); *)

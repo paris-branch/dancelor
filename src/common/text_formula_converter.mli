@@ -4,15 +4,20 @@
     formulas. *)
 
 type 'p t
-(** Abstract type of a converter from text formulas to formulas with predicates
-    of type ['p]. *)
+(** Abstract type of a converter between text formulas and formulas with
+    predicates of type ['p]. *)
 
 (** {2 Using} *)
 
-val to_formula : 'p t -> Text_formula_type.t -> ('p Formula.t, string) Result.t
+val raw : 'p t -> string -> ('p Formula.t, string) Result.t
+(** Convert a “raw” string to a formula using the given converter. In the
+    formula ["bonjour baguette:oui monsieur :chocolat"], raw strings would be
+    ["bonjour"] and ["monsieur"]. *)
+
+val text_formula_to_formula : 'p t -> Text_formula_type.t -> ('p Formula.t, string) Result.t
 (** Convert a text formula to a formula using the given converter. *)
 
-val of_formula : 'p t -> 'p Formula.t -> Text_formula_type.t
+val formula_to_text_formula : 'p t -> 'p Formula.t -> Text_formula_type.t
 (** Convert a formula to a text formula using the given converter. *)
 
 (** {2 Case}
@@ -22,13 +27,6 @@ val of_formula : 'p t -> 'p Formula.t -> Text_formula_type.t
 
 type 'p case
 (** Abstract type of one case. *)
-
-val raw :
-  (string -> ('p Formula.t, string) Result.t) ->
-  'p case
-(** Make a case for standalone strings. For instance, in the formula ["bonjour
-    baguette:oui monsieur :chocolat"], the {!raw} case will apply to ["bonjour"]
-    and ["monsieur"]. *)
 
 val nullary : name: string -> 'p -> 'p case
 (** Make a case for a nullary predicate of the given name converting to the
@@ -96,8 +94,14 @@ val unary_lift :
 
 (** {2 Building} *)
 
-val make : 'p case list -> 'p t
-(** Make a converter from a list of {!type-case}s. *)
+val make :
+  raw: (string -> ('p Formula.t, string) result) ->
+  'p case list ->
+  'p t
+(** Make a converter from a list of {!type-case}s. The [~raw] argument is the
+    case for standalone strings. For instance, in the formula ["bonjour
+    baguette:oui monsieur :chocolat"], the [~raw] function will be applied to
+    ["bonjour"] and ["monsieur"]. *)
 
 val map : ?error: (string -> string) -> ('p Formula.t -> 'q) -> 'p t -> 'q t
 (** Map over a converter given a function. This allows to lift formulas on ['p]

@@ -14,6 +14,9 @@ val now : unit -> t
 val diff : t -> t -> float
 (** Number of seconds between two datetimes. *)
 
+val make_in_the_past : float -> t
+(** Make a datetime in the past by the given number of seconds. *)
+
 val make_in_the_future : float -> t
 (** Make a datetime in the future by the given number of seconds. *)
 

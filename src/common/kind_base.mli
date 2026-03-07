@@ -32,13 +32,11 @@ module Filter : sig
   type t = predicate Formula.t
   [@@deriving eq, show, yojson]
 
-  val accepts : t -> base_kind -> float Lwt.t
-
   val is : base_kind -> predicate
   val is' : base_kind -> t
 
-  val text_formula_converter : predicate Text_formula_converter.t
-  val from_text_formula : Text_formula.t -> (t, string) Result.t
-
+  val converter : predicate Text_formula_converter.t
   val optimise : t -> t
+
+  val accepts : t -> base_kind -> float Lwt.t
 end

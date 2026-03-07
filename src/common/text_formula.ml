@@ -85,5 +85,12 @@ let from_string = Parser.from_string
 let pp = Printer.pp
 let to_string = Printer.to_string
 
-let to_formula = Converter.to_formula
-let of_formula = Converter.of_formula
+let to_formula = Converter.text_formula_to_formula
+let of_formula = Converter.formula_to_text_formula
+
+(** Convenience function to chain {!from_string} and {!to_formula}. *)
+let string_to_formula converter ?filename input =
+  Result.bind (from_string ?filename input) (to_formula converter)
+
+(** Convenience function to chain {!of_formula} and {!to_string}. *)
+let formula_to_string converter = to_string % of_formula converter

@@ -11,7 +11,14 @@ let to_string_no_exn ~name ~show ~gen ~to_string =
         ~name
         ~print: show
         gen
-        (fun f -> try ignore (to_string f); true with _exn -> false)
+        (fun f ->
+          try
+            ignore (to_string f); true
+          with
+            | exn ->
+              Format.printf "%s" (Printexc.to_string exn);
+              false
+        )
     )
 
 let to_string_from_string_roundtrip ~name ~show ~to_string ~from_string ~gen ~equal =
@@ -69,11 +76,9 @@ module type MODEL = sig
   val show : t -> string
 end
 
-module type TOFROMSTRING = sig
+module type CONVERTER = sig
   type predicate
-  type t = predicate Formula.t
-  val to_string : t -> string
-  val from_string : ?filename: string -> string -> (t, string) result
+  val converter : predicate Text_formula_converter.t
 end
 
 module type OPTIMISE = sig
@@ -82,10 +87,10 @@ module type OPTIMISE = sig
   val optimise : t -> t
 end
 
-module type MODEL_TOFROMSTRING = sig
+module type MODEL_CONVERTER = sig
   type predicate
   include MODEL with type predicate := predicate
-  include TOFROMSTRING with type predicate := predicate
+  include CONVERTER with type predicate := predicate
 end
 
 module type MODEL_OPTIMISE = sig
@@ -102,21 +107,21 @@ end
 
 let to_string_no_exn' (type p)
     ~name
-    (module M : MODEL_TOFROMSTRING with type predicate = p)
+    (module M : MODEL_CONVERTER with type predicate = p)
     (module G : GEN with type predicate = p)
   =
-  to_string_no_exn ~name ~show: M.show ~gen: G.gen ~to_string: M.to_string
+  to_string_no_exn ~name ~show: M.show ~gen: G.gen ~to_string: (Text_formula.formula_to_string M.converter)
 
 let to_string_from_string_roundtrip' (type p)
     ~name
-    (module M : MODEL_TOFROMSTRING with type predicate = p)
+    (module M : MODEL_CONVERTER with type predicate = p)
     (module G : GEN with type predicate = p)
   =
   to_string_from_string_roundtrip
     ~name
     ~show: M.show
-    ~to_string: M.to_string
-    ~from_string: M.from_string
+    ~to_string: (Text_formula.formula_to_string M.converter)
+    ~from_string: (Text_formula.string_to_formula M.converter)
     ~gen: G.gen
     ~equal: M.equal
 
@@ -156,7 +161,7 @@ let () =
     [
       (
         "to_string raises no exception",
-        [to_string_no_exn' ~name: "Text_formula" (module Text_formula) (module Gen.Text_formula);
+        [to_string_no_exn ~name: "Text_formula" ~show: Text_formula.show ~to_string: Text_formula.to_string ~gen: Gen.Text_formula.gen;
         to_string_no_exn' ~name: "Source.Filter" (module Filter_builder.Core.Source) (module Gen.Filter.Source);
         to_string_no_exn' ~name: "Person.Filter" (module Filter_builder.Core.Person) (module Gen.Filter.Person);
         to_string_no_exn' ~name: "Dance.Filter" (module Filter_builder.Core.Dance) (module Gen.Filter.Dance);
@@ -170,7 +175,7 @@ let () =
       );
       (
         "from_string % to_string = id",
-        [to_string_from_string_roundtrip' ~name: "Text_formula" (module Text_formula) (module Gen.Text_formula);
+        [to_string_from_string_roundtrip ~name: "Text_formula" ~show: Text_formula.show ~to_string: Text_formula.to_string ~from_string: Text_formula.from_string ~equal: Text_formula.equal ~gen: Gen.Text_formula.gen;
         to_string_from_string_roundtrip' ~name: "Source.Filter" (module Filter_builder.Core.Source) (module Gen.Filter.Source);
         to_string_from_string_roundtrip' ~name: "Person.Filter" (module Filter_builder.Core.Person) (module Gen.Filter.Person);
         to_string_from_string_roundtrip' ~name: "Dance.Filter" (module Filter_builder.Core.Dance) (module Gen.Filter.Dance);

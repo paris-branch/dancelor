@@ -108,20 +108,19 @@ module Filter = struct
         let (_bars, bkind) = kind in
         Kind_base.Filter.accepts bfilter bkind
 
-  let text_formula_converter =
+  let converter =
     Text_formula_converter.(
       merge
         (
           (* Version kind-specific converter *)
           make
+            ~raw: (fun string ->
+              Option.fold
+                ~some: (ok % is')
+                ~none: (kspf error "could not interpret \"%s\" as a version kind" string)
+                (of_string_opt string)
+            )
             [
-              raw
-                (fun string ->
-                  Option.fold
-                    ~some: (ok % is')
-                    ~none: (kspf error "could not interpret \"%s\" as a version kind" string)
-                    (of_string_opt string)
-                );
               unary_int ~name: "bars-eq" (bars_eq, bars_eq_val);
               unary_int ~name: "bars-ne" (bars_ne, bars_ne_val);
               unary_int ~name: "bars-gt" (bars_gt, bars_gt_val);
@@ -129,18 +128,14 @@ module Filter = struct
               unary_int ~name: "bars-lt" (bars_lt, bars_lt_val);
               unary_int ~name: "bars-le" (bars_le, bars_le_val);
               unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "version kind";
-              unary_lift ~wrap_back: Not_pred ~name: "base" (base, base_val) ~converter: Kind_base.Filter.text_formula_converter;
+              unary_lift ~wrap_back: Not_pred ~name: "base" (base, base_val) ~converter: Kind_base.Filter.converter;
             ]
         )
         (
           (* Base kind converter, lifted to version kinds *)
-          map base Kind_base.Filter.text_formula_converter
+          map base Kind_base.Filter.converter
         )
     )
-
-  let from_text_formula = Text_formula.to_formula text_formula_converter
-  let from_string ?filename input =
-    Result.bind (Text_formula.from_string ?filename input) from_text_formula
 
   let optimise =
     Formula.optimise

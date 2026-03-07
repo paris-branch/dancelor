@@ -25,7 +25,7 @@ let editor =
       Selector.prepare
         ~label: "Editor"
         ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Person.from_string input) in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
         ~unserialise: Model.Person.get

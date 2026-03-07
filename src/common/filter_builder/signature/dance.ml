@@ -5,21 +5,14 @@ module type S = sig
   type t = Core.Dance.t
   [@@deriving eq, show]
 
-  val accepts : t -> Model_builder.Core.Dance.entry -> float Lwt.t
-
-  val is : Model_builder.Core.Dance.entry -> predicate
-  val is' : Model_builder.Core.Dance.entry -> t
-
   val kind : Kind.Dance.Filter.t -> predicate
   val kind' : Kind.Dance.Filter.t -> t
 
-  val devisers : Core.Person.t Formula_list.t -> predicate
-  val devisers' : Core.Person.t Formula_list.t -> t
+  val devisers : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.public Formula_list.t -> predicate
+  val devisers' : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.public Formula_list.t -> t
 
-  val text_formula_converter : predicate Text_formula_converter.t
-  val from_text_formula : Text_formula.t -> (t, string) Result.t
-  val from_string : ?filename: string -> string -> (t, string) Result.t
-  val to_string : t -> string
-
+  val converter : predicate Text_formula_converter.t
   val optimise : t -> t
+
+  val accepts : t -> Model_builder.Core.Dance.t -> float Lwt.t
 end

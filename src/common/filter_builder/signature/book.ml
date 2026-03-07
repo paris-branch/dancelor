@@ -4,26 +4,20 @@ module type S = sig
   type predicate = Core.Book.predicate
   type t = Core.Book.t
 
-  val accepts : t -> Model_builder.Core.Book.entry -> float Lwt.t
+  val editors : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.public Formula_list.t -> predicate
+  val editors' : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.public Formula_list.t -> t
 
-  val editors' : Core.Person.t Formula_list.t -> t
+  val sets : (Model_builder.Core.Set.t, Core.Set.t) Formula_entry.private_ Formula_list.t -> predicate
+  val sets' : (Model_builder.Core.Set.t, Core.Set.t) Formula_entry.private_ Formula_list.t -> t
 
-  val sets : Core.Set.t Formula_list.t -> predicate
-  val sets' : Core.Set.t Formula_list.t -> t
+  val versions : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public Formula_list.t -> predicate
+  val versions' : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public Formula_list.t -> t
 
-  val versions : Core.Version.t Formula_list.t -> predicate
-  val versions' : Core.Version.t Formula_list.t -> t
+  val versions_deep : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public Formula_list.t -> predicate
+  val versions_deep' : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public Formula_list.t -> t
 
-  val versions_deep : Core.Version.t Formula_list.t -> predicate
-  val versions_deep' : Core.Version.t Formula_list.t -> t
-
-  val owners : Core.User.t Formula_list.t -> predicate
-  val owners' : Core.User.t Formula_list.t -> t
-
-  val text_formula_converter : predicate Text_formula_converter.t
-  val from_text_formula : Text_formula.t -> (t, string) Result.t
-  val from_string : ?filename: string -> string -> (t, string) Result.t
-  val to_string : t -> string
-
+  val converter : predicate Text_formula_converter.t
   val optimise : t -> t
+
+  val accepts : t -> Model_builder.Core.Book.t -> float Lwt.t
 end

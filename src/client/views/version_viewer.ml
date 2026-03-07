@@ -48,8 +48,8 @@ let add_to_set_dialog version user =
     ~target_icon: Icon.(Model Set)
     ~target_format: Formatters.Set.name'
     ~target_href: Endpoints.Page.href_set
-    ~target_filter_from_string: Filter.Set.from_string
-    ~target_filter_owners': Filter.Set.owners'
+    ~target_converter: (Formula_entry.converter_private Filter.Set.converter)
+    ~target_filter_owners': Formula_entry.(access' % owners')
     ~target_result: (Any_result.make_set_result ?classes: None ?prefix: None ?suffix: None ?params: None)
     ~target_search: (Madge_client.call_exn Endpoints.Api.(route @@ Set Search))
     ~target_update: (Madge_client.call_exn Endpoints.Api.(route @@ Set Update))
@@ -72,7 +72,7 @@ let view context tune_id id =
   let%lwt versions_of_this_tune =
     snd
     <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
-        Filter.(Version.tune' % Tune.is') tune
+      Formula_entry.value' @@ Filter.Version.tune' @@ Formula_entry.is' tune
   in
   (* If no specific version was provided, grab any available one. FIXME: Some
      more logic here, eg. priorities books or versions that the user likes. *)
@@ -335,10 +335,10 @@ let view context tune_id id =
       );
       quick_explorer_links @@
         List.filter_map Fun.id [
-          Option.flip_map version (fun version -> ("sets containing this version", lwt @@ Filter.(Any.set' % Set.versions' % Formula_list.exists' % Version.is') version));
-          Some ("sets containing this tune", Filter.(Any.set' % Set.versions' % Formula_list.exists' % Version.tune' % Tune.is') <$> lwt tune);
-          Option.flip_map version (fun version -> ("books containing this version", lwt @@ Filter.(Any.book' % Book.versions_deep' % Formula_list.exists' % Version.is') version));
-          Some ("books containing this tune", Filter.(Any.book' % Book.versions_deep' % Formula_list.exists' % Version.tune' % Tune.is') <$> lwt tune);
+          Option.flip_map version (fun version -> ("sets containing this version", lwt @@ Filter.(Any.set' % Formula_entry.value' % Set.versions' % Formula_list.exists' % Formula_entry.is') version));
+          Some ("sets containing this tune", Filter.(Any.set' % Formula_entry.value' % Set.versions' % Formula_list.exists' % Formula_entry.value' % Version.tune' % Formula_entry.is') <$> lwt tune);
+          Option.flip_map version (fun version -> ("books containing this version", lwt @@ Filter.(Any.book' % Formula_entry.value' % Book.versions_deep' % Formula_list.exists' % Formula_entry.is') version));
+          Some ("books containing this tune", Filter.(Any.book' % Formula_entry.value' % Book.versions_deep' % Formula_list.exists' % Formula_entry.value' % Version.tune' % Formula_entry.is') <$> lwt tune);
         ];
       div [
         h3 [txt "Versions of this tune"];
@@ -348,7 +348,7 @@ let view context tune_id id =
               let%lwt versions =
                 snd
                 <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
-                    Filter.(Version.tune' % Tune.is') tune
+                  Formula_entry.value' @@ Filter.Version.tune' @@ Formula_entry.is' tune
               in
               let%lwt is_connected = Environment.is_connected in
               lwt @@

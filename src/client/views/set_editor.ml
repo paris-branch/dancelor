@@ -53,7 +53,7 @@ let editor user =
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create
         ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Person.from_string input) in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
         ~unserialise: Model.Person.get
@@ -76,7 +76,7 @@ let editor user =
             ~model_name: "version"
             ~create_dialog_content: Version_editor.create
             ~search: (fun slice input ->
-              let%rlwt filter = lwt (Filter.Version.from_string input) in
+              let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Version.converter) input in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
             )
             ~unserialise: Model.Version.get
@@ -122,7 +122,7 @@ let editor user =
         ~make_result: (Any_result.make_user_result ?context: None)
         ~results_when_no_search: (Option.to_list <$> Environment.user)
         ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.User.from_string input) in
+          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.User.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
         )
         ~unserialise: Model.User.get
@@ -158,7 +158,7 @@ let editor user =
                 ~make_descr: (lwt % Model.User.Username.to_string % Model.User.username')
                 ~make_result: (Any_result.make_user_result ?context: None)
                 ~search: (fun slice input ->
-                  let%rlwt filter = lwt (Filter.User.from_string input) in
+                  let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.User.converter) input in
                   ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
                 )
                 ~unserialise: Model.User.get
