@@ -15,7 +15,6 @@ let dialog
     ~(target_result : ?onclick: 'a -> ?context: 'b -> 'c -> 'd)
     ~target_search
     ~target_update
-    ~target_get
     ~target_history
     ~target_add_source_to_content
     user
@@ -61,7 +60,7 @@ let dialog
       ()
   in
   let%lwt results_when_no_search =
-    let%lwt targets = Lwt_list.map_p (Option.get <%> target_get) (target_history ()) in
+    let%lwt targets = target_history () in
     List.take 10 % List.deduplicate <$> Lwt_list.filter_p (Option.is_some <%> Permission.can_update_private) targets
   in
   ignore
@@ -89,7 +88,6 @@ let dialog_to_book ~source_type ~source_format user source source_page =
     ~target_result: (Any_result.make_book_result ?classes: None ?prefix: None ?suffix: None)
     ~target_search: (Madge_client.call_exn Endpoints.Api.(route @@ Book Search))
     ~target_update: (Madge_client.call_exn Endpoints.Api.(route @@ Book Update))
-    ~target_get: Model.Book.get
     ~target_history: History.get_books
     ~target_add_source_to_content: (fun book ->
       let%lwt contents = Model.Book.contents book in

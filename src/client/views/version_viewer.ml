@@ -53,7 +53,6 @@ let add_to_set_dialog version user =
     ~target_result: (Any_result.make_set_result ?classes: None ?prefix: None ?suffix: None ?params: None)
     ~target_search: (Madge_client.call_exn Endpoints.Api.(route @@ Set Search))
     ~target_update: (Madge_client.call_exn Endpoints.Api.(route @@ Set Update))
-    ~target_get: Model.Set.get
     ~target_history: History.get_sets
     ~target_add_source_to_content: (fun set ->
       let%lwt contents = Model.Set.contents set in
