@@ -21,7 +21,7 @@ let name = name_gen % Either.left
 let name' ?(link = true) ?context tune = name_gen @@ Right (tune, link, context)
 
 let composers ?short ?links tune =
-  with_span_placeholder
+  with_span_placeholder ~min: 1 ~max: 2 @@
     (List.singleton <$> ((Person.names' ?short ?links % List.map Model.Tune.composer_composer) <$> Model.Tune.composers tune))
 
 let composers' ?short ?links tune = composers ?short ?links (Entry.value tune)

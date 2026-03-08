@@ -55,7 +55,7 @@ let disambiguation_and_sources_internal ?(parentheses = true) ?link version =
           [[txt (if parentheses then ")" else "")]];
         ]
   in
-    [with_span_placeholder sources_block; disambiguation ~parentheses version]
+    [with_span_placeholder ~min: 1 ~max: 1 sources_block; disambiguation ~parentheses version]
 
 let disambiguation_and_sources ?parentheses ?link version =
   span (disambiguation_and_sources_internal ?parentheses ?link version)
@@ -64,7 +64,7 @@ let disambiguation_and_sources' ?parentheses ?link version =
   disambiguation_and_sources ?parentheses ?link @@ Entry.value version
 
 let name_gen version_gen =
-  with_span_placeholder @@
+  with_span_placeholder ~min: 1 ~max: 4 @@
     match version_gen with
     | Right (version, true, context) ->
       let%lwt name = Model.Version.one_name' version in
