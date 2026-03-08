@@ -140,7 +140,7 @@ module Filter = struct
   let optimise =
     Formula.optimise
       ~not_: (function
-        | Base f -> some @@ base @@ Formula.not f
+        | Base f -> some @@ base' @@ Formula.not f
         | _ -> None
       )
       ~binop: (fun {op} f1 f2 ->

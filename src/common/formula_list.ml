@@ -41,13 +41,15 @@ let optimise sub_optimise =
         | _ -> None
     )
     ~not_: (function
-      | Exists f -> some @@ forall (Formula.not f)
-      | Forall f -> some @@ exists (Formula.not f)
+      | Exists f -> some @@ forall' (Formula.not f)
+      | Forall f -> some @@ exists' (Formula.not f)
       | _ -> None
     )
     ~and_: (fun f1 f2 ->
       match (f1, f2) with
       | (Forall f1, Forall f2) -> some @@ forall (Formula.and_ f1 f2)
+      | (Empty, Forall _) | (Forall _, Empty) -> some Empty
+      (* | (Empty, Exists _) | (Exists _, Empty) -> some False *)
       | _ -> None
     )
     ~or_: (fun f1 f2 ->

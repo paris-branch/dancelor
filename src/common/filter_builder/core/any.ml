@@ -17,6 +17,35 @@ type predicate =
   | Version of (Model_builder.Core.Version.t, Version.t) Formula_entry.public
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
+(** Partial comparison of predicates. NOTE: This is not a full comparison as we
+    do not want to go into the sub-formulas, but this is enough to put all the
+    Type at the beginning, Raw at the end, and eg. Source side-by-side. *)
+let compare_predicate p1 p2 =
+  (* NOTE: to be kept in sync with [to_int] in [compare] in
+     model_builder/core/any.ml *)
+  let to_int = function
+    | Raw _ | Type _ -> assert false
+    | Person _ -> 0
+    | Dance _ -> 1
+    | Source _ -> 2
+    | Tune _ -> 3
+    | Version _ -> 4
+    | Set _ -> 5
+    | Book _ -> 6
+  (* | User _ -> 7 *)
+  in
+  match (p1, p2) with
+  (* raw goes after anything else  *)
+  | (Raw _, Raw _) -> 0
+  | (Raw _, _) -> 1
+  | (_, Raw _) -> -1
+  (* type goes before anything else *)
+  | (Type t1, Type t2) -> Model_builder.Core.Any.Type.compare t1 t2
+  | (Type _, _) -> -1
+  | (_, Type _) -> 1
+  (* the rest are sorted according to [to_int] *)
+  | _ -> Int.compare (to_int p1) (to_int p2)
+
 (* NOTE: To prevent some shadowing. *)
 let predicate_Raw = raw
 
@@ -90,45 +119,61 @@ let to_string = Text_formula.to_string % Text_formula.of_formula converter
     instance, ["type:version (version:key:A :or book::source)"] can be
     simplified to ["type:version version:key:A"]. *)
 let type_based_cleanup =
-  (* Returns the types of objects matched by a predicate. *)
-  let types_of_predicate = function
-    | Raw _ -> Model_builder.Core.Any.Type.Set.all
-    | Type type_ -> Model_builder.Core.Any.Type.Set.singleton type_
-    | Source _ -> Model_builder.Core.Any.Type.Set.singleton Source
-    | Person _ -> Model_builder.Core.Any.Type.Set.singleton Person
-    | Dance _ -> Model_builder.Core.Any.Type.Set.singleton Dance
-    | Book _ -> Model_builder.Core.Any.Type.Set.singleton Book
-    | Set _ -> Model_builder.Core.Any.Type.Set.singleton Set
-    | Tune _ -> Model_builder.Core.Any.Type.Set.singleton Tune
-    | Version _ -> Model_builder.Core.Any.Type.Set.singleton Version
-  in
+  let module S = Model_builder.Core.Any.Type.Set in
   let open Formula in
-  (* Given a maximal set of possible types [t] and a formula, refine the
-     possible types of the formula and a clean up the formula. The returned
-     types are a subset of [t]. The returned formula does not contain
-     predicates that would clash with [t]. *)
-  let rec refine_types_and_cleanup t = function
-    | False -> (Model_builder.Core.Any.Type.Set.empty, False)
-    | True -> (t, True)
+  (* Given a formula, a set [t] of possible types for the formula, and a set
+       [tn] of possible types for the negation of the formula, refine the possible
+       types of the formula and a clean up the formula. The returned types are a
+       subset of [t]. The returned formula does not contain predicates that would
+       clash with [t]. *)
+  let return (tn, t, f) = (tn, t, if S.is_empty t then False else if S.is_empty tn then True else f) in
+  let rec refine_types_and_cleanup tn t = function
+    | False -> (tn, S.empty, False)
+    | True -> (S.empty, t, True)
     | Not f ->
-      (* REVIEW: Not 100% of this [Type.Set.comp t] argument. *)
-      Pair.map (Model_builder.Core.Any.Type.Set.diff t) not @@ refine_types_and_cleanup (Model_builder.Core.Any.Type.Set.comp t) f
+      (* Crucially, invert [t] and [tn]. *)
+      let (t, tn, f) = refine_types_and_cleanup t tn f in
+      return (tn, t, not f)
     | And (f1, f2) ->
-      (* Refine [t] on [f1], the refine it again while cleaning up [f2],
-         then come back and clean up [f1]. *)
-      let (t, _) = refine_types_and_cleanup t f1 in
-      let (t, f2) = refine_types_and_cleanup t f2 in
-      let (t, f1) = refine_types_and_cleanup t f1 in
-        (t, and_ f1 f2)
+      (* We first go gather type informations on both sides of the And, then
+         come back to actually clean up the formulas. We could optimise by
+         trying to only call recursively three times, or by checking whether we
+         actually learned some stuff, but it isn't worth it. *)
+      let (tn1, t1, _) = refine_types_and_cleanup tn t f1 in
+      let (tn2, t2, _) = refine_types_and_cleanup tn t f2 in
+      let (tn, t) = (S.union tn1 tn2, S.inter t1 t2) in
+      let (_, _, f1) = refine_types_and_cleanup tn t f1 in
+      let (_, _, f2) = refine_types_and_cleanup tn t f2 in
+      return (tn, t, And (f1, f2))
     | Or (f1, f2) ->
-      let (t1, f1) = refine_types_and_cleanup t f1 in
-      let (t2, f2) = refine_types_and_cleanup t f2 in
-        (Model_builder.Core.Any.Type.Set.union t1 t2, or_ f1 f2)
+      (* Same sort of thing as [and].*)
+      let (tn1, t1, _) = refine_types_and_cleanup tn t f1 in
+      let (tn2, t2, _) = refine_types_and_cleanup tn t f2 in
+      let (tn, t) = (S.inter tn1 tn2, S.union t1 t2) in
+      let (_, _, f1) = refine_types_and_cleanup tn t f1 in
+      let (_, _, f2) = refine_types_and_cleanup tn t f2 in
+      return (tn, t, Or (f1, f2))
+    | Pred (Raw x) ->
+      return (tn, t, Pred (Raw x))
+    | Pred (Type tp) ->
+      return (S.remove tp tn, S.inter (S.singleton tp) t, Pred (Type tp))
     | Pred p ->
-      let ts = Model_builder.Core.Any.Type.Set.inter (types_of_predicate p) t in
-        (ts, if Model_builder.Core.Any.Type.Set.is_empty ts then False else Pred p)
+      let tp : Model_builder.Core.Any.Type.t =
+        match p with
+        | Raw _ | Type _ -> assert false
+        | Source _ -> Source
+        | Person _ -> Person
+        | Dance _ -> Dance
+        | Book _ -> Book
+        | Set _ -> Set
+        | Tune _ -> Tune
+        | Version _ -> Version
+      in
+      let t = S.inter (S.singleton tp) t in
+      let p = if Stdlib.not (S.mem tp tn) then Type tp else p in
+      return (tn, t, Pred p)
   in
-  snd % refine_types_and_cleanup Model_builder.Core.Any.Type.Set.all
+  fun f -> let (_, _, f) = refine_types_and_cleanup S.all S.all (Formula.sort compare_predicate f) in f
 
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
@@ -162,17 +207,21 @@ let optimise =
             | _ -> None
         )
         ~not_: (function
-          | Source f -> some @@ source @@ Formula.not f
-          | Person f -> some @@ person @@ Formula.not f
-          | Dance f -> some @@ dance @@ Formula.not f
-          | Book f -> some @@ book @@ Formula.not f
-          | Set f -> some @@ set @@ Formula.not f
-          | Tune f -> some @@ tune @@ Formula.not f
-          | Version f -> some @@ version @@ Formula.not f
+          | Type tp ->
+            let other_types = Model_builder.Core.Any.Type.Set.(to_list (remove tp all)) in
+            some @@ Formula.or_l (List.map type_' other_types)
+          | Source f -> some @@ Formula.or_ (Formula.not @@ type_' Source) (source' @@ Formula.not f)
+          | Person f -> some @@ Formula.or_ (Formula.not @@ type_' Person) (person' @@ Formula.not f)
+          | Dance f -> some @@ Formula.or_ (Formula.not @@ type_' Dance) (dance' @@ Formula.not f)
+          | Book f -> some @@ Formula.or_ (Formula.not @@ type_' Book) (book' @@ Formula.not f)
+          | Set f -> some @@ Formula.or_ (Formula.not @@ type_' Set) (set' @@ Formula.not f)
+          | Tune f -> some @@ Formula.or_ (Formula.not @@ type_' Tune) (tune' @@ Formula.not f)
+          | Version f -> some @@ Formula.or_ (Formula.not @@ type_' Version) (version' @@ Formula.not f)
           | _ -> None
         )
-        ~binop: (fun {op} f1 f2 ->
+        ~and_: (fun f1 f2 ->
           match (f1, f2) with
+          | (Type tp1, Type tp2) when tp1 = tp2 -> some @@ type_ tp1
           (* [person:] eats [type:person] *)
           | (Type Source, Source f) | (Source f, Type Source) -> some @@ source f
           | (Type Person, Person f) | (Person f, Type Person) -> some @@ person f
@@ -182,13 +231,34 @@ let optimise =
           | (Type Tune, Tune f) | (Tune f, Type Tune) -> some @@ tune f
           | (Type Version, Version f) | (Version f, Type Version) -> some @@ version f
           (* [person:<f1> ∧ person:<f2> -> person:(<f1> ∧ <f2>)] *)
-          | (Source f1, Source f2) -> some @@ source (op f1 f2)
-          | (Person f1, Person f2) -> some @@ person (op f1 f2)
-          | (Dance f1, Dance f2) -> some @@ dance (op f1 f2)
-          | (Book f1, Book f2) -> some @@ book (op f1 f2)
-          | (Set f1, Set f2) -> some @@ set (op f1 f2)
-          | (Tune f1, Tune f2) -> some @@ tune (op f1 f2)
-          | (Version f1, Version f2) -> some @@ version (op f1 f2)
+          | (Source f1, Source f2) -> some @@ source (Formula.and_ f1 f2)
+          | (Person f1, Person f2) -> some @@ person (Formula.and_ f1 f2)
+          | (Dance f1, Dance f2) -> some @@ dance (Formula.and_ f1 f2)
+          | (Book f1, Book f2) -> some @@ book (Formula.and_ f1 f2)
+          | (Set f1, Set f2) -> some @@ set (Formula.and_ f1 f2)
+          | (Tune f1, Tune f2) -> some @@ tune (Formula.and_ f1 f2)
+          | (Version f1, Version f2) -> some @@ version (Formula.and_ f1 f2)
+          | _ -> None
+        )
+        ~or_: (fun f1 f2 ->
+          match (f1, f2) with
+          | (Type tp1, Type tp2) when tp1 = tp2 -> some @@ type_ tp1
+          (* [type:person] eats [person:] *)
+          | (Type Source, Source _) | (Source _, Type Source) -> some @@ Type Source
+          | (Type Person, Person _) | (Person _, Type Person) -> some @@ Type Person
+          | (Type Dance, Dance _) | (Dance _, Type Dance) -> some @@ Type Dance
+          | (Type Book, Book _) | (Book _, Type Book) -> some @@ Type Book
+          | (Type Set, Set _) | (Set _, Type Set) -> some @@ Type Set
+          | (Type Tune, Tune _) | (Tune _, Type Tune) -> some @@ Type Tune
+          | (Type Version, Version _) | (Version _, Type Version) -> some @@ Type Version
+          (* [person:<f1> ∧ person:<f2> -> person:(<f1> ∧ <f2>)] *)
+          | (Source f1, Source f2) -> some @@ source (Formula.or_ f1 f2)
+          | (Person f1, Person f2) -> some @@ person (Formula.or_ f1 f2)
+          | (Dance f1, Dance f2) -> some @@ dance (Formula.or_ f1 f2)
+          | (Book f1, Book f2) -> some @@ book (Formula.or_ f1 f2)
+          | (Set f1, Set f2) -> some @@ set (Formula.or_ f1 f2)
+          | (Tune f1, Tune f2) -> some @@ tune (Formula.or_ f1 f2)
+          | (Version f1, Version f2) -> some @@ version (Formula.or_ f1 f2)
           | _ -> None
         )
         (function

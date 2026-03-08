@@ -8,3 +8,5 @@ let cons x y = (x, y)
 let snoc y x = (x, y)
 
 let map_fst_lwt f (x, y) = let%lwt x = f x in Lwt.return (x, y)
+
+let flip (x, y) = (y, x)

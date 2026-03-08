@@ -25,3 +25,5 @@ val snoc : 'b -> 'a -> 'a * 'b
 (** Construct a pair, from arguments in reverse order. This is meant to be
     partially applied, eg. [snoc y] is the function that adds [y] after its
     argument. *)
+
+val flip : ('a * 'b) -> ('b * 'a)

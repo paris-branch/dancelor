@@ -29,8 +29,8 @@ let optimise =
         | Editors f -> is_tf f
     )
     ~not_: (function
-      | Name f -> some @@ name @@ Formula.not f
-      | Editors f -> some @@ editors @@ Formula.not f
+      | Name f -> some @@ name' @@ Formula.not f
+      | Editors f -> some @@ editors' @@ Formula.not f
     )
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with

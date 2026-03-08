@@ -37,9 +37,9 @@ let optimise =
         | Devisers f -> is_tf f
     )
     ~not_: (function
-      | Name f -> some @@ name @@ Formula.not f
-      | Kind f -> some @@ kind @@ Formula.not f
-      | Devisers f -> some @@ devisers @@ Formula.not f
+      | Name f -> some @@ name' @@ Formula.not f
+      | Kind f -> some @@ kind' @@ Formula.not f
+      | Devisers f -> some @@ devisers' @@ Formula.not f
     )
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with

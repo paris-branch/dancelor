@@ -91,6 +91,7 @@ module Filter = struct
   [@@deriving eq, show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
+  let version' = Formula.pred % version
   let base' = Formula.pred % base
   let base_is' = Formula.pred % base_is
 
@@ -138,7 +139,7 @@ module Filter = struct
   let optimise =
     Formula.optimise
       ~not_: (function
-        | Version f -> some @@ version @@ Formula.not f
+        | Version f -> some @@ version' @@ Formula.not f
         | _ -> None
       )
       ~binop: (fun {op} f1 f2 ->

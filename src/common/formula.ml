@@ -131,6 +131,39 @@ let cnf_val f =
   let disj_val f = List.(all_some @@ map pred_val (disjuncts f)) in
   List.(all_some @@ map disj_val (conjuncts f))
 
+let compare_head cmp_pred f1 f2 =
+  match (f1, f2) with
+  (* False sorts before everything *)
+  | False, False -> 0
+  | False, _ -> -1
+  | _, False -> 1
+  (* then comes True *)
+  | True, True -> 0
+  | True, _ -> -1
+  | _, True -> 1
+  (* then come predicates, which are themselves sorted according to [cmp_pred] *)
+  | Pred p1, Pred p2 -> cmp_pred p1 p2
+  | Pred _, _ -> -1
+  | _, Pred _ -> 1
+  (* then come complex formulas: *)
+  | Not _, Not _ -> 0
+  | Not _, _ -> -1
+  | _, Not _ -> 1
+  | And _, And _ -> 0
+  | And _, _ -> -1
+  | _, And _ -> 1
+  | Or _, Or _ -> 0
+(* | Or _, _ -> -1 *)
+(* | _, Or _ -> 1 *)
+
+let rec sort cmp_pred = function
+  | False -> False
+  | True -> True
+  | Not f -> Not (sort cmp_pred f)
+  | And _ as f -> and_l @@ List.sort (compare_head cmp_pred) @@ List.map (sort cmp_pred) @@ conjuncts f
+  | Or _ as f -> or_l @@ List.sort (compare_head cmp_pred) @@ List.map (sort cmp_pred) @@ disjuncts f
+  | Pred p -> Pred p
+
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type is_true_or_false = {is_tf: 'a. 'a t -> bool}
 type is_true = {is_true: 'a. 'a t -> bool}
@@ -162,7 +195,9 @@ let optimise ?up: optimise_up ?up_true: optimise_up_true ?up_false: optimise_up_
     | Not True -> False
     | Not False -> True
     | Not (Not f) -> f
-    | Not (Pred p) -> Option.fold ~none: (Not (Pred p)) ~some: pred (optimise_not p)
+    | Not (And (f1, f2)) -> Or (Not f1, Not f2)
+    | Not (Or (f1, f2)) -> And (Not f1, Not f2)
+    | Not (Pred p) -> Option.value ~default: (Not (Pred p)) (optimise_not p)
     | And (True, f) | And (f, True) -> f
     | And (False, _) | And (_, False) -> False
     | And (f1, f2) as f ->

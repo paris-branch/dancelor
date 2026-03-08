@@ -41,11 +41,11 @@ let optimise =
         | Editors f -> is_tf f
     )
     ~not_: (function
-      | Title f -> some @@ title @@ Formula.not f
-      | Versions f -> some @@ versions @@ Formula.not f
-      | Versions_deep f -> some @@ versions_deep @@ Formula.not f
-      | Sets f -> some @@ sets @@ Formula.not f
-      | Editors f -> some @@ editors @@ Formula.not f
+      | Title f -> some @@ title' @@ Formula.not f
+      | Versions f -> some @@ versions' @@ Formula.not f
+      | Versions_deep f -> some @@ versions_deep' @@ Formula.not f
+      | Sets f -> some @@ sets' @@ Formula.not f
+      | Editors f -> some @@ editors' @@ Formula.not f
     )
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with

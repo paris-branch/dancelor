@@ -41,10 +41,10 @@ let optimise =
         | Dances f -> is_tf f
     )
     ~not_: (function
-      | Name f -> some @@ name @@ Formula.not f
-      | Composers f -> some @@ composers @@ Formula.not f
-      | Kind f -> some @@ kind @@ Formula.not f
-      | Dances f -> some @@ dances @@ Formula.not f
+      | Name f -> some @@ name' @@ Formula.not f
+      | Composers f -> some @@ composers' @@ Formula.not f
+      | Kind f -> some @@ kind' @@ Formula.not f
+      | Dances f -> some @@ dances' @@ Formula.not f
     )
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with

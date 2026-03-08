@@ -7,7 +7,7 @@ let to_string_no_exn ~name ~show ~gen ~to_string =
     (
       QCheck2.Test.make
         ~count: 1_000
-        ~long_factor: 100
+        (* ~long_factor: 100 *)
         ~name
         ~print: show
         gen
@@ -27,7 +27,7 @@ let optimise_from_string_to_string__eq__optimise ~name ~show ~to_string ~from_st
     (
       QCheck2.Test.make
         ~count: 1_000
-        ~long_factor: 100
+        (* ~long_factor: 100 *)
         ~name
         ~print: (fun f ->
           "Filter:\n\n  " ^
@@ -57,7 +57,7 @@ let from_string_to_string_optimise__eq__optimise ~name ~show ~to_string ~from_st
     (
       QCheck2.Test.make
         ~count: 1_000
-        ~long_factor: 100
+        (* ~long_factor: 100 *)
         ~name
         ~print: (fun f ->
           "Filter:\n\n  " ^
@@ -86,7 +86,7 @@ let optimise_idempotent ~name ~gen ~show ~optimise ~equal =
     (
       QCheck2.Test.make
         ~count: 1_000
-        ~long_factor: 100
+        (* ~long_factor: 100 *)
         ~name
         ~print: (fun f ->
           "Input:\n\n  " ^

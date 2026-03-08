@@ -35,19 +35,20 @@ let optimise =
   Formula.optimise
     ~up: (fun {is_tf} ->
       function
+        | Name f -> is_tf f
         | Conceptors f -> is_tf f
         | Versions f -> is_tf f
         | Kind f -> is_tf f
-        | _ -> false
     )
     ~not_: (function
-      | Conceptors f -> some @@ conceptors @@ Formula.not f
-      | Versions f -> some @@ versions @@ Formula.not f
-      | Kind f -> some @@ kind @@ Formula.not f
-      | _ -> None
+      | Name f -> some @@ name' @@ Formula.not f
+      | Conceptors f -> some @@ conceptors' @@ Formula.not f
+      | Versions f -> some @@ versions' @@ Formula.not f
+      | Kind f -> some @@ kind' @@ Formula.not f
     )
     ~binop: (fun {op} f1 f2 ->
       match (f1, f2) with
+      | (Name f1, Name f2) -> some @@ name (op f1 f2)
       | (Conceptors f1, Conceptors f2) -> some @@ conceptors (op f1 f2)
       | (Versions f1, Versions f2) -> some @@ versions (op f1 f2)
       | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)

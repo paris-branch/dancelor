@@ -77,6 +77,7 @@ type ('value, 'filter) private_ =
 let is' entry = Formula.pred @@ is @@ Entry.id entry
 let value' filter = Formula.pred @@ value filter
 let access' filter = Formula.pred @@ access filter
+let meta' filter = Formula.pred @@ meta filter
 let owners' filter = Formula.pred @@ owners filter
 
 let converter_gen sub_converter access_converter =
@@ -141,9 +142,9 @@ let optimise_gen optimise_value optimise_access =
         | _ -> false
     )
     ~not_: (function
-      | Value f -> some @@ value @@ Formula.not f
-      | Access f -> some @@ access @@ Formula.not f
-      | Meta f -> some @@ meta @@ Formula.not f
+      | Value f -> some @@ value' @@ Formula.not f
+      | Access f -> some @@ access' @@ Formula.not f
+      | Meta f -> some @@ meta' @@ Formula.not f
       | _ -> None
     )
     ~binop: (fun {op} f1 f2 ->

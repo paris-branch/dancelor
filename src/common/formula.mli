@@ -56,8 +56,14 @@ val interpret : 'p t -> ('p -> float Lwt.t) -> float Lwt.t
 (** {3 Destructors} *)
 
 val conjuncts : 'p t -> 'p t list
-(** Returns all the conjuncts of the given formula. [and_l (conjuncts f) = f].
-    The returned list is never empty. *)
+(** Returns all the conjuncts of the given formula. [and_l (conjuncts f)] is
+    equivalent to [f], the difference being only syntactic in the order of the
+    conjunctions. The returned list is never empty. *)
+
+val disjuncts : 'p t -> 'p t list
+(** Returns all the disjuncts of the given formula. [or_l (disjuncts f)] is
+    equivalent to [f], the difference being only syntactic in the order of the
+    disjunctions. The returned list is never empty. *)
 
 val cnf_val : 'p t -> 'p list list option
 (** Given a formula in conjunctive normal form (CNF), return said CNF. Otherwise
@@ -74,7 +80,7 @@ val optimise :
   ?up: (is_true_or_false -> 'p -> bool) ->
   ?up_true: (is_true -> 'p -> 'p t option) ->
   ?up_false: (is_false -> 'p -> 'p t option) ->
-  ?not_: ('p -> 'p option) ->
+  ?not_: ('p -> 'p t option) ->
   ?binop: (binop -> 'p -> 'p -> 'p option) ->
   ?and_: ('p -> 'p -> 'p option) ->
   ?or_: ('p -> 'p -> 'p option) ->
@@ -104,3 +110,7 @@ val convert_res : ('p -> ('q t, 'e) Result.t) -> 'p t -> ('q t, 'e) Result.t
 val pp : (Format.formatter -> 'p -> unit) -> Format.formatter -> 'p t -> unit
 (** For debugging purposes. This is compatible with [ppx_deriving_show] but is a
     more usual representation of formulas. *)
+
+val sort : ('p -> 'p -> int) -> 'p t -> 'p t
+(** Given a predicate comparison function, “sort” the formula, that is go in
+    depth and sort disjuncts and conjuncts inside of it. *)

@@ -35,9 +35,15 @@ let converter =
 
 let optimise =
   Formula.optimise
+    ~up: (fun {is_tf} ->
+      function
+        | Tune f -> is_tf f
+        | Sources f -> is_tf f
+        | _ -> false
+    )
     ~not_: (function
-      | Tune f -> some @@ tune @@ Formula.not f
-      | Sources f -> some @@ sources @@ Formula.not f
+      | Tune f -> some @@ tune' @@ Formula.not f
+      | Sources f -> some @@ sources' @@ Formula.not f
       | _ -> None
     )
     ~binop: (fun {op} f1 f2 ->
