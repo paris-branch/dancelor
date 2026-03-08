@@ -102,13 +102,13 @@ let view context id =
                     ~a: [a_class ["mt-4"]]
                     [
                       div ~a: [a_class ["row"; "justify-content-between"; "mb-2"]] [
-                        div ~a: [a_class ["col-auto"; "text-start"]] [
+                        div ~a: [a_class ["col"; "text-start"]] [
                           Formatters.Version.name_disambiguation_and_sources'
                             ~context: (S.const context)
                             ~params
                             version
                         ];
-                        div ~a: [a_class ["col-auto"; "text-end"]] [
+                        div ~a: [a_class ["col"; "text-end"]] [
                           Formatters.Version.composer_and_arranger'
                             ~short: true
                             ~params

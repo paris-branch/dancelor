@@ -122,10 +122,12 @@ module R = struct
 end
 
 let span_placeholder ?(min = 4) ?(max = 8) () =
+  if min > max then invalid_arg "div_placeholder";
   let col_n = "col-" ^ string_of_int (Random.int_in_range ~min ~max) in
   span ~a: [a_class ["placeholder"; col_n]] []
 
 let div_placeholder ?(min = 4) ?(max = 8) () =
+  if min > max then invalid_arg "div_placeholder";
   let height_n_rem = "height: " ^ string_of_int (Random.int_in_range ~min ~max) ^ "rem;" in
   div ~a: [a_class ["placeholder"; "w-100"]; a_style height_n_rem] []
 
