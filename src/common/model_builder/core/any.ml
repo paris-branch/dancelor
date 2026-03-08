@@ -11,9 +11,6 @@ type t =
   | User of User.entry
 [@@deriving show {with_path = false}, yojson, variants]
 
-(* NOTE: User is not added to [Any] on purpose. It is a bit of a special model
-   that should not really be searchable or anything. *)
-
 module Type = struct
   type t =
     | Person
