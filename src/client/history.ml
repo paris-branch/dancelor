@@ -30,38 +30,38 @@ let update f = set @@ f @@ get ()
 let add (uri : Uri.t) : unit =
   update (fun history -> (Datetime.now (), uri) :: List.take (limit - 1) history)
 
-(** Returns all the sets whose page is present in the history. *)
-let get_sets () =
-  let set_val : type a r. (a, Model.Set.t Entry.id option, r) Endpoints.Page.t -> a = function
-    | Set -> (fun _ id -> Some id)
+(** Returns all the models whose page is present in the history. *)
+let get_models () : Model.Any.t list Lwt.t =
+  let model_val : type a r. (a, Model.Any.t Lwt.t option, r) Endpoints.Page.t -> a = function
+    | Person -> (fun _ id -> Some (Model.Any.person % Option.get <$> Model.Person.get id))
+    | Dance -> (fun _ id -> Some (Model.Any.dance % Option.get <$> Model.Dance.get id))
+    | Source -> (fun _ id -> Some (Model.Any.source % Option.get <$> Model.Source.get id))
+    | Tune -> (fun _ id -> Some (Model.Any.tune % Option.get <$> Model.Tune.get id))
+    | Version -> (fun _ _ id -> Some (Model.Any.version % Option.get <$> Model.Version.get id))
+    | Set -> (fun _ id -> Some (Model.Any.set % Option.get <$> Model.Set.get id))
+    | Book -> (fun _ id -> Some (Model.Any.book % Option.get <$> Model.Book.get id))
+    (* FIXME: user once there is a user viewer page endpoint *)
     (* everything else we ignore *)
     | endpoint -> Endpoints.Page.consume None endpoint
   in
-  let set_val uri : Model.Set.t Entry.id option =
+  let model_val uri : Model.Any.t Lwt.t option =
     Option.join @@
     Option.map (fun f -> f ()) @@
     List.map_first_some
       (fun (Endpoints.Page.W' endpoint) ->
-        Madge.apply' (Endpoints.Page.route endpoint) (fun () -> set_val endpoint) (Madge.Request.make ~meth: GET ~uri ~body: "")
+        Madge.apply'
+          (Endpoints.Page.route endpoint)
+          (fun () -> model_val endpoint)
+          (Madge.Request.make ~meth: GET ~uri ~body: "")
       )
       (Endpoints.Page.all' ())
   in
-  List.filter_map (set_val % snd) (get ())
+  let models = List.filter_map (model_val % snd) (get ()) in
+  let%lwt models = Lwt_list.map_p Fun.id models in
+  lwt @@ List.deduplicate ~eq: (Model.Any.equal) models
+
+(** Returns all the sets whose page is present in the history. *)
+let get_sets () = List.filter_map (function Model.Any.Set set -> Some set | _ -> None) <$> get_models ()
 
 (** Returns all the books whose page is present in the history. *)
-let get_books () =
-  let book_val : type a r. (a, Model.Book.t Entry.id option, r) Endpoints.Page.t -> a = function
-    | Book -> (fun _ id -> Some id)
-    (* everything else we ignore *)
-    | endpoint -> Endpoints.Page.consume None endpoint
-  in
-  let book_val uri : Model.Book.t Entry.id option =
-    Option.join @@
-    Option.map (fun f -> f ()) @@
-    List.map_first_some
-      (fun (Endpoints.Page.W' endpoint) ->
-        Madge.apply' (Endpoints.Page.route endpoint) (fun () -> book_val endpoint) (Madge.Request.make ~meth: GET ~uri ~body: "")
-      )
-      (Endpoints.Page.all' ())
-  in
-  List.filter_map (book_val % snd) (get ())
+let get_books () = List.filter_map (function Model.Any.Book book -> Some book | _ -> None) <$> get_models ()
