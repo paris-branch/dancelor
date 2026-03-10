@@ -4,6 +4,7 @@ module Type = Text_formula_type
 module Printer = Text_formula_printer
 
 type 'p case = {
+  name: string; (** A name for the case, used in error messages. *)
   text_predicate_to_formula: Type.predicate -> ('p Formula.t, string) Result.t option; (** Given a text formula predicate, produce either a ['p Formula.t] or an [Error] if the case matches, or [None]. *)
   predicate_to_text_formula: 'p -> Type.t option; (** Given a ['p]redicate, produce a text formula if the case matches, or [None]. *)
 }
@@ -44,6 +45,7 @@ let rec cases
   : type p. p t -> p case list
 = fun converter ->
   let raw_case = {
+    name = "raw";
     text_predicate_to_formula = (function Type.Raw s -> Some (converter.raw s) | _ -> None);
     predicate_to_text_formula = const None;
   }
@@ -52,6 +54,7 @@ let rec cases
     List.concat_map
       (fun (Lifter {name; lift; unlift; converter; inline}) ->
         {
+          name = spf "%s lifter" name;
           text_predicate_to_formula = (function
             | Type.Unary (name', tp) when name = name' ->
               Some (Result.map Formula.pred ((Result.map lift % text_formula_to_formula converter) tp))
@@ -73,6 +76,7 @@ let rec cases
           List.map
             (fun case ->
               {
+                name = spf "%s (lifted by %s)" case.name name;
                 text_predicate_to_formula = Option.map (Result.map_both ~ok: (Formula.pred % lift) ~error: (spf "lifted %s: %s" name)) % case.text_predicate_to_formula;
                 predicate_to_text_formula = const None;
               }
@@ -124,6 +128,7 @@ let map ?(error = Fun.id) f converter = {
   List.map
     (fun case ->
       {
+        name = case.name;
         text_predicate_to_formula = Option.map (Result.map_both ~ok: (Formula.pred % f) ~error) % case.text_predicate_to_formula;
         predicate_to_text_formula = const None;
       }
@@ -150,6 +155,7 @@ let merge ?(tiebreaker = Both) converter1 converter2 =
     lifters = [];
     other_cases = [
       {
+        name = spf "merge of %s and %s" converter1.debug_name converter2.debug_name;
         text_predicate_to_formula = (fun text_predicate ->
           Some (
             merge_results
@@ -171,6 +177,7 @@ let merge_l = function
   | c :: cs -> List.fold_left merge c cs
 
 let nullary ~name p = {
+  name;
   text_predicate_to_formula = (function
     | Type.Nullary name' when name' = name -> Some (Ok (Formula.pred p))
     | _ -> None
@@ -184,6 +191,7 @@ let nullary ~name p = {
 }
 
 let unary ~name f predicate_to_text_formula = {
+  name;
   text_predicate_to_formula = (function
     | Type.Unary (name', tp) when name = name' -> Some (Result.map Formula.pred (f tp))
     | _ -> None
