@@ -16,6 +16,8 @@ let matches' s = Formula.pred (matches s)
 let converter =
   Text_formula_converter.(
     make
+      ~debug_name: "string"
+      ~debug_print: pp_predicate
       ~raw: (ok % matches')
       [
         unary_string ~name: "eq" (eq, eq_val);

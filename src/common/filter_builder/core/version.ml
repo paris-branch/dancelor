@@ -20,6 +20,8 @@ let converter =
       (
         (* Version-specific converter. *)
         make
+          ~debug_name: "version"
+          ~debug_print: pp_predicate
           ~raw: (ok % tune' % Formula_entry.value' % Tune.name' % Formula_string.matches')
           [
             unary_lift ~wrap_back: Not_raw ~name: "tune" (tune, tune_val) ~converter: (Formula_entry.converter_public Tune.converter);

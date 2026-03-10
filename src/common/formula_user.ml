@@ -12,6 +12,8 @@ let username' = Formula.pred % username
 let converter =
   Text_formula_converter.(
     make
+      ~debug_name: "user"
+      ~debug_print: pp_predicate
       ~raw: (ok % username' % Formula_string.matches')
       [
         unary_lift ~name: "username" (username, username_val) ~converter: Formula_string.converter;

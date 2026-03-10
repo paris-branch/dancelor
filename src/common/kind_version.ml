@@ -114,6 +114,8 @@ module Filter = struct
         (
           (* Version kind-specific converter *)
           make
+            ~debug_name: "version kind"
+            ~debug_print: pp_predicate
             ~raw: (fun string ->
               Option.fold
                 ~some: (ok % is')

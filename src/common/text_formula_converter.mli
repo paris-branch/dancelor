@@ -95,6 +95,8 @@ val unary_lift :
 (** {2 Building} *)
 
 val make :
+  debug_name: string ->
+  debug_print: (Format.formatter -> 'p -> unit) ->
   raw: (string -> ('p Formula.t, string) result) ->
   'p case list ->
   'p t
@@ -118,3 +120,11 @@ val merge : ?tiebreaker: tiebreaker -> 'p t -> 'p t -> 'p t
 
 val merge_l : 'p t list -> 'p t
 (** Folds {!merge} on a non-empty list with the default tiebreaker. *)
+
+(** {2 Debug} *)
+
+val debug_name : 'p t -> string
+(** Get the debug name of a converter. *)
+
+val debug_print : 'p t -> Format.formatter -> 'p -> unit
+(** Get the debug printer of a converter. *)

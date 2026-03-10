@@ -18,6 +18,8 @@ let forall' f = Formula.pred (forall f)
 let converter sub_converter =
   Text_formula_converter.(
     make
+      ~debug_name: (spf "list(%s)" @@ Text_formula_converter.debug_name sub_converter)
+      ~debug_print: (fun fmt _ -> fpf fmt "<opaque list>")
       ~raw: (Result.map exists' % raw sub_converter)
       [
         nullary ~name: "empty" empty;

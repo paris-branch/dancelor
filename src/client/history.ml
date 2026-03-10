@@ -47,7 +47,7 @@ let get_models () : Model.Any.t list Lwt.t =
   let model_val uri : Model.Any.t Lwt.t option =
     Option.join @@
     Option.map (fun f -> f ()) @@
-    List.map_first_some
+    List.find_map
       (fun (Endpoints.Page.W' endpoint) ->
         Madge.apply'
           (Endpoints.Page.route endpoint)
