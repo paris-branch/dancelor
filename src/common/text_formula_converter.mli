@@ -94,10 +94,24 @@ val unary_lift :
 
 (** {2 Building} *)
 
+type 'a lifter
+
+type inline = Inline | No_inline
+(** An inline lifter makes the cases of the underlying converter accessible to
+    the containing converter. *)
+
+val lifter :
+  name: string ->
+  ?inline: inline ->
+  (('q Formula.t -> 'p) * ('p -> 'q Formula.t option)) ->
+  'q t ->
+  'p lifter
+
 val make :
   debug_name: string ->
   debug_print: (Format.formatter -> 'p -> unit) ->
   raw: (string -> ('p Formula.t, string) result) ->
+  ?lifters: 'p lifter list ->
   'p case list ->
   'p t
 (** Make a converter from a list of {!type-case}s. The [~raw] argument is the
