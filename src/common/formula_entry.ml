@@ -23,9 +23,13 @@ let accepts_meta filter meta =
 
 let meta_converter =
   Text_formula_converter.(
-    make ~raw: (const @@ Error "meta does not accept raw converter") [
-      nullary ~name: "newest" Newest;
-    ]
+    make
+      ~debug_name: "meta"
+      ~debug_print: pp_meta_predicate
+      ~raw: (const @@ Error "meta does not accept raw converter")
+      [
+        nullary ~name: "newest" Newest;
+      ]
   )
 
 type ('value, 'filter, 'access_filter) predicate_gen =
@@ -78,6 +82,8 @@ let converter_gen sub_converter access_converter =
       ~tiebreaker: Left
       (
         make
+          ~debug_name: (spf "%s entry" @@ Text_formula_converter.debug_name sub_converter)
+          ~debug_print: (fun fmt _ -> fpf fmt "<opaque entry>")
           ~raw: (Result.map value' % raw sub_converter)
           [
             unary_id ~name: "is" (is, is_val);
@@ -102,9 +108,13 @@ let converter_gen sub_converter access_converter =
 let converter_public sub_converter =
   converter_gen sub_converter (
     Text_formula_converter.(
-      make ~raw: (const @@ Error "access does not accept raw converter") [
-        nullary ~name: "unit" ()
-      ]
+      make
+        ~debug_name: "public access"
+        ~debug_print: (fun fmt _ -> fpf fmt "<opaque access>")
+        ~raw: (const @@ Error "access does not accept raw converter")
+        [
+          nullary ~name: "unit" ()
+        ]
     )
   )
 
@@ -112,6 +122,8 @@ let converter_private sub_converter =
   converter_gen sub_converter (
     Text_formula_converter.(
       make
+        ~debug_name: "private access"
+        ~debug_print: (fun fmt _ -> fpf fmt "<opaque access>")
         ~raw: (const @@ Error "access does not accept raw converter")
         [
           unary_lift ~name: "owners" (owners, owners_val) ~converter: (Formula_list.converter (converter_public Formula_user.converter));

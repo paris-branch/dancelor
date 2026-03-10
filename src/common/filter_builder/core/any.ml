@@ -46,6 +46,8 @@ let make_converter ?(human = false) () =
       (
         (* Any-specific converter *)
         make
+          ~debug_name: "any"
+          ~debug_print: pp_predicate
           ~raw: (ok % raw')
           [
             unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;

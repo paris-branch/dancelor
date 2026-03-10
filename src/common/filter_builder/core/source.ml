@@ -14,6 +14,8 @@ let editors' = Formula.pred % editors
 let converter =
   Text_formula_converter.(
     make
+      ~debug_name: "source"
+      ~debug_print: pp_predicate
       ~raw: (ok % name' % Formula_string.matches')
       [
         unary_lift ~name: "name" (name, name_val) ~converter: Formula_string.converter;

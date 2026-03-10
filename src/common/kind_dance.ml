@@ -117,6 +117,8 @@ module Filter = struct
         (
           (* Dance kind-specific converter *)
           make
+            ~debug_name: "dance kind"
+            ~debug_print: pp_predicate
             ~raw: (fun string ->
               Option.fold
                 ~some: (ok % is')

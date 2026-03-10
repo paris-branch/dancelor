@@ -20,6 +20,8 @@ let editors' = Formula.pred % editors
 let converter =
   Text_formula_converter.(
     make
+      ~debug_name: "book"
+      ~debug_print: pp_predicate
       ~raw: (ok % title' % Formula_string.matches')
       [
         unary_lift ~name: "title" (title, title_val) ~converter: Formula_string.converter;

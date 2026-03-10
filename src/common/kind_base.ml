@@ -94,6 +94,8 @@ module Filter = struct
   let converter =
     Text_formula_converter.(
       make
+        ~debug_name: "kind base"
+        ~debug_print: pp_predicate
         ~raw: (fun string ->
           Option.fold
             ~some: (ok % is')

@@ -9,38 +9,44 @@ type 'p case = {
 }
 
 type 'p t = {
+  debug_name: string;
+  debug_print: Format.formatter -> 'p -> unit;
   raw: string -> ('p Formula.t, string) result; (** Given a string outside predicates, produce either a ['p Formula.t] or an [Error]. *)
-  cases: 'p case list;
+  other_cases: 'p case list;
 }
+[@@deriving fields]
 
-let raw converter = converter.raw
+let make ~debug_name ~debug_print ~raw other_cases =
+  {debug_name; debug_print; raw; other_cases}
+
+let cases converter =
+  let raw_case = {
+    text_predicate_to_formula = (function Type.Raw s -> Some (converter.raw s) | _ -> None);
+    predicate_to_text_formula = const None;
+  }
+  in
+  raw_case :: converter.other_cases
 
 let text_predicate_to_formula converter text_predicate =
   Option.value
-    ~default: (kaspf error "No converter for predicate: %a." Printer.pp_predicate text_predicate)
-    (List.map_first_some (fun case -> case.text_predicate_to_formula text_predicate) converter.cases)
+    ~default: (kaspf error "No “%s” converter for predicate: %a." converter.debug_name Printer.pp_predicate text_predicate)
+    (List.find_map (fun case -> case.text_predicate_to_formula text_predicate) (cases converter))
 
 let text_formula_to_formula converter = Formula.convert_res (text_predicate_to_formula converter)
 
 let predicate_to_text_formula converter predicate =
-  List.map_first_some (fun case -> case.predicate_to_text_formula predicate) converter.cases
+  List.find_map (fun case -> case.predicate_to_text_formula predicate) (cases converter)
 
 let formula_to_text_formula converter formula =
   match Formula.convert_opt (predicate_to_text_formula converter) formula with
-  | None -> failwith "Text_formula_converter.of_formula: incomplete formula converter"
+  | None -> failwith @@ spf "Text_formula_converter.of_formula: incomplete formula converter “%s”" converter.debug_name
   | Some tf -> tf
 
-let make ~raw cases =
-  let raw_case = {
-    text_predicate_to_formula = (function Type.Raw s -> Some (raw s) | _ -> None);
-    predicate_to_text_formula = const None;
-  }
-  in
-    {raw; cases = raw_case :: cases}
-
 let map ?(error = Fun.id) f converter = {
+  debug_name = "<opaque map>";
+  debug_print = (fun fmt _ -> fpf fmt "<opaque map>");
   raw = Result.map_both ~ok: (Formula.pred % f) ~error % converter.raw;
-  cases =
+  other_cases =
   List.map
     (fun case ->
       {
@@ -48,7 +54,7 @@ let map ?(error = Fun.id) f converter = {
         predicate_to_text_formula = const None;
       }
     )
-    converter.cases;
+    converter.other_cases;
 }
 
 type tiebreaker = Left | Right | Both
@@ -64,8 +70,10 @@ let merge ?(tiebreaker = Both) converter1 converter2 =
   in
   let merge_options o1 o2 = Result.to_option (merge_results (Option.to_result ~none: "" o1) (Option.to_result ~none: "" o2)) in
   {
+    debug_name = spf "%s+%s" converter1.debug_name converter2.debug_name;
+    debug_print = (fun fmt _ -> fpf fmt "<opaque merge>");
     raw = (fun str -> merge_results (converter1.raw str) (converter2.raw str));
-    cases = [
+    other_cases = [
       {
         text_predicate_to_formula = (fun text_predicate ->
           Some (
@@ -85,7 +93,6 @@ let merge ?(tiebreaker = Both) converter1 converter2 =
 
 let merge_l = function
   | [] -> invalid_arg "Text_formula_converter.merge_l"
-  | [c] -> c
   | c :: cs -> List.fold_left merge c cs
 
 let nullary ~name p = {
