@@ -21,10 +21,12 @@ let converter sub_converter =
       ~debug_name: (spf "list(%s)" @@ Text_formula_converter.debug_name sub_converter)
       ~debug_print: (fun fmt _ -> fpf fmt "<opaque list>")
       ~raw: (Result.map exists' % raw sub_converter)
+      ~lifters: [
+        lifter ~name: "exists" (exists, exists_val) sub_converter;
+        lifter ~name: "forall" (forall, forall_val) sub_converter;
+      ]
       [
         nullary ~name: "empty" empty;
-        unary_lift ~name: "exists" (exists, exists_val) ~converter: sub_converter;
-        unary_lift ~name: "forall" (forall, forall_val) ~converter: sub_converter;
       ]
   )
 

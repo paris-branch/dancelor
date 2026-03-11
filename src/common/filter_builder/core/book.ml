@@ -23,13 +23,14 @@ let converter =
       ~debug_name: "book"
       ~debug_print: pp_predicate
       ~raw: (ok % title' % Formula_string.matches')
-      [
-        unary_lift ~name: "title" (title, title_val) ~converter: Formula_string.converter;
-        unary_lift ~name: "versions" (versions, versions_val) ~converter: (Formula_list.converter (Formula_entry.converter_public Version.converter));
-        unary_lift ~name: "sets" (sets, sets_val) ~converter: (Formula_list.converter (Formula_entry.converter_private Set.converter));
-        unary_lift ~name: "versions-deep" (versions_deep, versions_deep_val) ~converter: (Formula_list.converter (Formula_entry.converter_public Version.converter));
-        unary_lift ~name: "editors" (editors, editors_val) ~converter: (Formula_list.converter (Formula_entry.converter_public Person.converter));
+      ~lifters: [
+        lifter ~name: "title" (title, title_val) Formula_string.converter;
+        lifter ~name: "versions" (versions, versions_val) (Formula_list.converter (Formula_entry.converter_public Version.converter));
+        lifter ~name: "sets" (sets, sets_val) (Formula_list.converter (Formula_entry.converter_private Set.converter));
+        lifter ~name: "versions-deep" (versions_deep, versions_deep_val) (Formula_list.converter (Formula_entry.converter_public Version.converter));
+        lifter ~name: "editors" (editors, editors_val) (Formula_list.converter (Formula_entry.converter_public Person.converter));
       ]
+      []
   )
 
 let optimise =

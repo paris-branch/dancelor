@@ -54,9 +54,20 @@ let create () =
         R.div ~a: [a_class ["mb-3"]] (
           let length = 15 in
           S.from' (Utils.Tables.placeholder ~rows: length ()) @@
-            let search = ":newest" in
+            let filter =
+              (* FIXME: There should be a more direct way to do this *)
+              let newest () = Common.Formula_entry.(meta' newest') in
+              Common.Formula.or_l
+                Filter.Any.[source' (newest ());
+                person' (newest ());
+                dance' (newest ());
+                book' (newest ());
+                set' (newest ());
+                tune' (newest ());
+                version' (newest ());
+                ]
+            in
             let slice = Slice.make ~length () in
-            let filter = Result.get_ok @@ Filter.Any.from_string search in
             let%lwt results = snd <$> Madge_client.call_exn Common.Endpoints.Api.(route @@ Any Search) slice filter in
             lwt [Utils.Tables.any results]
         );
