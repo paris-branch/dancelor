@@ -82,16 +82,6 @@ val unary_raw :
     ~cast:int_of_string_opt ~type_:"int"]. See {!unary_string} for the
     [?wrap_back] argument. *)
 
-val unary_lift :
-  ?wrap_back: wrap_back ->
-  name: string ->
-  converter: 'i t ->
-  (('i Formula.t -> 'p) * ('p -> 'i Formula.t option)) ->
-  'p case
-(** Make a case that lifts other formulas. The argument is converted using the
-    [converter] and the result is passed to the given lifting function. See
-    {!unary_string} for the [?wrap_back] argument. *)
-
 (** {2 Building} *)
 
 type 'a lifter
@@ -118,22 +108,6 @@ val make :
     case for standalone strings. For instance, in the formula ["bonjour
     baguette:oui monsieur :chocolat"], the [~raw] function will be applied to
     ["bonjour"] and ["monsieur"]. *)
-
-val map : ?error: (string -> string) -> ('p Formula.t -> 'q) -> 'p t -> 'q t
-(** Map over a converter given a function. This allows to lift formulas on ['p]
-    to formulas on ['q] without a constructor. However, there is no way back. It
-    is common to have both a [unary_lift ~name ~converter (constr, destr)] and a
-    [map constr converter], the unary lift allowing to convert back to text. *)
-
-type tiebreaker = Left | Right | Both
-
-val merge : ?tiebreaker: tiebreaker -> 'p t -> 'p t -> 'p t
-(** Merge two converters together. When predicates exist on both sides,
-    [~tiebreaker] is used to choose which one to keep. If it is [Both] (the
-    default), then the result is the disjunction of the two formulas. *)
-
-val merge_l : 'p t list -> 'p t
-(** Folds {!merge} on a non-empty list with the default tiebreaker. *)
 
 (** {2 Debug} *)
 

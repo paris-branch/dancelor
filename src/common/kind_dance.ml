@@ -112,29 +112,22 @@ module Filter = struct
 
   let converter =
     Text_formula_converter.(
-      merge
-        ~tiebreaker: Left
-        (
-          (* Dance kind-specific converter *)
-          make
-            ~debug_name: "dance kind"
-            ~debug_print: pp_predicate
-            ~raw: (fun string ->
-              Option.fold
-                ~some: (ok % is')
-                ~none: (kspf error "could not interpret \"%s\" as a dance kind" string)
-                (of_string_opt string)
-            )
-            [
-              nullary ~name: "simple" Simple;
-              unary_lift ~name: "version" (version, version_val) ~converter: Kind_version.Filter.converter;
-              unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "dance kind";
-            ]
+      make
+        ~debug_name: "dance kind"
+        ~debug_print: pp_predicate
+        ~raw: (fun string ->
+          Option.fold
+            ~some: (ok % is')
+            ~none: (kspf error "could not interpret \"%s\" as a dance kind" string)
+            (of_string_opt string)
         )
-        (
-          (* Version kind converter, lifted to dance kinds; lose in case of tiebreak. *)
-          map version Kind_version.Filter.converter
-        )
+        ~lifters: [
+          lifter ~name: "version" (version, version_val) Kind_version.Filter.converter;
+        ]
+        [
+          nullary ~name: "simple" Simple;
+          unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "dance kind";
+        ]
     )
 
   let optimise =

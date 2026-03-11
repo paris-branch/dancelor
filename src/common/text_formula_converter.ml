@@ -107,75 +107,6 @@ and formula_to_text_formula : type p. p t -> p Formula.t -> Text_formula_type.t 
   | None -> failwith @@ spf "Text_formula_converter.of_formula: incomplete formula converter “%s”" converter.debug_name
   | Some tf -> tf
 
-let map ?(error = Fun.id) f converter = {
-  debug_name = "<opaque map>";
-  debug_print = (fun fmt _ -> fpf fmt "<opaque map>");
-  raw = Result.map_both ~ok: (Formula.pred % f) ~error % converter.raw;
-  lifters =
-  List.map
-    (function
-      | Lifter {name; lift; unlift = _; converter; inline} ->
-        Lifter {
-          name;
-          lift = f % Formula.pred % lift;
-          unlift = const None;
-          converter;
-          inline;
-        }
-    )
-    converter.lifters;
-  other_cases =
-  List.map
-    (fun case ->
-      {
-        name = case.name;
-        text_predicate_to_formula = Option.map (Result.map_both ~ok: (Formula.pred % f) ~error) % case.text_predicate_to_formula;
-        predicate_to_text_formula = const None;
-      }
-    )
-    converter.other_cases;
-}
-
-type tiebreaker = Left | Right | Both
-
-let merge ?(tiebreaker = Both) converter1 converter2 =
-  let merge_results r1 r2 =
-    match (r1, r2) with
-    | Ok f1, Ok f2 when tiebreaker = Both -> Ok (Formula.or_ f1 f2)
-    | _, Ok f2 when tiebreaker = Right -> Ok f2
-    | Ok f1, _ -> Ok f1
-    | _, Ok f2 -> Ok f2
-    | Error e1, Error e2 -> Error (e1 ^ "\n" ^ e2)
-  in
-  let merge_options o1 o2 = Result.to_option (merge_results (Option.to_result ~none: "" o1) (Option.to_result ~none: "" o2)) in
-  {
-    debug_name = spf "%s+%s" converter1.debug_name converter2.debug_name;
-    debug_print = (fun fmt _ -> fpf fmt "<opaque merge>");
-    raw = (fun _str -> Error "there is no raw in a merge");
-    lifters = [];
-    other_cases = [
-      {
-        name = spf "merge of %s and %s" converter1.debug_name converter2.debug_name;
-        text_predicate_to_formula = (fun text_predicate ->
-          Some (
-            merge_results
-              (text_predicate_to_formula converter1 text_predicate)
-              (text_predicate_to_formula converter2 text_predicate)
-          )
-        );
-        predicate_to_text_formula = (fun predicate ->
-          merge_options
-            (predicate_to_text_formula converter1 predicate)
-            (predicate_to_text_formula converter2 predicate)
-        );
-      }
-    ];
-  }
-
-let merge_l = function
-  | [] -> invalid_arg "Text_formula_converter.merge_l"
-  | c :: cs -> List.fold_left merge c cs
-
 let nullary ~name p = {
   name;
   text_predicate_to_formula = (function
@@ -229,9 +160,3 @@ let unary_string = unary_raw ~cast: (some, Fun.id) ~type_: "string"
 let unary_int = unary_raw ~cast: (int_of_string_opt, string_of_int) ~type_: "int"
 
 let unary_id = unary_raw ~cast: (Entry.Id.of_string, Entry.Id.to_string) ~type_: "id"
-
-let unary_lift ?(wrap_back = Always) ~name ~converter (lift, unlift) =
-  unary
-    ~name
-    (Result.map lift % text_formula_to_formula converter)
-    (Option.map (apply_wrap_back ~name wrap_back % formula_to_text_formula converter) % unlift)

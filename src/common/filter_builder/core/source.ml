@@ -17,10 +17,11 @@ let converter =
       ~debug_name: "source"
       ~debug_print: pp_predicate
       ~raw: (ok % name' % Formula_string.matches')
-      [
-        unary_lift ~name: "name" (name, name_val) ~converter: Formula_string.converter;
-        unary_lift ~name: "editors" (editors, editors_val) ~converter: (Formula_list.converter (Formula_entry.converter_public Person.converter));
+      ~lifters: [
+        lifter ~name: "name" (name, name_val) Formula_string.converter;
+        lifter ~name: "editors" (editors, editors_val) (Formula_list.converter (Formula_entry.converter_public Person.converter));
       ]
+      []
   )
 
 let optimise =
