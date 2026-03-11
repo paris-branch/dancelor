@@ -84,10 +84,6 @@ val extract_assoc_opt : 'a -> ('a * 'b) list -> ('b * ('a * 'b) list) option
 (** Same as {!extract_assoc} but returns [None] instead of raising
     [Not_found]. *)
 
-val map_first_some : ('a -> 'b option) -> 'a list -> 'b option
-(** [map_first_some f l] maps [f] over [l] but stops the very first time that
-    [f] returns [Some], and returns this value. *)
-
 val to_option : ?more: ('a list -> 'a option) -> 'a list -> 'a option
 (** Converts a lists to an option. The function [?more] is used for when the
     list is neither empty nor a singleton. It defaults to raising

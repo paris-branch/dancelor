@@ -15,22 +15,17 @@ let sources' = Formula.pred % sources
 
 let converter =
   Text_formula_converter.(
-    merge
-      ~tiebreaker: Left
-      (
-        (* Version-specific converter. *)
-        make
-          ~raw: (ok % tune' % Formula_entry.value' % Tune.name' % Formula_string.matches')
-          [
-            unary_lift ~wrap_back: Not_raw ~name: "tune" (tune, tune_val) ~converter: (Formula_entry.converter_public Tune.converter);
-            unary_raw ~name: "key" (key, key_val) ~cast: (Music.Key.of_string_opt, Music.Key.to_string) ~type_: "key";
-            unary_lift ~name: "sources" (sources, sources_val) ~converter: (Formula_list.converter (Formula_entry.converter_public Source.converter));
-          ]
-      )
-      (
-        (* Tune converter, lifted to versions. Lose in case of tiebreak. *)
-        map tune (Formula_entry.converter_public Tune.converter) ~error: ((^) "As tune lifted to version: ")
-      )
+    make
+      ~debug_name: "version"
+      ~debug_print: pp_predicate
+      ~raw: (ok % tune' % Formula_entry.value' % Tune.name' % Formula_string.matches')
+      ~lifters: [
+        lifter ~name: "tune" (tune, tune_val) (Formula_entry.converter_public Tune.converter);
+        lifter ~name: "sources" (sources, sources_val) (Formula_list.converter (Formula_entry.converter_public Source.converter));
+      ]
+      [
+        unary_raw ~name: "key" (key, key_val) ~cast: (Music.Key.of_string_opt, Music.Key.to_string) ~type_: "key";
+      ]
   )
 
 let optimise =

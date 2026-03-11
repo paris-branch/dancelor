@@ -16,19 +16,22 @@ let kind' = Formula.pred % kind
 let dances' = Formula.pred % dances
 
 let converter =
-  let unary_lift_composers ~name =
-    Text_formula_converter.unary_lift ~name (composers, composers_val) ~converter: (Formula_list.converter (Formula_entry.converter_public Person.converter));
-  in
   Text_formula_converter.(
+    let lifter_composers ~name =
+      lifter ~name (composers, composers_val) (Formula_list.converter (Formula_entry.converter_public Person.converter))
+    in
     make
+      ~debug_name: "tune"
+      ~debug_print: pp_predicate
       ~raw: (ok % name' % Formula_string.matches')
-      [
-        unary_lift ~name: "name" (name, name_val) ~converter: Formula_string.converter;
-        unary_lift_composers ~name: "composers";
-        unary_lift_composers ~name: "by";
-        unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Base.Filter.converter;
-        unary_lift ~name: "dances" (dances, dances_val) ~converter: (Formula_list.converter (Formula_entry.converter_public Dance.converter));
+      ~lifters: [
+        lifter ~name: "name" (name, name_val) Formula_string.converter;
+        lifter_composers ~name: "composers";
+        lifter_composers ~name: "by";
+        lifter ~name: "kind" (kind, kind_val) Kind.Base.Filter.converter;
+        lifter ~name: "dances" (dances, dances_val) (Formula_list.converter (Formula_entry.converter_public Dance.converter));
       ]
+      []
   )
 
 let optimise =

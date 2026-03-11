@@ -110,31 +110,27 @@ module Filter = struct
 
   let converter =
     Text_formula_converter.(
-      merge
-        (
-          (* Version kind-specific converter *)
-          make
-            ~raw: (fun string ->
-              Option.fold
-                ~some: (ok % is')
-                ~none: (kspf error "could not interpret \"%s\" as a version kind" string)
-                (of_string_opt string)
-            )
-            [
-              unary_int ~name: "bars-eq" (bars_eq, bars_eq_val);
-              unary_int ~name: "bars-ne" (bars_ne, bars_ne_val);
-              unary_int ~name: "bars-gt" (bars_gt, bars_gt_val);
-              unary_int ~name: "bars-ge" (bars_ge, bars_ge_val);
-              unary_int ~name: "bars-lt" (bars_lt, bars_lt_val);
-              unary_int ~name: "bars-le" (bars_le, bars_le_val);
-              unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "version kind";
-              unary_lift ~wrap_back: Not_pred ~name: "base" (base, base_val) ~converter: Kind_base.Filter.converter;
-            ]
+      make
+        ~debug_name: "version kind"
+        ~debug_print: pp_predicate
+        ~raw: (fun string ->
+          Option.fold
+            ~some: (ok % is')
+            ~none: (kspf error "could not interpret \"%s\" as a version kind" string)
+            (of_string_opt string)
         )
-        (
-          (* Base kind converter, lifted to version kinds *)
-          map base Kind_base.Filter.converter
-        )
+        ~lifters: [
+          lifter ~name: "base" (base, base_val) Kind_base.Filter.converter;
+        ]
+        [
+          unary_int ~name: "bars-eq" (bars_eq, bars_eq_val);
+          unary_int ~name: "bars-ne" (bars_ne, bars_ne_val);
+          unary_int ~name: "bars-gt" (bars_gt, bars_gt_val);
+          unary_int ~name: "bars-ge" (bars_ge, bars_ge_val);
+          unary_int ~name: "bars-lt" (bars_lt, bars_lt_val);
+          unary_int ~name: "bars-le" (bars_le, bars_le_val);
+          unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "version kind";
+        ]
     )
 
   let optimise =

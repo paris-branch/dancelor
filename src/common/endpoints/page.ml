@@ -189,7 +189,7 @@ module Make_describe (Model : Model_builder.S) = struct
       | endpoint -> consume lwt_none endpoint
     in
     let madge_match_apply_all : (string * string) option Lwt.t wrapped' list -> (unit -> (string * string) option Lwt.t) option =
-      List.map_first_some @@ fun (W' page) ->
+      List.find_map @@ fun (W' page) ->
       Madge.apply' (route page) (fun () -> describe page) (Request.make ~meth: GET ~uri ~body: "")
     in
     match madge_match_apply_all @@ all' () with

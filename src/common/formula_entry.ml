@@ -23,9 +23,13 @@ let accepts_meta filter meta =
 
 let meta_converter =
   Text_formula_converter.(
-    make ~raw: (const @@ Error "meta does not accept raw converter") [
-      nullary ~name: "newest" Newest;
-    ]
+    make
+      ~debug_name: "meta"
+      ~debug_print: pp_meta_predicate
+      ~raw: (const @@ Error "meta does not accept raw converter")
+      [
+        nullary ~name: "newest" Newest;
+      ]
   )
 
 type ('value, 'filter, 'access_filter) predicate_gen =
@@ -74,50 +78,46 @@ let owners' filter = Formula.pred @@ owners filter
 
 let converter_gen sub_converter access_converter =
   Text_formula_converter.(
-    merge
-      ~tiebreaker: Left
-      (
-        make
-          ~raw: (Result.map value' % raw sub_converter)
-          [
-            unary_id ~name: "is" (is, is_val);
-            unary_lift ~name: "value" (value, value_val) ~converter: sub_converter;
-            (* FIXME: should we use ~wrap_back: Never, for nicer text formulas? but
-               this breaks the roundtrip tests and it isn't bothering use for now (but
-               we've only applied this to Person, which has like no predicates). *)
-            unary_lift ~name: "access" (access, access_val) ~converter: access_converter;
-            unary_lift ~name: "meta" (meta, meta_val) ~converter: meta_converter;
-          ]
-      )
-      (
-        (* Sub converters, lifted to entries. Lose in case of tiebreak. *)
-        merge_l [
-          map value sub_converter ~error: ((^) "As entry value: ");
-          map access access_converter ~error: ((^) "As entry access: ");
-          map meta meta_converter ~error: ((^) "As entry meta: ");
-        ]
-      )
+    make
+      ~debug_name: (spf "%s entry" @@ Text_formula_converter.debug_name sub_converter)
+      ~debug_print: (fun fmt _ -> fpf fmt "<opaque entry>")
+      ~raw: (Result.map value' % raw sub_converter)
+      ~lifters: [
+        lifter ~name: "value" (value, value_val) sub_converter;
+        lifter ~name: "access" (access, access_val) access_converter;
+        lifter ~name: "meta" (meta, meta_val) meta_converter;
+      ]
+      [
+        unary_id ~name: "is" (is, is_val);
+      ]
   )
 
 let converter_public sub_converter =
   converter_gen sub_converter (
     Text_formula_converter.(
-      make ~raw: (const @@ Error "access does not accept raw converter") [
-        nullary ~name: "unit" ()
-      ]
+      make
+        ~debug_name: "public access"
+        ~debug_print: (fun fmt _ -> fpf fmt "<opaque access>")
+        ~raw: (const @@ Error "access does not accept raw converter")
+        [
+          nullary ~name: "unit" ()
+        ]
     )
   )
 
 let converter_private sub_converter =
-  converter_gen sub_converter (
+  converter_gen
+    sub_converter
     Text_formula_converter.(
       make
+        ~debug_name: "private access"
+        ~debug_print: (fun fmt _ -> fpf fmt "<opaque access>")
         ~raw: (const @@ Error "access does not accept raw converter")
-        [
-          unary_lift ~name: "owners" (owners, owners_val) ~converter: (Formula_list.converter (converter_public Formula_user.converter));
+        ~lifters: [
+          lifter ~name: "owners" (owners, owners_val) (Formula_list.converter (converter_public Formula_user.converter));
         ]
+        []
     )
-  )
 
 let optimise_gen optimise_value optimise_access =
   Formula.optimise
