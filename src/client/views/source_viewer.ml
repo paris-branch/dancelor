@@ -49,27 +49,14 @@ let view context id =
       div
         ~a: [a_class ["row"]]
         [
-          div
-            ~a: [a_class ["col-12"; "col-sm"]]
-            [
-              img ~a: [a_style "width: 100%;"] ~alt: "Cover" ~src: (Endpoints.Api.(href @@ Source Cover) id) ()
+          div ~a: [a_class ["col-12"; "col-sm"]] [
+            img ~a: [a_style "width: 100%;"] ~alt: "Cover" ~src: (Endpoints.Api.(href @@ Source Cover) id) ()
+          ];
+          div ~a: [a_class ["col-12"; "col-sm"; "mt-4"; "mt-sm-0"]] [
+            p [txt @@ Option.value (Source.description' source) ~default: "no description available"];
+            quick_explorer_links [
+              ("versions from this source", lwt @@ Filter.(Any.version' % Formula_entry.value' % Version.sources' % Formula_list.exists' % Formula_entry.is') source);
             ];
-          div
-            ~a: [a_class ["col-12"; "col-sm"]]
-            [
-              p
-                [
-                  txt
-                    (
-                      match Source.description' source with
-                      | None -> "no description available"
-                      | Some description -> description
-                    )
-                ];
-            ];
-        ];
-      quick_explorer_links
-        [
-          ("versions from this source", lwt @@ Filter.(Any.version' % Formula_entry.value' % Version.sources' % Formula_list.exists' % Formula_entry.is') source);
+          ];
         ];
     ]
