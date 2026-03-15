@@ -40,51 +40,34 @@ let add_target_event_listener n ev f =
 
 let quick_explorer_links links =
   let open Html in
-  section
-    ~a: [a_class ["mt-2"]]
-    [
-      txt "Quick links to:";
-      ul
-        ~a: [a_class ["bullet-list"]]
-        (
-          List.map
-            (fun (text, filter_lwt) ->
-              let count_lwt =
-                fst
-                <$> (
-                    Madge_client.call_exn Endpoints.Api.(route @@ Any Search) Slice.nothing
-                    =<< filter_lwt
+  section ~a: [a_class ["mt-2"]] [
+    txt "Quick links to:";
+    ul ~a: [a_class ["bullet-list"]] (
+      List.map
+        (fun (text, filter_lwt) ->
+          let count_lwt =
+            fst
+            <$> (
+                Madge_client.call_exn Endpoints.Api.(route @@ Any Search) Slice.nothing
+                =<< filter_lwt
+              )
+          in
+          li [
+            a
+              ~a: [
+                R.a_href @@
+                  S.from' Uri.empty (
+                    (Endpoints.Page.(href Explore) % some % Filter.Any.to_string)
+                    <$> filter_lwt
                   )
-              in
-              li
-                ~a: [
-                  R.a_class
-                    (
-                      S.from' [] @@
-                      Lwt.flip_map count_lwt @@ function
-                      | 0 -> ["disabled"]
-                      | _ -> []
-                    );
-                ]
-                [
-                  a
-                    ~a: [
-                      R.a_href
-                        (
-                          S.from' Uri.empty (
-                            (Endpoints.Page.(href Explore) % some % Filter.Any.to_string)
-                            <$> filter_lwt
-                          )
-                        );
-                    ]
-                    [txt text];
-                  R.txt (S.from' "" (spf " (%d)" <$> count_lwt));
-                  txt ",";
-                ]
-            )
-            links
-        );
-    ]
+              ]
+              [txt text];
+            R.txt (S.from' "" (spf " (%d)" <$> count_lwt));
+          ]
+        )
+        links
+    );
+  ]
 
 let quick_explorer_links' model_lwt links =
   quick_explorer_links @@ List.map (fun (text, mk_filter) -> (text, mk_filter <$> model_lwt)) links
