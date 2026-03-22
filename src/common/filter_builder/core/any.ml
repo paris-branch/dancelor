@@ -110,11 +110,6 @@ let converter =
       ~pre_optimise: type_based_cleanup
   )
 
-let from_text_formula = Text_formula.to_formula converter
-let from_string ?filename input = Result.bind (Text_formula.from_string ?filename input) from_text_formula
-
-let to_string = Text_formula.to_string % Text_formula.of_formula converter
-
 let specialise ~converter ~type_ ~unLift =
   Formula.convert @@ function
     | Raw str -> Result.get_ok (Text_formula_converter.raw converter str)

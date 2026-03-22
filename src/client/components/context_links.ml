@@ -15,7 +15,7 @@ let book_page_to_any = function
 let get_neighbours any = function
   | Endpoints.Page.In_search query ->
     (* TODO: Unify with [Explorer.search]. *)
-    let%olwt filter = lwt @@ Result.to_option @@ Filter.Any.from_string query in
+    let%olwt filter = lwt @@ Result.to_option @@ Text_formula.string_to_formula Filter.Any.converter query in
     let%olwt (total, previous, index, next) = Result.to_option <$> Madge_client.call Endpoints.Api.(route @@ Any Search_context) filter any in
     lwt_some List.{total; previous; index; next; element = any}
   | Endpoints.Page.In_set (set, index) ->

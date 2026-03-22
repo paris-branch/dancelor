@@ -67,15 +67,6 @@ module type S = sig
   (** Lift a filter on versions to make a filter on “any”. This filter asserts
       that the “any” element is a version that matches the given filter. *)
 
-  (** {3 Destructors} *)
-
-  val from_string : ?filename: string -> string -> (t, string) Result.t
-  (** Parse a text formula into a filter on “any” elements. *)
-
-  val to_string : t -> string
-  (** Convert a formula on “any” elements into a text formula representing
-      it. *)
-
   (** {3 Others} *)
 
   val converter : predicate Text_formula_converter.t

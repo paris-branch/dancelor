@@ -16,7 +16,7 @@ let view query =
   let search =
     Search.make
       ~search: (fun slice input ->
-        let%rlwt filter = lwt (Filter.Any.from_string input) in
+        let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Any.converter input in
         ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice filter
       )
       ?initial_input: query

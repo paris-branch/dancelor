@@ -93,4 +93,4 @@ let string_to_formula converter ?filename input =
   Result.bind (from_string ?filename input) (to_formula converter)
 
 (** Convenience function to chain {!of_formula} and {!to_string}. *)
-let formula_to_string converter = to_string % of_formula converter
+let formula_to_string converter = to_string % of_formula converter % Text_formula_converter.optimise converter

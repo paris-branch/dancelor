@@ -24,7 +24,7 @@ type restricted_formula = string list * restricted_predicate option
 (** From a filter, return a {!restricted_formula}, or [None] if not possible. *)
 let restrict_formula (text : string) : restricted_formula option =
   (* in the {!Option} monad, [None] being a failure to restrict the formula *)
-  let%opt filter = Result.to_option (Filter.Any.from_string text) in
+  let%opt filter = Result.to_option @@ Text_formula.string_to_formula Filter.Any.converter text in
   let filter = Text_formula_converter.optimise Filter.Any.converter filter in
   (* special case for the formula that is just true *)
   if filter = Formula.True then
@@ -383,7 +383,7 @@ let open_ text raws filter =
         ~label_processing: "Applying..."
         ~icon: (Action Apply)
         ~classes: ["btn-primary"]
-        ~onclick: (fun () -> return (Filter.Any.to_string @@ S.value new_filter); lwt_unit)
+        ~onclick: (fun () -> return (Text_formula.formula_to_string Filter.Any.converter @@ S.value new_filter); lwt_unit)
         ()
     ]
 
