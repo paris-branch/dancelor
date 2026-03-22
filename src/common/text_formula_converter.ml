@@ -201,7 +201,7 @@ let rec optimise : type p. p t -> p Formula.t -> p Formula.t = fun converter ->
           converter.lifters
       )
       (fun p ->
-        let one_of_the_lifters =
+        Option.value ~default: (Formula.pred p) @@
           List.find_map
             (fun (Lifter {lift; unlift; converter; up_true; up_false; _}) ->
               match unlift p with
@@ -213,10 +213,6 @@ let rec optimise : type p. p t -> p Formula.t -> p Formula.t = fun converter ->
                 | _ -> some @@ Formula.pred @@ lift @@ optimise converter f
             )
             converter.lifters
-        in
-        match one_of_the_lifters with
-        | Some lifted -> lifted
-        | None -> Formula.pred p
       ) %
       Option.value converter.pre_optimise ~default: Fun.id
   )

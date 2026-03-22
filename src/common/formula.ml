@@ -134,21 +134,21 @@ let cnf_val f =
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type binop = {op: 'a. 'a t -> 'a t -> 'a t}
 
-let optimise ?(down_not = fun _ -> None) ?(down_and = fun _ _ -> None) ?(down_or = fun _ _ -> None) optimise_predicate formula =
+let optimise ?(down_not = const None) ?(down_and = const2 None) ?(down_or = const2 None) optimise_predicate formula =
   let rec optimise_head = function
     | Not True -> False
     | Not False -> True
     | Not (Not f) -> f
     | Not (And (f1, f2)) -> Or (Not f1, Not f2)
     | Not (Or (f1, f2)) -> And (Not f1, Not f2)
-    | Not (Pred p) -> Option.fold ~none: (Not (Pred p)) ~some: optimise (down_not p)
+    | Not (Pred p) -> Option.fold (down_not p) ~none: (Not (Pred p)) ~some: optimise
     | And (True, f) | And (f, True) -> f
     | And (False, _) | And (_, False) -> False
     | And (f1, f2) as f ->
       (
         match (List.bd_ft (conjuncts f1), List.hd_tl (conjuncts f2)) with
         | ((f1, Pred p1), (Pred p2, f2)) ->
-          Option.fold ~none: f ~some: (fun p12 -> optimise @@ and_l (f1 @ [pred p12] @ f2)) (down_and p1 p2)
+          Option.fold (down_and p1 p2) ~none: f ~some: (fun p12 -> optimise @@ and_l (f1 @ [pred p12] @ f2))
         | _ -> f
       )
     | Or (True, _) | Or (_, True) -> True
@@ -157,7 +157,7 @@ let optimise ?(down_not = fun _ -> None) ?(down_and = fun _ _ -> None) ?(down_or
       (
         match (List.bd_ft (disjuncts f1), List.hd_tl (disjuncts f2)) with
         | ((f1, Pred p1), (Pred p2, f2)) ->
-          Option.fold ~none: f ~some: (fun p12 -> optimise @@ or_l (f1 @ [pred p12] @ f2)) (down_or p1 p2)
+          Option.fold (down_or p1 p2) ~none: f ~some: (fun p12 -> optimise @@ or_l (f1 @ [pred p12] @ f2))
         | _ -> f
       )
     | head -> head

@@ -35,16 +35,8 @@ let to_string_from_string_roundtrip ~name ~show ~optimise ~to_string ~from_strin
             (show f)
             (show (optimise f))
             (to_string f)
-            (
-              match from_string (to_string f) with
-              | Ok f -> show f
-              | Error err -> "Error: " ^ err
-            )
-            (
-              match from_string (to_string f) with
-              | Ok f -> show (optimise f)
-              | Error err -> "Error: " ^ err
-            )
+            (Result.fold (from_string @@ to_string f) ~ok: show ~error: (spf "Error: %s"))
+            (Result.fold (from_string @@ to_string f) ~ok: (show % optimise) ~error: (spf "Error: %s"))
         )
         gen
         (fun f ->
