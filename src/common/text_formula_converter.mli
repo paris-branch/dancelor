@@ -99,6 +99,8 @@ val lifter :
   ?down_not: ('q Formula.t -> 'p Formula.t option) ->
   ?down_or: ('q Formula.t -> 'q Formula.t -> 'p option) ->
   ?down_and: ('q Formula.t -> 'q Formula.t -> 'p option) ->
+  ?up_true: 'p Formula.t ->
+  ?up_false: 'p Formula.t ->
   (('q Formula.t -> 'p) * ('p -> 'q Formula.t option)) ->
   'q t ->
   'p lifter
@@ -107,19 +109,32 @@ val lifter :
     into a predicate, and a partial function to [unlift] a sub-predicate into a
     formula.
 
-    The optional argument [?proper] indicates whether this lifter has no other
-    semantic meaning. For instance, the list's [exists:] lifter is not proper
-    but the entry's [value:] one is.
+    The optional argument [?down_not] is used to push negations down into the
+    lifted sub-formulas. Lifters are assumed to have no other semantic meaning
+    by default, which makes them distribute over/commute with negations, but
+    this argument can be used to specify how to push negations down into the
+    lifted sub-formulas when this is not the case. For instance, the list's
+    [exists:] lifter can push down negations by turning [¬∃x. P(x)] into [∀x.
+    ¬P(x)], and therefore should have [~down_not: (fun f -> Option.map
+    (Formula.forall_l) (unlift f))].
 
     The optional arguments [?down_or] and [?down_and] are used to push
     disjunctions and conjunctions down into the lifted sub-formulas. Lifters are
     assumed to have no other semantic meaning by default, which makes them
-    distributed over/commute with conjunctions and disjunctions, but these
+    distribute over/commute with conjunctions and disjunctions, but these
     arguments can be used to specify how to push conjunctions and disjunctions
     down into the lifted sub-formulas when this is not the case. For instance,
     the list's [exists:] lifter can push down disjunctions but not conjunctions,
-    and therefore should have [~down_and: (fun _ _ -> None)]. It can however
-    rely on the default value for [?down_or].
+    and therefore should have [~down_and: (const2 None)]. It can however rely on
+    the default value for [?down_or].
+
+    The optional arguments [?up_true] and [?up_false] are used to push trivial
+    sub-formulas upwards. Lifters are assumed to have no semantic meaning by
+    default, which makes them able to lift trivial sub-formulas, but this
+    argument can be used to specify how to push trivial sub-formulas up when
+    this is not the case. For instance, the list's [exists:] lifter can push up
+    truthity by turning [∃x. ⊤] into [:not :empty]. It can however rely on the
+    default value for [?up_false].
 
     The optional argument [?inline] controls whether the sub-predicates should
     be made available in the current level. For instance, an entry's value

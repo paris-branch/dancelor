@@ -169,6 +169,6 @@ let optimise ?(down_not = fun _ -> None) ?(down_and = fun _ _ -> None) ?(down_or
       | Not f -> Not (optimise f)
       | And (f1, f2) -> And (optimise f1, optimise f2)
       | Or (f1, f2) -> Or (optimise f1, optimise f2)
-      | Pred p -> Pred (optimise_predicate p)
+      | Pred p -> optimise_predicate p
   in
   fixpoint optimise formula

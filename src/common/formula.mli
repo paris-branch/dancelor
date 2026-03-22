@@ -71,7 +71,7 @@ val optimise :
   ?down_not: ('p -> 'p t option) ->
   ?down_and: ('p -> 'p -> 'p option) ->
   ?down_or: ('p -> 'p -> 'p option) ->
-  ('p -> 'p) ->
+  ('p -> 'p t) ->
   'p t ->
   'p t
 (** Optimise a formula, for instance with rules such as [⊥ ∧ ... → ⊥], given a
