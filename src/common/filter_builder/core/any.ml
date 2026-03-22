@@ -40,13 +40,13 @@ let converter =
       ~debug_print: pp_predicate
       ~raw: (ok % raw')
       ~lifters: [
-        lifter ~name: "is-source-such-that" (source, source_val) (Formula_entry.converter_public Source.converter);
-        lifter ~name: "is-person-such-that" (person, person_val) (Formula_entry.converter_public Person.converter);
-        lifter ~name: "is-dance-such-that" (dance, dance_val) (Formula_entry.converter_public Dance.converter);
-        lifter ~name: "is-book-such-that" (book, book_val) (Formula_entry.converter_private Book.converter);
-        lifter ~name: "is-set-such-that" (set, set_val) (Formula_entry.converter_private Set.converter);
-        lifter ~name: "is-tune-such-that" (tune, tune_val) (Formula_entry.converter_public Tune.converter);
-        lifter ~name: "is-version-such-that" (version, version_val) (Formula_entry.converter_public Version.converter);
+        lifter ~name: "is-source-such-that" (source, source_val) (Formula_entry.converter_public Source.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Source)) (source' (Not f)));
+        lifter ~name: "is-person-such-that" (person, person_val) (Formula_entry.converter_public Person.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Person)) (person' (Not f)));
+        lifter ~name: "is-dance-such-that" (dance, dance_val) (Formula_entry.converter_public Dance.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Dance)) (dance' (Not f)));
+        lifter ~name: "is-book-such-that" (book, book_val) (Formula_entry.converter_private Book.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Book)) (book' (Not f)));
+        lifter ~name: "is-set-such-that" (set, set_val) (Formula_entry.converter_private Set.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Set)) (set' (Not f)));
+        lifter ~name: "is-tune-such-that" (tune, tune_val) (Formula_entry.converter_public Tune.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Tune)) (tune' (Not f)));
+        lifter ~name: "is-version-such-that" (version, version_val) (Formula_entry.converter_public Version.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Version)) (version' (Not f)));
       ]
       [
         unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;

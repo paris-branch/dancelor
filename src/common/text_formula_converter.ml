@@ -20,6 +20,7 @@ type _ lifter =
       unlift: 'p -> 'q Formula.t option;
       converter: 'q t;
       inline: inline;
+      down_not: ('q Formula.t -> 'p Formula.t option) option;
       down_or: ('q Formula.t -> 'q Formula.t -> 'p option) option;
       down_and: ('q Formula.t -> 'q Formula.t -> 'p option) option;
     } ->
@@ -37,8 +38,8 @@ let raw converter = converter.raw
 let debug_name converter = converter.debug_name
 let debug_print converter = converter.debug_print
 
-let lifter ~name ?(inline = No_inline) ?down_or ?down_and (lift, unlift) converter =
-  Lifter {name; lift; unlift; converter; inline; down_or; down_and}
+let lifter ~name ?(inline = No_inline) ?down_not ?down_or ?down_and (lift, unlift) converter =
+  Lifter {name; lift; unlift; converter; inline; down_not; down_or; down_and}
 
 let make ~debug_name ~debug_print ~raw ?(lifters = []) other_cases =
   {debug_name; debug_print; raw; lifters; other_cases}
@@ -165,6 +166,16 @@ let unary_id = unary_raw ~cast: (Entry.Id.of_string, Entry.Id.to_string) ~type_:
 
 let rec optimise : type p. p t -> p Formula.t -> p Formula.t = fun converter ->
   Formula.optimise
+    ~down_not: (fun f ->
+      List.find_map
+        (fun (Lifter {lift; unlift; down_not; _}) ->
+          match unlift f, down_not with
+          | Some f, Some down_not -> down_not f
+          | Some f, _ -> some @@ Formula.pred @@ lift @@ Formula.not f
+          | _ -> None
+        )
+        converter.lifters
+    )
     ~down_or: (fun f1 f2 ->
       List.find_map
         (fun (Lifter {lift; unlift; down_or; _}) ->

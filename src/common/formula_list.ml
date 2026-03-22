@@ -22,8 +22,8 @@ let converter sub_converter =
       ~debug_print: (fun fmt _ -> fpf fmt "<opaque list>")
       ~raw: (Result.map exists' % raw sub_converter)
       ~lifters: [
-        lifter ~name: "exists" (exists, exists_val) sub_converter ~down_and: (const2 None);
-        lifter ~name: "forall" (forall, forall_val) sub_converter ~down_or: (const2 None);
+        lifter ~name: "exists" (exists, exists_val) sub_converter ~down_not: (fun f -> some @@ forall' @@ Formula.not f) ~down_and: (const2 None);
+        lifter ~name: "forall" (forall, forall_val) sub_converter ~down_not: (fun f -> some @@ exists' @@ Formula.not f) ~down_or: (const2 None);
       ]
       [
         nullary ~name: "empty" empty;

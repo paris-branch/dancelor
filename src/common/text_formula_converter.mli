@@ -96,6 +96,7 @@ type inline = Inline | No_inline
 val lifter :
   name: string ->
   ?inline: inline ->
+  ?down_not: ('q Formula.t -> 'p Formula.t option) ->
   ?down_or: ('q Formula.t -> 'q Formula.t -> 'p option) ->
   ?down_and: ('q Formula.t -> 'q Formula.t -> 'p option) ->
   (('q Formula.t -> 'p) * ('p -> 'q Formula.t option)) ->
