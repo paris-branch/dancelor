@@ -76,10 +76,6 @@ module type S = sig
   (** Convert a formula on “any” elements into a text formula representing
       it. *)
 
-  val to_pretty_string : t -> string
-  (** Convert a formula on “any” elements into an equivalent text formula meant
-      to be more readable to humans. *)
-
   (** {3 Others} *)
 
   val converter : predicate Text_formula_converter.t

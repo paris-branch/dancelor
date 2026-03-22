@@ -173,7 +173,6 @@ let () =
         to_string_no_exn' ~name: "Set.Filter" (module Filter_builder.Core.Set) (module Gen.Filter.Set);
         to_string_no_exn' ~name: "Book.Filter" (module Filter_builder.Core.Book) (module Gen.Filter.Book);
         to_string_no_exn' ~name: "Any.Filter" (module Filter_builder.Core.Any) (module Gen.Filter.Any);
-        to_string_no_exn ~name: "Any.Filter (pretty)" ~gen: Gen.Filter.Any.gen ~show: Filter_builder.Core.Any.show ~to_string: Filter_builder.Core.Any.to_pretty_string;
         ]
       );
       (
@@ -188,13 +187,6 @@ let () =
         to_string_from_string_roundtrip' ~name: "Set.Filter" (module Filter_builder.Core.Set) (module Gen.Filter.Set);
         to_string_from_string_roundtrip' ~name: "Book.Filter" (module Filter_builder.Core.Book) (module Gen.Filter.Book);
         to_string_from_string_roundtrip' ~name: "Any.Filter" (module Filter_builder.Core.Any) (module Gen.Filter.Any);
-        (* FIXME: Does not actually hold. *)
-        (* to_string_from_string_roundtrip  ~name:"Any.Filter (pretty)" *)
-        (*   ~gen: (QCheck2.Gen.map Model.Any.Filter.optimise Gen.Any.Filter.gen) *)
-        (*   ~show: Model.Any.Filter.show *)
-        (*   ~to_string: Model.Any.Filter.to_pretty_string *)
-        (*   ~from_string: Model.Any.Filter.(Result.map optimise % from_string) *)
-        (*   ~equal: Model.Any.Filter.equal; *)
         ]
       );
       (

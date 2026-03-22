@@ -383,7 +383,7 @@ let open_ text raws filter =
         ~label_processing: "Applying..."
         ~icon: (Action Apply)
         ~classes: ["btn-primary"]
-        ~onclick: (fun () -> return (Filter.Any.to_pretty_string @@ S.value new_filter); lwt_unit)
+        ~onclick: (fun () -> return (Filter.Any.to_string @@ S.value new_filter); lwt_unit)
         ()
     ]
 

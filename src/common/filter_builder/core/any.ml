@@ -103,24 +103,6 @@ let from_string ?filename input = Result.bind (Text_formula.from_string ?filenam
 
 let to_string = Text_formula.to_string % Text_formula.of_formula converter
 
-let to_pretty_string =
-  let type_and t lift = function
-    | Formula.True -> type_' t
-    | f -> Formula.and_ (type_' t) (lift f)
-  in
-  let add_explicit_type =
-    Formula.convert @@ function
-      | Source f -> type_and Source source' f
-      | Person f -> type_and Person person' f
-      | Dance f -> type_and Dance dance' f
-      | Book f -> type_and Book book' f
-      | Set f -> type_and Set set' f
-      | Tune f -> type_and Tune tune' f
-      | Version f -> type_and Version version' f
-      | p -> Formula.pred p
-  in
-  Text_formula.to_string % Text_formula.of_formula converter % add_explicit_type % Text_formula_converter.optimise converter
-
 let specialise ~converter ~type_ ~unLift =
   Formula.convert @@ function
     | Raw str -> Result.get_ok (Text_formula_converter.raw converter str)
