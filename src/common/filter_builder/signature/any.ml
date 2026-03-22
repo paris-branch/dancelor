@@ -82,11 +82,7 @@ module type S = sig
 
   (** {3 Others} *)
 
-  val optimise : t -> t
-  (** Optimise a filter of “any” elements. This relies on the generic
-      {!Formula.optimise} but it also merges predicates together; for instance,
-      ["type:Version version:<vfilter1> version:<vfilter2>"] will be optimised
-      as ["version:(<vfilter1> <vfilter2>)"]. *)
+  val converter : predicate Text_formula_converter.t
 
   val type_based_cleanup : t -> t
   (** Part of {!optimise} exposed for testing purposes. *)

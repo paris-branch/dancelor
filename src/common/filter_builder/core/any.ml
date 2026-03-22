@@ -33,32 +33,6 @@ let set' = Formula.pred % set
 let tune' = Formula.pred % tune
 let version' = Formula.pred % version
 
-let converter =
-  Text_formula_converter.(
-    make
-      ~debug_name: "any"
-      ~debug_print: pp_predicate
-      ~raw: (ok % raw')
-      ~lifters: [
-        lifter ~name: "is-source-such-that" (source, source_val) (Formula_entry.converter_public Source.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Source)) (source' (Not f)));
-        lifter ~name: "is-person-such-that" (person, person_val) (Formula_entry.converter_public Person.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Person)) (person' (Not f)));
-        lifter ~name: "is-dance-such-that" (dance, dance_val) (Formula_entry.converter_public Dance.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Dance)) (dance' (Not f)));
-        lifter ~name: "is-book-such-that" (book, book_val) (Formula_entry.converter_private Book.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Book)) (book' (Not f)));
-        lifter ~name: "is-set-such-that" (set, set_val) (Formula_entry.converter_private Set.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Set)) (set' (Not f)));
-        lifter ~name: "is-tune-such-that" (tune, tune_val) (Formula_entry.converter_public Tune.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Tune)) (tune' (Not f)));
-        lifter ~name: "is-version-such-that" (version, version_val) (Formula_entry.converter_public Version.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Version)) (version' (Not f)));
-      ]
-      [
-        unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
-        unary_raw ~name: "type" (type_, type__val) ~cast: (Model_builder.Core.Any.Type.of_string_opt, Model_builder.Core.Any.Type.to_string) ~type_: "valid type";
-      ];
-  )
-
-let from_text_formula = Text_formula.to_formula converter
-let from_string ?filename input = Result.bind (Text_formula.from_string ?filename input) from_text_formula
-
-let to_string = Text_formula.to_string % Text_formula.of_formula converter
-
 (** Clean up a formula by analysing the types of given predicates. For
     instance, ["type:version (version:key:A :or book::source)"] can be
     simplified to ["type:version version:key:A"]. *)
@@ -103,10 +77,31 @@ let type_based_cleanup =
   in
   snd % refine_types_and_cleanup Model_builder.Core.Any.Type.Set.all
 
-let optimise =
-  (* FIXME: Because of [type_based_cleanup], the following is not idempotent.
-     Hence the call to [fixpoint] below. *)
-  fixpoint (Text_formula_converter.optimise converter % type_based_cleanup)
+let converter =
+  Text_formula_converter.(
+    make
+      ~debug_name: "any"
+      ~debug_print: pp_predicate
+      ~raw: (ok % raw')
+      ~lifters: [
+        lifter ~name: "is-source-such-that" (source, source_val) (Formula_entry.converter_public Source.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Source)) (source' (Not f)));
+        lifter ~name: "is-person-such-that" (person, person_val) (Formula_entry.converter_public Person.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Person)) (person' (Not f)));
+        lifter ~name: "is-dance-such-that" (dance, dance_val) (Formula_entry.converter_public Dance.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Dance)) (dance' (Not f)));
+        lifter ~name: "is-book-such-that" (book, book_val) (Formula_entry.converter_private Book.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Book)) (book' (Not f)));
+        lifter ~name: "is-set-such-that" (set, set_val) (Formula_entry.converter_private Set.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Set)) (set' (Not f)));
+        lifter ~name: "is-tune-such-that" (tune, tune_val) (Formula_entry.converter_public Tune.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Tune)) (tune' (Not f)));
+        lifter ~name: "is-version-such-that" (version, version_val) (Formula_entry.converter_public Version.converter) ~down_not: (fun f -> some @@ Formula.or_ (Not (type_' Version)) (version' (Not f)));
+      ]
+      [unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
+      unary_raw ~name: "type" (type_, type__val) ~cast: (Model_builder.Core.Any.Type.of_string_opt, Model_builder.Core.Any.Type.to_string) ~type_: "valid type";
+      ]
+      ~pre_optimise: type_based_cleanup
+  )
+
+let from_text_formula = Text_formula.to_formula converter
+let from_string ?filename input = Result.bind (Text_formula.from_string ?filename input) from_text_formula
+
+let to_string = Text_formula.to_string % Text_formula.of_formula converter
 
 let to_pretty_string =
   let type_and t lift = function
@@ -124,7 +119,7 @@ let to_pretty_string =
       | Version f -> type_and Version version' f
       | p -> Formula.pred p
   in
-  Text_formula.to_string % Text_formula.of_formula converter % add_explicit_type % optimise
+  Text_formula.to_string % Text_formula.of_formula converter % add_explicit_type % Text_formula_converter.optimise converter
 
 let specialise ~converter ~type_ ~unLift =
   Formula.convert @@ function

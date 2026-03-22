@@ -32,6 +32,7 @@ and 'p t = {
   raw: string -> ('p Formula.t, string) result; (** Given a string outside predicates, produce either a ['p Formula.t] or an [Error]. *)
   lifters: 'p lifter list;
   other_cases: 'p case list;
+  pre_optimise: ('p Formula.t -> 'p Formula.t) option;
 }
 
 let raw converter = converter.raw
@@ -41,8 +42,8 @@ let debug_print converter = converter.debug_print
 let lifter ~name ?(inline = No_inline) ?down_not ?down_or ?down_and (lift, unlift) converter =
   Lifter {name; lift; unlift; converter; inline; down_not; down_or; down_and}
 
-let make ~debug_name ~debug_print ~raw ?(lifters = []) other_cases =
-  {debug_name; debug_print; raw; lifters; other_cases}
+let make ~debug_name ~debug_print ~raw ?(lifters = []) ?pre_optimise other_cases =
+  {debug_name; debug_print; raw; lifters; other_cases; pre_optimise}
 
 let rec cases
   : type p. p t -> p case list
@@ -165,46 +166,49 @@ let unary_int = unary_raw ~cast: (int_of_string_opt, string_of_int) ~type_: "int
 let unary_id = unary_raw ~cast: (Entry.Id.of_string, Entry.Id.to_string) ~type_: "id"
 
 let rec optimise : type p. p t -> p Formula.t -> p Formula.t = fun converter ->
-  Formula.optimise
-    ~down_not: (fun f ->
-      List.find_map
-        (fun (Lifter {lift; unlift; down_not; _}) ->
-          match unlift f, down_not with
-          | Some f, Some down_not -> down_not f
-          | Some f, _ -> some @@ Formula.pred @@ lift @@ Formula.not f
-          | _ -> None
-        )
-        converter.lifters
-    )
-    ~down_or: (fun f1 f2 ->
-      List.find_map
-        (fun (Lifter {lift; unlift; down_or; _}) ->
-          match unlift f1, unlift f2, down_or with
-          | Some f1, Some f2, Some down_or -> down_or f1 f2
-          | Some f1, Some f2, _ -> some @@ lift @@ Formula.or_ f1 f2
-          | _ -> None
-        )
-        converter.lifters
-    )
-    ~down_and: (fun f1 f2 ->
-      List.find_map
-        (fun (Lifter {lift; unlift; down_and; _}) ->
-          match unlift f1, unlift f2, down_and with
-          | Some f1, Some f2, Some down_and -> down_and f1 f2
-          | Some f1, Some f2, _ -> some @@ lift @@ Formula.and_ f1 f2
-          | _ -> None
-        )
-        converter.lifters
-    )
-    (fun p ->
-      let one_of_the_lifters =
+  fixpoint (
+    Formula.optimise
+      ~down_not: (fun f ->
         List.find_map
-          (fun (Lifter {lift; unlift; converter; _}) ->
-            Option.map (lift % optimise converter) (unlift p)
+          (fun (Lifter {lift; unlift; down_not; _}) ->
+            match unlift f, down_not with
+            | Some f, Some down_not -> down_not f
+            | Some f, _ -> some @@ Formula.pred @@ lift @@ Formula.not f
+            | _ -> None
           )
           converter.lifters
-      in
-      match one_of_the_lifters with
-      | Some lifted -> lifted
-      | None -> p
-    )
+      )
+      ~down_or: (fun f1 f2 ->
+        List.find_map
+          (fun (Lifter {lift; unlift; down_or; _}) ->
+            match unlift f1, unlift f2, down_or with
+            | Some f1, Some f2, Some down_or -> down_or f1 f2
+            | Some f1, Some f2, _ -> some @@ lift @@ Formula.or_ f1 f2
+            | _ -> None
+          )
+          converter.lifters
+      )
+      ~down_and: (fun f1 f2 ->
+        List.find_map
+          (fun (Lifter {lift; unlift; down_and; _}) ->
+            match unlift f1, unlift f2, down_and with
+            | Some f1, Some f2, Some down_and -> down_and f1 f2
+            | Some f1, Some f2, _ -> some @@ lift @@ Formula.and_ f1 f2
+            | _ -> None
+          )
+          converter.lifters
+      )
+      (fun p ->
+        let one_of_the_lifters =
+          List.find_map
+            (fun (Lifter {lift; unlift; converter; _}) ->
+              Option.map (lift % optimise converter) (unlift p)
+            )
+            converter.lifters
+        in
+        match one_of_the_lifters with
+        | Some lifted -> lifted
+        | None -> p
+      ) %
+      Option.value converter.pre_optimise ~default: Fun.id
+  )

@@ -131,12 +131,16 @@ val make :
   debug_print: (Format.formatter -> 'p -> unit) ->
   raw: (string -> ('p Formula.t, string) result) ->
   ?lifters: 'p lifter list ->
+  ?pre_optimise: ('p Formula.t -> 'p Formula.t) ->
   'p case list ->
   'p t
 (** Make a converter from a list of {!type-case}s. The [~raw] argument is the
     case for standalone strings. For instance, in the formula ["bonjour
     baguette:oui monsieur :chocolat"], the [~raw] function will be applied to
-    ["bonjour"] and ["monsieur"]. *)
+    ["bonjour"] and ["monsieur"].
+
+    [?pre_optimise] is an optional custom function that will be applied before
+    optimising a formula. By default, it does nothing. *)
 
 (** {2 Debug} *)
 

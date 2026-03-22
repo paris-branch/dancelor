@@ -25,7 +25,7 @@ type restricted_formula = string list * restricted_predicate option
 let restrict_formula (text : string) : restricted_formula option =
   (* in the {!Option} monad, [None] being a failure to restrict the formula *)
   let%opt filter = Result.to_option (Filter.Any.from_string text) in
-  let filter = Filter.Any.optimise filter in
+  let filter = Text_formula_converter.optimise Filter.Any.converter filter in
   (* special case for the formula that is just true *)
   if filter = Formula.True then
     Some ([], None)
