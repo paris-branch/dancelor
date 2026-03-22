@@ -85,7 +85,7 @@ let converter_gen sub_converter access_converter =
       ~debug_print: (fun fmt _ -> fpf fmt "<opaque entry>")
       ~raw: (Result.map value' % raw sub_converter)
       ~lifters: [
-        lifter ~name: "value" (value, value_val) sub_converter;
+        lifter ~name: "value" ~inline: Inline (value, value_val) sub_converter;
         lifter ~name: "access" (access, access_val) access_converter;
         lifter ~name: "meta" (meta, meta_val) meta_converter;
       ]
