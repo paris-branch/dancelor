@@ -39,32 +39,27 @@ let create () =
         a ~a: [a_href @@ Uri.of_string "/explore"] [txt "come explore the database"];
         txt "!"
       ];
-      R.section (
-        let length = 15 in
-        S.from' (Utils.Tables.placeholder ~rows: length ()) @@
-          match%lwt History.get_models () with
-          | [] -> lwt_nil
-          | history ->
-            lwt [
-              h4 [txt "Continue where you left off"];
-              div ~a: [a_class ["mb-3"]] [Utils.Tables.any @@ List.take length history];
-            ]
-      );
+      section [
+        h4 [txt "Continue where you left off"];
+        R.div ~a: [a_class ["mb-3"]] (
+          let length = 15 in
+          S.from' (Utils.Tables.placeholder ~rows: length ()) @@
+            match%lwt History.get_models () with
+            | [] -> lwt_nil
+            | history -> lwt [Utils.Tables.any @@ List.take length history]
+        )
+      ];
       section [
         h4 [txt "Most recently added"];
-        R.div
-          ~a: [a_class ["mb-3"]]
-          (
-            let length = 15 in
-            S.from' (Utils.Tables.placeholder ~rows: length ()) @@
-              let search = ":newest" in
-              let context = S.const @@ Common.Endpoints.Page.in_search search in
-              let slice = Slice.make ~length () in
-              let filter = Result.get_ok @@ Filter.Any.from_string search in
-              let%lwt results = snd <$> Madge_client.call_exn Common.Endpoints.Api.(route @@ Any Search) slice filter in
-              Js_of_ocaml_lwt.Lwt_js.sleep 5.;%lwt
-              lwt [Utils.Tables.any ~context results]
-          );
+        R.div ~a: [a_class ["mb-3"]] (
+          let length = 15 in
+          S.from' (Utils.Tables.placeholder ~rows: length ()) @@
+            let search = ":newest" in
+            let slice = Slice.make ~length () in
+            let filter = Result.get_ok @@ Filter.Any.from_string search in
+            let%lwt results = snd <$> Madge_client.call_exn Common.Endpoints.Api.(route @@ Any Search) slice filter in
+            lwt [Utils.Tables.any results]
+        );
       ];
       section [
         h4 [txt "Frequently asked questions"];
