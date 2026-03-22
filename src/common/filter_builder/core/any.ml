@@ -37,45 +37,57 @@ let version' = Formula.pred % version
     instance, ["type:version (version:key:A :or book::source)"] can be
     simplified to ["type:version version:key:A"]. *)
 let type_based_cleanup =
+  let module TypeSet = Model_builder.Core.Any.Type.Set in
   (* Returns the types of objects matched by a predicate. *)
   let types_of_predicate = function
-    | Raw _ -> Model_builder.Core.Any.Type.Set.all
-    | Type type_ -> Model_builder.Core.Any.Type.Set.singleton type_
-    | Source _ -> Model_builder.Core.Any.Type.Set.singleton Source
-    | Person _ -> Model_builder.Core.Any.Type.Set.singleton Person
-    | Dance _ -> Model_builder.Core.Any.Type.Set.singleton Dance
-    | Book _ -> Model_builder.Core.Any.Type.Set.singleton Book
-    | Set _ -> Model_builder.Core.Any.Type.Set.singleton Set
-    | Tune _ -> Model_builder.Core.Any.Type.Set.singleton Tune
-    | Version _ -> Model_builder.Core.Any.Type.Set.singleton Version
+    | Raw _ -> TypeSet.all
+    | Type type_ -> TypeSet.singleton type_
+    | Source _ -> TypeSet.singleton Source
+    | Person _ -> TypeSet.singleton Person
+    | Dance _ -> TypeSet.singleton Dance
+    | Book _ -> TypeSet.singleton Book
+    | Set _ -> TypeSet.singleton Set
+    | Tune _ -> TypeSet.singleton Tune
+    | Version _ -> TypeSet.singleton Version
   in
   let open Formula in
-  (* Given a maximal set of possible types [t] and a formula, refine the
-     possible types of the formula and a clean up the formula. The returned
-     types are a subset of [t]. The returned formula does not contain
-     predicates that would clash with [t]. *)
-  let rec refine_types_and_cleanup t = function
-    | False -> (Model_builder.Core.Any.Type.Set.empty, False)
-    | True -> (t, True)
-    | Not f ->
-      (* REVIEW: Not 100% of this [Type.Set.comp t] argument. *)
-      Pair.map (Model_builder.Core.Any.Type.Set.diff t) not @@ refine_types_and_cleanup (Model_builder.Core.Any.Type.Set.comp t) f
-    | And (f1, f2) ->
-      (* Refine [t] on [f1], the refine it again while cleaning up [f2],
-         then come back and clean up [f1]. *)
-      let (t, _) = refine_types_and_cleanup t f1 in
-      let (t, f2) = refine_types_and_cleanup t f2 in
-      let (t, f1) = refine_types_and_cleanup t f1 in
-        (t, and_ f1 f2)
-    | Or (f1, f2) ->
-      let (t1, f1) = refine_types_and_cleanup t f1 in
-      let (t2, f2) = refine_types_and_cleanup t f2 in
-        (Model_builder.Core.Any.Type.Set.union t1 t2, or_ f1 f2)
-    | Pred p ->
-      let ts = Model_builder.Core.Any.Type.Set.inter (types_of_predicate p) t in
-        (ts, if Model_builder.Core.Any.Type.Set.is_empty ts then False else Pred p)
+  (* Given a formula, a maximal set of possible types [t], and a maximal set of
+     possible types for the negation of the formula, refine the possible types
+     of the formula and a clean it up. The returned types are a subset of [t].
+     The returned formula does not contain predicates that would clash with
+     [t]. *)
+  let return (t, tn, f) = (t, tn, if TypeSet.is_empty t then False else if TypeSet.is_empty tn then True else f) in
+  let rec refine_types_and_cleanup t tn f =
+    return @@
+      match f with
+      | False -> (TypeSet.empty, tn, False)
+      | True -> (t, TypeSet.empty, True)
+      | Not f ->
+        let (tn, t, f) = refine_types_and_cleanup tn t f in
+          (t, tn, Not f)
+      | Or (f1, f2) ->
+        let (t1, tn1, _) = refine_types_and_cleanup t tn f1 in
+        let (t2, tn2, _) = refine_types_and_cleanup t tn f2 in
+        let (t, tn) = (TypeSet.union t1 t2, TypeSet.inter tn1 tn2) in
+        let (_, _, f1) = refine_types_and_cleanup t tn f1 in
+        let (_, _, f2) = refine_types_and_cleanup t tn f2 in
+          (t, tn, or_ f1 f2)
+      | And (f1, f2) ->
+        let (t1, tn1, _) = refine_types_and_cleanup t tn f1 in
+        let (t2, tn2, _) = refine_types_and_cleanup t tn f2 in
+        let (t, tn) = (TypeSet.inter t1 t2, TypeSet.union tn1 tn2) in
+        let (_, _, f1) = refine_types_and_cleanup t tn f1 in
+        let (_, _, f2) = refine_types_and_cleanup t tn f2 in
+          (t, tn, and_ f1 f2)
+      | Pred p ->
+        let tp = types_of_predicate p in
+        let t = TypeSet.inter t tp in
+        let tn = match p with Type _ -> TypeSet.diff tn tp | _ -> tn in
+          (t, tn, Pred p)
   in
-  snd % refine_types_and_cleanup Model_builder.Core.Any.Type.Set.all
+  fun f ->
+    let (_, _, f) = refine_types_and_cleanup TypeSet.all TypeSet.all f in
+    f
 
 let converter =
   Text_formula_converter.(
