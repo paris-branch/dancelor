@@ -32,20 +32,3 @@ let converter =
       ]
       []
   )
-
-let optimise =
-  Formula.optimise
-    ~binop: (fun {op} f1 f2 ->
-      match (f1, f2) with
-      | (Versions f1, Versions f2) -> some @@ versions (op f1 f2)
-      | (Sets f1, Sets f2) -> some @@ sets (op f1 f2)
-      | (Versions_deep f1, Versions_deep f2) -> some @@ versions_deep (op f1 f2)
-      | _ -> None
-    )
-    (function
-      | Title sfilter -> title @@ Formula_string.optimise sfilter
-      | Versions vfilter -> versions @@ Formula_list.optimise (Formula_entry.optimise_public Version.optimise) vfilter
-      | Sets sfilter -> sets @@ Formula_list.optimise (Formula_entry.optimise_private Set.optimise) sfilter
-      | Versions_deep vfilter -> versions_deep @@ Formula_list.optimise (Formula_entry.optimise_public Version.optimise) vfilter
-      | Editors pfilter -> editors @@ Formula_list.optimise (Formula_entry.optimise_public Person.optimise) pfilter
-    )

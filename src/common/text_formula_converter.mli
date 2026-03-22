@@ -20,6 +20,9 @@ val text_formula_to_formula : 'p t -> Text_formula_type.t -> ('p Formula.t, stri
 val formula_to_text_formula : 'p t -> 'p Formula.t -> Text_formula_type.t
 (** Convert a formula to a text formula using the given converter. *)
 
+val optimise : 'p t -> 'p Formula.t -> 'p Formula.t
+(** Optimise a formula using the information contained in a converter. *)
+
 (** {2 Case}
 
     Conversion cases. The full conversion consists in many tiny cases that can
@@ -93,9 +96,34 @@ type inline = Inline | No_inline
 val lifter :
   name: string ->
   ?inline: inline ->
+  ?down_or: ('q Formula.t -> 'q Formula.t -> 'p option) ->
+  ?down_and: ('q Formula.t -> 'q Formula.t -> 'p option) ->
   (('q Formula.t -> 'p) * ('p -> 'q Formula.t option)) ->
   'q t ->
   'p lifter
+(** [lifter ~name (lift, unlift) converter] creates a {!lifter} for sub-formulas
+    given a [converter] for sub-formulas, a function to [lift] a sub-formula
+    into a predicate, and a partial function to [unlift] a sub-predicate into a
+    formula.
+
+    The optional argument [?proper] indicates whether this lifter has no other
+    semantic meaning. For instance, the list's [exists:] lifter is not proper
+    but the entry's [value:] one is.
+
+    The optional arguments [?down_or] and [?down_and] are used to push
+    disjunctions and conjunctions down into the lifted sub-formulas. Lifters are
+    assumed to have no other semantic meaning by default, which makes them
+    distributed over/commute with conjunctions and disjunctions, but these
+    arguments can be used to specify how to push conjunctions and disjunctions
+    down into the lifted sub-formulas when this is not the case. For instance,
+    the list's [exists:] lifter can push down disjunctions but not conjunctions,
+    and therefore should have [~down_and: (fun _ _ -> None)]. It can however
+    rely on the default value for [?down_or].
+
+    The optional argument [?inline] controls whether the sub-predicates should
+    be made available in the current level. For instance, an entry's value
+    predicates should be inlined at the entry level, such that one may write
+    [x:] instead of [value:x:]. *)
 
 val make :
   debug_name: string ->

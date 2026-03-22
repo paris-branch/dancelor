@@ -34,8 +34,6 @@ let converter =
     ]
   )
 
-let optimise f = Formula.optimise Fun.id f
-
 let accepts filter value =
   Formula.interpret filter @@ function
     | Eq n -> lwt @@ Formula.interpret_bool (value = n)

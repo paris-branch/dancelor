@@ -33,19 +33,3 @@ let converter =
       ]
       []
   )
-
-let optimise =
-  Formula.optimise
-    ~binop: (fun {op} f1 f2 ->
-      match (f1, f2) with
-      | (Conceptors f1, Conceptors f2) -> some @@ conceptors (op f1 f2)
-      | (Versions f1, Versions f2) -> some @@ versions (op f1 f2)
-      | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
-      | _ -> None
-    )
-    (function
-      | Name sfilter -> name @@ Formula_string.optimise sfilter
-      | Conceptors pfilter -> conceptors @@ Formula_list.optimise (Formula_entry.optimise_public Person.optimise) pfilter
-      | Versions vfilter -> versions @@ Formula_list.optimise (Formula_entry.optimise_public Version.optimise) vfilter
-      | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter
-    )

@@ -103,47 +103,10 @@ let type_based_cleanup =
   in
   snd % refine_types_and_cleanup Model_builder.Core.Any.Type.Set.all
 
-(* Little trick to convince OCaml that polymorphism is OK. *)
-type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
-
 let optimise =
   (* FIXME: Because of [type_based_cleanup], the following is not idempotent.
      Hence the call to [fixpoint] below. *)
-  fixpoint
-    (
-      Formula.optimise
-        ~binop: (fun {op} f1 f2 ->
-          match (f1, f2) with
-          (* [person:] eats [type:person] *)
-          | (Type Source, Source f) | (Source f, Type Source) -> some @@ source f
-          | (Type Person, Person f) | (Person f, Type Person) -> some @@ person f
-          | (Type Dance, Dance f) | (Dance f, Type Dance) -> some @@ dance f
-          | (Type Book, Book f) | (Book f, Type Book) -> some @@ book f
-          | (Type Set, Set f) | (Set f, Type Set) -> some @@ set f
-          | (Type Tune, Tune f) | (Tune f, Type Tune) -> some @@ tune f
-          | (Type Version, Version f) | (Version f, Type Version) -> some @@ version f
-          (* [person:<f1> ∧ person:<f2> -> person:(<f1> ∧ <f2>)] *)
-          | (Source f1, Source f2) -> some @@ source (op f1 f2)
-          | (Person f1, Person f2) -> some @@ person (op f1 f2)
-          | (Dance f1, Dance f2) -> some @@ dance (op f1 f2)
-          | (Book f1, Book f2) -> some @@ book (op f1 f2)
-          | (Set f1, Set f2) -> some @@ set (op f1 f2)
-          | (Tune f1, Tune f2) -> some @@ tune (op f1 f2)
-          | (Version f1, Version f2) -> some @@ version (op f1 f2)
-          | _ -> None
-        )
-        (function
-          | (Raw _ as p) | (Type _ as p) -> p
-          | Source pfilter -> source @@ Formula_entry.optimise_public Source.optimise pfilter
-          | Person pfilter -> person @@ Formula_entry.optimise_public Person.optimise pfilter
-          | Dance dfilter -> dance @@ Formula_entry.optimise_public Dance.optimise dfilter
-          | Book bfilter -> book @@ Formula_entry.optimise_private Book.optimise bfilter
-          | Set sfilter -> set @@ Formula_entry.optimise_private Set.optimise sfilter
-          | Tune tfilter -> tune @@ Formula_entry.optimise_public Tune.optimise tfilter
-          | Version vfilter -> version @@ Formula_entry.optimise_public Version.optimise vfilter
-        ) %
-        type_based_cleanup
-    )
+  fixpoint (Text_formula_converter.optimise converter % type_based_cleanup)
 
 let to_pretty_string =
   let type_and t lift = function

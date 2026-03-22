@@ -134,13 +134,7 @@ let cnf_val f =
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type binop = {op: 'a. 'a t -> 'a t -> 'a t}
 
-let optimise ?binop: optimise_binop ?and_: optimise_and ?or_: optimise_or optimise_predicate formula =
-  let optimise_and, optimise_or =
-    match optimise_binop, optimise_and, optimise_or with
-    | Some optimise_binop, None, None -> optimise_binop {op = and_}, optimise_binop {op = or_}
-    | None, _, _ -> Option.value optimise_and ~default: (fun _ _ -> None), Option.value optimise_or ~default: (fun _ _ -> None)
-    | _ -> invalid_arg "Formula.optimise: cannot provide ?binop and ?and_/?or_"
-  in
+let optimise ?(down_and = fun _ _ -> None) ?(down_or = fun _ _ -> None) optimise_predicate formula =
   let rec optimise_head = function
     | Not True -> False
     | Not False -> True
@@ -151,7 +145,7 @@ let optimise ?binop: optimise_binop ?and_: optimise_and ?or_: optimise_or optimi
       (
         match (List.bd_ft (conjuncts f1), List.hd_tl (conjuncts f2)) with
         | ((f1, Pred p1), (Pred p2, f2)) ->
-          Option.fold ~none: f ~some: (fun p12 -> optimise @@ and_l (f1 @ [pred p12] @ f2)) (optimise_and p1 p2)
+          Option.fold ~none: f ~some: (fun p12 -> optimise @@ and_l (f1 @ [pred p12] @ f2)) (down_and p1 p2)
         | _ -> f
       )
     | Or (True, _) | Or (_, True) -> True
@@ -160,7 +154,7 @@ let optimise ?binop: optimise_binop ?and_: optimise_and ?or_: optimise_or optimi
       (
         match (List.bd_ft (disjuncts f1), List.hd_tl (disjuncts f2)) with
         | ((f1, Pred p1), (Pred p2, f2)) ->
-          Option.fold ~none: f ~some: (fun p12 -> optimise @@ or_l (f1 @ [pred p12] @ f2)) (optimise_or p1 p2)
+          Option.fold ~none: f ~some: (fun p12 -> optimise @@ or_l (f1 @ [pred p12] @ f2)) (down_or p1 p2)
         | _ -> f
       )
     | head -> head

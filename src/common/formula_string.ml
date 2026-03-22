@@ -25,8 +25,6 @@ let converter =
       ]
   )
 
-let optimise f = Formula.optimise Fun.id f
-
 let accepts filter value =
   let char_equal = Char.Sensible.equal in
   Formula.interpret filter @@ function

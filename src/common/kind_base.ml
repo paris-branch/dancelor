@@ -106,11 +106,4 @@ module Filter = struct
           unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_long_string ~capitalised: true) ~type_: "base kind";
         ]
     )
-
-  let optimise =
-    Formula.optimise
-      ~binop: (fun _ _ _ -> None)
-      (function
-        | (Is _ as p) -> p
-      )
 end

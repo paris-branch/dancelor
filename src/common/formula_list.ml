@@ -22,31 +22,13 @@ let converter sub_converter =
       ~debug_print: (fun fmt _ -> fpf fmt "<opaque list>")
       ~raw: (Result.map exists' % raw sub_converter)
       ~lifters: [
-        lifter ~name: "exists" (exists, exists_val) sub_converter;
-        lifter ~name: "forall" (forall, forall_val) sub_converter;
+        lifter ~name: "exists" (exists, exists_val) sub_converter ~down_and: (const2 None);
+        lifter ~name: "forall" (forall, forall_val) sub_converter ~down_or: (const2 None);
       ]
       [
         nullary ~name: "empty" empty;
       ]
   )
-
-let optimise sub_optimise =
-  Formula.optimise
-    ~and_: (fun f1 f2 ->
-      match (f1, f2) with
-      | (Forall f1, Forall f2) -> some @@ forall (Formula.and_ f1 f2)
-      | _ -> None
-    )
-    ~or_: (fun f1 f2 ->
-      match (f1, f2) with
-      | (Exists f1, Exists f2) -> some @@ exists (Formula.or_ f1 f2)
-      | _ -> None
-    )
-    (function
-      | Exists f -> exists @@ sub_optimise f
-      | Forall f -> exists @@ sub_optimise f
-      | Empty as p -> p
-    )
 
 let accepts sub_accepts filter values =
   Formula.interpret filter @@ function

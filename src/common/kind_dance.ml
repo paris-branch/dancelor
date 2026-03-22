@@ -129,16 +129,4 @@ module Filter = struct
           unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "dance kind";
         ]
     )
-
-  let optimise =
-    Formula.optimise
-      ~binop: (fun {op} f1 f2 ->
-        match (f1, f2) with
-        | (Version f1, Version f2) -> some @@ version (op f1 f2)
-        | _ -> None
-      )
-      (function
-        | (Is _ as p) | (Simple as p) -> p
-        | Version vfilter -> version @@ Kind_version.Filter.optimise vfilter
-      )
 end

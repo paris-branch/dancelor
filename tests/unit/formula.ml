@@ -1,3 +1,4 @@
+open Nes
 open Common
 
 module Gen = QCheck_generators
@@ -81,22 +82,10 @@ module type CONVERTER = sig
   val converter : predicate Text_formula_converter.t
 end
 
-module type OPTIMISE = sig
-  type predicate
-  type t = predicate Formula.t
-  val optimise : t -> t
-end
-
 module type MODEL_CONVERTER = sig
   type predicate
   include MODEL with type predicate := predicate
   include CONVERTER with type predicate := predicate
-end
-
-module type MODEL_OPTIMISE = sig
-  type predicate
-  include MODEL with type predicate := predicate
-  include OPTIMISE with type predicate := predicate
 end
 
 module type GEN = sig
@@ -127,31 +116,37 @@ let to_string_from_string_roundtrip' (type p)
 
 let optimise_idempotent' (type p)
     ~name
-    (module M : MODEL_OPTIMISE with type predicate = p)
+    (module M : MODEL_CONVERTER with type predicate = p)
     (module G : GEN with type predicate = p)
   =
-  optimise_idempotent ~name ~gen: G.gen ~equal: M.equal ~optimise: M.optimise ~show: M.show
+  optimise_idempotent ~name ~gen: G.gen ~equal: M.equal ~optimise: (Text_formula_converter.optimise M.converter) ~show: M.show
 
 module Formula_unit = struct
   type predicate = unit
+  [@@deriving show]
   type t = unit Formula.t
   [@@deriving eq, show]
 
   let gen = Gen.Formula.gen (QCheck2.Gen.pure ())
-  let optimise = Formula.optimise Fun.id
+
+  let converter = Text_formula_converter.(make ~debug_name: "unit" ~debug_print: pp_predicate ~raw: (fun _ -> Error "no raw") [])
 end
 
 module Formula_int = struct
   type predicate = int
+  [@@deriving show]
   type t = int Formula.t
   [@@deriving eq, show]
 
   let gen = Gen.Formula.gen QCheck2.Gen.int
 
-  let optimise =
-    Formula.optimise ~and_: (fun x y -> Some (min x y)) ~or_: (fun x y -> Some (max x y)) (function
-      | n when n mod 2 = 1 -> n - 1
-      | n -> n
+  let converter =
+    Text_formula_converter.(
+      make
+        ~debug_name: "int"
+        ~debug_print: pp_predicate
+        ~raw: (fun string -> Option.fold ~none: (Error "invalid int") ~some: (ok % Formula.pred) (int_of_string_opt string))
+        []
     )
 end
 

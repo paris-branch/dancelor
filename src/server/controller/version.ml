@@ -106,7 +106,7 @@ include Search.Build(struct
     in
     Lwt_stream.filter_s can_get_and_copyright_ok @@ Lwt_stream.of_seq @@ Database.Version.get_all ()
 
-  let optimise_filter = Formula_entry.optimise_public Filter.Version.optimise
+  let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_public Filter.Version.converter)
   let filter_is_empty = (=) Formula.False
   let filter_accepts = Formula_entry.accepts_public Filter.Version.accepts
   let score_true = Formula.interpret_true

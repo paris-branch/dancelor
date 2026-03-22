@@ -23,10 +23,3 @@ let converter =
       ]
       []
   )
-
-let optimise =
-  Formula.optimise
-    (function
-      | Name sfilter -> name @@ Formula_string.optimise sfilter
-      | Editors pfilter -> editors @@ Formula_list.optimise (Formula_entry.optimise_public Person.optimise) pfilter
-    )

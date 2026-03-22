@@ -121,33 +121,6 @@ let converter_private sub_converter =
         []
     )
 
-let optimise_gen optimise_value optimise_access =
-  Formula.optimise
-    ~binop: (fun {op} f1 f2 ->
-      match (f1, f2) with
-      | (Value f1, Value f2) -> some @@ value (op f1 f2)
-      | _ -> None
-    )
-    (function
-      | Is _ as p -> p
-      | Value filter -> value @@ optimise_value filter
-      | Access filter -> access @@ optimise_access filter
-      | Meta filter -> meta filter
-    )
-
-let optimise_public optimise_value = optimise_gen optimise_value (Formula.optimise (fun () -> ()))
-
-let optimise_private optimise_value =
-  optimise_gen optimise_value @@
-    Formula.optimise
-      ~binop: (fun {op} f1 f2 ->
-        match (f1, f2) with
-        | (Owners f1, Owners f2) -> some @@ owners (op f1 f2)
-      )
-      (function
-        | Owners filter -> owners @@ Formula_list.optimise (optimise_public Formula_user.optimise) filter
-      )
-
 let accepts_gen
     (accepts_value : 'filter -> 'value -> float Lwt.t)
     (accepts_access : 'access_filter -> 'access -> float Lwt.t)

@@ -33,19 +33,3 @@ let converter =
       ]
       []
   )
-
-let optimise =
-  Formula.optimise
-    ~binop: (fun {op} f1 f2 ->
-      match (f1, f2) with
-      | (Composers f1, Composers f2) -> some @@ Composers (op f1 f2)
-      | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
-      | (Dances f1, Dances f2) -> some @@ Dances (op f1 f2)
-      | _ -> None
-    )
-    (function
-      | Name sfilter -> name @@ Formula_string.optimise sfilter
-      | Composers pfilter -> composers @@ Formula_list.optimise (Formula_entry.optimise_public Person.optimise) pfilter
-      | Kind kfilter -> kind @@ Kind.Base.Filter.optimise kfilter
-      | Dances dfilter -> dances @@ Formula_list.optimise (Formula_entry.optimise_public Dance.optimise) dfilter
-    )

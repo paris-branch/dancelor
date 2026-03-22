@@ -132,23 +132,4 @@ module Filter = struct
           unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "version kind";
         ]
     )
-
-  let optimise =
-    Formula.optimise
-      ~binop: (fun {op} f1 f2 ->
-        match (f1, f2) with
-        | (Base f1, Base f2) -> some @@ base (op f1 f2)
-        | _ -> None
-      )
-      (function
-        | (Is _ as p)
-        | (Bars_eq _ as p)
-        | (Bars_ne _ as p)
-        | (Bars_gt _ as p)
-        | (Bars_ge _ as p)
-        | (Bars_lt _ as p)
-        | (Bars_le _ as p) ->
-          p
-        | Base bfilter -> base @@ Kind_base.Filter.optimise bfilter
-      )
 end

@@ -30,17 +30,3 @@ let converter =
       ]
       []
   )
-
-let optimise =
-  Formula.optimise
-    ~binop: (fun {op} f1 f2 ->
-      match (f1, f2) with
-      | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
-      | (Devisers f1, Devisers f2) -> some @@ devisers (op f1 f2)
-      | _ -> None
-    )
-    (function
-      | Name sfilter -> name @@ Formula_string.optimise sfilter
-      | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter
-      | Devisers pfilter -> devisers @@ Formula_list.optimise (Formula_entry.optimise_public Person.optimise) pfilter
-    )

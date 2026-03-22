@@ -5,7 +5,5 @@ module type S = sig
   type t = Formula_user.t
 
   val converter : predicate Text_formula_converter.t
-  val optimise : t -> t
-
   val accepts : t -> Model_builder.Core.User.t -> float Lwt.t
 end

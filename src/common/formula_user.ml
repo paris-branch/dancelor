@@ -21,12 +21,6 @@ let converter =
       []
   )
 
-let optimise =
-  Formula.optimise
-    (function
-      | Username sfilter -> username @@ Formula_string.optimise sfilter
-    )
-
 let accepts filter user =
   Formula.interpret filter @@ function
     | Username sfilter ->

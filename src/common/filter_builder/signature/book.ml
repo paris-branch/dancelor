@@ -17,7 +17,5 @@ module type S = sig
   val versions_deep' : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public Formula_list.t -> t
 
   val converter : predicate Text_formula_converter.t
-  val optimise : t -> t
-
   val accepts : t -> Model_builder.Core.Book.t -> float Lwt.t
 end
