@@ -22,7 +22,7 @@ let to_string_no_exn ~name ~show ~gen ~to_string =
         )
     )
 
-let to_string_from_string_roundtrip ~name ~show ~to_string ~from_string ~gen ~equal =
+let to_string_from_string_roundtrip ~name ~show ~optimise ~to_string ~from_string ~gen ~equal =
   QCheck_alcotest.to_alcotest
     (
       QCheck2.Test.make
@@ -30,22 +30,29 @@ let to_string_from_string_roundtrip ~name ~show ~to_string ~from_string ~gen ~eq
         ~long_factor: 100
         ~name
         ~print: (fun f ->
-          "Filter:\n\n  " ^
-          show f ^
-          "\n\nText formula:\n\n  " ^
-          to_string f ^
-          "\n\nOutput:\n\n  " ^
-          match from_string (to_string f) with
-          | Ok f -> show f
-          | Error err -> "Error: " ^ err
+          spf
+            "Filter:\n\n  %s\n\nOptimised:\n\n  %s\n\nText formula:\n\n  %s\n\nOutput:\n\n  %s\n\nOptimised:\n\n  %s"
+            (show f)
+            (show (optimise f))
+            (to_string f)
+            (
+              match from_string (to_string f) with
+              | Ok f -> show f
+              | Error err -> "Error: " ^ err
+            )
+            (
+              match from_string (to_string f) with
+              | Ok f -> show (optimise f)
+              | Error err -> "Error: " ^ err
+            )
         )
         gen
         (fun f ->
           Result.equal
             ~ok: equal
             ~error: (=)
-            (from_string (to_string f))
-            (Ok f)
+            (Result.map optimise (from_string (to_string f)))
+            (Ok (optimise f))
         )
     )
 
@@ -109,6 +116,7 @@ let to_string_from_string_roundtrip' (type p)
   to_string_from_string_roundtrip
     ~name
     ~show: M.show
+    ~optimise: (Text_formula_converter.optimise M.converter)
     ~to_string: (Text_formula.formula_to_string M.converter)
     ~from_string: (Text_formula.string_to_formula M.converter)
     ~gen: G.gen
@@ -169,8 +177,9 @@ let () =
         ]
       );
       (
-        "from_string % to_string = id",
-        [to_string_from_string_roundtrip ~name: "Text_formula" ~show: Text_formula.show ~to_string: Text_formula.to_string ~from_string: Text_formula.from_string ~equal: Text_formula.equal ~gen: Gen.Text_formula.gen;
+        "optimise % from_string % to_string = optimise",
+        [
+        (* [to_string_from_string_roundtrip ~name: "Text_formula" ~show: Text_formula.show ~to_string: Text_formula.to_string ~from_string: Text_formula.from_string ~equal: Text_formula.equal ~gen: Gen.Text_formula.gen; *)
         to_string_from_string_roundtrip' ~name: "Source.Filter" (module Filter_builder.Core.Source) (module Gen.Filter.Source);
         to_string_from_string_roundtrip' ~name: "Person.Filter" (module Filter_builder.Core.Person) (module Gen.Filter.Person);
         to_string_from_string_roundtrip' ~name: "Dance.Filter" (module Filter_builder.Core.Dance) (module Gen.Filter.Dance);

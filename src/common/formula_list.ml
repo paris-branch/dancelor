@@ -6,7 +6,7 @@ type 'f predicate =
   | Empty
   | Exists of 'f
   | Forall of 'f
-[@@deriving eq, show, yojson, variants]
+[@@deriving eq, show {with_path = false}, yojson, variants]
 
 type 'f t = 'f predicate Formula.t
 [@@deriving eq, show, yojson]

@@ -4,7 +4,7 @@ open Nes
 
 type meta_predicate =
   | Newest
-[@@deriving eq, show, yojson, variants]
+[@@deriving eq, show {with_path = false}, yojson, variants]
 
 type meta = meta_predicate Formula.t
 [@@deriving eq, show, yojson]
@@ -37,7 +37,7 @@ type ('value, 'filter, 'access_filter) predicate_gen =
   | Value of 'filter
   | Access of 'access_filter
   | Meta of meta
-[@@deriving eq, show, yojson, variants]
+[@@deriving eq, show {with_path = false}, yojson, variants]
 
 type ('value, 'filter, 'access_filter) gen = ('value, 'filter, 'access_filter) predicate_gen Formula.t
 [@@deriving eq, show, yojson]
@@ -58,7 +58,7 @@ type ('value, 'filter) public =
 
 type access_private_predicate =
   | Owners of (Entry.User.t, Formula_user.t) public Formula_list.t
-[@@deriving eq, show, yojson, variants]
+[@@deriving eq, show {with_path = false}, yojson, variants]
 
 type access_private = access_private_predicate Formula.t
 [@@deriving eq, show, yojson]
