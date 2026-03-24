@@ -91,6 +91,7 @@
           menhirLib
           monadise
           monadise-lwt
+          omd
           ppx_blob
           ppx_deriving_qcheck
           ppx_deriving_yojson
