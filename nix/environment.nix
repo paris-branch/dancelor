@@ -55,6 +55,7 @@
           ])
           ## Development environment
           ++ [ (gitHookBinFor myTopiaryConfig) ]
+          ++ [ pkgs.watchexec ]
           ++ (with pkgs.ocamlPackages; [
             self'.packages.ocaml-prune
             merlin
