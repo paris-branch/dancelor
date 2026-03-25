@@ -1,21 +1,19 @@
 .PHONY: build dev entr local dev-test clean
 
 build:
-	dune build @install
-	ln -sf _build/install/default/bin .
+	dune build @install @runtest
 
 entr:
-	dune build --watch @install
+	watchexec --restart -- 'dune build @install @runtest && dune exec dancelor -- --config assets/config.local.json'
 
-dev: build
-	bin/dancelor --config assets/config.local.json
+dev:
+	dune exec dancelor -- --config assets/config.local.json
 
-local: build
-	bin/dancelor --config assets/config.local.json --write-storage
+local:
+	dune exec dancelor -- --config assets/config.local.json --write-storage
 
-dev-test: build
-	bin/dancelor --config tests/config.json
+dev-test:
+	dune exec dancelor -- --config tests/config.json
 
 clean:
 	dune clean
-	rm -f bin
