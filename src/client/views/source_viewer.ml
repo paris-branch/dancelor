@@ -53,7 +53,11 @@ let view context id =
             img ~a: [a_style "width: 100%;"] ~alt: "Cover" ~src: (Endpoints.Api.(href @@ Source Cover) id) ()
           ];
           div ~a: [a_class ["col-12"; "col-sm"; "mt-4"; "mt-sm-0"]] [
-            p [txt @@ Option.value (Source.description' source) ~default: "no description available"];
+            (
+              match Source.description' source with
+              | Some desc -> Markdown.to_html desc
+              | None -> p [txt "no description available"]
+            );
             quick_explorer_links [
               ("versions from this source", lwt @@ Filter.(Any.version' % Formula_entry.value' % Version.sources' % Formula_list.exists' % Formula_entry.is') source);
             ];
