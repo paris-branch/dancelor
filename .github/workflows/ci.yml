@@ -130,7 +130,7 @@ jobs:
 
     steps:
       - name: Deploy to GitHub pages
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   run-pre-commit-checks:
     name: Run pre-commit checks
