@@ -17,8 +17,8 @@ class TestQuickSearch():
     ## Write “tam lin” in the input, then click on the “Tam Lin Thrice” element
     ## on the page.
     self.driver.find_element(By.XPATH, "//button[text()[contains(., 'Search')]]").click()
-    self.driver.find_element(By.XPATH, "//input").send_keys("tam lin")
-    self.driver.find_element(By.XPATH, "//*[contains(text(), \'Tam Lin Thrice\')]").click()
+    self.driver.find_element(By.XPATH, "//div[contains(@class, 'modal-body')]//input").send_keys("tam lin")
+    self.driver.find_element(By.XPATH, "//div[contains(@class, 'modal-body')]//*[contains(text(), \'Tam Lin Thrice\')]").click()
     ## and check the result
     self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//h1"), "Tam Lin Thrice"))
     self.wait.until(EC.title_is("Tam Lin Thrice | Set | Dancelor"))
@@ -58,7 +58,7 @@ class TestQuickSearch():
     self.driver.find_element(By.CSS_SELECTOR, "body").send_keys('/')
     time.sleep(2) ## FIXME: there is an ugly timer in Dancelor, so there is one in the test as well
     self.driver.switch_to.active_element.send_keys("tam lin")
-    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Tam Lin Thrice')]").click()
+    self.driver.find_element(By.XPATH, "//div[contains(@class, 'modal-body')]//*[contains(text(), \'Tam Lin Thrice\')]").click()
     ## Check the result
     self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//h1"), "Tam Lin Thrice"))
     self.wait.until(EC.title_is("Tam Lin Thrice | Set | Dancelor"))
