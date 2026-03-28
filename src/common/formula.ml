@@ -164,14 +164,13 @@ let optimise ?(down_not = const None) ?(down_and = const2 None) ?(down_or = cons
       )
     | head -> head
   and optimise f =
-    optimise_head @@
-      match f with
-      | True -> True
-      | False -> False
-      | Not f -> Not (optimise f)
-      | And (f1, f2) -> And (optimise f1, optimise f2)
-      | Or (f1, f2) -> Or (optimise f1, optimise f2)
-      | Pred p -> optimise_predicate p
+    match optimise_head f with
+    | True -> True
+    | False -> False
+    | Not f -> Not (optimise f)
+    | And (f1, f2) -> And (optimise f1, optimise f2)
+    | Or (f1, f2) -> Or (optimise f1, optimise f2)
+    | Pred p -> optimise_predicate p
   in
   fixpoint optimise formula
 
