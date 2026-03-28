@@ -1,5 +1,9 @@
 open Nes
 
+(* FIXME: I think it should be possible, with polymorphic variants, to have a
+   stronger typed type for formulas, eg. where conjunctions carry a list of
+   things that are guaranteed to not be a conjunction themselves, and also maybe
+   not True or False (although maybe we want to keep those for text formulas). *)
 type 'p t =
   | False
   | True
@@ -7,7 +11,7 @@ type 'p t =
   | And of 'p t * 'p t
   | Or of 'p t * 'p t
   | Pred of 'p
-[@@deriving ord, yojson, variants]
+[@@deriving eq, ord, yojson, variants]
 
 let not_ f = Not f
 
@@ -23,18 +27,8 @@ let rec normalise = function
   | Or (Or (f1, f2), f3) -> normalise @@ Or (f1, Or (f2, f3))
   | Or (f1, f2) -> Or (normalise f1, normalise f2)
 
-let equal eq_pred f1 f2 =
-  let rec eq f g =
-    match (f, g) with
-    | True, True -> true
-    | False, False -> true
-    | Pred p1, Pred p2 -> eq_pred p1 p2
-    | Not f, Not g -> eq f g
-    | And (f1, g1), And (f2, g2) -> eq f1 f2 && eq g1 g2
-    | Or (f1, g1), Or (f2, g2) -> eq f1 f2 && eq g1 g2
-    | _ -> false
-  in
-  eq (normalise f1) (normalise f2)
+let equal eq_pred f1 f2 = equal eq_pred (normalise f1) (normalise f2)
+let compare cmp_pred f1 f2 = compare cmp_pred (normalise f1) (normalise f2)
 
 (** For debugging purposes, our custom [show]. *)
 let pp pp_pred fmt formula =
@@ -180,7 +174,7 @@ let sort sort_pred cmp_pred f =
     | False -> False
     | Pred p -> Pred (sort_pred p)
     | Not f -> Not (sort f)
-    | Or _ as f -> or_l @@ List.sort (compare cmp_pred) @@ List.map sort (disjuncts f)
-    | And _ as f -> and_l @@ List.sort (compare cmp_pred) @@ List.map sort (conjuncts f)
+    | Or _ as f -> or_l @@ List.sort_uniq (compare cmp_pred) @@ List.map sort (disjuncts f)
+    | And _ as f -> and_l @@ List.sort_uniq (compare cmp_pred) @@ List.map sort (conjuncts f)
   in
   sort f
