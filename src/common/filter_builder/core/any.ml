@@ -132,6 +132,12 @@ let converter : predicate Text_formula_converter.t =
         let lifter name (lift, unlift) converter typ =
           Text_formula_converter.lifter
             ~name: (spf "is-%s-such-that" name)
+            ~inline: (
+              Inline_custom {
+                inline_text_formula = Formula.and_ Text_formula.(unary' "type" (raw' @@ String.capitalize_ascii name));
+                except_raw = true;
+              }
+            )
             (lift, unlift)
             converter
             ~up_true: None
