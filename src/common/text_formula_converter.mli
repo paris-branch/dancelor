@@ -89,7 +89,10 @@ val unary_raw :
 
 type 'a lifter
 
-type inline = Inline | No_inline
+type inline =
+  | Inline
+  | Inline_custom of {inline_text_formula: Text_formula_type.t -> Text_formula_type.t; except_raw: bool}
+  | No_inline
 (** An inline lifter makes the cases of the underlying converter accessible to
     the containing converter. *)
 

@@ -9,8 +9,10 @@ type 'p case = {
   predicate_to_text_formula: 'p -> Type.t option; (** Given a ['p]redicate, produce a text formula if the case matches, or [None]. *)
 }
 
-type inline = Inline | No_inline
-(* FIXME: There probably needs to be variants handling Raw differently. *)
+type inline =
+  | Inline
+  | Inline_custom of {inline_text_formula: Type.t -> Type.t; except_raw: bool}
+  | No_inline
 
 type _ lifter =
   Lifter :
@@ -70,20 +72,31 @@ let rec cases
             match unlift predicate with
             | None -> None
             | Some qf ->
-              let qf = formula_to_text_formula converter qf in
-              match inline with
-              | No_inline -> Some (Type.unary' name qf)
-              | Inline -> Some qf
+              some @@
+                match inline, formula_to_text_formula converter qf with
+                | No_inline, qf -> Type.unary' name qf
+                | Inline_custom {except_raw; _}, (Pred Raw _ as qf) when except_raw -> Type.unary' name qf
+                | Inline_custom {inline_text_formula; _}, qf -> inline_text_formula qf
+                | Inline, qf -> qf
           );
         } ::
         match inline with
         | No_inline -> []
-        | Inline ->
+        | Inline | Inline_custom _ ->
           List.map
             (fun case ->
               {
                 name = spf "%s (lifted by %s)" case.name name;
-                text_predicate_to_formula = Option.map (Result.map_both ~ok: (Formula.pred % lift) ~error: (spf "lifted %s: %s" name)) % case.text_predicate_to_formula;
+                text_predicate_to_formula = (
+                  let text_predicate_to_formula =
+                    Option.map (Result.map_both ~ok: (Formula.pred % lift) ~error: (spf "lifted %s: %s" name)) %
+                      case.text_predicate_to_formula
+                  in
+                  match inline with
+                  | No_inline -> assert false
+                  | Inline_custom {except_raw; _} when except_raw -> (function Type.Raw _ -> None | tp -> text_predicate_to_formula tp)
+                  | Inline | Inline_custom _ -> text_predicate_to_formula
+                );
                 predicate_to_text_formula = const None;
               }
             )
