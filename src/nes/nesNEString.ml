@@ -1,4 +1,4 @@
-type t = N of string [@@deriving eq, show]
+type t = N of string [@@deriving eq, ord, show]
 
 let to_string (N s) = s
 

@@ -3,7 +3,7 @@
     High-level utilities to manipulate hashed secrets safely. This can be used
     for passwords and tokens, for instance. *)
 
-type t [@@deriving eq, show, yojson]
+type t [@@deriving eq, ord, show, yojson]
 (** Abstract type of a hashed secret. *)
 
 (** {2 Utilities} *)

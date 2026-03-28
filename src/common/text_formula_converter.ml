@@ -37,17 +37,19 @@ and 'p t = {
   lifters: 'p lifter list;
   other_cases: 'p case list;
   pre_optimise: ('p Formula.t -> 'p Formula.t) option;
+  compare_predicate: 'p -> 'p -> int; (** Used for sorting predicates in formulas, which is necessary for optimisations to work. *)
 }
 
 let raw converter = converter.raw
 let debug_name converter = converter.debug_name
 let debug_print converter = converter.debug_print
+let compare_predicate_with converter = converter.compare_predicate
 
 let lifter ~name ?(inline = No_inline) ?down_not ?down_or ?down_and ?(up_true = Some True) ?(up_false = Some False) (lift, unlift) converter =
   Lifter {name; lift; unlift; converter; inline; down_not; down_or; down_and; up_true; up_false}
 
-let make ~debug_name ~debug_print ~raw ?(lifters = []) ?pre_optimise other_cases =
-  {debug_name; debug_print; raw; lifters; other_cases; pre_optimise}
+let make ~debug_name ~debug_print ~raw ?(lifters = []) ~compare_predicate ?pre_optimise other_cases =
+  {debug_name; debug_print; raw; lifters; other_cases; pre_optimise; compare_predicate}
 
 let rec cases
   : type p. p t -> p case list
@@ -180,6 +182,9 @@ let unary_int = unary_raw ~cast: (int_of_string_opt, string_of_int) ~type_: "int
 
 let unary_id = unary_raw ~cast: (Entry.Id.of_string, Entry.Id.to_string) ~type_: "id"
 
+let sort : type p. p t -> p Formula.t -> p Formula.t = fun converter ->
+  Formula.sort Fun.id converter.compare_predicate
+
 let rec optimise : type p. p t -> p Formula.t -> p Formula.t = fun converter ->
   fixpoint (
     Formula.optimise
@@ -227,5 +232,6 @@ let rec optimise : type p. p t -> p Formula.t -> p Formula.t = fun converter ->
             )
             converter.lifters
       ) %
+      sort converter %
       Option.value converter.pre_optimise ~default: Fun.id
   )

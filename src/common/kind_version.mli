@@ -3,7 +3,7 @@ open Nes
 (** {1 Version Kind} *)
 
 type t = int * Kind_base.t
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 (** The kind of a version. For instance, [32R]. *)
 
 val to_string : t -> string
@@ -35,7 +35,7 @@ module Filter : sig
   val base_is : Kind_base.t -> predicate
 
   type t = predicate Formula.t
-  [@@deriving eq, show, yojson]
+  [@@deriving eq, ord, show, yojson]
 
   val is' : version_kind -> t
   val base' : Kind_base.Filter.t -> t

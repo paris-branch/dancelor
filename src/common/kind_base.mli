@@ -30,7 +30,7 @@ type base_kind = t
 module Filter : sig
   type predicate = Is of t
   type t = predicate Formula.t
-  [@@deriving eq, show, yojson]
+  [@@deriving eq, ord, show, yojson]
 
   val is : base_kind -> predicate
   val is' : base_kind -> t

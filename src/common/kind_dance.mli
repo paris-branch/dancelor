@@ -34,7 +34,7 @@ module Filter : sig
   val base_is : Kind_base.t -> predicate
 
   type t = predicate Formula.t
-  [@@deriving eq, show, yojson]
+  [@@deriving eq, ord, show, yojson]
 
   val is' : Kind_dance_type.t -> t
 

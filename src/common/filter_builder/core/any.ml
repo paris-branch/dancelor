@@ -15,13 +15,13 @@ type predicate =
   | Set of (Model_builder.Core.Set.t, Set.t) Formula_entry.private_
   | Tune of (Model_builder.Core.Tune.t, Tune.t) Formula_entry.public
   | Version of (Model_builder.Core.Version.t, Version.t) Formula_entry.public
-[@@deriving eq, show {with_path = false}, yojson, variants]
+[@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
 (* NOTE: To prevent some shadowing. *)
 let predicate_Raw = raw
 
 type t = predicate Formula.t
-[@@deriving eq, show {with_path = false}, yojson]
+[@@deriving eq, ord, show {with_path = false}, yojson]
 
 let raw' = Formula.pred % raw
 let type_' = Formula.pred % type_
@@ -92,7 +92,7 @@ let type_based_cleanup =
     let (_, _, f) = refine_types_and_cleanup TypeSet.all TypeSet.all f in
     f
 
-let converter =
+let converter : predicate Text_formula_converter.t =
   Text_formula_converter.(
     make
       ~debug_name: "any"
@@ -120,6 +120,7 @@ let converter =
       [unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
       unary_raw ~name: "type" (type_, type__val) ~cast: Model_builder.Core.Any.Type.(of_string_opt, to_string) ~type_: "valid type";
       ]
+      ~compare_predicate
       ~pre_optimise: type_based_cleanup
   )
 

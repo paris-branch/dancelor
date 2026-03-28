@@ -2,14 +2,14 @@ open Nes
 
 type predicate =
   | Username of Formula_string.t
-[@@deriving eq, show {with_path = false}, yojson, variants]
+[@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
-[@@deriving eq, show {with_path = false}, yojson]
+[@@deriving eq, ord, show {with_path = false}, yojson]
 
 let username' = Formula.pred % username
 
-let converter =
+let converter : predicate Text_formula_converter.t =
   Text_formula_converter.(
     make
       ~debug_name: "user"
@@ -19,6 +19,7 @@ let converter =
         lifter ~name: "username" (username, username_val) Formula_string.converter;
       ]
       []
+      ~compare_predicate
   )
 
 let accepts filter user =

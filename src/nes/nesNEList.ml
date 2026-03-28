@@ -1,4 +1,4 @@
-type 'a t = L of 'a list [@@deriving eq, show]
+type 'a t = L of 'a list [@@deriving eq, ord, show]
 
 let to_list (L xs) = xs
 

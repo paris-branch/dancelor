@@ -7,7 +7,7 @@ type 'p t =
   | And of 'p t * 'p t
   | Or of 'p t * 'p t
   | Pred of 'p
-[@@deriving yojson, variants]
+[@@deriving ord, yojson, variants]
 
 let not_ f = Not f
 
@@ -174,3 +174,14 @@ let optimise ?(down_not = const None) ?(down_and = const2 None) ?(down_or = cons
       | Pred p -> optimise_predicate p
   in
   fixpoint optimise formula
+
+let sort sort_pred cmp_pred f =
+  let rec sort = function
+    | True -> True
+    | False -> False
+    | Pred p -> Pred (sort_pred p)
+    | Not f -> Not (sort f)
+    | Or _ as f -> or_l @@ List.sort (compare cmp_pred) @@ List.map sort (disjuncts f)
+    | And _ as f -> and_l @@ List.sort (compare cmp_pred) @@ List.map sort (conjuncts f)
+  in
+  sort f

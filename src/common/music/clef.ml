@@ -1,6 +1,6 @@
 type t =
   Treble | Alto | Tenor | Bass
-[@@deriving eq, show {with_path = false}]
+[@@deriving eq, ord, show {with_path = false}]
 
 let to_string = function
   | Treble -> "treble"

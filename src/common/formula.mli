@@ -9,7 +9,7 @@ type 'p t =
   | And of 'p t * 'p t
   | Or of 'p t * 'p t
   | Pred of 'p
-[@@deriving eq, yojson]
+[@@deriving eq, ord, yojson]
 (** Type of formulas carrying predicates of type ['p]. *)
 
 (** {3 Constructors} *)
@@ -96,3 +96,10 @@ val convert_res : ('p -> ('q t, 'e) Result.t) -> 'p t -> ('q t, 'e) Result.t
 val pp : (Format.formatter -> 'p -> unit) -> Format.formatter -> 'p t -> unit
 (** For debugging purposes. This is compatible with [ppx_deriving_show] but is a
     more usual representation of formulas. *)
+
+val sort : ('p -> 'p) -> ('p -> 'p -> int) -> 'p t -> 'p t
+(** Sort a formula according to the given comparison function, and a function to
+    sort the inside of predicates. This is useful to make formulas that are
+    semantically equivalent but have different syntactic structures (for
+    instance, [A ∧ B] and [B ∧ A]) have the same syntax, which makes them easier
+    to compare. *)

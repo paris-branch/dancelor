@@ -2,7 +2,7 @@ open NesPervasives
 
 module I = ISO8601.Permissive
 
-type t = float [@@deriving eq]
+type t = float [@@deriving eq, ord]
 (* Number of seconds since 00:00:00 GMT, Jan. 1, 1970.*)
 
 let of_string = I.datetime ~reqtime: true

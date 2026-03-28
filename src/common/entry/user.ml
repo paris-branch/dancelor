@@ -1,7 +1,7 @@
 open Nes
 
 module Username : sig
-    type t [@@deriving eq, show, yojson]
+    type t [@@deriving eq, ord, show, yojson]
 
     val from_string : string -> t option
     val to_string : t -> string
@@ -9,7 +9,7 @@ module Username : sig
     val of_string_exn : string -> t
   end
 = struct
-  type t = string [@@deriving eq, show, to_yojson]
+  type t = string [@@deriving eq, ord, show, to_yojson]
 
   let from_string s =
     let s = String.trim s in
@@ -109,7 +109,7 @@ type role =
   | Normal_user
   | Maintainer
   | Administrator of {omniscience: bool}
-[@@deriving eq, yojson, variants, show]
+[@@deriving eq, ord, yojson, variants, show]
 
 type t = {
   username: Username.t;
@@ -118,7 +118,7 @@ type t = {
   remember_me_tokens: (Remember_me_token_hashed.t * Datetime.t) Remember_me_key.Map.t; [@default Remember_me_key.Map.empty] [@key "remember-me-token"]
   role: role; [@default Normal_user]
 }
-[@@deriving eq, make, yojson, fields, show {with_path = false}]
+[@@deriving eq, ord, make, yojson, fields, show {with_path = false}]
 
 let make ~username ?password ?password_reset_token ?remember_me_tokens ?role () =
   make ~username ~password ~password_reset_token ?remember_me_tokens ?role ()

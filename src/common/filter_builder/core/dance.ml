@@ -4,16 +4,16 @@ type predicate =
   | Name of Formula_string.t
   | Kind of Kind.Dance.Filter.t
   | Devisers of (Model_builder.Core.Person.t, Person.t) Formula_entry.public Formula_list.t
-[@@deriving eq, show {with_path = false}, yojson, variants]
+[@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
-[@@deriving eq, show {with_path = false}, yojson]
+[@@deriving eq, ord, show {with_path = false}, yojson]
 
 let name' = Formula.pred % name
 let kind' = Formula.pred % kind
 let devisers' = Formula.pred % devisers
 
-let converter =
+let converter : predicate Text_formula_converter.t =
   Text_formula_converter.(
     let lifter_devisers ~name =
       Text_formula_converter.lifter ~name (devisers, devisers_val) (Formula_list.converter (Formula_entry.converter_public Person.converter))
@@ -29,4 +29,5 @@ let converter =
         lifter_devisers ~name: "by";
       ]
       []
+      ~compare_predicate
   )

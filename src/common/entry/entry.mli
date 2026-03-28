@@ -7,7 +7,7 @@ module Id = Id
 module Meta = Meta
 module User = User
 
-type 'value id = 'value Id.t [@@deriving eq, show, yojson]
+type 'value id = 'value Id.t [@@deriving eq, ord, show, yojson]
 
 type user = User.t
 type user_id = user id

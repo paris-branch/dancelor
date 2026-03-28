@@ -123,18 +123,26 @@ let optimise_idempotent' (type p)
 
 module Formula_unit = struct
   type predicate = unit
-  [@@deriving show]
+  [@@deriving ord, show]
   type t = unit Formula.t
   [@@deriving eq, show]
 
   let gen = Gen.Formula.gen (QCheck2.Gen.pure ())
 
-  let converter = Text_formula_converter.(make ~debug_name: "unit" ~debug_print: pp_predicate ~raw: (fun _ -> Error "no raw") [])
+  let converter =
+    Text_formula_converter.(
+      make
+        ~debug_name: "unit"
+        ~debug_print: pp_predicate
+        ~raw: (fun _ -> Error "no raw")
+        []
+        ~compare_predicate
+    )
 end
 
 module Formula_int = struct
   type predicate = int
-  [@@deriving show]
+  [@@deriving ord, show]
   type t = int Formula.t
   [@@deriving eq, show]
 
@@ -147,6 +155,7 @@ module Formula_int = struct
         ~debug_print: pp_predicate
         ~raw: (fun string -> Option.fold ~none: (Error "invalid int") ~some: (ok % Formula.pred) (int_of_string_opt string))
         []
+        ~compare_predicate
     )
 end
 

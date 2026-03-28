@@ -1,6 +1,6 @@
 (** {1 Mode} *)
 
-type t = Major | Minor [@@deriving eq, show]
+type t = Major | Minor [@@deriving eq, ord, show]
 
 val to_string : t -> string
 val to_lilypond_string : t -> string

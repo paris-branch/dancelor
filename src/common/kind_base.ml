@@ -79,10 +79,10 @@ type base_kind = t (* needed for the interface of filters *)
 module Filter = struct
   type predicate =
     | Is of t
-  [@@deriving eq, show {with_path = false}, yojson, variants]
+  [@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, yojson]
+  [@@deriving eq, ord, show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
 
@@ -102,8 +102,8 @@ module Filter = struct
             ~none: (kspf error "could not interpret \"%s\" as a base kind" string)
             (of_string_opt string)
         )
-        [
-          unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_long_string ~capitalised: true) ~type_: "base kind";
+        [unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_long_string ~capitalised: true) ~type_: "base kind";
         ]
+        ~compare_predicate
     )
 end

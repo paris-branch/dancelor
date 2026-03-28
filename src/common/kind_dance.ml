@@ -82,13 +82,13 @@ module Filter = struct
     | Is of t
     | Simple
     | Version of Kind_version.Filter.t
-  [@@deriving eq, show {with_path = false}, yojson, variants]
+  [@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
   let base = version % Kind_version.Filter.base'
   let base_is = version % Kind_version.Filter.base_is'
 
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, yojson]
+  [@@deriving eq, ord, show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
   let base' = Formula.pred % base
@@ -124,9 +124,9 @@ module Filter = struct
         ~lifters: [
           lifter ~name: "version" (version, version_val) Kind_version.Filter.converter;
         ]
-        [
-          nullary ~name: "simple" Simple;
-          unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "dance kind";
+        [nullary ~name: "simple" Simple;
+        unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "dance kind";
         ]
+        ~compare_predicate
     )
 end

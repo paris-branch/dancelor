@@ -23,6 +23,9 @@ val formula_to_text_formula : 'p t -> 'p Formula.t -> Text_formula_type.t
 val optimise : 'p t -> 'p Formula.t -> 'p Formula.t
 (** Optimise a formula using the information contained in a converter. *)
 
+val compare_predicate_with : 'p t -> 'p -> 'p -> int
+(** Compare two predicates using the information contained in a converter. *)
+
 (** {2 Case}
 
     Conversion cases. The full conversion consists in many tiny cases that can
@@ -151,6 +154,7 @@ val make :
   debug_print: (Format.formatter -> 'p -> unit) ->
   raw: (string -> ('p Formula.t, string) result) ->
   ?lifters: 'p lifter list ->
+  compare_predicate: ('p -> 'p -> int) ->
   ?pre_optimise: ('p Formula.t -> 'p Formula.t) ->
   'p case list ->
   'p t

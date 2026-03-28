@@ -5,13 +5,13 @@ type destructured = {
   transitions: (Part_name.opens * Part_name.opens * Voices.t) list;
   default_structure: Structure.t;
 }
-[@@deriving eq, yojson, show {with_path = false}]
+[@@deriving eq, ord, yojson, show {with_path = false}]
 
 type t =
   | No_content
   | Destructured of destructured
   | Monolithic of {lilypond: string; bars: int; structure: Structure.t}
-[@@deriving eq, yojson, show {with_path = false}, variants]
+[@@deriving eq, ord, yojson, show {with_path = false}, variants]
 
 let erase_lilypond = function
   | No_content -> No_content

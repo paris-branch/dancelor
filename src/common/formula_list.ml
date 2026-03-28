@@ -6,16 +6,16 @@ type 'f predicate =
   | Empty
   | Exists of 'f
   | Forall of 'f
-[@@deriving eq, show {with_path = false}, yojson, variants]
+[@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
 type 'f t = 'f predicate Formula.t
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 let empty' = Formula.pred empty
 let exists' f = Formula.pred (exists f)
 let forall' f = Formula.pred (forall f)
 
-let converter sub_converter =
+let converter (sub_converter : 'f Text_formula_converter.t) : 'f Formula.t predicate Text_formula_converter.t =
   Text_formula_converter.(
     make
       ~debug_name: (spf "list(%s)" @@ Text_formula_converter.debug_name sub_converter)
@@ -25,9 +25,9 @@ let converter sub_converter =
         lifter ~name: "exists" (exists, exists_val) sub_converter ~down_not: (fun f -> some @@ forall' @@ Formula.not_ f) ~down_and: (const2 None) ~up_true: (Some (Not empty'));
         lifter ~name: "forall" (forall, forall_val) sub_converter ~down_not: (fun f -> some @@ exists' @@ Formula.not_ f) ~down_or: (const2 None) ~up_false: (Some empty');
       ]
-      [
-        nullary ~name: "empty" empty;
+      [nullary ~name: "empty" empty;
       ]
+      ~compare_predicate: (compare_predicate @@ Formula.compare @@ compare_predicate_with sub_converter)
   )
 
 let accepts sub_accepts filter values =

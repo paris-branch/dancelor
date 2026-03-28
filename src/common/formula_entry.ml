@@ -4,10 +4,10 @@ open Nes
 
 type meta_predicate =
   | Newest
-[@@deriving eq, show {with_path = false}, yojson, variants]
+[@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
 type meta = meta_predicate Formula.t
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 let accepts_meta filter meta =
   Formula.interpret filter @@ function
@@ -21,15 +21,15 @@ let accepts_meta filter meta =
       let x = if x < 0. then 0. else x in
       lwt (x /. all_times)
 
-let meta_converter =
+let meta_converter : meta_predicate Text_formula_converter.t =
   Text_formula_converter.(
     make
       ~debug_name: "meta"
       ~debug_print: pp_meta_predicate
       ~raw: (const @@ Error "meta does not accept raw converter")
-      [
-        nullary ~name: "newest" Newest;
+      [nullary ~name: "newest" Newest;
       ]
+      ~compare_predicate: compare_meta_predicate
   )
 
 type ('value, 'filter, 'access_filter) predicate_gen =
@@ -37,39 +37,39 @@ type ('value, 'filter, 'access_filter) predicate_gen =
   | Value of 'filter
   | Access of 'access_filter
   | Meta of meta
-[@@deriving eq, show {with_path = false}, yojson, variants]
+[@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
 type ('value, 'filter, 'access_filter) gen = ('value, 'filter, 'access_filter) predicate_gen Formula.t
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 type access_public_predicate = unit
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 type access_public = access_public_predicate Formula.t
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 type ('value, 'filter) predicate_public =
 ('value, 'filter, access_public) predicate_gen
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 type ('value, 'filter) public =
 ('value, 'filter, access_public) gen
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 type access_private_predicate =
   | Owners of (Entry.User.t, Formula_user.t) public Formula_list.t
-[@@deriving eq, show {with_path = false}, yojson, variants]
+[@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
 type access_private = access_private_predicate Formula.t
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 type ('value, 'filter) predicate_private =
 ('value, 'filter, access_private) predicate_gen
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 type ('value, 'filter) private_ =
 ('value, 'filter, access_private) gen
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 let is' entry = Formula.pred @@ is @@ Entry.id entry
 let value' filter = Formula.pred @@ value filter
@@ -89,9 +89,17 @@ let converter_gen sub_converter access_converter =
         lifter ~name: "access" (access, access_val) access_converter;
         lifter ~name: "meta" (meta, meta_val) meta_converter;
       ]
-      [
-        unary_id ~name: "is" (is, is_val);
+      [unary_id ~name: "is" (is, is_val);
       ]
+      ~compare_predicate: (
+        compare_predicate_gen
+          (fun _value1 _value2 ->
+            (* NOTE: we only can about value ids, so this should never get called *)
+            assert false
+          )
+          (Formula.compare @@ compare_predicate_with sub_converter)
+          (Formula.compare @@ compare_predicate_with access_converter)
+      )
   )
 
 let converter_public sub_converter =
@@ -101,9 +109,9 @@ let converter_public sub_converter =
         ~debug_name: "public access"
         ~debug_print: (fun fmt _ -> fpf fmt "<opaque access>")
         ~raw: (const @@ Error "access does not accept raw converter")
-        [
-          nullary ~name: "unit" ()
+        [nullary ~name: "unit" ();
         ]
+        ~compare_predicate: compare_access_public_predicate
     )
   )
 
@@ -119,6 +127,7 @@ let converter_private sub_converter =
           lifter ~name: "owners" (owners, owners_val) (Formula_list.converter (converter_public Formula_user.converter));
         ]
         []
+        ~compare_predicate: compare_access_private_predicate
     )
 
 let accepts_gen
