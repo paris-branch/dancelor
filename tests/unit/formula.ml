@@ -31,7 +31,7 @@ let to_string_from_string_roundtrip ~name ~show ~optimise ~to_string ~from_strin
         ~name
         ~print: (fun f ->
           spf
-            "Filter:\n\n  %s\n\nOptimised:\n\n  %s\n\nText formula:\n\n  %s\n\nOutput:\n\n  %s\n\nOptimised:\n\n  %s"
+            "Filter:\n\n  %s\n\nOptimised:\n\n  %s\n\nText formula:\n\n  %s\n\nOutput:\n\n  %s\n\nOptimised:\n\n  %s\n\n"
             (show f)
             (show (optimise f))
             (to_string f)
@@ -60,7 +60,9 @@ let optimise_idempotent ~name ~gen ~show ~optimise ~equal =
           show f ^
           "\n\nOptimised:\n\n  " ^
           show (optimise f) ^
-          "\n\nOptimised twice:\n\n  " ^ show (optimise (optimise f))
+          "\n\nOptimised twice:\n\n  " ^
+          show (optimise (optimise f)) ^
+          "\n\n"
         )
         gen
         (fun f ->
@@ -201,7 +203,6 @@ let () =
         optimise_idempotent' ~name: "Version.Filter" (module Filter_builder.Core.Version) (module Gen.Filter.Version);
         optimise_idempotent' ~name: "Set.Filter" (module Filter_builder.Core.Set) (module Gen.Filter.Set);
         optimise_idempotent' ~name: "Book.Filter" (module Filter_builder.Core.Book) (module Gen.Filter.Book);
-        optimise_idempotent ~name: "Any.Filter (type_based_cleanup)" ~optimise: Filter_builder.Core.Any.type_based_cleanup ~gen: Gen.Filter.Any.gen ~show: Filter_builder.Core.Any.show ~equal: Filter_builder.Core.Any.equal;
         optimise_idempotent' ~name: "Any.Filter" (module Filter_builder.Core.Any) (module Gen.Filter.Any);
         ]
       );

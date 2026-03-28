@@ -134,7 +134,12 @@ let converter : predicate Text_formula_converter.t =
             ~name: (spf "is-%s-such-that" name)
             ~inline: (
               Inline_custom {
-                inline_text_formula = Formula.and_ Text_formula.(unary' "type" (raw' @@ String.capitalize_ascii name));
+                inline_text_formula = (
+                  let type_constraint = Text_formula.(unary' "type" (raw' @@ String.capitalize_ascii name)) in
+                  function
+                    | True -> type_constraint
+                    | f -> Formula.and_ type_constraint f
+                );
                 except_raw = true;
               }
             )

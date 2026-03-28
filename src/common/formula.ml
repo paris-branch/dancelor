@@ -44,7 +44,7 @@ let pp pp_pred fmt formula =
     | Or (f1, f2) -> ppf (above = `And || above = `Not) fmt "%a ∨ %a" (pp `Or) f1 (pp `Or) f2
     | Pred p -> ppf false fmt "%a" pp_pred p
   in
-  ppf (match formula with Pred _ -> false | _ -> true) fmt "%a" (pp `Root) formula
+  ppf (match formula with False | True | Pred _ -> false | _ -> true) fmt "%a" (pp `Root) formula
 
 let and_l = function
   | [] -> True
