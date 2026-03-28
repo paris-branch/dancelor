@@ -6,7 +6,7 @@ type two_chords =
   | Dont_know
   | One_chord
   | Two_chords
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 type t = {
   names_: NEString.t NEList.t; [@key "names"] (* work around a name clash in ppx_fields_conv *)
@@ -17,11 +17,11 @@ type t = {
   disambiguation: string; [@default ""]
   date: PartialDate.t option; [@default None] (** When the dance was devised. *)
 }
-[@@deriving eq, make, show {with_path = false}, yojson, fields]
+[@@deriving eq, ord, make, show {with_path = false}, yojson, fields]
 
 type access = Entry.Access.public [@@deriving yojson]
 type entry = t Entry.public
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 let make ~names ~kind ?devisers ?two_chords ?scddb_id ?disambiguation ?date () =
   let names = NEList.map (NEString.map_exn (String.remove_duplicates ~char: ' ')) names in

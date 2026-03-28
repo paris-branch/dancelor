@@ -82,13 +82,13 @@ module Filter = struct
     | Is of t
     | Simple
     | Version of Kind_version.Filter.t
-  [@@deriving eq, show {with_path = false}, yojson, variants]
+  [@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
   let base = version % Kind_version.Filter.base'
   let base_is = version % Kind_version.Filter.base_is'
 
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, yojson]
+  [@@deriving eq, ord, show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
   let base' = Formula.pred % base
@@ -112,38 +112,21 @@ module Filter = struct
 
   let converter =
     Text_formula_converter.(
-      merge
-        ~tiebreaker: Left
-        (
-          (* Dance kind-specific converter *)
-          make
-            ~raw: (fun string ->
-              Option.fold
-                ~some: (ok % is')
-                ~none: (kspf error "could not interpret \"%s\" as a dance kind" string)
-                (of_string_opt string)
-            )
-            [
-              nullary ~name: "simple" Simple;
-              unary_lift ~name: "version" (version, version_val) ~converter: Kind_version.Filter.converter;
-              unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "dance kind";
-            ]
+      make
+        ~debug_name: "dance kind"
+        ~debug_print: pp_predicate
+        ~raw: (fun string ->
+          Option.fold
+            ~some: (ok % is')
+            ~none: (kspf error "could not interpret \"%s\" as a dance kind" string)
+            (of_string_opt string)
         )
-        (
-          (* Version kind converter, lifted to dance kinds; lose in case of tiebreak. *)
-          map version Kind_version.Filter.converter
-        )
+        ~lifters: [
+          lifter ~name: "version" (version, version_val) Kind_version.Filter.converter;
+        ]
+        [nullary ~name: "simple" Simple;
+        unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "dance kind";
+        ]
+        ~compare_predicate
     )
-
-  let optimise =
-    Formula.optimise
-      ~binop: (fun {op} f1 f2 ->
-        match (f1, f2) with
-        | (Version f1, Version f2) -> some @@ version (op f1 f2)
-        | _ -> None
-      )
-      (function
-        | (Is _ as p) | (Simple as p) -> p
-        | Version vfilter -> version @@ Kind_version.Filter.optimise vfilter
-      )
 end

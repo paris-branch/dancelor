@@ -4,7 +4,7 @@ type composer_core = {
   composer: Person.t Entry.Id.t;
   details: string; [@default ""]
 }
-[@@deriving eq, yojson, show {with_path = false}]
+[@@deriving eq, ord, yojson, show {with_path = false}]
 
 type composer = {
   composer: Person.entry;
@@ -28,11 +28,11 @@ type t = {
   scddb_id: int option; [@default None] [@key "scddb-id"]
   date: PartialDate.t option; [@default None] (** When the tune was composed. *)
 }
-[@@deriving eq, yojson, make, show {with_path = false}, fields]
+[@@deriving eq, ord, yojson, make, show {with_path = false}, fields]
 
 type access = Entry.Access.public [@@deriving yojson]
 type entry = t Entry.public
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 let make ~names ~kind ?composers ?dances ?remark ?scddb_id ?date () =
   let names = NEList.map (NEString.map_exn (String.remove_duplicates ~char: ' ')) names in

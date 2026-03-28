@@ -21,7 +21,7 @@ let quick_search_to_explorer value =
 let quick_search =
   Components.Search.Quick.make
     ~search: (fun slice input ->
-      let%rlwt filter = lwt (Filter.Any.from_string input) in
+      let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Any.converter input in
       ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice filter
     )
     ~on_enter: (fun value -> Lwt.async (fun () -> quick_search_to_explorer value))

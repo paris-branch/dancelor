@@ -12,11 +12,11 @@ type t = {
   dances: Dance.t Entry.id list; [@default []]
   remark: string; [@default ""]
 }
-[@@deriving eq, yojson, make, show {with_path = false}, fields]
+[@@deriving eq, ord, yojson, make, show {with_path = false}, fields]
 
 type access = Entry.Access.Private.t [@@deriving yojson]
 type entry = t Entry.private_
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 let make ~name ?conceptors ~kind ?contents ~order ?dances () =
   let name = NEString.map_exn (String.remove_duplicates ~char: ' ') name in

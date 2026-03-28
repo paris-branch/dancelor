@@ -1,7 +1,7 @@
 open Nes
 
 type t = int (* invariant: ∈ [0; 25] *)
-[@@deriving eq, show {with_path = false}]
+[@@deriving eq, ord, show {with_path = false}]
 
 let to_int = id
 let of_int = id
@@ -23,7 +23,7 @@ let to_string p = String.make 1 (to_char p)
 
 type open_ =
   Start | Middle of t | End
-[@@deriving eq, show {with_path = false}, variants]
+[@@deriving eq, ord, show {with_path = false}, variants]
 
 let open_to_string = function
   | Start -> "start"
@@ -42,7 +42,7 @@ let open__of_yojson = function
   | _ -> Error ""
 
 type opens = open_ NEList.t
-[@@deriving eq, show {with_path = false}]
+[@@deriving eq, ord, show {with_path = false}]
 
 let opens_to_string = String.concat ", " % List.map open_to_string % NEList.to_list
 

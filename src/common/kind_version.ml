@@ -1,7 +1,7 @@
 open Nes
 
 type t = int * Kind_base.t
-[@@deriving eq, show {with_path = false}]
+[@@deriving eq, ord, show {with_path = false}]
 
 let to_string (repeats, base) =
   spf "%d %s" repeats (Kind_base.to_short_string base)
@@ -70,12 +70,12 @@ module Filter = struct
     | Bars_lt of int
     | Bars_le of int
     | Base of Kind_base.Filter.t
-  [@@deriving eq, show {with_path = false}, yojson, variants]
+  [@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
   let base_is = base % Kind_base.Filter.is'
 
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, yojson]
+  [@@deriving eq, ord, show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
   let base' = Formula.pred % base
@@ -110,49 +110,26 @@ module Filter = struct
 
   let converter =
     Text_formula_converter.(
-      merge
-        (
-          (* Version kind-specific converter *)
-          make
-            ~raw: (fun string ->
-              Option.fold
-                ~some: (ok % is')
-                ~none: (kspf error "could not interpret \"%s\" as a version kind" string)
-                (of_string_opt string)
-            )
-            [
-              unary_int ~name: "bars-eq" (bars_eq, bars_eq_val);
-              unary_int ~name: "bars-ne" (bars_ne, bars_ne_val);
-              unary_int ~name: "bars-gt" (bars_gt, bars_gt_val);
-              unary_int ~name: "bars-ge" (bars_ge, bars_ge_val);
-              unary_int ~name: "bars-lt" (bars_lt, bars_lt_val);
-              unary_int ~name: "bars-le" (bars_le, bars_le_val);
-              unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "version kind";
-              unary_lift ~wrap_back: Not_pred ~name: "base" (base, base_val) ~converter: Kind_base.Filter.converter;
-            ]
+      make
+        ~debug_name: "version kind"
+        ~debug_print: pp_predicate
+        ~raw: (fun string ->
+          Option.fold
+            ~some: (ok % is')
+            ~none: (kspf error "could not interpret \"%s\" as a version kind" string)
+            (of_string_opt string)
         )
-        (
-          (* Base kind converter, lifted to version kinds *)
-          map base Kind_base.Filter.converter
-        )
+        ~lifters: [
+          lifter ~name: "base" (base, base_val) Kind_base.Filter.converter;
+        ]
+        [unary_int ~name: "bars-eq" (bars_eq, bars_eq_val);
+        unary_int ~name: "bars-ne" (bars_ne, bars_ne_val);
+        unary_int ~name: "bars-gt" (bars_gt, bars_gt_val);
+        unary_int ~name: "bars-ge" (bars_ge, bars_ge_val);
+        unary_int ~name: "bars-lt" (bars_lt, bars_lt_val);
+        unary_int ~name: "bars-le" (bars_le, bars_le_val);
+        unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "version kind";
+        ]
+        ~compare_predicate
     )
-
-  let optimise =
-    Formula.optimise
-      ~binop: (fun {op} f1 f2 ->
-        match (f1, f2) with
-        | (Base f1, Base f2) -> some @@ base (op f1 f2)
-        | _ -> None
-      )
-      (function
-        | (Is _ as p)
-        | (Bars_eq _ as p)
-        | (Bars_ne _ as p)
-        | (Bars_gt _ as p)
-        | (Bars_ge _ as p)
-        | (Bars_lt _ as p)
-        | (Bars_le _ as p) ->
-          p
-        | Base bfilter -> base @@ Kind_base.Filter.optimise bfilter
-      )
 end

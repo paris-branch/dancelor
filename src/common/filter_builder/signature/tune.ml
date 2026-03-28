@@ -14,7 +14,5 @@ module type S = sig
   val dances' : (Model_builder.Core.Dance.t, Core.Dance.t) Formula_entry.public Formula_list.t -> t
 
   val converter : predicate Text_formula_converter.t
-  val optimise : t -> t
-
   val accepts : t -> Model_builder.Core.Tune.t -> float Lwt.t
 end

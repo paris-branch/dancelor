@@ -1,13 +1,6 @@
 open Nes
 
-(* NOTE: This [Raw] variant is a bit artificial, when we could already be
-   inheriting the various [raw] cases, of the other filters. However, this
-   would unfold text formulas into a big disjunction at the syntactic level,
-   and we would rather avoid that. *)
 type predicate =
-  | Raw of string
-  | Type of Model_builder.Core.Any.Type.t
-  (* lifting predicates: *)
   | Source of (Model_builder.Core.Source.t, Source.t) Formula_entry.public
   | Person of (Model_builder.Core.Person.t, Person.t) Formula_entry.public
   | Dance of (Model_builder.Core.Dance.t, Dance.t) Formula_entry.public
@@ -15,16 +8,22 @@ type predicate =
   | Set of (Model_builder.Core.Set.t, Set.t) Formula_entry.private_
   | Tune of (Model_builder.Core.Tune.t, Tune.t) Formula_entry.public
   | Version of (Model_builder.Core.Version.t, Version.t) Formula_entry.public
-[@@deriving eq, show {with_path = false}, yojson, variants]
+  | User of (Model_builder.Core.User.t, User.t) Formula_entry.public
+  (* NOTE: This [Raw] variant is a bit artificial, when we could already be
+     inheriting the various [raw] cases, of the other filters. However, this
+     would unfold text formulas into a big disjunction at the syntactic level,
+     and we would rather avoid that. *)
+  (* NOTE: The [Raw] predicate appears last so as to be sorted last. *)
+  | Raw of string
+[@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
 (* NOTE: To prevent some shadowing. *)
 let predicate_Raw = raw
 
 type t = predicate Formula.t
-[@@deriving eq, show {with_path = false}, yojson]
+[@@deriving eq, ord, show {with_path = false}, yojson]
 
 let raw' = Formula.pred % raw
-let type_' = Formula.pred % type_
 let source' = Formula.pred % source
 let person' = Formula.pred % person
 let dance' = Formula.pred % dance
@@ -32,174 +31,161 @@ let book' = Formula.pred % book
 let set' = Formula.pred % set
 let tune' = Formula.pred % tune
 let version' = Formula.pred % version
+let user' = Formula.pred % user
 
-(** The [?human] flag specifies whether we should print eg. [Version
-    <vfilter>] as ["type:version <vfilter>"]. This is correct but it will
-    not generate the correct inverse of [of_string]. *)
-let make_converter ?(human = false) () =
-  Text_formula_converter.(
-    (* We find formulas of the form [type:version predicate-on-version]
-       better for humans than [version:predicate-on-version]. *)
-    let wrap_back = if human then Never else Always in
-    merge
-      ~tiebreaker: Left
-      (
-        (* Any-specific converter *)
-        make
-          ~raw: (ok % raw')
-          [
-            unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
-            unary_raw ~name: "type" (type_, type__val) ~cast: (Model_builder.Core.Any.Type.of_string_opt, Model_builder.Core.Any.Type.to_string) ~type_: "valid type";
-            unary_lift ~name: "is-source-such-that" (source, source_val) ~converter: (Formula_entry.converter_public Source.converter) ~wrap_back;
-            unary_lift ~name: "is-person-such-that" (person, person_val) ~converter: (Formula_entry.converter_public Person.converter) ~wrap_back;
-            unary_lift ~name: "is-dance-such-that" (dance, dance_val) ~converter: (Formula_entry.converter_public Dance.converter) ~wrap_back;
-            unary_lift ~name: "is-book-such-that" (book, book_val) ~converter: (Formula_entry.converter_private Book.converter) ~wrap_back;
-            unary_lift ~name: "is-set-such-that" (set, set_val) ~converter: (Formula_entry.converter_private Set.converter) ~wrap_back;
-            unary_lift ~name: "is-tune-such-that" (tune, tune_val) ~converter: (Formula_entry.converter_public Tune.converter) ~wrap_back;
-            unary_lift ~name: "is-version-such-that" (version, version_val) ~converter: (Formula_entry.converter_public Version.converter) ~wrap_back;
-          ];
-      )
-      (
-        merge_l
-          [
-            (* Other converters, lifted to Any *)
-            map source (Formula_entry.converter_public Source.converter) ~error: ((^) "As source: ");
-            map person (Formula_entry.converter_public Person.converter) ~error: ((^) "As person: ");
-            map dance (Formula_entry.converter_public Dance.converter) ~error: ((^) "As dance: ");
-            map book (Formula_entry.converter_private Book.converter) ~error: ((^) "As book: ");
-            map set (Formula_entry.converter_private Set.converter) ~error: ((^) "As set: ");
-            map tune (Formula_entry.converter_public Tune.converter) ~error: ((^) "As tune: ");
-            map version (Formula_entry.converter_public Version.converter) ~error: ((^) "As version: ");
-          ]
-      )
-  )
-let converter = make_converter ()
+(** Given a predicate, return the set of types that this predicate's semantics
+    may have. This might be an overapproximation; for instance. *)
+let predicate_to_possible_types : predicate -> Model_builder.Core.Any.Type.Set.t =
+  let open Model_builder.Core.Any.Type.Set in
+  function
+    | Raw _ -> all
+    | Source _ -> singleton Source
+    | Person _ -> singleton Person
+    | Dance _ -> singleton Dance
+    | Book _ -> singleton Book
+    | Set _ -> singleton Set
+    | Tune _ -> singleton Tune
+    | Version _ -> singleton Version
+    | User _ -> singleton User
 
-let from_text_formula = Text_formula.to_formula converter
-let from_string ?filename input = Result.bind (Text_formula.from_string ?filename input) from_text_formula
+(** Given a predicate, return the exact type that this predicate's semantics
+    have. For instance, for [Source True], this is [Some Source], but for any
+    other subformula of [Source _], this is [None]. *)
+let predicate_to_exact_type : predicate -> Model_builder.Core.Any.Type.t option = function
+  | Source True -> Some Source
+  | Person True -> Some Person
+  | Dance True -> Some Dance
+  | Book True -> Some Book
+  | Set True -> Some Set
+  | Tune True -> Some Tune
+  | Version True -> Some Version
+  | User True -> Some User
+  | _ -> None
 
-let to_string = Text_formula.to_string % Text_formula.of_formula converter
+(** Given a type, return the predicate whose semantics are exactly this type.
+    For instance, for [Source], this is [Source True]. *)
+let type_to_exact_predicate : Model_builder.Core.Any.Type.t -> predicate = function
+  | Source -> source True
+  | Person -> person True
+  | Dance -> dance True
+  | Book -> book True
+  | Set -> set True
+  | Tune -> tune True
+  | Version -> version True
+  | User -> user True
 
 (** Clean up a formula by analysing the types of given predicates. For
     instance, ["type:version (version:key:A :or book::source)"] can be
     simplified to ["type:version version:key:A"]. *)
 let type_based_cleanup =
-  (* Returns the types of objects matched by a predicate. *)
-  let types_of_predicate = function
-    | Raw _ -> Model_builder.Core.Any.Type.Set.all
-    | Type type_ -> Model_builder.Core.Any.Type.Set.singleton type_
-    | Source _ -> Model_builder.Core.Any.Type.Set.singleton Source
-    | Person _ -> Model_builder.Core.Any.Type.Set.singleton Person
-    | Dance _ -> Model_builder.Core.Any.Type.Set.singleton Dance
-    | Book _ -> Model_builder.Core.Any.Type.Set.singleton Book
-    | Set _ -> Model_builder.Core.Any.Type.Set.singleton Set
-    | Tune _ -> Model_builder.Core.Any.Type.Set.singleton Tune
-    | Version _ -> Model_builder.Core.Any.Type.Set.singleton Version
-  in
+  let module TypeSet = Model_builder.Core.Any.Type.Set in
   let open Formula in
-  (* Given a maximal set of possible types [t] and a formula, refine the
-     possible types of the formula and a clean up the formula. The returned
-     types are a subset of [t]. The returned formula does not contain
-     predicates that would clash with [t]. *)
-  let rec refine_types_and_cleanup t = function
-    | False -> (Model_builder.Core.Any.Type.Set.empty, False)
-    | True -> (t, True)
-    | Not f ->
-      (* REVIEW: Not 100% of this [Type.Set.comp t] argument. *)
-      Pair.map (Model_builder.Core.Any.Type.Set.diff t) not @@ refine_types_and_cleanup (Model_builder.Core.Any.Type.Set.comp t) f
-    | And (f1, f2) ->
-      (* Refine [t] on [f1], the refine it again while cleaning up [f2],
-         then come back and clean up [f1]. *)
-      let (t, _) = refine_types_and_cleanup t f1 in
-      let (t, f2) = refine_types_and_cleanup t f2 in
-      let (t, f1) = refine_types_and_cleanup t f1 in
-        (t, and_ f1 f2)
-    | Or (f1, f2) ->
-      let (t1, f1) = refine_types_and_cleanup t f1 in
-      let (t2, f2) = refine_types_and_cleanup t f2 in
-        (Model_builder.Core.Any.Type.Set.union t1 t2, or_ f1 f2)
-    | Pred p ->
-      let ts = Model_builder.Core.Any.Type.Set.inter (types_of_predicate p) t in
-        (ts, if Model_builder.Core.Any.Type.Set.is_empty ts then False else Pred p)
+  (* Given a formula, a maximal set of possible types [t], and a maximal set of
+     possible types for the negation of the formula, refine the possible types
+     of the formula and a clean it up. The returned types are a subset of [t].
+     The returned formula does not contain predicates that would clash with
+     [t]. *)
+  let return (t, tn, f) = (t, tn, if TypeSet.is_empty t then False else if TypeSet.is_empty tn then True else f) in
+  let rec refine_types_and_cleanup t tn f =
+    return @@
+      match f with
+      | False -> (TypeSet.empty, tn, False)
+      | True -> (t, TypeSet.empty, True)
+      | Not f ->
+        let (tn, t, f) = refine_types_and_cleanup tn t f in
+          (t, tn, Not f)
+      | Or (f1, f2) ->
+        let (t1, tn1, _) = refine_types_and_cleanup t tn f1 in
+        let (t2, tn2, _) = refine_types_and_cleanup t tn f2 in
+        let (t, tn) = (TypeSet.union t1 t2, TypeSet.inter tn1 tn2) in
+        let (_, _, f1) = refine_types_and_cleanup t tn f1 in
+        let (_, _, f2) = refine_types_and_cleanup t tn f2 in
+          (t, tn, or_ f1 f2)
+      | And (f1, f2) ->
+        let (t1, tn1, _) = refine_types_and_cleanup t tn f1 in
+        let (t2, tn2, _) = refine_types_and_cleanup t tn f2 in
+        let (t, tn) = (TypeSet.inter t1 t2, TypeSet.union tn1 tn2) in
+        let (_, _, f1) = refine_types_and_cleanup t tn f1 in
+        let (_, _, f2) = refine_types_and_cleanup t tn f2 in
+          (t, tn, and_ f1 f2)
+      | Pred p ->
+        let tp = predicate_to_possible_types p in
+        let t = TypeSet.inter t tp in
+        let tn =
+          match predicate_to_exact_type p with
+          | Some tp -> TypeSet.remove tp tn
+          | None -> tn
+        in
+          (t, tn, Pred p)
   in
-  snd % refine_types_and_cleanup Model_builder.Core.Any.Type.Set.all
+  fun f ->
+    let (_, _, f) = refine_types_and_cleanup TypeSet.all TypeSet.all f in
+    f
 
-(* Little trick to convince OCaml that polymorphism is OK. *)
-type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
+let converter : predicate Text_formula_converter.t =
+  Text_formula_converter.(
+    make
+      ~debug_name: "any"
+      ~debug_print: pp_predicate
+      ~raw: (ok % raw')
+      ~lifters: (
+        let lifter name (lift, unlift) converter typ =
+          Text_formula_converter.lifter
+            ~name: (spf "is-%s-such-that" name)
+            ~inline: (
+              Inline_custom {
+                inline_text_formula = (
+                  let type_constraint = Text_formula.(unary' "type" (raw' @@ String.capitalize_ascii name)) in
+                  function
+                    | True -> type_constraint
+                    | f -> Formula.and_ type_constraint f
+                );
+                except_raw = true;
+              }
+            )
+            (lift, unlift)
+            converter
+            ~up_true: None
+            ~down_not: (function
+              | True ->
+                (* special case for the negation of exact predicates, otherwise this will loop *)
+                some @@
+                Formula.or_l @@
+                List.map
+                  (Formula.pred % type_to_exact_predicate)
+                  Model_builder.Core.Any.Type.Set.(to_list @@ remove typ all)
+              | f -> some @@ Formula.(or_ (not_ (pred @@ type_to_exact_predicate typ)) (pred @@ lift (not_ f)))
+            )
+        in
+        [
+          lifter "source" (source, source_val) (Formula_entry.converter_public Source.converter) Source;
+          lifter "person" (person, person_val) (Formula_entry.converter_public Person.converter) Person;
+          lifter "dance" (dance, dance_val) (Formula_entry.converter_public Dance.converter) Dance;
+          lifter "book" (book, book_val) (Formula_entry.converter_private Book.converter) Book;
+          lifter "set" (set, set_val) (Formula_entry.converter_private Set.converter) Set;
+          lifter "tune" (tune, tune_val) (Formula_entry.converter_public Tune.converter) Tune;
+          lifter "version" (version, version_val) (Formula_entry.converter_public Version.converter) Version;
+          lifter "user" (user, user_val) (Formula_entry.converter_public User.converter) User;
+        ]
+      )
+      [unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
+      unary_raw ~name: "type" (type_to_exact_predicate, const None) ~cast: Model_builder.Core.Any.Type.(of_string_opt, to_string) ~type_: "valid type";
+      ]
+      ~compare_predicate
+      ~pre_optimise: type_based_cleanup
+  )
 
-let optimise =
-  (* FIXME: Because of [type_based_cleanup], the following is not idempotent.
-     Hence the call to [fixpoint] below. *)
-  fixpoint
-    (
-      Formula.optimise
-        ~binop: (fun {op} f1 f2 ->
-          match (f1, f2) with
-          (* [person:] eats [type:person] *)
-          | (Type Source, Source f) | (Source f, Type Source) -> some @@ source f
-          | (Type Person, Person f) | (Person f, Type Person) -> some @@ person f
-          | (Type Dance, Dance f) | (Dance f, Type Dance) -> some @@ dance f
-          | (Type Book, Book f) | (Book f, Type Book) -> some @@ book f
-          | (Type Set, Set f) | (Set f, Type Set) -> some @@ set f
-          | (Type Tune, Tune f) | (Tune f, Type Tune) -> some @@ tune f
-          | (Type Version, Version f) | (Version f, Type Version) -> some @@ version f
-          (* [person:<f1> ∧ person:<f2> -> person:(<f1> ∧ <f2>)] *)
-          | (Source f1, Source f2) -> some @@ source (op f1 f2)
-          | (Person f1, Person f2) -> some @@ person (op f1 f2)
-          | (Dance f1, Dance f2) -> some @@ dance (op f1 f2)
-          | (Book f1, Book f2) -> some @@ book (op f1 f2)
-          | (Set f1, Set f2) -> some @@ set (op f1 f2)
-          | (Tune f1, Tune f2) -> some @@ tune (op f1 f2)
-          | (Version f1, Version f2) -> some @@ version (op f1 f2)
-          | _ -> None
-        )
-        (function
-          | (Raw _ as p) | (Type _ as p) -> p
-          | Source pfilter -> source @@ Formula_entry.optimise_public Source.optimise pfilter
-          | Person pfilter -> person @@ Formula_entry.optimise_public Person.optimise pfilter
-          | Dance dfilter -> dance @@ Formula_entry.optimise_public Dance.optimise dfilter
-          | Book bfilter -> book @@ Formula_entry.optimise_private Book.optimise bfilter
-          | Set sfilter -> set @@ Formula_entry.optimise_private Set.optimise sfilter
-          | Tune tfilter -> tune @@ Formula_entry.optimise_public Tune.optimise tfilter
-          | Version vfilter -> version @@ Formula_entry.optimise_public Version.optimise vfilter
-        ) %
-        type_based_cleanup
-    )
-
-let to_pretty_string =
-  let type_and t lift = function
-    | Formula.True -> type_' t
-    | f -> Formula.and_ (type_' t) (lift f)
-  in
-  let add_explicit_type =
-    Formula.convert @@ function
-      | Source f -> type_and Source source' f
-      | Person f -> type_and Person person' f
-      | Dance f -> type_and Dance dance' f
-      | Book f -> type_and Book book' f
-      | Set f -> type_and Set set' f
-      | Tune f -> type_and Tune tune' f
-      | Version f -> type_and Version version' f
-      | p -> Formula.pred p
-  in
-  Text_formula.to_string %
-    Text_formula.of_formula (make_converter ~human: true ()) %
-    add_explicit_type %
-    optimise
-
-let specialise ~converter ~type_ ~unLift =
+let specialise ~converter ~unlift =
   Formula.convert @@ function
     | Raw str -> Result.get_ok (Text_formula_converter.raw converter str)
-    | Type t when Model_builder.Core.Any.Type.equal t type_ -> Formula.true_
-    | Type _ -> Formula.false_
-    | pred -> Option.value (unLift pred) ~default: Formula.false_
+    | pred -> Option.value (unlift pred) ~default: Formula.false_
 
 let specialise formula = (
-  specialise ~converter: (Formula_entry.converter_private Book.converter) ~type_: Book ~unLift: book_val formula,
-  specialise ~converter: (Formula_entry.converter_public Dance.converter) ~type_: Dance ~unLift: dance_val formula,
-  specialise ~converter: (Formula_entry.converter_public Person.converter) ~type_: Person ~unLift: person_val formula,
-  specialise ~converter: (Formula_entry.converter_private Set.converter) ~type_: Set ~unLift: set_val formula,
-  specialise ~converter: (Formula_entry.converter_public Source.converter) ~type_: Source ~unLift: source_val formula,
-  specialise ~converter: (Formula_entry.converter_public Tune.converter) ~type_: Tune ~unLift: tune_val formula,
-  specialise ~converter: (Formula_entry.converter_public Version.converter) ~type_: Version ~unLift: version_val formula
+  specialise ~converter: (Formula_entry.converter_private Book.converter) ~unlift: book_val formula,
+  specialise ~converter: (Formula_entry.converter_public Dance.converter) ~unlift: dance_val formula,
+  specialise ~converter: (Formula_entry.converter_public Person.converter) ~unlift: person_val formula,
+  specialise ~converter: (Formula_entry.converter_private Set.converter) ~unlift: set_val formula,
+  specialise ~converter: (Formula_entry.converter_public Source.converter) ~unlift: source_val formula,
+  specialise ~converter: (Formula_entry.converter_public Tune.converter) ~unlift: tune_val formula,
+  specialise ~converter: (Formula_entry.converter_public Version.converter) ~unlift: version_val formula
 )

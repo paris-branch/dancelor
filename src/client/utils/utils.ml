@@ -58,7 +58,7 @@ let quick_explorer_links links =
               ~a: [
                 R.a_href @@
                   S.from' Uri.empty (
-                    (Endpoints.Page.(href Explore) % some % Filter.Any.to_string)
+                    (Endpoints.Page.(href Explore) % some % Text_formula.formula_to_string Filter.Any.converter)
                     <$> filter_lwt
                   )
               ]

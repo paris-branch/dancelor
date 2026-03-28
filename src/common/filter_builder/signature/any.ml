@@ -2,9 +2,6 @@ module type S = sig
   (** {1 Any filter} *)
 
   type predicate = Core.Any.predicate =
-    | Raw of string
-    | Type of Model_builder.Core.Any.Type.t
-    (* lifting predicates: *)
     | Source of (Model_builder.Core.Source.t, Core.Source.t) Formula_entry.public
     | Person of (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.public
     | Dance of (Model_builder.Core.Dance.t, Core.Dance.t) Formula_entry.public
@@ -12,6 +9,8 @@ module type S = sig
     | Set of (Model_builder.Core.Set.t, Core.Set.t) Formula_entry.private_
     | Tune of (Model_builder.Core.Tune.t, Core.Tune.t) Formula_entry.public
     | Version of (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public
+    | User of (Model_builder.Core.User.t, Core.User.t) Formula_entry.public
+    | Raw of string
   (** Type of predicates on “any” elements. *)
 
   type t = predicate Formula.t
@@ -27,10 +26,6 @@ module type S = sig
   val raw' : string -> t
   (** A filter containing raw strings, semantically equivalent to the
       disjunction of the [raw] cases of all the other models. *)
-
-  val type_ : Model_builder.Core.Any.Type.t -> predicate
-  val type_' : Model_builder.Core.Any.Type.t -> t
-  (** A filter that asserts that the element has the given type. *)
 
   val source : (Model_builder.Core.Source.t, Core.Source.t) Formula_entry.public -> predicate
   val source' : (Model_builder.Core.Source.t, Core.Source.t) Formula_entry.public -> t
@@ -67,26 +62,19 @@ module type S = sig
   (** Lift a filter on versions to make a filter on “any”. This filter asserts
       that the “any” element is a version that matches the given filter. *)
 
-  (** {3 Destructors} *)
-
-  val from_string : ?filename: string -> string -> (t, string) Result.t
-  (** Parse a text formula into a filter on “any” elements. *)
-
-  val to_string : t -> string
-  (** Convert a formula on “any” elements into a text formula representing
-      it. *)
-
-  val to_pretty_string : t -> string
-  (** Convert a formula on “any” elements into an equivalent text formula meant
-      to be more readable to humans. *)
+  val user : (Model_builder.Core.User.t, Core.User.t) Formula_entry.public -> predicate
+  val user' : (Model_builder.Core.User.t, Core.User.t) Formula_entry.public -> t
+  (** Lift a filter on users to make a filter on “any”. This filter asserts
+      that the “any” element is a user that matches the given filter. *)
 
   (** {3 Others} *)
 
-  val optimise : t -> t
-  (** Optimise a filter of “any” elements. This relies on the generic
-      {!Formula.optimise} but it also merges predicates together; for instance,
-      ["type:Version version:<vfilter1> version:<vfilter2>"] will be optimised
-      as ["version:(<vfilter1> <vfilter2>)"]. *)
+  val type_to_exact_predicate : Model_builder.Core.Any.Type.t -> predicate
+  (** Given a predicate, return the exact type that this predicate's semantics
+      have. For instance, for [Source True], this is [Some Source], but for any
+      other subformula of [Source _], this is [None]. *)
+
+  val converter : predicate Text_formula_converter.t
 
   val type_based_cleanup : t -> t
   (** Part of {!optimise} exposed for testing purposes. *)

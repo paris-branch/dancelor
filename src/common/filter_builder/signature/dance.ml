@@ -12,7 +12,5 @@ module type S = sig
   val devisers' : (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.public Formula_list.t -> t
 
   val converter : predicate Text_formula_converter.t
-  val optimise : t -> t
-
   val accepts : t -> Model_builder.Core.Dance.t -> float Lwt.t
 end

@@ -6,43 +6,29 @@ type 'f predicate =
   | Empty
   | Exists of 'f
   | Forall of 'f
-[@@deriving eq, show, yojson, variants]
+[@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
 type 'f t = 'f predicate Formula.t
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 let empty' = Formula.pred empty
 let exists' f = Formula.pred (exists f)
 let forall' f = Formula.pred (forall f)
 
-let converter sub_converter =
+let converter (sub_converter : 'f Text_formula_converter.t) : 'f Formula.t predicate Text_formula_converter.t =
   Text_formula_converter.(
     make
+      ~debug_name: (spf "list(%s)" @@ Text_formula_converter.debug_name sub_converter)
+      ~debug_print: (fun fmt _ -> fpf fmt "<opaque list>")
       ~raw: (Result.map exists' % raw sub_converter)
-      [
-        nullary ~name: "empty" empty;
-        unary_lift ~name: "exists" (exists, exists_val) ~converter: sub_converter;
-        unary_lift ~name: "forall" (forall, forall_val) ~converter: sub_converter;
+      ~lifters: [
+        lifter ~name: "exists" (exists, exists_val) sub_converter ~down_not: (fun f -> some @@ forall' @@ Formula.not_ f) ~down_and: (const2 None) ~up_true: (Some (Not empty'));
+        lifter ~name: "forall" (forall, forall_val) sub_converter ~down_not: (fun f -> some @@ exists' @@ Formula.not_ f) ~down_or: (const2 None) ~up_false: (Some empty');
       ]
+      [nullary ~name: "empty" empty;
+      ]
+      ~compare_predicate: (compare_predicate @@ Formula.compare @@ compare_predicate_with sub_converter)
   )
-
-let optimise sub_optimise =
-  Formula.optimise
-    ~and_: (fun f1 f2 ->
-      match (f1, f2) with
-      | (Forall f1, Forall f2) -> some @@ forall (Formula.and_ f1 f2)
-      | _ -> None
-    )
-    ~or_: (fun f1 f2 ->
-      match (f1, f2) with
-      | (Exists f1, Exists f2) -> some @@ exists (Formula.or_ f1 f2)
-      | _ -> None
-    )
-    (function
-      | Exists f -> exists @@ sub_optimise f
-      | Forall f -> exists @@ sub_optimise f
-      | Empty as p -> p
-    )
 
 let accepts sub_accepts filter values =
   Formula.interpret filter @@ function

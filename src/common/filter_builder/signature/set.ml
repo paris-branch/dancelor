@@ -14,7 +14,5 @@ module type S = sig
   val kind' : Kind.Dance.Filter.t -> t
 
   val converter : predicate Text_formula_converter.t
-  val optimise : t -> t
-
   val accepts : t -> Model_builder.Core.Set.t -> float Lwt.t
 end

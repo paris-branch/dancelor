@@ -7,7 +7,5 @@ module type S = sig
   val name' : Formula_string.t -> t
 
   val converter : predicate Text_formula_converter.t
-  val optimise : t -> t
-
   val accepts : t -> Model_builder.Core.Person.t -> float Lwt.t
 end

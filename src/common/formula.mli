@@ -9,14 +9,14 @@ type 'p t =
   | And of 'p t * 'p t
   | Or of 'p t * 'p t
   | Pred of 'p
-[@@deriving eq, yojson]
+[@@deriving eq, ord, yojson]
 (** Type of formulas carrying predicates of type ['p]. *)
 
 (** {3 Constructors} *)
 
 val true_ : 'p t
 val false_ : 'p t
-val not : 'p t -> 'p t
+val not_ : 'p t -> 'p t
 
 val and_ : 'p t -> 'p t -> 'p t
 (** Conjunction of two formulas. *)
@@ -68,20 +68,19 @@ val cnf_val : 'p t -> 'p list list option
 type binop = {op: 'a. 'a t -> 'a t -> 'a t}
 
 val optimise :
-  ?binop: (binop -> 'p -> 'p -> 'p option) ->
-  ?and_: ('p -> 'p -> 'p option) ->
-  ?or_: ('p -> 'p -> 'p option) ->
-  ('p -> 'p) ->
+  ?down_not: ('p -> 'p t option) ->
+  ?down_and: ('p -> 'p -> 'p option) ->
+  ?down_or: ('p -> 'p -> 'p option) ->
+  ('p -> 'p t) ->
   'p t ->
   'p t
 (** Optimise a formula, for instance with rules such as [⊥ ∧ ... → ⊥], given a
-    function to optimise predicates and, optionally, either a function [?binop]
-    or functions [?and_] and [?or_] that can be used to lift conjunctions and
-    disjunctions of predicates into the predicates themselves. For instance, on
-    [F(A) ∨ F(B)], [optimise] will call [lift or_ (F(A)) (F(B))] which could
-    yield [F(A ∨ B)] if the underlying predicates support this. [?binop],
-    [?and_] and [?or_] should be compatible with associativity and
-    commutativity. *)
+    function to optimise predicates and, optionally, functions [?down_and] and
+    [?down_or] that can be used to push conjunctions and disjunctions of
+    predicates down into the predicates themselves. For instance, on [F(A) ∨
+    F(B)], [optimise] will call [down_or (F(A)) (F(B))] which could yield [F(A ∨
+    B)] if the underlying predicates support this. [?down_and] and [?down_or]
+    should be compatible with associativity and commutativity. *)
 
 val convert : ('p -> 'q t) -> 'p t -> 'q t
 (** Convert a formula over predicates of type ['p] into a formula over
@@ -97,3 +96,10 @@ val convert_res : ('p -> ('q t, 'e) Result.t) -> 'p t -> ('q t, 'e) Result.t
 val pp : (Format.formatter -> 'p -> unit) -> Format.formatter -> 'p t -> unit
 (** For debugging purposes. This is compatible with [ppx_deriving_show] but is a
     more usual representation of formulas. *)
+
+val sort : ('p -> 'p) -> ('p -> 'p -> int) -> 'p t -> 'p t
+(** Sort a formula according to the given comparison function, and a function to
+    sort the inside of predicates. This is useful to make formulas that are
+    semantically equivalent but have different syntactic structures (for
+    instance, [A ∧ B] and [B ∧ A]) have the same syntax, which makes them easier
+    to compare. *)

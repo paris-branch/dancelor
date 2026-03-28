@@ -9,11 +9,11 @@ type t = {
   composed_tunes_are_public: bool; [@default false]
   published_tunes_are_public: bool; [@default false]
 }
-[@@deriving eq, yojson, make, show {with_path = false}, fields]
+[@@deriving eq, ord, yojson, make, show {with_path = false}, fields]
 
 type access = Entry.Access.public [@@deriving yojson]
 type entry = t Entry.public
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 let make ~name ?user ?scddb_id ?composed_tunes_are_public ?published_tunes_are_public () =
   let name = NEString.map_exn (String.remove_duplicates ~char: ' ') name in

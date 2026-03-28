@@ -20,6 +20,12 @@ val text_formula_to_formula : 'p t -> Text_formula_type.t -> ('p Formula.t, stri
 val formula_to_text_formula : 'p t -> 'p Formula.t -> Text_formula_type.t
 (** Convert a formula to a text formula using the given converter. *)
 
+val optimise : 'p t -> 'p Formula.t -> 'p Formula.t
+(** Optimise a formula using the information contained in a converter. *)
+
+val compare_predicate_with : 'p t -> 'p -> 'p -> int
+(** Compare two predicates using the information contained in a converter. *)
+
 (** {2 Case}
 
     Conversion cases. The full conversion consists in many tiny cases that can
@@ -82,39 +88,88 @@ val unary_raw :
     ~cast:int_of_string_opt ~type_:"int"]. See {!unary_string} for the
     [?wrap_back] argument. *)
 
-val unary_lift :
-  ?wrap_back: wrap_back ->
-  name: string ->
-  converter: 'i t ->
-  (('i Formula.t -> 'p) * ('p -> 'i Formula.t option)) ->
-  'p case
-(** Make a case that lifts other formulas. The argument is converted using the
-    [converter] and the result is passed to the given lifting function. See
-    {!unary_string} for the [?wrap_back] argument. *)
-
 (** {2 Building} *)
 
+type 'a lifter
+
+type inline =
+  | Inline
+  | Inline_custom of {inline_text_formula: Text_formula_type.t -> Text_formula_type.t; except_raw: bool}
+  | No_inline
+(** An inline lifter makes the cases of the underlying converter accessible to
+    the containing converter. *)
+
+val lifter :
+  name: string ->
+  ?inline: inline ->
+  ?down_not: ('q Formula.t -> 'p Formula.t option) ->
+  ?down_or: ('q Formula.t -> 'q Formula.t -> 'p option) ->
+  ?down_and: ('q Formula.t -> 'q Formula.t -> 'p option) ->
+  ?up_true: 'p Formula.t option ->
+  ?up_false: 'p Formula.t option ->
+  (('q Formula.t -> 'p) * ('p -> 'q Formula.t option)) ->
+  'q t ->
+  'p lifter
+(** [lifter ~name (lift, unlift) converter] creates a {!lifter} for sub-formulas
+    given a [converter] for sub-formulas, a function to [lift] a sub-formula
+    into a predicate, and a partial function to [unlift] a sub-predicate into a
+    formula.
+
+    The optional argument [?down_not] is used to push negations down into the
+    lifted sub-formulas. Lifters are assumed to have no other semantic meaning
+    by default, which makes them distribute over/commute with negations, but
+    this argument can be used to specify how to push negations down into the
+    lifted sub-formulas when this is not the case. For instance, the list's
+    [exists:] lifter can push down negations by turning [¬∃x. P(x)] into [∀x.
+    ¬P(x)], and therefore should have [~down_not: (fun f -> Option.map
+    (Formula.forall_l) (unlift f))].
+
+    The optional arguments [?down_or] and [?down_and] are used to push
+    disjunctions and conjunctions down into the lifted sub-formulas. Lifters are
+    assumed to have no other semantic meaning by default, which makes them
+    distribute over/commute with conjunctions and disjunctions, but these
+    arguments can be used to specify how to push conjunctions and disjunctions
+    down into the lifted sub-formulas when this is not the case. For instance,
+    the list's [exists:] lifter can push down disjunctions but not conjunctions,
+    and therefore should have [~down_and: (const2 None)]. It can however rely on
+    the default value for [?down_or].
+
+    The optional arguments [?up_true] and [?up_false] are used to specify
+    whether trivial sub-formulas (True and False) bubble upwards, and, if so,
+    what formula they transform into. Lifters are assumed to have no semantic
+    meaning by default, which means that [Lift True] can be turned into [True],
+    hence the default values [~up_true: Some True] and [~up_false: Some False].
+    However, we sometimes want something different, such as no bubbling up
+    ([None]), or, for instance, the list's [exists:] lifter can push up truthity
+    by turning [∃x. ⊤] into [:not :empty]. It can however rely on the default
+    value for [?up_false].
+
+    The optional argument [?inline] controls whether the sub-predicates should
+    be made available in the current level. For instance, an entry's value
+    predicates should be inlined at the entry level, such that one may write
+    [x:] instead of [value:x:]. *)
+
 val make :
+  debug_name: string ->
+  debug_print: (Format.formatter -> 'p -> unit) ->
   raw: (string -> ('p Formula.t, string) result) ->
+  ?lifters: 'p lifter list ->
+  compare_predicate: ('p -> 'p -> int) ->
+  ?pre_optimise: ('p Formula.t -> 'p Formula.t) ->
   'p case list ->
   'p t
 (** Make a converter from a list of {!type-case}s. The [~raw] argument is the
     case for standalone strings. For instance, in the formula ["bonjour
     baguette:oui monsieur :chocolat"], the [~raw] function will be applied to
-    ["bonjour"] and ["monsieur"]. *)
+    ["bonjour"] and ["monsieur"].
 
-val map : ?error: (string -> string) -> ('p Formula.t -> 'q) -> 'p t -> 'q t
-(** Map over a converter given a function. This allows to lift formulas on ['p]
-    to formulas on ['q] without a constructor. However, there is no way back. It
-    is common to have both a [unary_lift ~name ~converter (constr, destr)] and a
-    [map constr converter], the unary lift allowing to convert back to text. *)
+    [?pre_optimise] is an optional custom function that will be applied before
+    optimising a formula. By default, it does nothing. *)
 
-type tiebreaker = Left | Right | Both
+(** {2 Debug} *)
 
-val merge : ?tiebreaker: tiebreaker -> 'p t -> 'p t -> 'p t
-(** Merge two converters together. When predicates exist on both sides,
-    [~tiebreaker] is used to choose which one to keep. If it is [Both] (the
-    default), then the result is the disjunction of the two formulas. *)
+val debug_name : 'p t -> string
+(** Get the debug name of a converter. *)
 
-val merge_l : 'p t list -> 'p t
-(** Folds {!merge} on a non-empty list with the default tiebreaker. *)
+val debug_print : 'p t -> Format.formatter -> 'p -> unit
+(** Get the debug printer of a converter. *)

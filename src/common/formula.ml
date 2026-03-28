@@ -1,5 +1,9 @@
 open Nes
 
+(* FIXME: I think it should be possible, with polymorphic variants, to have a
+   stronger typed type for formulas, eg. where conjunctions carry a list of
+   things that are guaranteed to not be a conjunction themselves, and also maybe
+   not True or False (although maybe we want to keep those for text formulas). *)
 type 'p t =
   | False
   | True
@@ -7,7 +11,9 @@ type 'p t =
   | And of 'p t * 'p t
   | Or of 'p t * 'p t
   | Pred of 'p
-[@@deriving yojson, variants]
+[@@deriving eq, ord, yojson, variants]
+
+let not_ f = Not f
 
 (** Comparison of ands and ors is problematic, so we normalise them always in
     the same way before comparing. *)
@@ -21,18 +27,8 @@ let rec normalise = function
   | Or (Or (f1, f2), f3) -> normalise @@ Or (f1, Or (f2, f3))
   | Or (f1, f2) -> Or (normalise f1, normalise f2)
 
-let equal eq_pred f1 f2 =
-  let rec eq f g =
-    match (f, g) with
-    | True, True -> true
-    | False, False -> true
-    | Pred p1, Pred p2 -> eq_pred p1 p2
-    | Not f, Not g -> eq f g
-    | And (f1, g1), And (f2, g2) -> eq f1 f2 && eq g1 g2
-    | Or (f1, g1), Or (f2, g2) -> eq f1 f2 && eq g1 g2
-    | _ -> false
-  in
-  eq (normalise f1) (normalise f2)
+let equal eq_pred f1 f2 = equal eq_pred (normalise f1) (normalise f2)
+let compare cmp_pred f1 f2 = compare cmp_pred (normalise f1) (normalise f2)
 
 (** For debugging purposes, our custom [show]. *)
 let pp pp_pred fmt formula =
@@ -48,7 +44,7 @@ let pp pp_pred fmt formula =
     | Or (f1, f2) -> ppf (above = `And || above = `Not) fmt "%a ∨ %a" (pp `Or) f1 (pp `Or) f2
     | Pred p -> ppf false fmt "%a" pp_pred p
   in
-  ppf (match formula with Pred _ -> false | _ -> true) fmt "%a" (pp `Root) formula
+  ppf (match formula with False | True | Pred _ -> false | _ -> true) fmt "%a" (pp `Root) formula
 
 let and_l = function
   | [] -> True
@@ -134,24 +130,21 @@ let cnf_val f =
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type binop = {op: 'a. 'a t -> 'a t -> 'a t}
 
-let optimise ?binop: optimise_binop ?and_: optimise_and ?or_: optimise_or optimise_predicate formula =
-  let optimise_and, optimise_or =
-    match optimise_binop, optimise_and, optimise_or with
-    | Some optimise_binop, None, None -> optimise_binop {op = and_}, optimise_binop {op = or_}
-    | None, _, _ -> Option.value optimise_and ~default: (fun _ _ -> None), Option.value optimise_or ~default: (fun _ _ -> None)
-    | _ -> invalid_arg "Formula.optimise: cannot provide ?binop and ?and_/?or_"
-  in
+let optimise ?(down_not = const None) ?(down_and = const2 None) ?(down_or = const2 None) optimise_predicate formula =
   let rec optimise_head = function
     | Not True -> False
     | Not False -> True
     | Not (Not f) -> f
+    | Not (And (f1, f2)) -> Or (Not f1, Not f2)
+    | Not (Or (f1, f2)) -> And (Not f1, Not f2)
+    | Not (Pred p) -> Option.fold (down_not p) ~none: (Not (Pred p)) ~some: optimise
     | And (True, f) | And (f, True) -> f
     | And (False, _) | And (_, False) -> False
     | And (f1, f2) as f ->
       (
         match (List.bd_ft (conjuncts f1), List.hd_tl (conjuncts f2)) with
         | ((f1, Pred p1), (Pred p2, f2)) ->
-          Option.fold ~none: f ~some: (fun p12 -> optimise @@ and_l (f1 @ [pred p12] @ f2)) (optimise_and p1 p2)
+          Option.fold (down_and p1 p2) ~none: f ~some: (fun p12 -> optimise @@ and_l (f1 @ [pred p12] @ f2))
         | _ -> f
       )
     | Or (True, _) | Or (_, True) -> True
@@ -160,18 +153,28 @@ let optimise ?binop: optimise_binop ?and_: optimise_and ?or_: optimise_or optimi
       (
         match (List.bd_ft (disjuncts f1), List.hd_tl (disjuncts f2)) with
         | ((f1, Pred p1), (Pred p2, f2)) ->
-          Option.fold ~none: f ~some: (fun p12 -> optimise @@ or_l (f1 @ [pred p12] @ f2)) (optimise_or p1 p2)
+          Option.fold (down_or p1 p2) ~none: f ~some: (fun p12 -> optimise @@ or_l (f1 @ [pred p12] @ f2))
         | _ -> f
       )
     | head -> head
   and optimise f =
-    optimise_head @@
-      match f with
-      | True -> True
-      | False -> False
-      | Not f -> Not (optimise f)
-      | And (f1, f2) -> And (optimise f1, optimise f2)
-      | Or (f1, f2) -> Or (optimise f1, optimise f2)
-      | Pred p -> Pred (optimise_predicate p)
+    match optimise_head f with
+    | True -> True
+    | False -> False
+    | Not f -> Not (optimise f)
+    | And (f1, f2) -> And (optimise f1, optimise f2)
+    | Or (f1, f2) -> Or (optimise f1, optimise f2)
+    | Pred p -> optimise_predicate p
   in
-  optimise formula
+  fixpoint optimise formula
+
+let sort sort_pred cmp_pred f =
+  let rec sort = function
+    | True -> True
+    | False -> False
+    | Pred p -> Pred (sort_pred p)
+    | Not f -> Not (sort f)
+    | Or _ as f -> or_l @@ List.sort_uniq (compare cmp_pred) @@ List.map sort (disjuncts f)
+    | And _ as f -> and_l @@ List.sort_uniq (compare cmp_pred) @@ List.map sort (conjuncts f)
+  in
+  sort f

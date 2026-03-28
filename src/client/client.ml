@@ -44,7 +44,7 @@ let dispatch uri =
     | User_password_reset -> User_password_resetter.create
   in
   let madge_match_apply_all : Page.t Lwt.t Endpoints.Page.wrapped' list -> (unit -> Page.t Lwt.t) option =
-    List.map_first_some @@ fun (Endpoints.Page.W' endpoint) ->
+    List.find_map @@ fun (Endpoints.Page.W' endpoint) ->
     Madge.apply' (Endpoints.Page.route endpoint) (fun () -> dispatch endpoint) (Madge.Request.make ~meth: GET ~uri ~body: "")
   in
   match madge_match_apply_all @@ Endpoints.Page.all' () with

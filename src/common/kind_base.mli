@@ -30,13 +30,11 @@ type base_kind = t
 module Filter : sig
   type predicate = Is of t
   type t = predicate Formula.t
-  [@@deriving eq, show, yojson]
+  [@@deriving eq, ord, show, yojson]
 
   val is : base_kind -> predicate
   val is' : base_kind -> t
 
   val converter : predicate Text_formula_converter.t
-  val optimise : t -> t
-
   val accepts : t -> base_kind -> float Lwt.t
 end

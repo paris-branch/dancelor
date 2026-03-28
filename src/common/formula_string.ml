@@ -5,25 +5,25 @@ open Nes
 type predicate =
   | Eq of string
   | Matches of string
-[@@deriving eq, show, yojson, variants]
+[@@deriving eq, ord, show, yojson, variants]
 
 type t = predicate Formula.t
-[@@deriving eq, show, yojson]
+[@@deriving eq, ord, show, yojson]
 
 let eq' s = Formula.pred (eq s)
 let matches' s = Formula.pred (matches s)
 
-let converter =
+let converter : predicate Text_formula_converter.t =
   Text_formula_converter.(
     make
+      ~debug_name: "string"
+      ~debug_print: pp_predicate
       ~raw: (ok % matches')
-      [
-        unary_string ~name: "eq" (eq, eq_val);
-        unary_string ~name: "matches" (matches, matches_val);
+      [unary_string ~name: "eq" (eq, eq_val);
+      unary_string ~name: "matches" (matches, matches_val);
       ]
+      ~compare_predicate
   )
-
-let optimise f = Formula.optimise Fun.id f
 
 let accepts filter value =
   let char_equal = Char.Sensible.equal in

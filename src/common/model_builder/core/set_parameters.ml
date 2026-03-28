@@ -12,7 +12,7 @@ module Self = struct
     display_kind: NEString.t option; [@default None] [@key "display-kind"]
     every_version: Version_parameters.t [@default Version_parameters.none] [@key "every-version"]
   }
-  [@@deriving eq, make, show {with_path = false}, yojson, fields]
+  [@@deriving eq, ord, make, show {with_path = false}, yojson, fields]
 end
 include Self
 
