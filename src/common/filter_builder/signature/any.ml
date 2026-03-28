@@ -12,6 +12,7 @@ module type S = sig
     | Set of (Model_builder.Core.Set.t, Core.Set.t) Formula_entry.private_
     | Tune of (Model_builder.Core.Tune.t, Core.Tune.t) Formula_entry.public
     | Version of (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public
+    | User of (Model_builder.Core.User.t, Core.User.t) Formula_entry.public
   (** Type of predicates on “any” elements. *)
 
   type t = predicate Formula.t
@@ -66,6 +67,11 @@ module type S = sig
   val version' : (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public -> t
   (** Lift a filter on versions to make a filter on “any”. This filter asserts
       that the “any” element is a version that matches the given filter. *)
+
+  val user : (Model_builder.Core.User.t, Core.User.t) Formula_entry.public -> predicate
+  val user' : (Model_builder.Core.User.t, Core.User.t) Formula_entry.public -> t
+  (** Lift a filter on users to make a filter on “any”. This filter asserts
+      that the “any” element is a user that matches the given filter. *)
 
   (** {3 Others} *)
 

@@ -407,6 +407,34 @@ module Filter = struct
     [@@deriving qcheck2]
   end
 
+  module User = struct
+    type predicate = [%import: Common.Filter_builder.Core.User.predicate [@with Common.Entry.Id.t := Id.t;
+      Common.Model_builder.Core.Version.t := Model.Version.t;
+      Common.Model_builder.Core.Person.t := Model.Person.t;
+      Common.Model_builder.Core.User.t := Model.User.t;
+      Common.Model_builder.Core.Set.t := Model.Set.t;
+      Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
+      Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
+      Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+      Common.Formula_list.t := Formula_list.t;
+      Common.Formula_string.t := Formula_string.t;
+      Common.Formula_entry.t := Formula_entry.t;
+      Common.Formula_entry.public := Formula_entry.public;
+      Common.Formula_entry.private_ := Formula_entry.private_;
+      Common.Entry.User.t := Entry.User.t;
+      Common.Formula_user.t := Formula_user.t;
+      Common__Filter_builder__Core.Person.t := Person.t;
+      Common__Filter_builder__Core.Version.t := Version.t;
+      Common__Filter_builder__Core.Set.t := Set.t;
+      Common__Filter_builder__Core.User.t := User.t;
+      ]
+    ]
+    [@@deriving qcheck2]
+    type t = [%import: Common.Filter_builder.Core.User.t [@with Common.Formula.t := Formula.t;]
+    ]
+    [@@deriving qcheck2]
+  end
+
   module Any = struct
     type predicate = [%import: Common.Filter_builder.Core.Any.predicate [@with Common.Entry.Id.t := Id.t;
       Common.Model_builder.Core.Version.t := Model.Version.t;
@@ -416,10 +444,12 @@ module Filter = struct
       Common.Model_builder.Core.Set.t := Model.Set.t;
       Common.Model_builder.Core.Book.t := Model.Book.t;
       Common.Model_builder.Core.Source.t := Model.Source.t;
+      Common.Model_builder.Core.User.t := Entry.User.t;
       Common.Model_builder.Core.Any.Type.t := Model.Any.Type.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+      Common.Formula.t := Formula.t;
       Common.Formula_entry.t := Formula_entry.t;
       Common.Formula_entry.gen := Formula_entry.gen;
       Common.Formula_entry.public := Formula_entry.public;
@@ -431,6 +461,7 @@ module Filter = struct
       Common__Filter_builder__Core.Set.t := Set.t;
       Common__Filter_builder__Core.Tune.t := Tune.t;
       Common__Filter_builder__Core.Version.t := Version.t;
+      Common__Filter_builder__Core.User.t := User.t;
       ]
     ]
     [@@deriving qcheck2]

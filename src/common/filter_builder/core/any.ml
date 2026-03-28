@@ -15,6 +15,7 @@ type predicate =
   | Set of (Model_builder.Core.Set.t, Set.t) Formula_entry.private_
   | Tune of (Model_builder.Core.Tune.t, Tune.t) Formula_entry.public
   | Version of (Model_builder.Core.Version.t, Version.t) Formula_entry.public
+  | User of (Model_builder.Core.User.t, User.t) Formula_entry.public
 [@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
 (* NOTE: To prevent some shadowing. *)
@@ -32,6 +33,7 @@ let book' = Formula.pred % book
 let set' = Formula.pred % set
 let tune' = Formula.pred % tune
 let version' = Formula.pred % version
+let user' = Formula.pred % user
 
 (** Given a predicate, return the set of types that this predicate's semantics
     may have. This might be an overapproximation. *)
@@ -47,6 +49,7 @@ let predicate_to_possible_types : predicate -> Model_builder.Core.Any.Type.Set.t
     | Set _ -> singleton Set
     | Tune _ -> singleton Tune
     | Version _ -> singleton Version
+    | User _ -> singleton User
 
 (** Clean up a formula by analysing the types of given predicates. For
     instance, ["type:version (version:key:A :or book::source)"] can be
@@ -115,6 +118,7 @@ let converter : predicate Text_formula_converter.t =
           lifter "set" (set, set_val) (Formula_entry.converter_private Set.converter) Set;
           lifter "tune" (tune, tune_val) (Formula_entry.converter_public Tune.converter) Tune;
           lifter "version" (version, version_val) (Formula_entry.converter_public Version.converter) Version;
+          lifter "user" (user, user_val) (Formula_entry.converter_public User.converter) User;
         ]
       )
       [unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
