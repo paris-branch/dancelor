@@ -33,23 +33,26 @@ let set' = Formula.pred % set
 let tune' = Formula.pred % tune
 let version' = Formula.pred % version
 
+(** Given a predicate, return the set of types that this predicate's semantics
+    may have. This might be an overapproximation. *)
+let predicate_to_possible_types : predicate -> Model_builder.Core.Any.Type.Set.t =
+  let open Model_builder.Core.Any.Type.Set in
+  function
+    | Raw _ -> all
+    | Type type_ -> singleton type_
+    | Source _ -> singleton Source
+    | Person _ -> singleton Person
+    | Dance _ -> singleton Dance
+    | Book _ -> singleton Book
+    | Set _ -> singleton Set
+    | Tune _ -> singleton Tune
+    | Version _ -> singleton Version
+
 (** Clean up a formula by analysing the types of given predicates. For
     instance, ["type:version (version:key:A :or book::source)"] can be
     simplified to ["type:version version:key:A"]. *)
 let type_based_cleanup =
   let module TypeSet = Model_builder.Core.Any.Type.Set in
-  (* Returns the types of objects matched by a predicate. *)
-  let types_of_predicate = function
-    | Raw _ -> TypeSet.all
-    | Type type_ -> TypeSet.singleton type_
-    | Source _ -> TypeSet.singleton Source
-    | Person _ -> TypeSet.singleton Person
-    | Dance _ -> TypeSet.singleton Dance
-    | Book _ -> TypeSet.singleton Book
-    | Set _ -> TypeSet.singleton Set
-    | Tune _ -> TypeSet.singleton Tune
-    | Version _ -> TypeSet.singleton Version
-  in
   let open Formula in
   (* Given a formula, a maximal set of possible types [t], and a maximal set of
      possible types for the negation of the formula, refine the possible types
@@ -80,7 +83,7 @@ let type_based_cleanup =
         let (_, _, f2) = refine_types_and_cleanup t tn f2 in
           (t, tn, and_ f1 f2)
       | Pred p ->
-        let tp = types_of_predicate p in
+        let tp = predicate_to_possible_types p in
         let t = TypeSet.inter t tp in
         let tn = match p with Type _ -> TypeSet.diff tn tp | _ -> tn in
           (t, tn, Pred p)
@@ -115,7 +118,7 @@ let converter =
         ]
       )
       [unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
-      unary_raw ~name: "type" (type_, type__val) ~cast: (Model_builder.Core.Any.Type.of_string_opt, Model_builder.Core.Any.Type.to_string) ~type_: "valid type";
+      unary_raw ~name: "type" (type_, type__val) ~cast: Model_builder.Core.Any.Type.(of_string_opt, to_string) ~type_: "valid type";
       ]
       ~pre_optimise: type_based_cleanup
   )
