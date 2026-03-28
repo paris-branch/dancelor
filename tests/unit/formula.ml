@@ -189,7 +189,7 @@ let () =
         to_string_from_string_roundtrip' ~name: "Version.Filter" (module Filter_builder.Core.Version) (module Gen.Filter.Version);
         to_string_from_string_roundtrip' ~name: "Set.Filter" (module Filter_builder.Core.Set) (module Gen.Filter.Set);
         to_string_from_string_roundtrip' ~name: "Book.Filter" (module Filter_builder.Core.Book) (module Gen.Filter.Book);
-        to_string_from_string_roundtrip' ~name: "Any.Filter" (module Filter_builder.Core.Any) (module Gen.Filter.Any);
+        to_string_from_string_roundtrip' ~name: "Any.Filter (no neg.)" (module Filter_builder.Core.Any) (module Gen.Filter.Any_no_neg);
         ]
       );
       (

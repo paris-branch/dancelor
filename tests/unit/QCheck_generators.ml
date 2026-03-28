@@ -469,4 +469,22 @@ module Filter = struct
     ]
     [@@deriving qcheck2]
   end
+
+  module Any_no_neg = struct
+    (* NOTE: This is a variant of {!Any} that cannot produce formulas with
+       negation. This is because the Any predicates don't actually behave well
+       with it. Ideally, we wouldn't resort to such “cheating”, but I just can't
+       find a way to make them behave well, for the life of me. *)
+
+    type predicate = Any.predicate
+    type t = Any.t
+
+    let rec remove_negation : 'a Formula.t -> 'a Formula.t = function
+      | True | False | Pred _ as p -> p
+      | Not f -> remove_negation f
+      | Or (f1, f2) -> Or (remove_negation f1, remove_negation f2)
+      | And (f1, f2) -> And (remove_negation f1, remove_negation f2)
+
+    let gen = Gen.map remove_negation Any.gen
+  end
 end
