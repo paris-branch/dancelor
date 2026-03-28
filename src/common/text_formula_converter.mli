@@ -102,8 +102,8 @@ val lifter :
   ?down_not: ('q Formula.t -> 'p Formula.t option) ->
   ?down_or: ('q Formula.t -> 'q Formula.t -> 'p option) ->
   ?down_and: ('q Formula.t -> 'q Formula.t -> 'p option) ->
-  ?up_true: 'p Formula.t ->
-  ?up_false: 'p Formula.t ->
+  ?up_true: 'p Formula.t option ->
+  ?up_false: 'p Formula.t option ->
   (('q Formula.t -> 'p) * ('p -> 'q Formula.t option)) ->
   'q t ->
   'p lifter
@@ -131,13 +131,15 @@ val lifter :
     and therefore should have [~down_and: (const2 None)]. It can however rely on
     the default value for [?down_or].
 
-    The optional arguments [?up_true] and [?up_false] are used to push trivial
-    sub-formulas upwards. Lifters are assumed to have no semantic meaning by
-    default, which makes them able to lift trivial sub-formulas, but this
-    argument can be used to specify how to push trivial sub-formulas up when
-    this is not the case. For instance, the list's [exists:] lifter can push up
-    truthity by turning [∃x. ⊤] into [:not :empty]. It can however rely on the
-    default value for [?up_false].
+    The optional arguments [?up_true] and [?up_false] are used to specify
+    whether trivial sub-formulas (True and False) bubble upwards, and, if so,
+    what formula they transform into. Lifters are assumed to have no semantic
+    meaning by default, which means that [Lift True] can be turned into [True],
+    hence the default values [~up_true: Some True] and [~up_false: Some False].
+    However, we sometimes want something different, such as no bubbling up
+    ([None]), or, for instance, the list's [exists:] lifter can push up truthity
+    by turning [∃x. ⊤] into [:not :empty]. It can however rely on the default
+    value for [?up_false].
 
     The optional argument [?inline] controls whether the sub-predicates should
     be made available in the current level. For instance, an entry's value

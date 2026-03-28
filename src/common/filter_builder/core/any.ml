@@ -105,7 +105,7 @@ let converter =
             (lift, unlift)
             converter
             ~down_not: (fun f -> some @@ Formula.(or_ (not_ (type_' typ)) (pred @@ lift (not_ f))))
-            ~up_true: (type_' typ)
+            ~up_true: (Some (type_' typ))
         in
         [
           lifter "source" (source, source_val) (Formula_entry.converter_public Source.converter) Source;

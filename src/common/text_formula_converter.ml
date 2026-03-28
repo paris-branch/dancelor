@@ -25,8 +25,8 @@ type _ lifter =
       down_not: ('q Formula.t -> 'p Formula.t option) option;
       down_or: ('q Formula.t -> 'q Formula.t -> 'p option) option;
       down_and: ('q Formula.t -> 'q Formula.t -> 'p option) option;
-      up_true: 'p Formula.t option;
-      up_false: 'p Formula.t option;
+      up_true: 'p Formula.t option; (** whether True can bubble up from this lifter, and which formula it transforms into *)
+      up_false: 'p Formula.t option; (** whether False can bubble up from this lifter, and which formula it transforms into *)
     } ->
       'p lifter
 
@@ -43,7 +43,7 @@ let raw converter = converter.raw
 let debug_name converter = converter.debug_name
 let debug_print converter = converter.debug_print
 
-let lifter ~name ?(inline = No_inline) ?down_not ?down_or ?down_and ?up_true ?up_false (lift, unlift) converter =
+let lifter ~name ?(inline = No_inline) ?down_not ?down_or ?down_and ?(up_true = Some True) ?(up_false = Some False) (lift, unlift) converter =
   Lifter {name; lift; unlift; converter; inline; down_not; down_or; down_and; up_true; up_false}
 
 let make ~debug_name ~debug_print ~raw ?(lifters = []) ?pre_optimise other_cases =
@@ -221,8 +221,8 @@ let rec optimise : type p. p t -> p Formula.t -> p Formula.t = fun converter ->
               | None -> None
               | Some f ->
                 match f with
-                | True -> some @@ Option.value up_true ~default: True
-                | False -> some @@ Option.value up_false ~default: False
+                | True -> up_true
+                | False -> up_false
                 | _ -> some @@ Formula.pred @@ lift @@ optimise converter f
             )
             converter.lifters
