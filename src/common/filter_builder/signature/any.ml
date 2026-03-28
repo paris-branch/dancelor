@@ -3,7 +3,6 @@ module type S = sig
 
   type predicate = Core.Any.predicate =
     | Raw of string
-    | Type of Model_builder.Core.Any.Type.t
     (* lifting predicates: *)
     | Source of (Model_builder.Core.Source.t, Core.Source.t) Formula_entry.public
     | Person of (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.public
@@ -28,10 +27,6 @@ module type S = sig
   val raw' : string -> t
   (** A filter containing raw strings, semantically equivalent to the
       disjunction of the [raw] cases of all the other models. *)
-
-  val type_ : Model_builder.Core.Any.Type.t -> predicate
-  val type_' : Model_builder.Core.Any.Type.t -> t
-  (** A filter that asserts that the element has the given type. *)
 
   val source : (Model_builder.Core.Source.t, Core.Source.t) Formula_entry.public -> predicate
   val source' : (Model_builder.Core.Source.t, Core.Source.t) Formula_entry.public -> t
@@ -74,6 +69,11 @@ module type S = sig
       that the “any” element is a user that matches the given filter. *)
 
   (** {3 Others} *)
+
+  val type_to_exact_predicate : Model_builder.Core.Any.Type.t -> predicate
+  (** Given a predicate, return the exact type that this predicate's semantics
+      have. For instance, for [Source True], this is [Some Source], but for any
+      other subformula of [Source _], this is [None]. *)
 
   val converter : predicate Text_formula_converter.t
 

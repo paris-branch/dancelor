@@ -6,7 +6,6 @@ open Nes
    and we would rather avoid that. *)
 type predicate =
   | Raw of string
-  | Type of Model_builder.Core.Any.Type.t
   (* lifting predicates: *)
   | Source of (Model_builder.Core.Source.t, Source.t) Formula_entry.public
   | Person of (Model_builder.Core.Person.t, Person.t) Formula_entry.public
@@ -25,7 +24,6 @@ type t = predicate Formula.t
 [@@deriving eq, ord, show {with_path = false}, yojson]
 
 let raw' = Formula.pred % raw
-let type_' = Formula.pred % type_
 let source' = Formula.pred % source
 let person' = Formula.pred % person
 let dance' = Formula.pred % dance
@@ -36,12 +34,11 @@ let version' = Formula.pred % version
 let user' = Formula.pred % user
 
 (** Given a predicate, return the set of types that this predicate's semantics
-    may have. This might be an overapproximation. *)
+    may have. This might be an overapproximation; for instance. *)
 let predicate_to_possible_types : predicate -> Model_builder.Core.Any.Type.Set.t =
   let open Model_builder.Core.Any.Type.Set in
   function
     | Raw _ -> all
-    | Type type_ -> singleton type_
     | Source _ -> singleton Source
     | Person _ -> singleton Person
     | Dance _ -> singleton Dance
@@ -50,6 +47,32 @@ let predicate_to_possible_types : predicate -> Model_builder.Core.Any.Type.Set.t
     | Tune _ -> singleton Tune
     | Version _ -> singleton Version
     | User _ -> singleton User
+
+(** Given a predicate, return the exact type that this predicate's semantics
+    have. For instance, for [Source True], this is [Some Source], but for any
+    other subformula of [Source _], this is [None]. *)
+let predicate_to_exact_type : predicate -> Model_builder.Core.Any.Type.t option = function
+  | Source True -> Some Source
+  | Person True -> Some Person
+  | Dance True -> Some Dance
+  | Book True -> Some Book
+  | Set True -> Some Set
+  | Tune True -> Some Tune
+  | Version True -> Some Version
+  | User True -> Some User
+  | _ -> None
+
+(** Given a type, return the predicate whose semantics are exactly this type.
+    For instance, for [Source], this is [Source True]. *)
+let type_to_exact_predicate : Model_builder.Core.Any.Type.t -> predicate = function
+  | Source -> source True
+  | Person -> person True
+  | Dance -> dance True
+  | Book -> book True
+  | Set -> set True
+  | Tune -> tune True
+  | Version -> version True
+  | User -> user True
 
 (** Clean up a formula by analysing the types of given predicates. For
     instance, ["type:version (version:key:A :or book::source)"] can be
@@ -88,7 +111,11 @@ let type_based_cleanup =
       | Pred p ->
         let tp = predicate_to_possible_types p in
         let t = TypeSet.inter t tp in
-        let tn = match p with Type _ -> TypeSet.diff tn tp | _ -> tn in
+        let tn =
+          match predicate_to_exact_type p with
+          | Some tp -> TypeSet.remove tp tn
+          | None -> tn
+        in
           (t, tn, Pred p)
   in
   fun f ->
@@ -107,8 +134,17 @@ let converter : predicate Text_formula_converter.t =
             ~name: (spf "is-%s-such-that" name)
             (lift, unlift)
             converter
-            ~down_not: (fun f -> some @@ Formula.(or_ (not_ (type_' typ)) (pred @@ lift (not_ f))))
-            ~up_true: (Some (type_' typ))
+            ~up_true: None
+            ~down_not: (function
+              | True ->
+                (* special case for the negation of exact predicates, otherwise this will loop *)
+                some @@
+                Formula.or_l @@
+                List.map
+                  (Formula.pred % type_to_exact_predicate)
+                  Model_builder.Core.Any.Type.Set.(to_list @@ remove typ all)
+              | f -> some @@ Formula.(or_ (not_ (pred @@ type_to_exact_predicate typ)) (pred @@ lift (not_ f)))
+            )
         in
         [
           lifter "source" (source, source_val) (Formula_entry.converter_public Source.converter) Source;
@@ -122,25 +158,23 @@ let converter : predicate Text_formula_converter.t =
         ]
       )
       [unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
-      unary_raw ~name: "type" (type_, type__val) ~cast: Model_builder.Core.Any.Type.(of_string_opt, to_string) ~type_: "valid type";
+      unary_raw ~name: "type" (type_to_exact_predicate, const None) ~cast: Model_builder.Core.Any.Type.(of_string_opt, to_string) ~type_: "valid type";
       ]
       ~compare_predicate
       ~pre_optimise: type_based_cleanup
   )
 
-let specialise ~converter ~type_ ~unLift =
+let specialise ~converter ~unlift =
   Formula.convert @@ function
     | Raw str -> Result.get_ok (Text_formula_converter.raw converter str)
-    | Type t when Model_builder.Core.Any.Type.equal t type_ -> Formula.true_
-    | Type _ -> Formula.false_
-    | pred -> Option.value (unLift pred) ~default: Formula.false_
+    | pred -> Option.value (unlift pred) ~default: Formula.false_
 
 let specialise formula = (
-  specialise ~converter: (Formula_entry.converter_private Book.converter) ~type_: Book ~unLift: book_val formula,
-  specialise ~converter: (Formula_entry.converter_public Dance.converter) ~type_: Dance ~unLift: dance_val formula,
-  specialise ~converter: (Formula_entry.converter_public Person.converter) ~type_: Person ~unLift: person_val formula,
-  specialise ~converter: (Formula_entry.converter_private Set.converter) ~type_: Set ~unLift: set_val formula,
-  specialise ~converter: (Formula_entry.converter_public Source.converter) ~type_: Source ~unLift: source_val formula,
-  specialise ~converter: (Formula_entry.converter_public Tune.converter) ~type_: Tune ~unLift: tune_val formula,
-  specialise ~converter: (Formula_entry.converter_public Version.converter) ~type_: Version ~unLift: version_val formula
+  specialise ~converter: (Formula_entry.converter_private Book.converter) ~unlift: book_val formula,
+  specialise ~converter: (Formula_entry.converter_public Dance.converter) ~unlift: dance_val formula,
+  specialise ~converter: (Formula_entry.converter_public Person.converter) ~unlift: person_val formula,
+  specialise ~converter: (Formula_entry.converter_private Set.converter) ~unlift: set_val formula,
+  specialise ~converter: (Formula_entry.converter_public Source.converter) ~unlift: source_val formula,
+  specialise ~converter: (Formula_entry.converter_public Tune.converter) ~unlift: tune_val formula,
+  specialise ~converter: (Formula_entry.converter_public Version.converter) ~unlift: version_val formula
 )

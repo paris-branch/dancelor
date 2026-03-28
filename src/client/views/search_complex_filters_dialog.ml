@@ -47,19 +47,12 @@ let restrict_formula (text : string) : restricted_formula option =
       let%opt pred =
         match non_raws with
         | [] -> Some None
-        | [Type Person] -> Some (Some (person []))
         | [Person filter] -> Some (Option.map person (Formula.cnf_val filter))
-        | [Type Dance] -> Some (Some (dance []))
         | [Dance filter] -> Some (Option.map dance (Formula.cnf_val filter))
-        | [Type Source] -> Some (Some (source []))
         | [Source filter] -> Some (Option.map source (Formula.cnf_val filter))
-        | [Type Book] -> Some (Some (book []))
         | [Book filter] -> Some (Option.map book (Formula.cnf_val filter))
-        | [Type Set] -> Some (Some (set []))
         | [Set filter] -> Some (Option.map set (Formula.cnf_val filter))
-        | [Type Tune] -> Some (Some (tune []))
         | [Tune filter] -> Some (Option.map tune (Formula.cnf_val filter))
-        | [Type Version] -> Some (Some (version []))
         | [Version filter] -> Some (Option.map version (Formula.cnf_val filter))
         | _ -> None
       in
@@ -330,7 +323,7 @@ let open_ text raws filter =
             (* [type:version] if any type has been selected *)
             S.flip_map (S.map Result.get_ok (Component.signal type_choices)) @@ function
               | None -> Formula.true_
-              | Some type_ -> Filter.Any.type_' type_
+              | Some type_ -> Formula.pred @@ Filter.Any.type_to_exact_predicate type_
           );
 
           (* model-specific formulas *)
