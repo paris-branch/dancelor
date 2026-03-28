@@ -2,8 +2,6 @@ module type S = sig
   (** {1 Any filter} *)
 
   type predicate = Core.Any.predicate =
-    | Raw of string
-    (* lifting predicates: *)
     | Source of (Model_builder.Core.Source.t, Core.Source.t) Formula_entry.public
     | Person of (Model_builder.Core.Person.t, Core.Person.t) Formula_entry.public
     | Dance of (Model_builder.Core.Dance.t, Core.Dance.t) Formula_entry.public
@@ -12,6 +10,7 @@ module type S = sig
     | Tune of (Model_builder.Core.Tune.t, Core.Tune.t) Formula_entry.public
     | Version of (Model_builder.Core.Version.t, Core.Version.t) Formula_entry.public
     | User of (Model_builder.Core.User.t, Core.User.t) Formula_entry.public
+    | Raw of string
   (** Type of predicates on “any” elements. *)
 
   type t = predicate Formula.t

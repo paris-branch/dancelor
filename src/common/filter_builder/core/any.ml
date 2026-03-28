@@ -1,12 +1,6 @@
 open Nes
 
-(* NOTE: This [Raw] variant is a bit artificial, when we could already be
-   inheriting the various [raw] cases, of the other filters. However, this
-   would unfold text formulas into a big disjunction at the syntactic level,
-   and we would rather avoid that. *)
 type predicate =
-  | Raw of string
-  (* lifting predicates: *)
   | Source of (Model_builder.Core.Source.t, Source.t) Formula_entry.public
   | Person of (Model_builder.Core.Person.t, Person.t) Formula_entry.public
   | Dance of (Model_builder.Core.Dance.t, Dance.t) Formula_entry.public
@@ -15,6 +9,12 @@ type predicate =
   | Tune of (Model_builder.Core.Tune.t, Tune.t) Formula_entry.public
   | Version of (Model_builder.Core.Version.t, Version.t) Formula_entry.public
   | User of (Model_builder.Core.User.t, User.t) Formula_entry.public
+  (* NOTE: This [Raw] variant is a bit artificial, when we could already be
+     inheriting the various [raw] cases, of the other filters. However, this
+     would unfold text formulas into a big disjunction at the syntactic level,
+     and we would rather avoid that. *)
+  (* NOTE: The [Raw] predicate appears last so as to be sorted last. *)
+  | Raw of string
 [@@deriving eq, ord, show {with_path = false}, yojson, variants]
 
 (* NOTE: To prevent some shadowing. *)
