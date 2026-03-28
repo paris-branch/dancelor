@@ -316,7 +316,7 @@ let dialog ~tune ~version () =
           and_l
             [
               Formula_entry.value' (Filter.(Version.tune' % Formula_entry.is') tune);
-              not (Formula_entry.is' version);
+              not_ (Formula_entry.is' version);
             ]
         )
   in

@@ -9,6 +9,8 @@ type 'p t =
   | Pred of 'p
 [@@deriving yojson, variants]
 
+let not_ f = Not f
+
 (** Comparison of ands and ors is problematic, so we normalise them always in
     the same way before comparing. *)
 let rec normalise = function

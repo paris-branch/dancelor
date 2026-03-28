@@ -101,7 +101,7 @@ let converter =
             ~name: (spf "is-%s-such-that" name)
             (lift, unlift)
             converter
-            ~down_not: (fun f -> some @@ Formula.(or_ (not (type_' typ)) (pred @@ lift (not f))))
+            ~down_not: (fun f -> some @@ Formula.(or_ (not_ (type_' typ)) (pred @@ lift (not_ f))))
             ~up_true: (type_' typ)
         in
         [

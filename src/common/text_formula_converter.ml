@@ -188,7 +188,7 @@ let rec optimise : type p. p t -> p Formula.t -> p Formula.t = fun converter ->
           (fun (Lifter {lift; unlift; down_not; _}) ->
             match unlift f, down_not with
             | Some f, Some down_not -> down_not f
-            | Some f, _ -> some @@ Formula.pred @@ lift @@ Formula.not f
+            | Some f, _ -> some @@ Formula.pred @@ lift @@ Formula.not_ f
             | _ -> None
           )
           converter.lifters
