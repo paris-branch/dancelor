@@ -4,7 +4,7 @@ build:
 	dune build @install @runtest
 
 entr:
-	watchexec --restart -- 'dune build @install @runtest && dune exec dancelor -- --config assets/config.local.json'
+	watchexec --clear --restart -- 'dune build @install @runtest && dune exec dancelor -- --config assets/config.local.json'
 
 dev:
 	dune exec dancelor -- --config assets/config.local.json
