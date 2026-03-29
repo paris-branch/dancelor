@@ -16,7 +16,8 @@
   tyxml
   yaml)
  (preprocess
-  (pps
+  (staged_pps
+   ppx_import
    lwt_ppx
    ppx_blob
    ppx_deriving.std

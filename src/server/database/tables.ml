@@ -123,7 +123,7 @@ module Log = (val Logs.src_log @@ Logs.Src.create "server.database": Logs.LOG)
 module Initialise = struct
   let sync_db () =
     Log.info (fun m -> m "Syncing database changes");
-    if (not !Config.init_only) && !Config.sync_storage then
+    if (not (Config.get ()).init_only) && (Config.get ()).sync_storage then
       Storage.sync_changes ()
     else
       lwt_unit

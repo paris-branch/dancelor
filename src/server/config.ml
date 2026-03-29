@@ -1,29 +1,9 @@
 open Nes
+
 module Log = (val Logs.src_log @@ Logs.Src.create "server.config": Logs.LOG)
 
-let int = Json.int
-let string = Json.string
-
-let bool x =
-  Option.bind
-    (Json.string x)
-    (function
-      | "true" | "yes" | "on" -> Some true
-      | "false" | "no" | "off" -> Some false
-      | _ -> None
-    )
-
-let loglevel_of_string = function
-  | "error" -> Logs.Error
-  | "warning" -> Warning
-  | "info" -> Info
-  | "debug" -> Debug
-  | _ -> assert false
-
-let loglevel_of_json_string json =
-  Option.bind
-    (Json.string json)
-    (some % loglevel_of_string)
+type loglevel = [%import: Logs.level]
+[@@deriving show {with_path = false}]
 
 let loglevel_to_string = function
   | Logs.Error -> "error"
@@ -32,103 +12,69 @@ let loglevel_to_string = function
   | Debug -> "debug"
   | App -> assert false
 
-(* =========================== [ Dynamic Stuff ] ============================ *)
+let loglevel_to_yojson level = `String (loglevel_to_string level)
 
-let database = ref "database"
-let init_only = ref false
-let loglevel = ref Logs.Debug
-let pid_file = ref ""
-let port = ref 6872
-let share = ref "_build/install/default/share"
-let sync_storage = ref true
-let write_storage = ref true
-let github_token = ref ""
-let github_token_file = ref ""
-let github_repository = ref ""
-let github_database_repository = ref ""
-let nixpkgs = ref ""
-let routine_threads = ref 2
+let loglevel_of_string = function
+  | "error" -> Ok Logs.Error
+  | "warning" -> Ok Warning
+  | "info" -> Ok Info
+  | "debug" -> Ok Debug
+  | str -> Error (spf "Invalid log level: %s" str)
 
-let check_config () =
-  if !github_token_file <> "" then
-    (
-      if !github_token <> "" then
-        failwith "Cannot specify both a GitHub token and a GitHub token file";
-      let%lwt ichan = Lwt_io.open_file ~mode: Lwt_io.input !github_token_file in
-      let%lwt content = Lwt_io.read ichan in
-      github_token := String.trim content;
-      lwt_unit
-    )
-  else
-    lwt_unit
+let loglevel_of_yojson = function
+  | `String json -> loglevel_of_string json
+  | _ -> Error "Expected a JSON string for log level"
+
+type t = {
+  database: string;
+  init_only: bool;
+  loglevel: loglevel;
+  pid_file: string;
+  port: int;
+  share: string;
+  sync_storage: bool;
+  write_storage: bool;
+  github_token: string;
+  github_token_file: string;
+  github_repository: string;
+  github_database_repository: string;
+  nixpkgs: string;
+  routine_threads: int;
+}
+[@@deriving show {with_path = false}, yojson]
+
+let set, unsafe_set, get =
+  let v : t option ref = ref None in
+  let get () = match !v with None -> failwith "Configuration not set" | Some config -> config in
+  let unsafe_set config = v := Some config in
+  let set config = match !v with Some _ -> failwith "Cannot set configuration twice" | None -> v := Some config in
+  set, unsafe_set, get
 
 let load_from_file filename =
   Log.debug (fun m -> m "Reading configuration from file %s" filename);
-  let config =
-    try
-      let ichan = open_in filename in
-      let config =
-        in_channel_to_string ichan
-        |> Json.from_string
-      in
-      close_in ichan;
-      config
-    with
-      | Sys_error _ ->
-        Log.err (fun m -> m "Could not find config file \"%s\"" filename);
-        Logger.log_die (module Log)
+  let%lwt content = Lwt_io.with_file ~flags: [O_RDONLY] ~mode: Lwt_io.input filename Lwt_io.read in
+  let content = Yojson.Safe.from_string content in
+  let config = match of_yojson content with Ok config -> config | Error msg -> failwithf "Could not parse config file: %s" msg in
+  let%lwt config =
+    match config.github_token, config.github_token_file with
+    | "", "" ->
+      Log.warn (fun m -> m "No GitHub token provided; some features may not work.");
+      lwt config
+    | "", _ ->
+      Log.info (fun m -> m "Reading GitHub token from file...");
+      let%lwt token = Lwt_io.with_file ~flags: [O_RDONLY] ~mode: Lwt_io.input config.github_token_file Lwt_io.read in
+      lwt {config with github_token = String.trim token}
+    | _, "" ->
+      lwt config
+    | _, _ ->
+      failwith "Both GitHub token and GitHub token file provided. Please provide only one of them."
   in
-  let field config ~type_ ~default path =
-    match Json.(get_opt ~k: type_ path config) with
-    | None -> default
-    | Some value -> value
-  in
-  database := field config ~type_: string ~default: !database ["database"];
-  init_only := field config ~type_: bool ~default: !init_only ["init_only"];
-  loglevel := field config ~type_: loglevel_of_json_string ~default: !loglevel ["loglevel"];
-  pid_file := field config ~type_: string ~default: !pid_file ["pid_file"];
-  port := field config ~type_: int ~default: !port ["port"];
-  share := field config ~type_: string ~default: !share ["share"];
-  sync_storage := field config ~type_: bool ~default: !sync_storage ["sync_storage"];
-  write_storage := field config ~type_: bool ~default: !write_storage ["write_storage"];
-  github_token := field config ~type_: string ~default: !github_token ["github-token"];
-  github_token_file := field config ~type_: string ~default: !github_token_file ["github-token-file"];
-  github_repository := field config ~type_: string ~default: !github_repository ["github-repository"];
-  github_database_repository := field config ~type_: string ~default: !github_database_repository ["github-database-repository"];
-  nixpkgs := field config ~type_: string ~default: !nixpkgs ["nixpkgs"];
-  routine_threads := field config ~type_: int ~default: !routine_threads ["routine-threads"];
-  ()
+  set config;
+  Log.info (fun m -> m "Loaded configuration:@\n@[<2>%a@]" pp config);
+  lwt_unit
 
 let parse_cmd_line () =
-  let open Arg in
-  let pp_default fmt = function
-    | true -> fpf fmt " (default)"
-    | false -> ()
-  in
-  let specs =
-    align
-      [
-        "--config", String load_from_file, spf "FILE Load configuration from FILE. This overrides all previous command-line settings but is overriden by the next ones.";
-        "--database", Set_string database, spf "DIR Set database directory (default: %s)" !database;
-        "--init-only", Set init_only, aspf " Stop after initialisation%a" pp_default !init_only;
-        "--no-init-only", Clear init_only, aspf " Do not stop after initialisation%a" pp_default (not !init_only);
-        "--loglevel", String (loglevel_of_string ||> (:=) loglevel), spf "LEVEL Set the log level (default: %s)" (loglevel_to_string !loglevel);
-        "--pid-file", Set_string pid_file, spf "FILE Write process id to the given file.";
-        "--port", Set_int port, spf "NB Set the port (default: %d)" !port;
-        "--share", Set_string share, spf "DIR Set share directory (default: %s)" !share;
-        "--sync-storage", Set sync_storage, aspf " Sync storage using git%a" pp_default !sync_storage;
-        "--no-sync-storage", Clear sync_storage, aspf " Do not sync storage using git%a" pp_default (not !sync_storage);
-        "--write-storage", Set write_storage, aspf " Reflect storage on filesystem%a" pp_default !write_storage;
-        "--no-write-storage", Clear write_storage, aspf " Do not reflect storage on filesystem%a" pp_default (not !write_storage);
-        "--github-token", Set_string github_token, spf "STR Set the GitHub API token to STR. This is used by the issue report mechanism and must therefore be allowed to open issues on the repositories.";
-        "--github-token-file", Set_string github_token_file, spf "FILE Read the GitHub API token from FILE. This is used by the issue report mechanism and must therefore be allowed to open issues on the repositories.";
-        "--github-repository", Set_string github_repository, spf "STR Set the Github repository to STR. This is used by the issue report mechanism. It must contain the host, owner, and repository.";
-        "--github-database-repository", Set_string github_database_repository, spf "STR Set the Github database repository to STR. This is used by the issue report mechanism. It must contain the host, owner, and repository.";
-        "--nixpkgs", Set_string nixpkgs, spf "DIR Set path to nixpkgs (default: will grab <nixpkgs>)";
-        "--routine-threads", Set_int routine_threads, "INT Set the number of threads to use for tourines";
-      ]
-  in
-  let anon_fun _ = raise (Arg.Bad "no anonymous argument expected") in
-  let usage = spf "Usage: %s [OPTIONS...]" Sys.argv.(0) in
-  parse specs anon_fun usage;
-  check_config ()
+  match Sys.argv with
+  | [|_; fname|] -> load_from_file fname
+  | [|_|] -> failwith "No config file specified. Please provide a config file as a command-line argument."
+  | _ -> failwith "Too many command-line arguments. Expected exactly one: the config file."

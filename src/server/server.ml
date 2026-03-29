@@ -77,13 +77,13 @@ let callback _ request body =
     Config.parse_cmd_line ()
 
   let initialise_logs () =
-    Logger.initialise {cases = []; default = Some !Config.loglevel}
+    Logger.initialise {cases = []; default = Some (Config.get ()).loglevel}
 
   let write_pid () =
     let pid = Unix.getpid () in
-    if !Config.pid_file <> "" then
+    if (Config.get ()).pid_file <> "" then
       Lwt_io.(
-        with_file ~mode: output !Config.pid_file @@ fun ochan ->
+        with_file ~mode: output (Config.get ()).pid_file @@ fun ochan ->
         fprintlf ochan "%d" pid
       )
     else
@@ -94,7 +94,7 @@ let callback _ request body =
     Database.Tables.initialise ()
 
   let check_init_only () =
-    if !Config.init_only then
+    if (Config.get ()).init_only then
       (
         Log.info (fun m -> m "Init only mode. Stopping now.");
         log_exit 0
@@ -112,7 +112,7 @@ let callback _ request body =
       @@ fun () ->
       let server =
         Server.create
-          ~mode: (`TCP (`Port !Config.port))
+          ~mode: (`TCP (`Port (Config.get ()).port))
           (Server.make ~callback ())
       in
       Log.info (fun m -> m "Server is up and running");

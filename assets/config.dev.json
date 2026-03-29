@@ -1,0 +1,16 @@
+{
+  "port": 8080,
+  "database": "../dancelor-database",
+  "share": "_build/install/default/share/dancelor",
+  "sync_storage": false,
+  "write_storage": false,
+  "github_token": "",
+  "github_token_file": "",
+  "github_repository": "paris-branch/test-dancelor",
+  "github_database_repository": "paris-branch/test-dancelor-database",
+  "nixpkgs": "",
+  "routine_threads": 2,
+  "pid_file": "",
+  "init_only": false,
+  "loglevel": "debug"
+}

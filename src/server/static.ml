@@ -92,7 +92,7 @@ let serve_robots_txt () =
   Cohttp_lwt_unix.Server.respond_string ~headers ~status: `OK ~body: robots_txt ()
 
 let serve env path =
-  let full_path = Filename.concat !Config.share path in
+  let full_path = Filename.concat (Config.get ()).share path in
   if Sys.file_exists full_path && not (Sys.is_directory full_path) then
     (
       Log.debug (fun m -> m "Serving static file: <share>/%s" @@ String.ltrim ~chars: ['/'] path);

@@ -92,8 +92,8 @@ let call_nix fun_ json =
     Job.Expr (
       spf
         "(import %s/renderer/renderer.nix { %s}).%s (builtins.fromJSON (builtins.readFile %s))"
-        (if (!Config.share).[0] = '/' then !Config.share else "./" ^ !Config.share)
-        (if !Config.nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes !Config.nixpkgs ^ "; ")
+        (if ((Config.get ()).share).[0] = '/' then (Config.get ()).share else "./" ^ (Config.get ()).share)
+        (if (Config.get ()).nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes (Config.get ()).nixpkgs ^ "; ")
         fun_
         store_path
     )

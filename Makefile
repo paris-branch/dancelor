@@ -4,16 +4,16 @@ build:
 	dune build @install @runtest
 
 entr:
-	watchexec --clear --restart -- 'dune build @install @runtest && dune exec dancelor -- --config assets/config.local.json'
+	watchexec --clear --restart -- 'dune build @install @runtest && dune exec dancelor -- assets/config.dev.json'
 
 dev:
-	dune exec dancelor -- --config assets/config.local.json
+	dune exec dancelor -- assets/config.dev.json
 
 local:
-	dune exec dancelor -- --config assets/config.local.json --write-storage
+	dune exec dancelor -- <(jq '.write_storage = true' assets/config.dev.json)
 
 dev-test:
-	dune exec dancelor -- --config tests/config.json
+	dune exec dancelor -- tests/config.json
 
 clean:
 	dune clean

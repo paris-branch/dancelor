@@ -97,3 +97,6 @@ let (<%>) f g x = f <$> g x
 let (>>=) = Lwt.bind
 let (=<<) f x = Lwt.bind x f
 let (<=<) g f x = f x >>= g
+
+let failwithf fmt = Format.kasprintf failwith fmt
+let invalid_argf fmt = Format.kasprintf invalid_arg fmt

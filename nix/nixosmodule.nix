@@ -1,4 +1,4 @@
-{ self, ... }:
+{ self, inputs, ... }:
 
 {
   flake.nixosModules.dancelor =
@@ -75,11 +75,15 @@
 
       config = lib.mkIf cfg.enable (
         let
+          inherit (lib) toJSON;
+          inherit (pkgs) writeText writeShellApplication;
+          inherit (pkgs.stdenv.hostPlatform) system;
+
           stateDir = "/var/lib/dancelor";
           databaseDir = "${stateDir}/database";
 
           ## Part of the `init-dancelor` process that runs as the Dancelor user.
-          init-dancelor-as-dancelor = pkgs.writeShellApplication {
+          init-dancelor-as-dancelor = writeShellApplication {
             name = "init-dancelor";
             runtimeInputs = with pkgs; [ git ];
             excludeShellChecks = [ "SC2016" ];
@@ -121,7 +125,7 @@
 
           ## The actual `init-dancelor` process, just a small wrapper around the
           ## previous one.
-          init-dancelor = pkgs.writeShellApplication {
+          init-dancelor = writeShellApplication {
             name = "init-dancelor";
             text = ''
               mkdir -p ${stateDir}
@@ -130,21 +134,27 @@
             '';
           };
 
-          run-dancelor = pkgs.writeShellApplication {
+          run-dancelor = writeShellApplication {
             name = "run-dancelor";
             text = ''
-              ${self.apps.${pkgs.system}.dancelor.program} \
-                --database ${databaseDir} \
-                ${lib.strings.optionalString cfg.testMode ''
-                  --no-sync-storage \
-                  --no-write-storage \
-                ''} \
-                --loglevel info \
-                --port ${toString cfg.listeningPort} \
-                --github-token-file ${cfg.githubTokenFile} \
-                --github-repository ${cfg.githubRepository} \
-                --github-database-repository ${cfg.githubDatabaseRepository} \
-                --routine-threads ${toString cfg.routineThreads}
+              ${self.apps.${system}.dancelor.program} ${
+                writeText "dancelor-config" (toJSON {
+                  port = cfg.listeningPort;
+                  database = databaseDir;
+                  share = "${self.packages.${system}.dancelor}/share/dancelor";
+                  sync_storage = !cfg.testMode;
+                  write_storage = !cfg.testMode;
+                  github_token = "";
+                  github_token_file = cfg.githubTokenFile;
+                  github_repository = cfg.githubRepository;
+                  github_database_repository = cfg.githubDatabaseRepository;
+                  nixpkgs = inputs.nixpkgs;
+                  routine_threads = cfg.routineThreads;
+                  pid_file = "";
+                  init_only = false;
+                  loglevel = "info";
+                })
+              }
             '';
           };
 

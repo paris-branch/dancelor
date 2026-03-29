@@ -12,10 +12,10 @@ let id_regexp = Str.regexp ".*/issues/\\(.*\\)"
 let report _env issue =
   let%lwt (repo, title) =
     if issue.source_is_dancelor then
-      lwt (!Config.github_repository, issue.title)
+      lwt ((Config.get ()).github_repository, issue.title)
     else
       let%lwt (model, name) = Option.get <$> describe issue.page in
-      lwt (!Config.github_database_repository, Format.sprintf "%s “%s”: %s" model name issue.title)
+      lwt ((Config.get ()).github_database_repository, Format.sprintf "%s “%s”: %s" model name issue.title)
   in
   assert (repo <> "");
   (* otherwise this will pick up on the current Git repository *)
@@ -37,7 +37,7 @@ let report _env issue =
     NesProcess.run
       ~env: [|
         "PATH=" ^ (Unix.getenv "PATH");
-        "GH_TOKEN=" ^ !Config.github_token;
+        "GH_TOKEN=" ^ (Config.get ()).github_token;
       |]
       ~on_wrong_status: Logs.Error
       ~on_nonempty_stderr: Logs.Error
