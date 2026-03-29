@@ -1,7 +1,7 @@
 open Nes
 open Common
 
-module Log = (val Logger.create "routine": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server.routine": Logs.LOG)
 
 (** A stream containing all the versions of the database. It never ends, and
     instead returns all the versions again, after a delay of 10 minutes. *)

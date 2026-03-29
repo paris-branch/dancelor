@@ -98,7 +98,7 @@ end
 (** {2 Database Functor} *)
 
 module Make (Model : Model) : S with type value = Model.t and type access = Model.access = struct
-  module Log = (val Logger.create ("database." ^ Model._key): Logs.LOG)
+  module Log = (val Logs.src_log @@ Logs.Src.create ("server.database." ^ Model._key): Logs.LOG)
 
   let _key = Model._key
 

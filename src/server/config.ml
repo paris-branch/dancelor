@@ -1,5 +1,5 @@
 open Nes
-module Log = (val Logger.create "config": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server.config": Logs.LOG)
 
 let int = Json.int
 let string = Json.string

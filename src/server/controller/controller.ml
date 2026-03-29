@@ -12,7 +12,7 @@ module Any = Any
 module Job = Job
 module Metrics = Metrics
 
-module Log = (val Logger.create "controller": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server.controller": Logs.LOG)
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.t -> a = fun env endpoint ->
   match endpoint with

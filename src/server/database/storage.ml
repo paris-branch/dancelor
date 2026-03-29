@@ -1,6 +1,6 @@
 open NesUnix
 
-module Log = (val Logger.create "database.storage": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server.database.storage": Logs.LOG)
 
 let prefix = Config.database
 

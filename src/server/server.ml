@@ -3,7 +3,7 @@ open Cohttp_lwt_unix
 open Nes
 open Common
 
-module Log = (val Logger.create "": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server": Logs.LOG)
 
 let log_exn ~msg exn =
   Log.err @@ fun m ->

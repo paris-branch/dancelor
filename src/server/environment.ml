@@ -1,7 +1,7 @@
 open NesUnix
 open Common
 
-module Log = (val Logger.create "environment": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server.environment": Logs.LOG)
 
 let session_max_age = 43200 (* 43200 seconds = 12 hours *)
 let remember_me_token_max_age = 15552000 (* 15552000 seconds = 6 * 30 days *)

@@ -118,7 +118,7 @@ let reverse_dependencies_of (id : 'any Entry.Id.t) : Table.reverse_dependencies 
       tables
   )
 
-module Log = (val Logger.create "database": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server.database": Logs.LOG)
 
 module Initialise = struct
   let sync_db () =

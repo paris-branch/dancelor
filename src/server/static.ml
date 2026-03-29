@@ -2,7 +2,7 @@ open Tyxml.Html
 open Nes
 open Common
 
-module Log = (val Logger.create "static": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server.static": Logs.LOG)
 
 let base_url = Uri.of_string "https://dancelor.org"
 

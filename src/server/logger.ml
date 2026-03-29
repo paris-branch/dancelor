@@ -5,15 +5,6 @@ module type LOG = Logs.LOG
 let log_src = Logs.Src.create "server.logger"
 module Log = (val Logs.src_log log_src: LOG)
 
-let create unit =
-  let unit =
-    match unit with
-    | "" -> "server"
-    | _ -> "server." ^ unit
-  in
-  Log.debug (fun m -> m "Creating log unit %s" unit);
-  Logs.src_log @@ Logs.Src.create unit
-
 let level_to_string = function
   | Logs.Debug -> "DBG"
   | Info -> "INF"
