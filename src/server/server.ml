@@ -77,7 +77,7 @@ let callback _ request body =
     Config.parse_cmd_line ()
 
   let initialise_logs () =
-    Logger.initialise !Config.loglevel
+    Logger.initialise {cases = []; default = Some !Config.loglevel}
 
   let write_pid () =
     let pid = Unix.getpid () in

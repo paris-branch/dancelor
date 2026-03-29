@@ -42,30 +42,43 @@ let my_reporter () =
   in
     {Logs.report}
 
-let update_past_loglevel loglevel =
-  (* Crawl through all defined sources, handle the one for this module before
-     all others. *)
-  (log_src :: Logs.Src.list ())
-  |> List.iter @@ fun src ->
-    let name = Logs.Src.name src in
-    let level =
-      (* If the source comes from us, set loglevel to the given one. Otherwise,
-         set to None. *)
-      if name = "server"
-        || String.starts_with ~needle: "server." name
-        || name = "nes"
-        || String.starts_with ~needle: "nes." name
-        || name = "madge"
-        || String.starts_with ~needle: "madge." name then
-        Some loglevel
-      else
-        None
-    in
-    Logs.Src.set_level src level;
-    Log.debug (fun m -> m "Set '%s' to '%s'" name (Logs.level_to_string level))
+type loglevel_map = {
+  cases: (string * Logs.level option) list;
+  default: Logs.level option;
+}
+
+let matches_loglevel_pattern ~pattern name =
+  let pattern = String.split_on_char '.' pattern in
+  let name = String.split_on_char '.' name in
+  let rec matches pattern name =
+    match pattern, name with
+    | [], [] -> true
+    | ["*"], _ -> true
+    | "*" :: _, _ -> invalid_arg "matches_loglevel_pattern: invalid pattern"
+    | p :: ps, n :: ns when p = n -> matches ps ns
+    | _ -> false
+  in
+  matches pattern name
+
+let find_level loglevel_map name =
+  match List.find_opt (fun (pattern, _) -> matches_loglevel_pattern ~pattern name) loglevel_map.cases with
+  | Some (_, level) -> level
+  | None -> loglevel_map.default
+
+let update_past_loglevel loglevel_map =
+  (* Crawl through all defined sources, but handle the one for this module
+     before all others, since it itself logs debug messages. *)
+  List.iter
+    (fun src ->
+      let name = Logs.Src.name src in
+      let level = find_level loglevel_map name in
+      Logs.Src.set_level src level;
+      Log.debug (fun m -> m "Set %S to %S" name (Logs.level_to_string level))
+    )
+    (log_src :: Logs.Src.list ())
 
 let initialise_future_loglevel loglevel =
-  Logs.set_level ~all: false (Some loglevel)
+  Logs.set_level ~all: false loglevel
 
 let () =
   Prometheus_unix.Logging.init ();
@@ -73,14 +86,14 @@ let () =
      break, we get some logging. The logging level will then be possibly changed
      by the configuration. *)
   Logs.(set_reporter (my_reporter ()));
-  update_past_loglevel Logs.Info;
-  initialise_future_loglevel Logs.Info;
+  update_past_loglevel {cases = []; default = Some Logs.Info};
+  initialise_future_loglevel (Some Logs.Info);
   Log.info (fun m -> m "Early initialisation of logging done")
 
 let initialise loglevel =
   Log.info (fun m -> m "Initialise logging");
   update_past_loglevel loglevel;
-  initialise_future_loglevel loglevel
+  initialise_future_loglevel loglevel.default
 
 let log_exit (module Log : LOG) n =
   Log.info (fun m -> m "Exiting with return code %d" n);
