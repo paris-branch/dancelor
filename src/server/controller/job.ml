@@ -1,7 +1,7 @@
 open NesUnix
 open Common
 
-module Log = (val Logger.create "controller.job": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server.controller.job": Logs.LOG)
 
 type state =
   | Pending

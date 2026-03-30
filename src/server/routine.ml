@@ -1,7 +1,7 @@
 open Nes
 open Common
 
-module Log = (val Logger.create "routine": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server.routine": Logs.LOG)
 
 (** A stream containing all the versions of the database. It never ends, and
     instead returns all the versions again, after a delay of 10 minutes. *)
@@ -57,4 +57,4 @@ let initialiase_job_runners ~threads =
   )
 
 let initialise () =
-  initialiase_job_runners ~threads: !Config.routine_threads
+  initialiase_job_runners ~threads: (Config.get ()).routine_threads

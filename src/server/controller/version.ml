@@ -1,7 +1,7 @@
 open NesUnix
 open Common
 
-module Log = (val Logger.create "controller.version": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server.controller.version": Logs.LOG)
 
 let get env id =
   match Database.Version.get id with

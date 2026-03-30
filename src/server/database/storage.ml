@@ -1,19 +1,19 @@
 open NesUnix
 
-module Log = (val Logger.create "database.storage": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server.database.storage": Logs.LOG)
 
-let prefix = Config.database
+let prefix () = (Config.get ()).database
 
 module Git = struct
   let add path =
     Log.debug (fun m -> m "Running git add");
-    ignore <$> Process.run ~cwd: !prefix ~on_wrong_status: Logs.Error ["git"; "add"; path]
+    ignore <$> Process.run ~cwd: (prefix ()) ~on_wrong_status: Logs.Error ["git"; "add"; path]
 
   let commit ~msg =
     Log.debug (fun m -> m "Running git commit");
     ignore
     <$> Process.run
-        ~cwd: !prefix
+        ~cwd: (prefix ())
         ~on_wrong_status: Logs.Error
         [
           "git";
@@ -24,17 +24,17 @@ module Git = struct
 
   let push () =
     Log.debug (fun m -> m "Running git push");
-    ignore <$> Process.run ~cwd: !prefix ~on_wrong_status: Logs.Error ["git"; "push"]
+    ignore <$> Process.run ~cwd: (prefix ()) ~on_wrong_status: Logs.Error ["git"; "push"]
 
   let pull_rebase () =
     Log.debug (fun m -> m "Running git pull rebase");
-    ignore <$> Process.run ~cwd: !prefix ~on_wrong_status: Logs.Error ["git"; "pull"; "--rebase"]
+    ignore <$> Process.run ~cwd: (prefix ()) ~on_wrong_status: Logs.Error ["git"; "pull"; "--rebase"]
 
   let status_clean () =
     Log.debug (fun m -> m "Checking for clean git status");
     let%lwt out =
       Process.run
-        ~cwd: !prefix
+        ~cwd: (prefix ())
         ~on_wrong_status: Logs.Error
         ~on_nonempty_stderr: Logs.Warning
         ["git"; "status"]
@@ -140,10 +140,10 @@ let with_locks (type a) (f : unit -> a Lwt.t) : a Lwt.t =
 let list_entries table =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Listing entries in %s" table);
-  Filename.concat !prefix table
+  Filename.concat (prefix ()) table
   |> Filesystem.read_directory
   |> List.filter (fun dir ->
-      let fname = Filename.concat_l [!prefix; table; dir] in
+      let fname = Filename.concat_l [(prefix ()); table; dir] in
       Sys.is_directory fname
       && Filesystem.read_directory fname <> []
     )
@@ -152,21 +152,21 @@ let list_entries table =
 let list_entry_files table entry =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Listing entries in %s / %s" table entry);
-  Filename.concat_l [!prefix; table; entry]
+  Filename.concat_l [(prefix ()); table; entry]
   |> Filesystem.read_directory
   |> lwt
 
 let read_entry_file table entry file =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Reading %s / %s / %s" table entry file);
-  Filesystem.read_file @@ Filename.concat_l [!prefix; table; entry; file]
+  Filesystem.read_file @@ Filename.concat_l [(prefix ()); table; entry; file]
 
 (** Variant of {!read_entry_file} for controllers that want to eg. serve a
     file directly from the database. *)
 let with_entry_file table entry file f =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Reading %s / %s / %s" table entry file);
-  f @@ Filename.concat_l [!prefix; table; entry; file]
+  f @@ Filename.concat_l [(prefix ()); table; entry; file]
 
 let read_entry_yaml table entry file =
   (* no lock because using read_entry_file *)
@@ -177,9 +177,9 @@ let read_entry_yaml table entry file =
 let write_entry_file table entry file content =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Writing %s / %s / %s" table entry file);
-  if !Config.write_storage then
+  if (Config.get ()).write_storage then
     (
-      let path = Filename.concat_l [!prefix; table; entry] in
+      let path = Filename.concat_l [(prefix ()); table; entry] in
       Filesystem.create_directory ~fail_if_exists: false path;%lwt
       let path = Filename.concat path file in
       Filesystem.write_file path content
@@ -195,9 +195,9 @@ let write_entry_yaml table entry file content =
 let delete_entry table entry =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Deleting %s / %s" table entry);
-  if !Config.write_storage then
+  if (Config.get ()).write_storage then
     (
-      let path = Filename.concat_l [!prefix; table; entry] in
+      let path = Filename.concat_l [(prefix ()); table; entry] in
       List.iter
         (fun s -> Filesystem.remove_file (path ^ "/" ^ s))
         (Filesystem.read_directory path);
@@ -209,10 +209,10 @@ let delete_entry table entry =
 let save_changes_on_entry ~msg table entry =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Saving %s / %s" table entry);
-  if !Config.write_storage then
+  if (Config.get ()).write_storage then
     (
       (* no prefix for git! *)
-      let path = Filename.concat_l [(*!prefix;*) table; entry] in
+      let path = Filename.concat_l [(*(prefix ());*) table; entry] in
       Git.add path;%lwt
       Git.commit ~msg;%lwt
       lwt_unit
@@ -223,7 +223,7 @@ let save_changes_on_entry ~msg table entry =
 let sync_changes () =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Syncing");
-  if !Config.sync_storage then
+  if (Config.get ()).sync_storage then
     (
       Git.pull_rebase ();%lwt
       Git.push ();%lwt

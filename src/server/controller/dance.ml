@@ -1,7 +1,7 @@
 open NesUnix
 open Common
 
-module Log = (val Logger.create "controller.dance": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server.controller.dance": Logs.LOG)
 
 let get env id =
   match Database.Dance.get id with

@@ -3,7 +3,7 @@ open Cohttp_lwt_unix
 open Nes
 open Common
 
-module Log = (val Logger.create "": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server": Logs.LOG)
 
 let log_exn ~msg exn =
   Log.err @@ fun m ->
@@ -14,9 +14,6 @@ let log_exn ~msg exn =
     | exn -> Printexc.to_string exn
   in
   m "%a" (Format.pp_multiline_sensible msg) (repr ^ "\n" ^ (Printexc.get_backtrace ()))
-
-let log_exit = Logger.log_exit (module Log)
-let log_die () = Logger.log_die (module Log)
 
 include Madge_server.Make_apply_controller(struct
   include Endpoints.Api
@@ -76,43 +73,53 @@ let callback _ request body =
     Log.info (fun m -> m "Reading configuration");
     Config.parse_cmd_line ()
 
+  let () =
+    Prometheus_unix.Logging.init ();
+    Logger.early_initialisation
+      ~on_message: Prometheus_unix.Logging.inc_counter
+      ~colors: true
+
   let initialise_logs () =
-    Logger.initialise !Config.loglevel
+    Logger.late_initialisation (Config.get ()).loglevel
 
   let write_pid () =
     let pid = Unix.getpid () in
-    if !Config.pid_file <> "" then
+    if (Config.get ()).pid_file <> "" then
       Lwt_io.(
-        with_file ~mode: output !Config.pid_file @@ fun ochan ->
+        with_file ~mode: output (Config.get ()).pid_file @@ fun ochan ->
         fprintlf ochan "%d" pid
       )
     else
       lwt_unit
 
   let initialise_database () =
-    Log.info (fun m -> m "Initialising database");
+    Logger.bracket_lwt (module Log) "initialising database" @@ fun () ->
     Database.Tables.initialise ()
 
   let check_init_only () =
-    if !Config.init_only then
+    if (Config.get ()).init_only then
       (
         Log.info (fun m -> m "Init only mode. Stopping now.");
-        log_exit 0
+        exit 0
       )
 
   let start_routines () =
-    Log.info (fun m -> m "Starting routines");
+    Logger.bracket (module Log) "starting routines" @@ fun () ->
     Routine.initialise ()
 
+  let log_die () =
+    Log.info (fun m -> m "Dying");
+    exit 1
+
   let run_server () =
-    Log.info (fun m -> m "Starting server");
+    Log.debug (fun m -> m "Starting server");
     catchall
       ~place: "the server"
       ~die: log_die
       @@ fun () ->
       let server =
         Server.create
-          ~mode: (`TCP (`Port !Config.port))
+          ~mode: (`TCP (`Port (Config.get ()).port))
           (Server.make ~callback ())
       in
       Log.info (fun m -> m "Server is up and running");

@@ -16,7 +16,8 @@
   str
   yojson)
  (preprocess
-  (pps
+  (staged_pps
+   ppx_import
    ppx_madge_wrapped_endpoints
    lwt_ppx
    ppx_deriving.std

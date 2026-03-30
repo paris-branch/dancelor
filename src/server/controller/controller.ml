@@ -12,7 +12,7 @@ module Any = Any
 module Job = Job
 module Metrics = Metrics
 
-module Log = (val Logger.create "controller": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server.controller": Logs.LOG)
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.t -> a = fun env endpoint ->
   match endpoint with
@@ -31,7 +31,8 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.t -> a =
     Log.debug (fun m -> m "Triggering controller for Victor");
     Permission.assert_is_connected env;%lwt
     (* FIXME: eventually, only for database editors *)
-    Logger.log_exit (module Log) 101
+    Log.info (fun m -> m "Exiting with return code 101");
+    exit 101
   | Boot_time ->
     Log.debug (fun m -> m "Answering boot time");
     lwt Environment.boot_time

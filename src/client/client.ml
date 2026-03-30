@@ -5,6 +5,8 @@ open Html
 open Utils
 open Views
 
+module Log = (val Logs.src_log @@ Logs.Src.create "client": Logs.LOG)
+
 let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 
 let redirect_any id =
@@ -139,6 +141,12 @@ let () =
     )
 
 let () =
+  Logger.full_initialisation
+    ~on_message: (const2 ())
+    ~colors: false
+    {cases = []; default = Some Logs.Info}
+
+let () =
   Dom_html.window##.onload :=
     Dom_html.handler (fun _ev ->
       Main_page.initialise ();
@@ -147,3 +155,5 @@ let () =
     )
 
 let () = History.add @@ get_uri ()
+
+let () = Log.info (fun m -> m "Client is up and running")

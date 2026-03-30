@@ -1,6 +1,8 @@
 open NesUnix
 open Common
 
+module Log = (val Logs.src_log @@ Logs.Src.create "server.database.tables": Logs.LOG)
+
 let id_for key entry : string * unit Entry.Id.t = (key, Entry.Id.unsafe_coerce entry)
 
 module User = Table.Make(struct
@@ -118,35 +120,35 @@ let reverse_dependencies_of (id : 'any Entry.Id.t) : Table.reverse_dependencies 
       tables
   )
 
-module Log = (val Logger.create "database": Logs.LOG)
-
 module Initialise = struct
   let sync_db () =
-    Log.info (fun m -> m "Syncing database changes");
-    if (not !Config.init_only) && !Config.sync_storage then
-      Storage.sync_changes ()
+    if not (Config.get ()).init_only && (Config.get ()).sync_storage then
+      (
+        Log.debug (fun m -> m "Syncing database changes");
+        Storage.sync_changes ();%lwt
+        Log.info (fun m -> m "Done syncing database changes");
+        lwt_unit
+      )
     else
       lwt_unit
 
   let load_tables () =
-    Log.info (fun m -> m "Loading tables");
-    tables
-    |> Lwt_list.iter_s @@ fun (module Table : Table.S) ->
-      Table.load ()
+    Logger.bracket_lwt (module Log) "loading all tables" @@ fun () ->
+    Lwt_list.iter_s (fun (module Table : Table.S) -> Table.load ()) tables
 
   let check_dependency_problems () =
-    Log.info (fun m -> m "Checking for dependency problems");
+    Logger.bracket (module Log) "checking for dependency problems" @@ fun () ->
     let found_problem =
       List.fold_left
         (fun found_problem (module Table : Table.S) ->
           let problems = Table.list_dependency_problems () in
-          (
-            problems
-            |> List.iter @@ function
-                | Error.Dependency_does_not_exist ((from_key, from_id), (to_key, to_id)) ->
-                  Log.warn (fun m -> m "%s / %s refers to %s / %s that does not exist" from_key from_id to_key to_id)
-                | _ -> ()
-          );
+          List.iter
+            (function
+              | Error.Dependency_does_not_exist ((from_key, from_id), (to_key, to_id)) ->
+                Log.warn (fun m -> m "%s / %s refers to %s / %s that does not exist" from_key from_id to_key to_id)
+              | _ -> ()
+            )
+            problems;
           match found_problem, problems with
           | Some found_problem, _ -> Some found_problem
           | _, problem :: _ -> Some problem

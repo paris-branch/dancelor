@@ -1,7 +1,7 @@
 open Nes
 open Common
 
-module Log = (val Logger.create "permission": Logs.LOG)
+module Log = (val Logs.src_log @@ Logs.Src.create "server.permission": Logs.LOG)
 
 (** {2 Common tests and assertions} *)
 
