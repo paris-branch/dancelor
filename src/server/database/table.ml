@@ -111,7 +111,7 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
   let (table : (value Entry.id, entry) Hashtbl.t) = Hashtbl.create 8
 
   let load () =
-    Log.info (fun m -> m "Loading table: %s" _key);
+    Log.debug (fun m -> m "Loading table: %s" _key);
     let load entry =
       Log.debug (fun m -> m "Loading %s %s" _key entry);
       Storage.read_entry_yaml Model._key entry "meta.yaml" >>= fun json ->
@@ -127,7 +127,7 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
     in
     let%lwt entries = Storage.list_entries Model._key in
     Lwt_list.iter_s load entries;%lwt
-    Log.info (fun m -> m "Loaded table: %s" _key);
+    Log.debug (fun m -> m "Loaded table: %s" _key);
     lwt_unit
 
   let get id = Hashtbl.find_opt table id

@@ -44,7 +44,7 @@ type loglevel_map = {
   cases: (string * loglevel option) list;
   default: loglevel option;
 }
-[@@deriving show, yojson]
+[@@deriving show {with_path = false}, yojson]
 
 let matches_loglevel_pattern ~pattern name =
   let pattern = String.split_on_char '.' pattern in
@@ -121,3 +121,14 @@ let full_initialisation ~on_message ~colors loglevel =
   setup_reporter ~on_message ~colors;
   initialise loglevel;
   Log.info (fun m -> m "Full initialisation of logging done")
+
+let bracket (module Log : Logs.LOG) msg f =
+  Log.debug (fun m -> m "%s" (String.capitalize_ascii msg));
+  f ();
+  Log.info (fun m -> m "Done %s" msg)
+
+let bracket_lwt (module Log : Logs.LOG) msg f =
+  Log.debug (fun m -> m "%s" (String.capitalize_ascii msg));
+  f ();%lwt
+  Log.info (fun m -> m "Done %s" msg);
+  lwt_unit

@@ -93,7 +93,7 @@ let callback _ request body =
       lwt_unit
 
   let initialise_database () =
-    Log.info (fun m -> m "Initialising database");
+    Logger.bracket_lwt (module Log) "initialising database" @@ fun () ->
     Database.Tables.initialise ()
 
   let check_init_only () =
@@ -104,7 +104,7 @@ let callback _ request body =
       )
 
   let start_routines () =
-    Log.info (fun m -> m "Starting routines");
+    Logger.bracket (module Log) "starting routines" @@ fun () ->
     Routine.initialise ()
 
   let log_die () =
@@ -112,7 +112,7 @@ let callback _ request body =
     exit 1
 
   let run_server () =
-    Log.info (fun m -> m "Starting server");
+    Log.debug (fun m -> m "Starting server");
     catchall
       ~place: "the server"
       ~die: log_die

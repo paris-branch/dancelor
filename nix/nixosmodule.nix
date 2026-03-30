@@ -152,7 +152,10 @@
                   routine_threads = cfg.routineThreads;
                   pid_file = "";
                   init_only = false;
-                  loglevel = "info";
+                  loglevel = {
+                    cases = [ ];
+                    default = if cfg.testMode then "info" else "warning";
+                  };
                 })
               }
             '';
