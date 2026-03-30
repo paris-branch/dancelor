@@ -2,33 +2,10 @@ open Nes
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server.config": Logs.LOG)
 
-type loglevel = [%import: Logs.level]
-[@@deriving show {with_path = false}]
-
-let loglevel_to_string = function
-  | Logs.Error -> "error"
-  | Warning -> "warning"
-  | Info -> "info"
-  | Debug -> "debug"
-  | App -> assert false
-
-let loglevel_to_yojson level = `String (loglevel_to_string level)
-
-let loglevel_of_string = function
-  | "error" -> Ok Logs.Error
-  | "warning" -> Ok Warning
-  | "info" -> Ok Info
-  | "debug" -> Ok Debug
-  | str -> Error (spf "Invalid log level: %s" str)
-
-let loglevel_of_yojson = function
-  | `String json -> loglevel_of_string json
-  | _ -> Error "Expected a JSON string for log level"
-
 type t = {
   database: string;
   init_only: bool;
-  loglevel: loglevel;
+  loglevel: Common.Logger.loglevel_map;
   pid_file: string;
   port: int;
   share: string;

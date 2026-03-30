@@ -17,10 +17,34 @@ let level_to_color = function
   | Error -> "\027[31m" (* red *)
   | App -> "\027[1m" (* white bold *)
 
+type loglevel = [%import: Logs.level]
+[@@deriving show {with_path = false}]
+
+let loglevel_to_string = function
+  | Logs.Error -> "error"
+  | Warning -> "warning"
+  | Info -> "info"
+  | Debug -> "debug"
+  | App -> assert false
+
+let loglevel_to_yojson level = `String (loglevel_to_string level)
+
+let loglevel_of_string = function
+  | "error" -> Ok Logs.Error
+  | "warning" -> Ok Warning
+  | "info" -> Ok Info
+  | "debug" -> Ok Debug
+  | str -> Error (spf "Invalid log level: %s" str)
+
+let loglevel_of_yojson = function
+  | `String json -> loglevel_of_string json
+  | _ -> Error "Expected a JSON string for log level"
+
 type loglevel_map = {
-  cases: (string * Logs.level option) list;
-  default: Logs.level option;
+  cases: (string * loglevel option) list;
+  default: loglevel option;
 }
+[@@deriving show, yojson]
 
 let matches_loglevel_pattern ~pattern name =
   let pattern = String.split_on_char '.' pattern in

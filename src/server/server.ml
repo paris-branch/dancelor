@@ -80,8 +80,7 @@ let callback _ request body =
       ~colors: true
 
   let initialise_logs () =
-    Logger.late_initialisation
-      {cases = []; default = Some (Config.get ()).loglevel}
+    Logger.late_initialisation (Config.get ()).loglevel
 
   let write_pid () =
     let pid = Unix.getpid () in

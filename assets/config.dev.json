@@ -12,5 +12,5 @@
   "routine_threads": 2,
   "pid_file": "",
   "init_only": false,
-  "loglevel": "debug"
+  "loglevel": { "cases": [], "default": "debug" }
 }
