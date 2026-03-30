@@ -15,9 +15,6 @@ let log_exn ~msg exn =
   in
   m "%a" (Format.pp_multiline_sensible msg) (repr ^ "\n" ^ (Printexc.get_backtrace ()))
 
-let log_exit = Logger.log_exit (module Log)
-let log_die () = Logger.log_die (module Log)
-
 include Madge_server.Make_apply_controller(struct
   include Endpoints.Api
   type env = Environment.t
@@ -76,8 +73,15 @@ let callback _ request body =
     Log.info (fun m -> m "Reading configuration");
     Config.parse_cmd_line ()
 
+  let () =
+    Prometheus_unix.Logging.init ();
+    Logger.early_initialisation
+      ~on_message: Prometheus_unix.Logging.inc_counter
+      ~colors: true
+
   let initialise_logs () =
-    Logger.initialise {cases = []; default = Some (Config.get ()).loglevel}
+    Logger.late_initialisation
+      {cases = []; default = Some (Config.get ()).loglevel}
 
   let write_pid () =
     let pid = Unix.getpid () in
@@ -97,12 +101,16 @@ let callback _ request body =
     if (Config.get ()).init_only then
       (
         Log.info (fun m -> m "Init only mode. Stopping now.");
-        log_exit 0
+        exit 0
       )
 
   let start_routines () =
     Log.info (fun m -> m "Starting routines");
     Routine.initialise ()
+
+  let log_die () =
+    Log.info (fun m -> m "Dying");
+    exit 1
 
   let run_server () =
     Log.info (fun m -> m "Starting server");
