@@ -139,6 +139,12 @@ let () =
     )
 
 let () =
+  Logger.full_initialisation
+    ~on_message: (const2 ())
+    ~colors: false
+    {cases = []; default = Some Logs.Info}
+
+let () =
   Dom_html.window##.onload :=
     Dom_html.handler (fun _ev ->
       Main_page.initialise ();

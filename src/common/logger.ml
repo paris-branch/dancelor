@@ -1,6 +1,6 @@
 open Nes
 
-let log_src = Logs.Src.create "server.logger"
+let log_src = Logs.Src.create "common.logger"
 module Log = (val Logs.src_log log_src: Logs.LOG)
 
 let level_to_string = function
@@ -89,3 +89,11 @@ let late_initialisation loglevel =
   Log.debug (fun m -> m "Starting late initialisation of logging...");
   initialise loglevel;
   Log.info (fun m -> m "Late initialisation of logging done")
+
+(** Full initialisation, for when it doesn't make sense to separate between
+    early and late phases, eg. on the JS client. *)
+let full_initialisation ~on_message ~colors loglevel =
+  Log.debug (fun m -> m "Starting full initialisation of logging...");
+  setup_reporter ~on_message ~colors;
+  initialise loglevel;
+  Log.info (fun m -> m "Full initialisation of logging done")
