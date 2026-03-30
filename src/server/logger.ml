@@ -28,15 +28,11 @@ let my_reporter () =
     ignore tags;
     ignore header;
     let ppf = Format.err_formatter in
-    let time = Unix.(gettimeofday () |> localtime) in
     Format.kfprintf
       k
       ppf
-      ("@[<h 2>%s%02d:%02d:%02d %s %s | " ^^ fmt ^^ "\027[0m@]@.")
+      ("@[<h 2>%s%s %s | " ^^ fmt ^^ "\027[0m@]@.")
       (level_to_color level)
-      time.tm_hour
-      time.tm_min
-      time.tm_sec
       (level_to_string level)
       src
   in
