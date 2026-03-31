@@ -124,11 +124,12 @@ let full_initialisation ~on_message ~colors loglevel =
 
 let bracket (module Log : Logs.LOG) msg f =
   Log.debug (fun m -> m "%s" (String.capitalize_ascii msg));
-  f ();
-  Log.info (fun m -> m "Done %s" msg)
+  let v = f () in
+  Log.info (fun m -> m "Done %s" msg);
+  v
 
 let bracket_lwt (module Log : Logs.LOG) msg f =
   Log.debug (fun m -> m "%s" (String.capitalize_ascii msg));
-  f ();%lwt
+  let%lwt v = f () in
   Log.info (fun m -> m "Done %s" msg);
-  lwt_unit
+  lwt v
