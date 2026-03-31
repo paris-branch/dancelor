@@ -42,7 +42,7 @@ let get_models () : Model.Any.t list Lwt.t =
     | Book -> (fun _ id -> Some (Model.Any.book % Option.get <$> Model.Book.get id))
     (* FIXME: user once there is a user viewer page endpoint *)
     (* everything else we ignore *)
-    | endpoint -> Endpoints.Page.consume None endpoint
+    | endpoint -> Endpoints.Page.consume endpoint ~return: None
   in
   let model_val uri : Model.Any.t Lwt.t option =
     Option.join @@

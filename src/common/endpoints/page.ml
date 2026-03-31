@@ -117,7 +117,7 @@ let href_any_full ?context any =
 
 (** Function that consumes all endpoints and returns nothing. It is meant to be
     used in the catch-all case of a pattern matching. *)
-let consume : type a w r. w -> (a, w, r) t -> a = fun value endpoint ->
+let consume : type a w r. return: w -> (a, w, r) t -> a = fun ~return: value endpoint ->
   match endpoint with
   | Index -> value
   | Any -> const value
@@ -186,7 +186,7 @@ module Make_describe (Model : Model_builder.S) = struct
           let%lwt name = NEString.to_string % Model.Source.name' % Option.get <$> Model.Source.get id in
           lwt_some ("source", name)
         )
-      | endpoint -> consume lwt_none endpoint
+      | endpoint -> consume endpoint ~return: lwt_none
     in
     let madge_match_apply_all : (string * string) option Lwt.t wrapped' list -> (unit -> (string * string) option Lwt.t) option =
       List.find_map @@ fun (W' page) ->
