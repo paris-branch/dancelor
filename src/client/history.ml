@@ -2,6 +2,8 @@ open Js_of_ocaml
 open Nes
 open Common
 
+module Log = (val Logs.src_log @@ Logs.Src.create "client.history": Logs.LOG)
+
 type history = (Datetime.t * Uri.t) list [@@deriving yojson]
 
 let empty_history : history = []
@@ -32,6 +34,7 @@ let add (uri : Uri.t) : unit =
 
 (** Returns all the models whose page is present in the history. *)
 let get_models () : Model.Any.t list Lwt.t =
+  Logger.bracket_lwt (module Log) "getting models" @@ fun () ->
   let model_val : type a r. (a, Model.Any.t Lwt.t option, r) Endpoints.Page.t -> a = function
     | Person -> (fun _ id -> Some (Model.Any.person % Option.get <$> Model.Person.get id))
     | Dance -> (fun _ id -> Some (Model.Any.dance % Option.get <$> Model.Dance.get id))
