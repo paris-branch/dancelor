@@ -91,7 +91,8 @@ let () =
   let previous_exn = ref (Failure "this is an exception that is never raised") in
   Lwt.async_exception_hook :=
     (fun exn ->
-      if exn = !previous_exn then ()
+      if exn = !previous_exn then
+        Log.debug (fun m -> m "Ignoring duplicate exception %s" (Printexc.to_string exn))
       else
         (
           previous_exn := exn;
@@ -127,6 +128,8 @@ let () =
                      administrator."
               ]
           | exn ->
+            (* NOTE: I wish I could show backtraces, but that just doesn't work in js_of_ocaml. *)
+            Log.err (fun m -> m "Uncaught exception: %s" (Printexc.to_string exn));
             Toast.open_
               ~type_: Forever
               ~title: "Uncaught exception"
@@ -142,8 +145,7 @@ let () =
 
 let () =
   Logger.full_initialisation
-    ~on_message: (const2 ())
-    ~colors: false
+    ~reporter: (Logs_browser.console_reporter ())
     {cases = []; default = Some Logs.Info}
 
 let () =

@@ -3,20 +3,6 @@ open Nes
 let log_src = Logs.Src.create "common.logger"
 module Log = (val Logs.src_log log_src: Logs.LOG)
 
-let level_to_string = function
-  | Logs.Debug -> "DBG"
-  | Info -> "INF"
-  | Warning -> "WRN"
-  | Error -> "ERR"
-  | App -> "APP"
-
-let level_to_color = function
-  | Logs.Debug -> "\027[37m" (* gray *)
-  | Info -> "" (* white *)
-  | Warning -> "\027[33m" (* yellow *)
-  | Error -> "\027[31m" (* red *)
-  | App -> "\027[1m" (* white bold *)
-
 type loglevel = [%import: Logs.level]
 [@@deriving show {with_path = false}]
 
@@ -64,22 +50,16 @@ let find_level loglevel_map name =
   | Some (_, level) -> level
   | None -> loglevel_map.default
 
-let setup_reporter ~on_message ~colors =
+(** Vertical separation of logical units in the logs (eg. level | source |
+    message). *)
+let vsep = " │ "
+
+let setup_reporter reporter =
+  (* Wrap the given reporter to add the source at the beginning of each line. *)
   let report src level ~over k msgf =
-    let src = Logs.Src.name src in
-    on_message level src;
-    let k _ = over (); k () in
+    reporter.Logs.report src level ~over k @@ fun m ->
     msgf @@ fun ?header ?tags fmt ->
-    ignore tags;
-    ignore header;
-    let ppf = Format.err_formatter in
-    Format.kfprintf
-      k
-      ppf
-      ("@[<h 2>%s%s %s | " ^^ fmt ^^ (if colors then "\027[0m" else "") ^^ "@]@.")
-      (if colors then level_to_color level else "")
-      (level_to_string level)
-      src
+    m ?header ?tags ("%s%s" ^^ fmt) (Logs.Src.name src) vsep
   in
   Logs.set_reporter {report}
 
@@ -101,9 +81,9 @@ let early_loglevel = {cases = []; default = Some Info}
 
 (** Early initialisation. This has to be called before anything else, so that
     even if early things break, we get some logging. *)
-let early_initialisation ~on_message ~colors =
+let early_initialisation ~reporter =
   Log.debug (fun m -> m "Starting early initialisation of logging...");
-  setup_reporter ~on_message ~colors;
+  setup_reporter reporter;
   initialise early_loglevel;
   Log.info (fun m -> m "Early initialisation of logging done")
 
@@ -116,19 +96,20 @@ let late_initialisation loglevel =
 
 (** Full initialisation, for when it doesn't make sense to separate between
     early and late phases, eg. on the JS client. *)
-let full_initialisation ~on_message ~colors loglevel =
+let full_initialisation ~reporter loglevel =
   Log.debug (fun m -> m "Starting full initialisation of logging...");
-  setup_reporter ~on_message ~colors;
+  setup_reporter reporter;
   initialise loglevel;
   Log.info (fun m -> m "Full initialisation of logging done")
 
 let bracket (module Log : Logs.LOG) msg f =
   Log.debug (fun m -> m "%s" (String.capitalize_ascii msg));
-  f ();
-  Log.info (fun m -> m "Done %s" msg)
+  let v = f () in
+  Log.info (fun m -> m "Done %s" msg);
+  v
 
 let bracket_lwt (module Log : Logs.LOG) msg f =
   Log.debug (fun m -> m "%s" (String.capitalize_ascii msg));
-  f ();%lwt
+  let%lwt v = f () in
   Log.info (fun m -> m "Done %s" msg);
-  lwt_unit
+  lwt v

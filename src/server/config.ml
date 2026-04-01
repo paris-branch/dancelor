@@ -47,7 +47,7 @@ let load_from_file filename =
       failwith "Both GitHub token and GitHub token file provided. Please provide only one of them."
   in
   set config;
-  Log.info (fun m -> m "Loaded configuration:@\n@[<2>%a@]" pp config);
+  Log.info (fun m -> m "Loaded configuration:@\n%a" pp config);
   lwt_unit
 
 let parse_cmd_line () =

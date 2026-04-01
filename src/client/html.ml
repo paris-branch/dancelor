@@ -11,28 +11,54 @@ module S = struct
 
   let all (ss : 'a t list) : 'a list t = merge (flip List.cons) [] (List.rev ss)
 
-  (** [from_lwt_stream placeholder stream] creates a signal that holds the
-      [placeholder] to start, and updates every time the [stream] resolves to a
-      new value. *)
-  let from_lwt_stream (type a) (placeholder : a) (stream : a Lwt_stream.t) : a t =
+  (** Make a reactive signal from Lwt in a generic way. This handles both
+      single-use promises and multiple-use ones, eg. streams. *)
+  let from_lwt_gen
+      ~(get_available_1 : 'c -> 'a option)
+      ~(iter : ('a -> unit) -> 'c -> unit Lwt.t)
+      (placeholder : 'a)
+      (container : 'c)
+      : 'a t
+    =
     let placeholder =
-      (* Inspect the stream: if there is already a first element, then we take
+      (* Inspect the container: if there is already a first element, then we take
          that as placeholder, and this way we avoid weird flickers. *)
-      NesOption.value (Lwt_stream.get_available_1 stream) ~default: placeholder
+      Stdlib.Option.value (get_available_1 container) ~default: placeholder
     in
     let result, send_result = create placeholder in
     Lwt.async (fun () ->
-      Lwt_stream.iter send_result stream;%lwt
-      (* when the stream is over, stop the signal as well *)
-      lwt @@ stop result
+      (* Iter over the container; when it is done, stop the signal as well. *)
+      Lwt.finalize
+        (fun () -> iter send_result container)
+        (fun () -> lwt @@ stop result)
     );
     result
 
-  (** [from' ~placeholder promise] creates a signal that holds the [placeholder]
-      until the [promise] resolves. This is similar to {!from} except it does
-      only one update. *)
-  let from' (placeholder : 'a) (promise : 'a Lwt.t) : 'a t =
-    from_lwt_stream placeholder (Lwt_stream.return_lwt promise)
+  (** [from' placeholder promise] creates a signal that holds the [placeholder]
+      until the [promise] resolves. This updates only once; see
+      {!from_lwt_stream} for multiple updates. *)
+  let from' placeholder promise =
+    (* NOTE: This used to rely on {!from_lwt_stream} and [Lwt_stream.return_lwt],
+       but the latter ignores exceptions silently! *)
+    from_lwt_gen
+      ~get_available_1: (fun promise ->
+        match Lwt.state promise with
+        | Return x -> Some x
+        | _ -> None
+      )
+      ~iter: Lwt.map
+      placeholder
+      promise
+
+  (** [from_lwt_stream placeholder stream] creates a signal that holds the
+      [placeholder] to start, and updates every time the [stream] resolves to a
+      new value. *)
+  let from_lwt_stream placeholder stream =
+    from_lwt_gen
+      ~get_available_1: Lwt_stream.get_available_1
+      ~iter: Lwt_stream.iter
+      placeholder
+      stream
 
   (** Creates a stream of Lwt values from a signal. The signal value at the time
       of creation will be part of the stream. *)
