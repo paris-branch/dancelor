@@ -75,9 +75,28 @@ let callback _ request body =
 
   let () =
     Prometheus_unix.Logging.init ();
-    Logger.early_initialisation
-      ~on_message: Prometheus_unix.Logging.inc_counter
-      ~colors: true
+    (* Tweak the default {!Logs.format_reporter} to print the level our way. *)
+    let reporter =
+      let level_to_color = function
+        | Logs.Debug -> "\027[37m" (* gray *)
+        | Info -> "\027[0m" (* reset to white *)
+        | Warning -> "\027[33m" (* yellow *)
+        | Error -> "\027[31m" (* red *)
+        | App -> "\027[1m" (* white bold *)
+      in Logs.format_reporter
+        ~pp_header: (fun fmt (level, _header) ->
+          fpf fmt "%s%s%s" (level_to_color level) (Logger.loglevel_to_string level) Logger.vsep
+        )
+        ()
+    in
+    (* Inject per-level counting of logs for Prometheus. *)
+    let reporter = {
+      Logs.report = fun src level ~over k msgf ->
+        Prometheus_unix.Logging.inc_counter level (Logs.Src.name src);
+        reporter.Logs.report src level ~over k msgf
+    }
+    in
+    Logger.early_initialisation ~reporter
 
   let initialise_logs () =
     Logger.late_initialisation (Config.get ()).loglevel

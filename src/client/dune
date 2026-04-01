@@ -12,6 +12,7 @@
   nes
   js_of_ocaml-lwt
   js_of_ocaml-tyxml
+  logs.browser
   lwt_react
   monadise-lwt
   omd

@@ -145,8 +145,7 @@ let () =
 
 let () =
   Logger.full_initialisation
-    ~on_message: (const2 ())
-    ~colors: false
+    ~reporter: (Logs_browser.console_reporter ())
     {cases = []; default = Some Logs.Info}
 
 let () =
