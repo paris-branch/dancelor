@@ -35,19 +35,19 @@ let add (uri : Uri.t) : unit =
 (** Returns all the models whose page is present in the history. *)
 let get_models () : Model.Any.t list Lwt.t =
   Logger.bracket_lwt (module Log) "getting models" @@ fun () ->
-  let model_val : type a r. (a, Model.Any.t Lwt.t option, r) Endpoints.Page.t -> a = function
-    | Person -> (fun _ id -> Some (Model.Any.person % Option.get <$> Model.Person.get id))
-    | Dance -> (fun _ id -> Some (Model.Any.dance % Option.get <$> Model.Dance.get id))
-    | Source -> (fun _ id -> Some (Model.Any.source % Option.get <$> Model.Source.get id))
-    | Tune -> (fun _ id -> Some (Model.Any.tune % Option.get <$> Model.Tune.get id))
-    | Version -> (fun _ _ id -> Some (Model.Any.version % Option.get <$> Model.Version.get id))
-    | Set -> (fun _ id -> Some (Model.Any.set % Option.get <$> Model.Set.get id))
-    | Book -> (fun _ id -> Some (Model.Any.book % Option.get <$> Model.Book.get id))
+  let model_val : type a r. (a, Model.Any.t option Lwt.t option, r) Endpoints.Page.t -> a = function
+    | Person -> (fun _ id -> Some (Option.map Model.Any.person <$> Model.Person.get id))
+    | Dance -> (fun _ id -> Some (Option.map Model.Any.dance <$> Model.Dance.get id))
+    | Source -> (fun _ id -> Some (Option.map Model.Any.source <$> Model.Source.get id))
+    | Tune -> (fun _ id -> Some (Option.map Model.Any.tune <$> Model.Tune.get id))
+    | Version -> (fun _ _ id -> Some (Option.map Model.Any.version <$> Model.Version.get id))
+    | Set -> (fun _ id -> Some (Option.map Model.Any.set <$> Model.Set.get id))
+    | Book -> (fun _ id -> Some (Option.map Model.Any.book <$> Model.Book.get id))
     (* FIXME: user once there is a user viewer page endpoint *)
     (* everything else we ignore *)
     | endpoint -> Endpoints.Page.consume endpoint ~return: None
   in
-  let model_val uri : Model.Any.t Lwt.t option =
+  let model_val uri : Model.Any.t option Lwt.t option =
     Option.join @@
     Option.map (fun f -> f ()) @@
     List.find_map
@@ -60,7 +60,7 @@ let get_models () : Model.Any.t list Lwt.t =
       (Endpoints.Page.all' ())
   in
   let models = List.filter_map (model_val % snd) (get ()) in
-  let%lwt models = Lwt_list.map_p Fun.id models in
+  let%lwt models = Lwt_list.filter_map_p Fun.id models in
   lwt @@ List.deduplicate ~eq: (Model.Any.equal) models
 
 (** Returns all the sets whose page is present in the history. *)
