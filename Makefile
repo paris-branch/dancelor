@@ -13,7 +13,7 @@ local:
 	dune exec dancelor -- <(jq '.write_storage = true' assets/config.dev.json)
 
 dev-test:
-	dune exec dancelor -- tests/config.json
+	dune exec dancelor -- <(jq '.database = "tests/database" | .loglevel = {cases: [], default: "warning"} | .sync_storage = false | .write_storage = false' assets/config.dev.json)
 
 clean:
 	dune clean

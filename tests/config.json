@@ -1,8 +1,0 @@
-{
-  "port": 8080,
-  "database": "tests/database",
-  "share": "_build/install/default/share/dancelor",
-  "loglevel": "warning",
-  "sync_storage": "false",
-  "write_storage": "false"
-}
