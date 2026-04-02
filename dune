@@ -13,4 +13,7 @@
     +a-4-40-41-42-44-45-48-58-70
     ;; make all warnings fatal (default in all versions of Dune as of April 2026)
     -warn-error
-    +a))))
+    +a
+    ;; make all alerts fatal
+    -alert
+    @all))))
