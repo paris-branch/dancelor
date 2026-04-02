@@ -49,8 +49,6 @@ let note pitch = pitch.note
 let alteration pitch = pitch.alteration
 let octave pitch = pitch.octave
 
-let c0 = make C Natural 0
-
 let to_string pitch =
   Note.to_string pitch.note ^
   alteration_to_string pitch.alteration ^
@@ -146,9 +144,13 @@ let diff p1 p2 = to_int p1 - to_int p2
 
 let add p1 n = of_int (to_int p1 + n)
 
-let%test _ = add c0 0 = c0
-let%test _ = add c0 1 = make C Sharp 0
-let%test _ = add c0 2 = make D Natural 0
-let%test _ = add c0 15 = make E Flat 1
-let%test _ = add c0 (-1) = make B Natural (-1)
-let%test _ = add c0 (-2) = make B Flat (-1)
+let%test_module _ = (module struct
+  let c0 = make C Natural 0
+
+  let%test _ = add c0 0 = c0
+  let%test _ = add c0 1 = make C Sharp 0
+  let%test _ = add c0 2 = make D Natural 0
+  let%test _ = add c0 15 = make E Flat 1
+  let%test _ = add c0 (-1) = make B Natural (-1)
+  let%test _ = add c0 (-2) = make B Flat (-1)
+end)
