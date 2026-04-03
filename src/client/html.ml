@@ -29,10 +29,12 @@ module S = struct
        ensures we can put what we want in the signal, such as functions. *)
     let result, send_result = create ~eq: (const2 false) placeholder in
     Lwt.async (fun () ->
-      (* Iter over the container; when it is done, stop the signal as well. *)
+      (* Iter over the container; when it is done, stop the signal as well.
+         NOTE: Strong stop to avoid memory leaks from JS string arrays:
+         https://erratique.ch/software/react/doc/React/index.html#strongstop *)
       Lwt.finalize
         (fun () -> iter send_result container)
-        (fun () -> lwt @@ stop result)
+        (fun () -> lwt @@ stop ~strong: true result)
     );
     result
 
