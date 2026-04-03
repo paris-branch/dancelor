@@ -22,3 +22,15 @@ let from_next f =
     match%lwt f () with
     | Next x -> Lwt.return_some x
     | Last x -> last_passed := true; Lwt.return_some x
+
+let return_lwt' promise =
+  let first = ref true in
+  from @@ fun () ->
+  if !first then
+    (
+      let%lwt result = promise in
+      first := false;
+      Lwt.return_some result
+    )
+  else
+    Lwt.return_none

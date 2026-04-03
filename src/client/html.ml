@@ -25,12 +25,16 @@ module S = struct
          that as placeholder, and this way we avoid weird flickers. *)
       Stdlib.Option.value (get_available_1 container) ~default: placeholder
     in
-    let result, send_result = create placeholder in
+    (* No equality: trgger a change every time we call [send_result]. This
+       ensures we can put what we want in the signal, such as functions. *)
+    let result, send_result = create ~eq: (const2 false) placeholder in
     Lwt.async (fun () ->
-      (* Iter over the container; when it is done, stop the signal as well. *)
+      (* Iter over the container; when it is done, stop the signal as well.
+         NOTE: Strong stop to avoid memory leaks from JS string arrays:
+         https://erratique.ch/software/react/doc/React/index.html#strongstop *)
       Lwt.finalize
         (fun () -> iter send_result container)
-        (fun () -> lwt @@ stop result)
+        (fun () -> lwt @@ stop ~strong: true result)
     );
     result
 

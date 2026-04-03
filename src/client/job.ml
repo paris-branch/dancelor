@@ -19,7 +19,7 @@ type status =
     possible. *)
 let run' slug promise =
   S.from_lwt_stream Registering @@
-  Lwt_stream.(concat % return_lwt) @@
+  Lwt_stream.(concat % return_lwt') @@
   match%lwt promise with
   | Error error -> raise (Madge_client.Error error)
   | Ok Endpoints.Job.Already_succeeded job_id ->
@@ -46,7 +46,7 @@ let run slug route =
 (* FIXME: duplicate of {!run} *)
 let run3 slug promise =
   S.from_lwt_stream Registering @@
-  Lwt_stream.(concat % return_lwt) @@
+  Lwt_stream.(concat % return_lwt') @@
   match%lwt promise with
   | None -> assert false
   | Some Endpoints.Job.Already_succeeded job_id ->

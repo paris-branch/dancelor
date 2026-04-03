@@ -49,7 +49,7 @@ let callback _ request body =
     let meth = Madge.Request.cohttp_code_meth_to_meth @@ Request.meth request in
     let uri = Request.uri request in
     let path = Uri.path uri in
-    Log.info (fun m -> m "%s %s" (Madge.Request.meth_to_string meth) path);
+    Log.debug (fun m -> m "%s %s" (Madge.Request.meth_to_string meth) path);
     Environment.with_ request @@ fun env ->
     if String.starts_with ~needle: "/api/" path then
       (
@@ -70,7 +70,7 @@ let callback _ request body =
       )
 
   let read_configuration () =
-    Log.info (fun m -> m "Reading configuration");
+    Logger.bracket_lwt (module Log) "reading configuration" @@ fun () ->
     Config.parse_cmd_line ()
 
   let () =

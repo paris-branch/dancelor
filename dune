@@ -1,0 +1,19 @@
+;; Since Dune lang 3.21, Dune no longer enables its own stricter set of warnings
+;; (see https://github.com/ocaml/dune/issues/8645). There are also ongoing
+;; discussions about dropping warnings-as-errors from the dev profile (see
+;; https://github.com/ocaml/ocaml/discussions/12557). We define our own warning
+;; policy here to be independent of Dune's defaults.
+
+(env
+ (_
+  (flags
+   (:standard
+    ;; enable all warnings except a select few (stricter than Dune's pre-3.21 list)
+    -w
+    +a-4-40-41-42-44-45-48-58-70
+    ;; make all warnings fatal (default in all versions of Dune as of April 2026)
+    -warn-error
+    +a
+    ;; make all alerts fatal
+    -alert
+    @all))))
