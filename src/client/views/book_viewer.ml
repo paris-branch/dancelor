@@ -165,7 +165,7 @@ let view context id =
     ]
     [
       R.div (
-        S.from' [] @@
+        S.from_lwt [] @@
           match%lwt Book.warnings book with
           | [] -> lwt_nil
           | warnings -> lwt [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
@@ -173,7 +173,7 @@ let view context id =
       div [
         h3 [txt "Contents"];
         R.div (
-          S.from' (Tables.placeholder ()) @@
+          S.from_lwt (Tables.placeholder ()) @@
             let%lwt contents = Book.contents' book in
             lwt [table_contents ~this_id: id contents]
         )

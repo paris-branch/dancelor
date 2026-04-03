@@ -71,7 +71,7 @@ let copyright_reponse_promise_to_job_registration_promise copyright_response_pro
   | Ok Endpoints.Version.Protected -> lwt_none
   | Ok Endpoints.Version.Granted {payload; _} -> lwt_some payload
 
-let status_signal_from_promise = S.switch % S.from' (S.const Registering)
+let status_signal_from_promise = S.switch % S.from_lwt (S.const Registering)
 
 let show_logs logs = pre ~a: [a_style "white-space: pre-wrap;"] [small [txt (String.concat "\n" logs)]]
 

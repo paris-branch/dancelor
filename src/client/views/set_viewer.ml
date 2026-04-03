@@ -78,7 +78,7 @@ let view context id =
         ];
       R.div
         (
-          S.from'
+          S.from_lwt
             [
               div
                 ~a: [a_class ["text-center"; "mt-4"]]

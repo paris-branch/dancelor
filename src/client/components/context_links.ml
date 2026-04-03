@@ -109,7 +109,7 @@ let make_and_render ?context ~this_page any_lwt =
                         ();
                     ]
                 ) @@
-              S.from' None @@
+              S.from_lwt None @@
               Lwt.flip_map neighbours_lwt @@
               Option.map @@ fun List.{previous; next; _} ->
               [

@@ -53,7 +53,7 @@ let make_gen
     ogg_status_signal
   =
   div [
-    div ~a: [R.a_class (S.from' [] @@ if%lwt is_protected_promise then lwt ["d-none"] else lwt_nil)] [
+    div ~a: [R.a_class (S.from_lwt [] @@ if%lwt is_protected_promise then lwt ["d-none"] else lwt_nil)] [
       div [make_svg_gen ?show_logs svg_status_signal];
       div ~a: [a_class ["mt-1"; "d-flex"; "justify-content-end"]] [
         (if show_audio then make_ogg_gen ogg_status_signal else div []);
@@ -62,7 +62,7 @@ let make_gen
     (
       let classes = ["alert"; "alert-warning"] in
       let classes_none = ["alert"; "alert-warning"; "d-none"] in
-      div ~a: [R.a_class (S.from' classes_none @@ if%lwt is_protected_promise then lwt classes else lwt classes_none)] [
+      div ~a: [R.a_class (S.from_lwt classes_none @@ if%lwt is_protected_promise then lwt classes else lwt classes_none)] [
         txt "You cannot see the content of this version because it is protected, for copyright reasons."
       ]
     );

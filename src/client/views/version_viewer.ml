@@ -295,7 +295,7 @@ let view context tune_id id =
           version
           ~none: (S.const [])
           ~some: (fun version ->
-            S.from' [] @@
+            S.from_lwt [] @@
               let show_source_group source_group =
                 let source = (List.hd source_group).Model.Version.source in
                 span @@
@@ -343,7 +343,7 @@ let view context tune_id id =
         h3 [txt "Versions of this tune"];
         R.div
           (
-            S.from' (Tables.placeholder ()) @@
+            S.from_lwt (Tables.placeholder ()) @@
               let%lwt versions =
                 snd
                 <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
@@ -374,7 +374,7 @@ let view context tune_id id =
         h3 [txt "Dances that recommend this tune"];
         R.div
           (
-            S.from' (Tables.placeholder ()) @@
+            S.from_lwt (Tables.placeholder ()) @@
               let%lwt dances = Tune.dances' tune in
               lwt
                 [

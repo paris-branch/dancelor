@@ -11,21 +11,41 @@ module S = struct
 
   let all (ss : 'a t list) : 'a list t = merge (flip List.cons) [] (List.rev ss)
 
-  (** Make a reactive signal from Lwt in a generic way. This handles both
-      single-use promises and multiple-use ones, eg. streams. *)
-  let from_lwt_gen
-      ~(get_available_1 : 'c -> 'a option)
-      ~(iter : ('a -> unit) -> 'c -> unit Lwt.t)
-      (placeholder : 'a)
-      (container : 'c)
-      : 'a t
-    =
+  (** [from' placeholder promise] creates a signal that holds the [placeholder]
+      until the [promise] resolves. This updates only once; see
+      {!from_lwt_stream} for multiple updates. *)
+  let from_lwt placeholder promise =
+    (* Shortcuts when the promise is already resolved. When already rejected, we
+       make sure the failure happens asynchronously. *)
+    match Lwt.state promise with
+    | Return x -> const x
+    | Fail exn -> Lwt.async (fun () -> Lwt.fail exn); const placeholder
+    | Sleep ->
+      (* No equality: trigger a change when we call [send_result] even if it is the
+         same element. This ensures we can put what we want in the signal, such as
+         functions. *)
+      let result, send_result = create ~eq: (const2 false) placeholder in
+      Lwt.async (fun () ->
+        (* Send the element, then stop the signal.
+           NOTE: Strong stop to avoid memory leaks from JS string arrays:
+           https://erratique.ch/software/react/doc/React/index.html#strongstop *)
+        Lwt.finalize
+          (fun () -> Lwt.map send_result promise)
+          (fun () -> lwt @@ stop ~strong: true result)
+      );
+      result
+
+  (** [from_lwt_stream placeholder stream] creates a signal that holds the
+      [placeholder] to start, and updates every time the [stream] resolves to a
+      new value. *)
+  let from_lwt_stream placeholder stream =
     let placeholder =
-      (* Inspect the container: if there is already a first element, then we take
-         that as placeholder, and this way we avoid weird flickers. *)
-      Stdlib.Option.value (get_available_1 container) ~default: placeholder
+      (* Inspect the container: if there is already a first element, then we
+         take that as placeholder, and this way we avoid weird flickers. Note
+         that this consumes the element. *)
+      Stdlib.Option.value (Lwt_stream.get_available_1 stream) ~default: placeholder
     in
-    (* No equality: trgger a change every time we call [send_result]. This
+    (* No equality: trigger a change every time we call [send_result]. This
        ensures we can put what we want in the signal, such as functions. *)
     let result, send_result = create ~eq: (const2 false) placeholder in
     Lwt.async (fun () ->
@@ -33,36 +53,10 @@ module S = struct
          NOTE: Strong stop to avoid memory leaks from JS string arrays:
          https://erratique.ch/software/react/doc/React/index.html#strongstop *)
       Lwt.finalize
-        (fun () -> iter send_result container)
+        (fun () -> Lwt_stream.iter send_result stream)
         (fun () -> lwt @@ stop ~strong: true result)
     );
     result
-
-  (** [from' placeholder promise] creates a signal that holds the [placeholder]
-      until the [promise] resolves. This updates only once; see
-      {!from_lwt_stream} for multiple updates. *)
-  let from' placeholder promise =
-    (* NOTE: This used to rely on {!from_lwt_stream} and [Lwt_stream.return_lwt],
-       but the latter ignores exceptions silently! *)
-    from_lwt_gen
-      ~get_available_1: (fun promise ->
-        match Lwt.state promise with
-        | Return x -> Some x
-        | _ -> None
-      )
-      ~iter: Lwt.map
-      placeholder
-      promise
-
-  (** [from_lwt_stream placeholder stream] creates a signal that holds the
-      [placeholder] to start, and updates every time the [stream] resolves to a
-      new value. *)
-  let from_lwt_stream placeholder stream =
-    from_lwt_gen
-      ~get_available_1: Lwt_stream.get_available_1
-      ~iter: Lwt_stream.iter
-      placeholder
-      stream
 
   (** Creates a stream of Lwt values from a signal. The signal value at the time
       of creation will be part of the stream. *)
@@ -81,7 +75,7 @@ module S = struct
       returns a ['b signal Lwt.t]. We prefer to return simply a signal and
       therefore we choose the placeholder approach. *)
   let bind_s' (signal : 'a Lwt_react.signal) (placeholder : 'b) (promise : 'a -> 'b Lwt.t) : 'b Lwt_react.signal =
-    switch (from' (const placeholder) (bind_s signal (Lwt.map const % promise)))
+    switch (from_lwt (const placeholder) (bind_s signal (Lwt.map const % promise)))
 
   let delayed_setter delay set_immediately =
     let (setter, set_setter) = create lwt_unit in
@@ -162,14 +156,14 @@ let div_placeholder ?(min = 4) ?(max = 8) () =
   div ~a: [a_class ["placeholder"; "w-100"]; a_style height_n_rem] []
 
 let with_span_placeholder ?a ?min ?max promise =
-  R.span ?a @@ S.from' [span_placeholder ?min ?max ()] promise
+  R.span ?a @@ S.from_lwt [span_placeholder ?min ?max ()] promise
 
 let with_div_placeholder ?a ?min ?max promise =
-  R.div ?a @@ S.from' [div_placeholder ?min ?max ()] promise
+  R.div ?a @@ S.from_lwt [div_placeholder ?min ?max ()] promise
 
 module L = struct
-  let div ?a promise = R.div ?a (S.from' [] (Lwt.pause ();%lwt promise))
-  let td ?a promise = R.td ?a (S.from' [] (Lwt.pause ();%lwt promise))
+  let div ?a promise = R.div ?a (S.from_lwt [] (Lwt.pause ();%lwt promise))
+  let td ?a promise = R.td ?a (S.from_lwt [] (Lwt.pause ();%lwt promise))
 end
 
 module To_dom = Js_of_ocaml_tyxml.Tyxml_js.To_dom

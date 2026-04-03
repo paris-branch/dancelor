@@ -57,13 +57,13 @@ let quick_explorer_links links =
             a
               ~a: [
                 R.a_href @@
-                  S.from' Uri.empty (
+                  S.from_lwt Uri.empty (
                     (Endpoints.Page.(href Explore) % some % Text_formula.formula_to_string Filter.Any.converter)
                     <$> filter_lwt
                   )
               ]
               [txt text];
-            R.txt (S.from' "" (spf " (%d)" <$> count_lwt));
+            R.txt (S.from_lwt "" (spf " (%d)" <$> count_lwt));
           ]
         )
         links

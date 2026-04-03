@@ -149,7 +149,7 @@ let header =
                   S.map List.flatten @@
                   S.all @@ [
                     S.const [nav_item_explore];
-                    S.from' [] nav_item_create;
+                    S.from_lwt [] nav_item_create;
                     S.const [User_header.header_item];
                   ]
                 );
