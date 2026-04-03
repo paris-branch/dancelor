@@ -143,14 +143,14 @@ let header_item =
     ~a: [
       R.a_class
         (
-          S.from' ["nav-item"] @@
+          S.from_lwt ["nav-item"] @@
           Lwt.flip_map Environment.user @@ function
           | None -> ["nav-item"]
           | Some _ -> ["nav-item"; "dropdown"]
         );
     ]
     (
-      S.from' [
+      S.from_lwt [
         Button.make
           ~label: "Sign in"
           ~icon: (Other Sign_in)
@@ -228,7 +228,7 @@ let header_item =
                     else []
                   );
                   [R.li (
-                    S.from' [] @@
+                    S.from_lwt [] @@
                       match%lwt Environment.person with
                       | None -> lwt_nil
                       | Some person ->

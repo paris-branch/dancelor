@@ -61,7 +61,7 @@ module Search = struct
           R.div
             ~a: [a_class ["mb-3"]]
             (
-              S.from' [] @@
+              S.from_lwt [] @@
                 if%lwt Environment.is_connected then
                   lwt_nil
                 else

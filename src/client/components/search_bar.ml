@@ -72,7 +72,7 @@ let make
             search slice text
           )
         in
-        let search_signal = S.from' None (some <$> delayed_search_promise) in
+        let search_signal = S.from_lwt None (some <$> delayed_search_promise) in
         S.flip_map search_signal @@ function
           | None -> Searching
           | Some Error messages ->

@@ -14,7 +14,7 @@ module S = struct
   (** [from' placeholder promise] creates a signal that holds the [placeholder]
       until the [promise] resolves. This updates only once; see
       {!from_lwt_stream} for multiple updates. *)
-  let from' placeholder promise =
+  let from_lwt placeholder promise =
     (* Shortcuts when the promise is already resolved. When already rejected, we
        make sure the failure happens asynchronously. *)
     match Lwt.state promise with
@@ -75,7 +75,7 @@ module S = struct
       returns a ['b signal Lwt.t]. We prefer to return simply a signal and
       therefore we choose the placeholder approach. *)
   let bind_s' (signal : 'a Lwt_react.signal) (placeholder : 'b) (promise : 'a -> 'b Lwt.t) : 'b Lwt_react.signal =
-    switch (from' (const placeholder) (bind_s signal (Lwt.map const % promise)))
+    switch (from_lwt (const placeholder) (bind_s signal (Lwt.map const % promise)))
 
   let delayed_setter delay set_immediately =
     let (setter, set_setter) = create lwt_unit in
@@ -156,14 +156,14 @@ let div_placeholder ?(min = 4) ?(max = 8) () =
   div ~a: [a_class ["placeholder"; "w-100"]; a_style height_n_rem] []
 
 let with_span_placeholder ?a ?min ?max promise =
-  R.span ?a @@ S.from' [span_placeholder ?min ?max ()] promise
+  R.span ?a @@ S.from_lwt [span_placeholder ?min ?max ()] promise
 
 let with_div_placeholder ?a ?min ?max promise =
-  R.div ?a @@ S.from' [div_placeholder ?min ?max ()] promise
+  R.div ?a @@ S.from_lwt [div_placeholder ?min ?max ()] promise
 
 module L = struct
-  let div ?a promise = R.div ?a (S.from' [] (Lwt.pause ();%lwt promise))
-  let td ?a promise = R.td ?a (S.from' [] (Lwt.pause ();%lwt promise))
+  let div ?a promise = R.div ?a (S.from_lwt [] (Lwt.pause ();%lwt promise))
+  let td ?a promise = R.td ?a (S.from_lwt [] (Lwt.pause ();%lwt promise))
 end
 
 module To_dom = Js_of_ocaml_tyxml.Tyxml_js.To_dom

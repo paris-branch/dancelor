@@ -76,7 +76,7 @@ let view context id =
           h3 [txt "Recommended Tunes"];
           R.div
             (
-              S.from' (Tables.placeholder ()) @@
+              S.from_lwt (Tables.placeholder ()) @@
                 let%lwt tunes =
                   snd
                   <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) Slice.everything @@

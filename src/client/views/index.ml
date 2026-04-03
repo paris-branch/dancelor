@@ -43,7 +43,7 @@ let create () =
         h4 [txt "Continue where you left off"];
         R.div ~a: [a_class ["mb-3"]] (
           let length = 15 in
-          S.from' (Utils.Tables.placeholder ~rows: length ()) @@
+          S.from_lwt (Utils.Tables.placeholder ~rows: length ()) @@
             match%lwt History.get_models () with
             | [] -> lwt_nil
             | history -> lwt [Utils.Tables.any @@ List.take length history]
@@ -53,7 +53,7 @@ let create () =
         h4 [txt "Most recently added"];
         R.div ~a: [a_class ["mb-3"]] (
           let length = 15 in
-          S.from' (Utils.Tables.placeholder ~rows: length ()) @@
+          S.from_lwt (Utils.Tables.placeholder ~rows: length ()) @@
             let filter =
               (* FIXME: There should be a more direct way to do this *)
               let newest () = Common.Formula_entry.(meta' newest') in

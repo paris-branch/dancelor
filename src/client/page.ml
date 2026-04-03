@@ -24,7 +24,7 @@ let full_title p =
         | "" -> title
         | _ -> title ^ " | " ^ p.parent_title
     )
-    (S.from' "" p.title)
+    (S.from_lwt "" p.title)
 
 let make
   ?(parent_title = "")
@@ -72,7 +72,7 @@ let render p =
                 ]
           )
           (
-            S.from' [] @@
+            S.from_lwt [] @@
             Lwt.flip_map actions_promise @@ function
             | [] -> []
             | actions ->
@@ -99,7 +99,7 @@ let render p =
             | Some _ -> [Button.make ~icon: (Action Share) ()]
         )
         (
-          S.from' [] @@
+          S.from_lwt [] @@
           Lwt.flip_map actions_promise @@ function
           | [] -> []
           | _ -> [Button.make ~icon: (Other Actions) ()]
