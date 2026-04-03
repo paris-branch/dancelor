@@ -57,7 +57,6 @@
           ++ [ (gitHookBinFor myTopiaryConfig) ]
           ++ [ pkgs.watchexec ]
           ++ (with pkgs.ocamlPackages; [
-            self'.packages.ocaml-prune
             merlin
             ocaml-lsp # called `ocaml-lsp-server` in opam.
             ocamlformat # otherwise LSP complains
@@ -92,35 +91,6 @@
           self'.packages.ocaml-merlin-lib
           merlin
           csexp
-        ];
-      };
-
-      packages.ocaml-prune = pkgs.ocamlPackages.buildDunePackage {
-        pname = "prune";
-        version = "dev";
-        src = pkgs.fetchFromGitHub {
-          owner = "samoht";
-          repo = "prune";
-          rev = "74a572b4acbeff91e613ddbe90b634211f3f20f8";
-          sha256 = "sha256-bg8hu8W5PBRQnCbW+eUdTNkQ5Y1n3FW1KF1pofEHXDo=";
-        };
-
-        propagatedBuildInputs = with pkgs.ocamlPackages; [
-          self'.packages.ocaml-index
-        ];
-
-        buildInputs = with pkgs.ocamlPackages; [
-          dune-build-info
-          merlin
-          yojson
-          bos
-          cmdliner
-          rresult
-          logs
-          fmt
-          logs
-          re
-          ppxlib
         ];
       };
     };
