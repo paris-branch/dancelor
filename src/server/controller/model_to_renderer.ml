@@ -114,7 +114,10 @@ let set_to_renderer_set set set_params =
   in
   let kind =
     let none = Kind.Dance.to_pretty_string @@ Model.Set.kind set in
-    Option.fold ~none ~some: NEString.to_string (Model.Set_parameters.display_kind set_params)
+    let kind = Option.fold ~none ~some: NEString.to_string (Model.Set_parameters.display_kind set_params) in
+    match Model.Set.order set with
+    | [] -> kind
+    | order -> kind ^ " — Play " ^ Model.Set_order.to_pretty_string order
   in
   let every_version_params = Model.Set_parameters.every_version set_params in
   let%lwt contents =
