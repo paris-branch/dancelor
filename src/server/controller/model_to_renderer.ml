@@ -105,16 +105,19 @@ let set_to_renderer_set set set_params =
   in
   let%lwt conceptor =
     let%lwt conceptors = Model.Set.conceptors set in
-    let none =
-      match conceptors with
-      | [] -> ""
-      | _ -> "Set by " ^ format_persons conceptors
-    in
-    lwt @@ Option.fold ~none ~some: NEString.to_string (Model.Set_parameters.display_conceptor set_params)
+    lwt @@
+      match Model.Set_parameters.display_conceptor set_params, conceptors with
+      | None, [] -> ""
+      | None, _ -> "Set by " ^ format_persons conceptors
+      | Some conceptor, [] -> NEString.to_string conceptor
+      | Some conceptor, _ -> NEString.to_string conceptor ^ ", set by " ^ format_persons conceptors
   in
   let kind =
     let none = Kind.Dance.to_pretty_string @@ Model.Set.kind set in
-    Option.fold ~none ~some: NEString.to_string (Model.Set_parameters.display_kind set_params)
+    let kind = Option.fold ~none ~some: NEString.to_string (Model.Set_parameters.display_kind set_params) in
+    match Model.Set.order set with
+    | [] -> kind
+    | order -> kind ^ " — Play " ^ Model.Set_order.to_pretty_string order
   in
   let every_version_params = Model.Set_parameters.every_version set_params in
   let%lwt contents =
@@ -142,7 +145,9 @@ let versions_to_renderer_set versions_and_params set_params =
   let conceptor =
     Option.fold ~none: "" ~some: NEString.to_string (Model.Set_parameters.display_conceptor set_params)
   in
-  let kind = "" in
+  let kind =
+    Option.fold ~none: "" ~some: NEString.to_string (Model.Set_parameters.display_kind set_params)
+  in
   let%lwt contents =
     Lwt_list.map_s (fun (version, version_params) -> version_to_renderer_tune version ~version_params) (NEList.to_list versions_and_params)
   in
