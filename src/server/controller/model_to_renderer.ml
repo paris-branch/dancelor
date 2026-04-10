@@ -105,12 +105,12 @@ let set_to_renderer_set set set_params =
   in
   let%lwt conceptor =
     let%lwt conceptors = Model.Set.conceptors set in
-    let none =
-      match conceptors with
-      | [] -> ""
-      | _ -> "Set by " ^ format_persons conceptors
-    in
-    lwt @@ Option.fold ~none ~some: NEString.to_string (Model.Set_parameters.display_conceptor set_params)
+    lwt @@
+      match Model.Set_parameters.display_conceptor set_params, conceptors with
+      | None, [] -> ""
+      | None, _ -> "Set by " ^ format_persons conceptors
+      | Some conceptor, [] -> NEString.to_string conceptor
+      | Some conceptor, _ -> NEString.to_string conceptor ^ ", set by " ^ format_persons conceptors
   in
   let kind =
     let none = Kind.Dance.to_pretty_string @@ Model.Set.kind set in
