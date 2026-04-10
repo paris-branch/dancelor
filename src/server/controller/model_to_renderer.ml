@@ -142,7 +142,9 @@ let versions_to_renderer_set versions_and_params set_params =
   let conceptor =
     Option.fold ~none: "" ~some: NEString.to_string (Model.Set_parameters.display_conceptor set_params)
   in
-  let kind = "" in
+  let kind =
+    Option.fold ~none: "" ~some: NEString.to_string (Model.Set_parameters.display_kind set_params)
+  in
   let%lwt contents =
     Lwt_list.map_s (fun (version, version_params) -> version_to_renderer_tune version ~version_params) (NEList.to_list versions_and_params)
   in
