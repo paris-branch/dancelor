@@ -65,7 +65,7 @@ jobs:
           $success && exit 0 || exit 1
 
       - name: Upload GitHub pages artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: api-doc/
 
