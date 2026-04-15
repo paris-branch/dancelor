@@ -43,34 +43,25 @@ let create () =
           choice' [txt @@ Music.Clef.(to_symbol Treble)] ~checked: true;
           choice'
             [txt @@ Music.Clef.(to_symbol Alto)]
-            ~value: (
-              Version_parameters.make ~clef: Alto (),
-              Rendering_parameters.make ~clef: "alto clef" ()
-            );
-          choice'
-            [txtf "%s (8vb)" Music.Clef.(to_symbol Alto)]
-            ~value: (
-              Version_parameters.make ~clef: Alto ~transposition: (Transposition.from_octaves (-1)) (),
-              Rendering_parameters.make ~clef: "alto clef" ()
-            );
+            ~value: (Version_parameters.make ~clef: Alto (), Rendering_parameters.make ~clef: "alto clef" ());
           choice'
             [txt @@ Music.Clef.(to_symbol Tenor)]
-            ~value: (
-              Version_parameters.make ~clef: Tenor (),
-              Rendering_parameters.make ~clef: "tenor clef" ()
-            );
+            ~value: (Version_parameters.make ~clef: Tenor (), Rendering_parameters.make ~clef: "tenor clef" ());
           choice'
-            [txtf "%s (8vb)" Music.Clef.(to_symbol Bass)]
-            ~value: (
-              Version_parameters.make ~clef: Bass ~transposition: (Transposition.from_octaves (-1)) (),
-              Rendering_parameters.make ~clef: "bass clef" ()
-            );
-          choice'
-            [txtf "%s (2 8vb)" Music.Clef.(to_symbol Bass)]
-            ~value: (
-              Version_parameters.make ~clef: Bass ~transposition: (Transposition.from_octaves (-2)) (),
-              Rendering_parameters.make ~clef: "bass clef" ()
-            );
+            [txt @@ Music.Clef.(to_symbol Bass)]
+            ~value: (Version_parameters.make ~clef: Bass (), Rendering_parameters.make ~clef: "bass clef" ());
+        ]
+    )
+  in
+  let%lwt octave_choices =
+    Choices.(
+      make_radios
+        ~label: "Octaviation"
+        [
+          choice' [txt "+1"] ~value: (Version_parameters.make ~transposition: (Transposition.from_octaves 1) ());
+          choice' [txt "0"] ~checked: true;
+          choice' [txt "-1"] ~value: (Version_parameters.make ~transposition: (Transposition.from_octaves (-1)) ());
+          choice' [txt "-2"] ~value: (Version_parameters.make ~transposition: (Transposition.from_octaves (-2)) ());
         ]
     )
   in
@@ -83,12 +74,14 @@ let create () =
       [
         S.map (Option.value ~default: no_parameters % Option.join % Result.to_option) (Component.signal key_choices);
         S.map (Option.value ~default: no_parameters % Option.join % Result.to_option) (Component.signal clef_choices);
+        S.map (Option.value ~default: no_parameters % Option.map (Pair.snoc Rendering_parameters.none) % Option.join % Result.to_option) (Component.signal octave_choices);
       ]
   in
   lwt {
     choice_rows = [
       Component.html key_choices;
       Component.html clef_choices;
+      Component.html octave_choices;
     ];
     parameters_signal;
   }
