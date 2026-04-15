@@ -13,6 +13,8 @@
   \context { \Staff
     %% Note head size relatively to the global staff size
     fontSize = #-0.4
+    %% Smaller font size for cautionary accidentals.
+    \override AccidentalCautionary.font-size = #-3
   }
   \context { \ChordNames
     %% Chord name size relatively to the global staff size (?)
