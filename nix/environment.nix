@@ -40,6 +40,15 @@
         topiary-latest = gitHookFor myTopiaryConfig // {
           enable = true;
         };
+
+        sqlfluff = {
+          enable = true;
+          name = "sqlfluff";
+          entry = "${../scripts/sqlfluff-fix} --sqlfluff ${pkgs.sqlfluff}/bin/sqlfluff";
+          files = "\\.sql$";
+          language = "system";
+          pass_filenames = true;
+        };
       };
 
       devShells.default = pkgs.mkShell {
@@ -55,7 +64,10 @@
           ])
           ## Development environment
           ++ [ (gitHookBinFor myTopiaryConfig) ]
-          ++ [ pkgs.watchexec ]
+          ++ (with pkgs; [
+            sqlfluff
+            watchexec
+          ])
           ++ (with pkgs.ocamlPackages; [
             merlin
             ocaml-lsp # called `ocaml-lsp-server` in opam.
