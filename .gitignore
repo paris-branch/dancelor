@@ -9,6 +9,9 @@
 /.pre-commit-config.yaml
 /result
 
+## MariaDB
+/.mariadb
+
 ## Dune
 /*.install
 /_build

@@ -65,6 +65,7 @@
           ## Development environment
           ++ [ (gitHookBinFor myTopiaryConfig) ]
           ++ (with pkgs; [
+            mariadb
             sqlfluff
             watchexec
           ])
@@ -78,7 +79,10 @@
           ## System testing environment
           ++ (self.makeIntegrationCheckInputs pkgs);
         inputsFrom = [ self'.packages.dancelor ];
-        shellHook = config.pre-commit.installationScript;
+        shellHook = ''
+          ${config.pre-commit.installationScript}
+          export MYSQL_HOME="$(git rev-parse --show-toplevel)"/.mariadb
+        '';
         ## Dancelor runs Nix, and we want it to use the same `nixpkgs`. We
         ## expose the flake input `nixpkgs` as a channel in the Nix path.
         NIX_PATH = "nixpkgs=${inputs.nixpkgs}";
