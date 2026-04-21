@@ -31,7 +31,7 @@ let load_from_file filename =
   Log.debug (fun m -> m "Reading configuration from file %s" filename);
   let%lwt content = Lwt_io.with_file ~flags: [O_RDONLY] ~mode: Lwt_io.input filename Lwt_io.read in
   let content = Yojson.Safe.from_string content in
-  let config = match of_yojson content with Ok config -> config | Error msg -> failwithf "Could not parse config file: %s" msg in
+  let config = match of_yojson content with Ok config -> config | Error msg -> failwithf "Could not parse config file `%s`: %s" filename msg in
   let%lwt config =
     match config.github_token, config.github_token_file with
     | "", "" ->
