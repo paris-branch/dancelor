@@ -1,5 +1,5 @@
 open Nes
-open Common
+open Dancelor_common
 
 let madge_call_or_option endpoint id =
   Lwt.flip_map (Madge_client.call (Endpoints.Api.route @@ endpoint) id) @@ function

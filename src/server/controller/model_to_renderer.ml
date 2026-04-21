@@ -1,10 +1,10 @@
 (** {1 Conversion from models to renderer}
 
-    This module contains the logic to convert from {!Common.Model} to
+    This module contains the logic to convert from {!Dancelor_common.Model} to
     {!Renderer}. It is meant to be used in other controllers. *)
 
 open NesUnix
-open Common
+open Dancelor_common
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server.controller.model_to_renderer": Logs.LOG)
 

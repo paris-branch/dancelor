@@ -1,4 +1,4 @@
-open Common
+open Dancelor_common
 open Html
 
 val name : Model.Tune.t -> [> Html_types.span] elt

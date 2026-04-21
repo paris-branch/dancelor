@@ -1,7 +1,7 @@
 (** {1 Selector component} *)
 
 open Nes
-open Common
+open Dancelor_common
 open Html
 
 val make :

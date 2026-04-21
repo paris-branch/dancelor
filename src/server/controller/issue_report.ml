@@ -1,5 +1,5 @@
 open Nes
-open Common
+open Dancelor_common
 
 open Endpoints.Issue_report
 open Request

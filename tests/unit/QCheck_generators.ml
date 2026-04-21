@@ -1,7 +1,7 @@
 open QCheck2
 
 module Id = struct
-  type 'any t = [%import: 'any Common.Entry.Id.t]
+  type 'any t = [%import: 'any Dancelor_common.Entry.Id.t]
 
   let gen _ =
     let open Gen in
@@ -18,7 +18,7 @@ module Id = struct
     for i = 10 to 13 do Bytes.set str i (List.nth alphanumerals (i - 2)) done;
     let str = Bytes.unsafe_to_string str in
     (* convert to and id (which will check it), and we're done! *)
-    pure @@ Option.get @@ Common.Entry.Id.of_string str
+    pure @@ Option.get @@ Dancelor_common.Entry.Id.of_string str
 end
 
 module Entry = struct
@@ -29,13 +29,13 @@ module Entry = struct
 
   module User = struct
     (* FIXME: not sure this one is actually fine *)
-    type t = Common.Model_builder.Core.User.t
+    type t = Dancelor_common.Model_builder.Core.User.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 end
 
 module Formula = struct
-  type 'p t = [%import: 'p Common.Formula.t] [@@deriving qcheck2]
+  type 'p t = [%import: 'p Dancelor_common.Formula.t] [@@deriving qcheck2]
 
   (* Formulas can grow very quickly. We therefore limit the size of formulas
      drastically in our generator. *)
@@ -43,53 +43,53 @@ module Formula = struct
 end
 
 module Formula_string = struct
-  type predicate = [%import: Common.Formula_string.predicate]
+  type predicate = [%import: Dancelor_common.Formula_string.predicate]
   [@@deriving qcheck2]
 
-  type t = [%import: Common.Formula_string.t [@with Common.Formula.t := Formula.t;]
+  type t = [%import: Dancelor_common.Formula_string.t [@with Dancelor_common.Formula.t := Formula.t;]
   ]
   [@@deriving qcheck2]
 end
 
 module Formula_list = struct
-  type 'f predicate = [%import: 'f Common.Formula_list.predicate]
+  type 'f predicate = [%import: 'f Dancelor_common.Formula_list.predicate]
   [@@deriving qcheck2]
 
-  type 'f t = [%import: 'f Common.Formula_list.t [@with Common.Formula.t := Formula.t;]
+  type 'f t = [%import: 'f Dancelor_common.Formula_list.t [@with Dancelor_common.Formula.t := Formula.t;]
   ]
   [@@deriving qcheck2]
 end
 
 module Formula_user = struct
-  type predicate = [%import: Common.Formula_user.predicate [@with Common.Entry.Id.t := Id.t;
-    Common.Entry.id := Id.t;
-    Common.Model_builder.Core.User.t := Model.User.t;
-    Common.Formula_string.t := Formula_string.t;
+  type predicate = [%import: Dancelor_common.Formula_user.predicate [@with Dancelor_common.Entry.Id.t := Id.t;
+    Dancelor_common.Entry.id := Id.t;
+    Dancelor_common.Model_builder.Core.User.t := Model.User.t;
+    Dancelor_common.Formula_string.t := Formula_string.t;
     ]
   ]
   [@@deriving qcheck2]
-  type t = [%import: Common.Formula_user.t [@with Common.Formula.t := Formula.t;]
+  type t = [%import: Dancelor_common.Formula_user.t [@with Dancelor_common.Formula.t := Formula.t;]
   ]
   [@@deriving qcheck2]
 end
 
 module Formula_entry = struct
-  type meta_predicate = [%import: Common.Formula_entry.meta_predicate]
+  type meta_predicate = [%import: Dancelor_common.Formula_entry.meta_predicate]
   [@@deriving qcheck2]
 
-  type meta = [%import: Common.Formula_entry.meta [@with Common.Formula.t := Formula.t;]
+  type meta = [%import: Dancelor_common.Formula_entry.meta [@with Dancelor_common.Formula.t := Formula.t;]
   ]
   [@@deriving qcheck2]
 
-  type ('value, 'filter, 'access_filter) predicate_gen = [%import: ('value, 'filter, 'access_filter) Common.Formula_entry.predicate_gen [@with Common.Entry.Id.t := Id.t;]
+  type ('value, 'filter, 'access_filter) predicate_gen = [%import: ('value, 'filter, 'access_filter) Dancelor_common.Formula_entry.predicate_gen [@with Dancelor_common.Entry.Id.t := Id.t;]
   ]
   [@@deriving qcheck2]
 
-  type ('value, 'filter, 'access_filter) gen = [%import: ('value, 'filter, 'access_filter) Common.Formula_entry.gen [@with Common.Formula.t := Formula.t]
+  type ('value, 'filter, 'access_filter) gen = [%import: ('value, 'filter, 'access_filter) Dancelor_common.Formula_entry.gen [@with Dancelor_common.Formula.t := Formula.t]
   ]
   [@@deriving qcheck2]
 
-  type access_public_predicate = [%import: Common.Formula_entry.access_public_predicate [@with Common.Formula.t := Formula.t;
+  type access_public_predicate = [%import: Dancelor_common.Formula_entry.access_public_predicate [@with Dancelor_common.Formula.t := Formula.t;
     Nes.Void.t := Void.t;
     ]
   ]
@@ -98,32 +98,32 @@ module Formula_entry = struct
   type access_public = access_public_predicate Formula.t
   [@@deriving qcheck2]
 
-  type ('value, 'filter) public = [%import: ('value, 'filter) Common.Formula_entry.public [@with Common.Formula.t := Formula.t;]
+  type ('value, 'filter) public = [%import: ('value, 'filter) Dancelor_common.Formula_entry.public [@with Dancelor_common.Formula.t := Formula.t;]
   ]
   [@@deriving qcheck2]
 
-  type access_private_predicate = [%import: Common.Formula_entry.access_private_predicate [@with Common.Formula.t := Formula.t;
+  type access_private_predicate = [%import: Dancelor_common.Formula_entry.access_private_predicate [@with Dancelor_common.Formula.t := Formula.t;
     public := public;
-    Common.Formula_list.t := Formula_list.t;
-    Common.Formula_user.t := Formula_user.t;
-    Common.Entry.User.t := Entry.User.t;
+    Dancelor_common.Formula_list.t := Formula_list.t;
+    Dancelor_common.Formula_user.t := Formula_user.t;
+    Dancelor_common.Entry.User.t := Entry.User.t;
     Nes.Void.t := Void.t;
     ]
   ]
   [@@deriving qcheck2]
 
-  type access_private = [%import: Common.Formula_entry.access_private [@with Common.Formula.t := Formula.t;]
+  type access_private = [%import: Dancelor_common.Formula_entry.access_private [@with Dancelor_common.Formula.t := Formula.t;]
   ]
   [@@deriving qcheck2]
 
-  type ('value, 'filter) private_ = [%import: ('value, 'filter) Common.Formula_entry.private_ [@with Common.Formula.t := Formula.t;]
+  type ('value, 'filter) private_ = [%import: ('value, 'filter) Dancelor_common.Formula_entry.private_ [@with Dancelor_common.Formula.t := Formula.t;]
   ]
   [@@deriving qcheck2]
 end
 
 module Text_formula = struct
-  type predicate = [%import: Common.Text_formula.predicate]
-  and t = [%import: Common.Text_formula.t]
+  type predicate = [%import: Dancelor_common.Text_formula.predicate]
+  and t = [%import: Dancelor_common.Text_formula.t]
 
   let gen_predicate_name =
     let open Gen in
@@ -142,9 +142,9 @@ module Text_formula = struct
     fix
       (fun self () ->
         oneof [
-          (Common.Text_formula.raw <$> string_printable);
-          (Common.Text_formula.nullary <$> gen_predicate_name);
-          (Common.Text_formula.unary <$> gen_predicate_name <*> Formula.gen (self ()));
+          (Dancelor_common.Text_formula.raw <$> string_printable);
+          (Dancelor_common.Text_formula.nullary <$> gen_predicate_name);
+          (Dancelor_common.Text_formula.unary <$> gen_predicate_name <*> Formula.gen (self ()));
         ]
       )
       ()
@@ -154,39 +154,39 @@ end
 
 module Kind = struct
   module Base = struct
-    type t = [%import: Common.Kind.Base.t] [@@deriving qcheck2]
+    type t = [%import: Dancelor_common.Kind.Base.t] [@@deriving qcheck2]
 
     module Filter = struct
-      type predicate = [%import: Common.Kind.Base.Filter.predicate] [@@deriving qcheck2]
+      type predicate = [%import: Dancelor_common.Kind.Base.Filter.predicate] [@@deriving qcheck2]
 
-      type t = [%import: Common.Kind.Base.Filter.t [@with Common.Formula.t := Formula.t;]
+      type t = [%import: Dancelor_common.Kind.Base.Filter.t [@with Dancelor_common.Formula.t := Formula.t;]
       ]
       [@@deriving qcheck2]
     end
   end
 
   module Version = struct
-    type t = [%import: Common.Kind.Version.t]
+    type t = [%import: Dancelor_common.Kind.Version.t]
 
     let gen = Gen.(pair nat Base.gen)
 
     module Filter = struct
-      type predicate = [%import: Common.Kind.Version.Filter.predicate [@with Common.Kind_base.Filter.t := Base.Filter.t;]
+      type predicate = [%import: Dancelor_common.Kind.Version.Filter.predicate [@with Dancelor_common.Kind_base.Filter.t := Base.Filter.t;]
       ]
       [@@deriving qcheck2]
 
-      type t = [%import: Common.Kind.Version.Filter.t [@with Common.Formula.t := Formula.t;]
+      type t = [%import: Dancelor_common.Kind.Version.Filter.t [@with Dancelor_common.Formula.t := Formula.t;]
       ]
       [@@deriving qcheck2]
     end
   end
 
   module Dance = struct
-    type t = [%import: Common.Kind.Dance.t]
+    type t = [%import: Dancelor_common.Kind.Dance.t]
 
     let gen =
       let open Gen in
-      let open Common.Kind.Dance in
+      let open Dancelor_common.Kind.Dance in
       sized @@
       fix @@ fun self ->
       function
@@ -199,11 +199,11 @@ module Kind = struct
             ]
 
     module Filter = struct
-      type predicate = [%import: Common.Kind.Dance.Filter.predicate [@with Common.Kind_version.Filter.t := Version.Filter.t;]
+      type predicate = [%import: Dancelor_common.Kind.Dance.Filter.predicate [@with Dancelor_common.Kind_version.Filter.t := Version.Filter.t;]
       ]
       [@@deriving qcheck2]
 
-      type t = [%import: Common.Kind.Dance.Filter.t [@with Common.Formula.t := Formula.t;]
+      type t = [%import: Dancelor_common.Kind.Dance.Filter.t [@with Dancelor_common.Formula.t := Formula.t;]
       ]
       [@@deriving qcheck2]
     end
@@ -217,43 +217,43 @@ module Model = struct
      first argument. *)
 
   module Source = struct
-    type t = Common.Model_builder.Core.Source.t
+    type t = Dancelor_common.Model_builder.Core.Source.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Person = struct
-    type t = Common.Model_builder.Core.Person.t
+    type t = Dancelor_common.Model_builder.Core.Person.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Dance = struct
-    type t = Common.Model_builder.Core.Dance.t
+    type t = Dancelor_common.Model_builder.Core.Dance.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Tune = struct
-    type t = Common.Model_builder.Core.Tune.t
+    type t = Dancelor_common.Model_builder.Core.Tune.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Version = struct
-    type t = Common.Model_builder.Core.Version.t
+    type t = Dancelor_common.Model_builder.Core.Version.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Set = struct
-    type t = Common.Model_builder.Core.Set.t
+    type t = Dancelor_common.Model_builder.Core.Set.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Book = struct
-    type t = Common.Model_builder.Core.Book.t
+    type t = Dancelor_common.Model_builder.Core.Book.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Any = struct
     module Type = struct
-      type t = [%import: Common.Model_builder.Core.Any.Type.t [@with Common.Formula.t := Formula.t;]
+      type t = [%import: Dancelor_common.Model_builder.Core.Any.Type.t [@with Dancelor_common.Formula.t := Formula.t;]
       ]
       [@@deriving qcheck2]
     end
@@ -262,210 +262,210 @@ end
 
 module Filter = struct
   module Person = struct
-    type predicate = [%import: Common.Filter_builder.Core.Person.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.Entry.id := Id.t;
-      Common.Model_builder.Core.Person.t := Model.Person.t;
-      Common.Formula_string.t := Formula_string.t;
+    type predicate = [%import: Dancelor_common.Filter_builder.Core.Person.predicate [@with Dancelor_common.Entry.Id.t := Id.t;
+      Dancelor_common.Entry.id := Id.t;
+      Dancelor_common.Model_builder.Core.Person.t := Model.Person.t;
+      Dancelor_common.Formula_string.t := Formula_string.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.Filter_builder.Core.Person.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Dancelor_common.Filter_builder.Core.Person.t [@with Dancelor_common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
 
   module Source = struct
-    type predicate = [%import: Common.Filter_builder.Core.Source.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.Entry.id := Id.t;
-      Common.Model_builder.Core.Person.t := Model.Person.t;
-      Common.Model_builder.Core.Source.t := Model.Source.t;
-      Common.Formula_string.t := Formula_string.t;
-      Common.Formula_list.t := Formula_list.t;
-      Common.Formula_entry.t := Formula_entry.t;
-      Common.Formula_entry.public := Formula_entry.public;
-      Common__Filter_builder__Core.Person.t := Person.t;
+    type predicate = [%import: Dancelor_common.Filter_builder.Core.Source.predicate [@with Dancelor_common.Entry.Id.t := Id.t;
+      Dancelor_common.Entry.id := Id.t;
+      Dancelor_common.Model_builder.Core.Person.t := Model.Person.t;
+      Dancelor_common.Model_builder.Core.Source.t := Model.Source.t;
+      Dancelor_common.Formula_string.t := Formula_string.t;
+      Dancelor_common.Formula_list.t := Formula_list.t;
+      Dancelor_common.Formula_entry.t := Formula_entry.t;
+      Dancelor_common.Formula_entry.public := Formula_entry.public;
+      Dancelor_common__Filter_builder__Core.Person.t := Person.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.Filter_builder.Core.Source.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Dancelor_common.Filter_builder.Core.Source.t [@with Dancelor_common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
 
   module Dance = struct
-    type predicate = [%import: Common.Filter_builder.Core.Dance.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.Entry.id := Id.t;
-      Common.Model_builder.Core.Person.t := Model.Person.t;
-      Common.Model_builder.Core.Dance.t := Model.Dance.t;
-      Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-      Common.Formula_string.t := Formula_string.t;
-      Common.Formula_list.t := Formula_list.t;
-      Common.Formula_entry.t := Formula_entry.t;
-      Common.Formula_entry.public := Formula_entry.public;
-      Common__Filter_builder__Core.Person.t := Person.t;
+    type predicate = [%import: Dancelor_common.Filter_builder.Core.Dance.predicate [@with Dancelor_common.Entry.Id.t := Id.t;
+      Dancelor_common.Entry.id := Id.t;
+      Dancelor_common.Model_builder.Core.Person.t := Model.Person.t;
+      Dancelor_common.Model_builder.Core.Dance.t := Model.Dance.t;
+      Dancelor_common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+      Dancelor_common.Formula_string.t := Formula_string.t;
+      Dancelor_common.Formula_list.t := Formula_list.t;
+      Dancelor_common.Formula_entry.t := Formula_entry.t;
+      Dancelor_common.Formula_entry.public := Formula_entry.public;
+      Dancelor_common__Filter_builder__Core.Person.t := Person.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.Filter_builder.Core.Dance.t [@with Common.Formula.t := Formula.t]
+    type t = [%import: Dancelor_common.Filter_builder.Core.Dance.t [@with Dancelor_common.Formula.t := Formula.t]
     ]
     [@@deriving qcheck2]
   end
 
   module Tune = struct
-    type predicate = [%import: Common.Filter_builder.Core.Tune.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.Model_builder.Core.Person.t := Model.Person.t;
-      Common.Model_builder.Core.Tune.t := Model.Tune.t;
-      Common.Model_builder.Core.Dance.t := Model.Dance.t;
-      Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
-      Common.Formula_string.t := Formula_string.t;
-      Common.Formula_list.t := Formula_list.t;
-      Common.Formula_entry.t := Formula_entry.t;
-      Common.Formula_entry.public := Formula_entry.public;
-      Common__Filter_builder__Core.Person.t := Person.t;
-      Common__Filter_builder__Core.Dance.t := Dance.t;
+    type predicate = [%import: Dancelor_common.Filter_builder.Core.Tune.predicate [@with Dancelor_common.Entry.Id.t := Id.t;
+      Dancelor_common.Model_builder.Core.Person.t := Model.Person.t;
+      Dancelor_common.Model_builder.Core.Tune.t := Model.Tune.t;
+      Dancelor_common.Model_builder.Core.Dance.t := Model.Dance.t;
+      Dancelor_common.Kind.Base.Filter.t := Kind.Base.Filter.t;
+      Dancelor_common.Formula_string.t := Formula_string.t;
+      Dancelor_common.Formula_list.t := Formula_list.t;
+      Dancelor_common.Formula_entry.t := Formula_entry.t;
+      Dancelor_common.Formula_entry.public := Formula_entry.public;
+      Dancelor_common__Filter_builder__Core.Person.t := Person.t;
+      Dancelor_common__Filter_builder__Core.Dance.t := Dance.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.Filter_builder.Core.Tune.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Dancelor_common.Filter_builder.Core.Tune.t [@with Dancelor_common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
 
   module Version = struct
-    type predicate = [%import: Common.Filter_builder.Core.Version.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.Model_builder.Core.Version.t := Model.Version.t;
-      Common.Model_builder.Core.Tune.t := Model.Tune.t;
-      Common.Model_builder.Core.Source.t := Model.Source.t;
-      Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
-      Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
-      Common.Formula_string.t := Formula_string.t;
-      Common.Formula_list.t := Formula_list.t;
-      Common.Formula_entry.t := Formula_entry.t;
-      Common.Formula_entry.public := Formula_entry.public;
-      Common__Filter_builder__Core.Source.t := Source.t;
-      Common__Filter_builder__Core.Person.t := Person.t;
-      Common__Filter_builder__Core.Dance.t := Dance.t;
-      Common__Filter_builder__Core.Tune.t := Tune.t;
+    type predicate = [%import: Dancelor_common.Filter_builder.Core.Version.predicate [@with Dancelor_common.Entry.Id.t := Id.t;
+      Dancelor_common.Model_builder.Core.Version.t := Model.Version.t;
+      Dancelor_common.Model_builder.Core.Tune.t := Model.Tune.t;
+      Dancelor_common.Model_builder.Core.Source.t := Model.Source.t;
+      Dancelor_common.Kind.Base.Filter.t := Kind.Base.Filter.t;
+      Dancelor_common.Kind.Version.Filter.t := Kind.Version.Filter.t;
+      Dancelor_common.Formula_string.t := Formula_string.t;
+      Dancelor_common.Formula_list.t := Formula_list.t;
+      Dancelor_common.Formula_entry.t := Formula_entry.t;
+      Dancelor_common.Formula_entry.public := Formula_entry.public;
+      Dancelor_common__Filter_builder__Core.Source.t := Source.t;
+      Dancelor_common__Filter_builder__Core.Person.t := Person.t;
+      Dancelor_common__Filter_builder__Core.Dance.t := Dance.t;
+      Dancelor_common__Filter_builder__Core.Tune.t := Tune.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.Filter_builder.Core.Version.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Dancelor_common.Filter_builder.Core.Version.t [@with Dancelor_common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
 
   module Set = struct
-    type predicate = [%import: Common.Filter_builder.Core.Set.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.Model_builder.Core.Version.t := Model.Version.t;
-      Common.Model_builder.Core.Person.t := Model.Person.t;
-      Common.Model_builder.Core.Set.t := Model.Set.t;
-      Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
-      Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
-      Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-      Common.Formula_list.t := Formula_list.t;
-      Common.Formula_string.t := Formula_string.t;
-      Common.Formula_entry.t := Formula_entry.t;
-      Common.Formula_entry.public := Formula_entry.public;
-      Common.Formula_user.t := Formula_user.t;
-      Common.Entry.User.t := Entry.User.t;
-      Common__Filter_builder__Core.Person.t := Person.t;
-      Common__Filter_builder__Core.Version.t := Version.t;
-      Common__Filter_builder__Core.User.t := User.t;
+    type predicate = [%import: Dancelor_common.Filter_builder.Core.Set.predicate [@with Dancelor_common.Entry.Id.t := Id.t;
+      Dancelor_common.Model_builder.Core.Version.t := Model.Version.t;
+      Dancelor_common.Model_builder.Core.Person.t := Model.Person.t;
+      Dancelor_common.Model_builder.Core.Set.t := Model.Set.t;
+      Dancelor_common.Kind.Base.Filter.t := Kind.Base.Filter.t;
+      Dancelor_common.Kind.Version.Filter.t := Kind.Version.Filter.t;
+      Dancelor_common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+      Dancelor_common.Formula_list.t := Formula_list.t;
+      Dancelor_common.Formula_string.t := Formula_string.t;
+      Dancelor_common.Formula_entry.t := Formula_entry.t;
+      Dancelor_common.Formula_entry.public := Formula_entry.public;
+      Dancelor_common.Formula_user.t := Formula_user.t;
+      Dancelor_common.Entry.User.t := Entry.User.t;
+      Dancelor_common__Filter_builder__Core.Person.t := Person.t;
+      Dancelor_common__Filter_builder__Core.Version.t := Version.t;
+      Dancelor_common__Filter_builder__Core.User.t := User.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.Filter_builder.Core.Set.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Dancelor_common.Filter_builder.Core.Set.t [@with Dancelor_common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
 
   module Book = struct
-    type predicate = [%import: Common.Filter_builder.Core.Book.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.Model_builder.Core.Version.t := Model.Version.t;
-      Common.Model_builder.Core.Person.t := Model.Person.t;
-      Common.Model_builder.Core.Book.t := Model.Book.t;
-      Common.Model_builder.Core.Set.t := Model.Set.t;
-      Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
-      Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
-      Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-      Common.Formula_list.t := Formula_list.t;
-      Common.Formula_string.t := Formula_string.t;
-      Common.Formula_entry.t := Formula_entry.t;
-      Common.Formula_entry.public := Formula_entry.public;
-      Common.Formula_entry.private_ := Formula_entry.private_;
-      Common.Entry.User.t := Entry.User.t;
-      Common.Formula_user.t := Formula_user.t;
-      Common__Filter_builder__Core.Person.t := Person.t;
-      Common__Filter_builder__Core.Version.t := Version.t;
-      Common__Filter_builder__Core.Set.t := Set.t;
-      Common__Filter_builder__Core.User.t := User.t;
+    type predicate = [%import: Dancelor_common.Filter_builder.Core.Book.predicate [@with Dancelor_common.Entry.Id.t := Id.t;
+      Dancelor_common.Model_builder.Core.Version.t := Model.Version.t;
+      Dancelor_common.Model_builder.Core.Person.t := Model.Person.t;
+      Dancelor_common.Model_builder.Core.Book.t := Model.Book.t;
+      Dancelor_common.Model_builder.Core.Set.t := Model.Set.t;
+      Dancelor_common.Kind.Base.Filter.t := Kind.Base.Filter.t;
+      Dancelor_common.Kind.Version.Filter.t := Kind.Version.Filter.t;
+      Dancelor_common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+      Dancelor_common.Formula_list.t := Formula_list.t;
+      Dancelor_common.Formula_string.t := Formula_string.t;
+      Dancelor_common.Formula_entry.t := Formula_entry.t;
+      Dancelor_common.Formula_entry.public := Formula_entry.public;
+      Dancelor_common.Formula_entry.private_ := Formula_entry.private_;
+      Dancelor_common.Entry.User.t := Entry.User.t;
+      Dancelor_common.Formula_user.t := Formula_user.t;
+      Dancelor_common__Filter_builder__Core.Person.t := Person.t;
+      Dancelor_common__Filter_builder__Core.Version.t := Version.t;
+      Dancelor_common__Filter_builder__Core.Set.t := Set.t;
+      Dancelor_common__Filter_builder__Core.User.t := User.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.Filter_builder.Core.Book.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Dancelor_common.Filter_builder.Core.Book.t [@with Dancelor_common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
 
   module User = struct
-    type predicate = [%import: Common.Filter_builder.Core.User.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.Model_builder.Core.Version.t := Model.Version.t;
-      Common.Model_builder.Core.Person.t := Model.Person.t;
-      Common.Model_builder.Core.User.t := Model.User.t;
-      Common.Model_builder.Core.Set.t := Model.Set.t;
-      Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
-      Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
-      Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-      Common.Formula_list.t := Formula_list.t;
-      Common.Formula_string.t := Formula_string.t;
-      Common.Formula_entry.t := Formula_entry.t;
-      Common.Formula_entry.public := Formula_entry.public;
-      Common.Formula_entry.private_ := Formula_entry.private_;
-      Common.Entry.User.t := Entry.User.t;
-      Common.Formula_user.t := Formula_user.t;
-      Common__Filter_builder__Core.Person.t := Person.t;
-      Common__Filter_builder__Core.Version.t := Version.t;
-      Common__Filter_builder__Core.Set.t := Set.t;
-      Common__Filter_builder__Core.User.t := User.t;
+    type predicate = [%import: Dancelor_common.Filter_builder.Core.User.predicate [@with Dancelor_common.Entry.Id.t := Id.t;
+      Dancelor_common.Model_builder.Core.Version.t := Model.Version.t;
+      Dancelor_common.Model_builder.Core.Person.t := Model.Person.t;
+      Dancelor_common.Model_builder.Core.User.t := Model.User.t;
+      Dancelor_common.Model_builder.Core.Set.t := Model.Set.t;
+      Dancelor_common.Kind.Base.Filter.t := Kind.Base.Filter.t;
+      Dancelor_common.Kind.Version.Filter.t := Kind.Version.Filter.t;
+      Dancelor_common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+      Dancelor_common.Formula_list.t := Formula_list.t;
+      Dancelor_common.Formula_string.t := Formula_string.t;
+      Dancelor_common.Formula_entry.t := Formula_entry.t;
+      Dancelor_common.Formula_entry.public := Formula_entry.public;
+      Dancelor_common.Formula_entry.private_ := Formula_entry.private_;
+      Dancelor_common.Entry.User.t := Entry.User.t;
+      Dancelor_common.Formula_user.t := Formula_user.t;
+      Dancelor_common__Filter_builder__Core.Person.t := Person.t;
+      Dancelor_common__Filter_builder__Core.Version.t := Version.t;
+      Dancelor_common__Filter_builder__Core.Set.t := Set.t;
+      Dancelor_common__Filter_builder__Core.User.t := User.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.Filter_builder.Core.User.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Dancelor_common.Filter_builder.Core.User.t [@with Dancelor_common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
 
   module Any = struct
-    type predicate = [%import: Common.Filter_builder.Core.Any.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.Model_builder.Core.Version.t := Model.Version.t;
-      Common.Model_builder.Core.Person.t := Model.Person.t;
-      Common.Model_builder.Core.Tune.t := Model.Tune.t;
-      Common.Model_builder.Core.Dance.t := Model.Dance.t;
-      Common.Model_builder.Core.Set.t := Model.Set.t;
-      Common.Model_builder.Core.Book.t := Model.Book.t;
-      Common.Model_builder.Core.Source.t := Model.Source.t;
-      Common.Model_builder.Core.User.t := Entry.User.t;
-      Common.Model_builder.Core.Any.Type.t := Model.Any.Type.t;
-      Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
-      Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
-      Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-      Common.Formula.t := Formula.t;
-      Common.Formula_entry.t := Formula_entry.t;
-      Common.Formula_entry.gen := Formula_entry.gen;
-      Common.Formula_entry.public := Formula_entry.public;
-      Common.Formula_entry.private_ := Formula_entry.private_;
-      Common__Filter_builder__Core.Source.t := Source.t;
-      Common__Filter_builder__Core.Person.t := Person.t;
-      Common__Filter_builder__Core.Dance.t := Dance.t;
-      Common__Filter_builder__Core.Book.t := Book.t;
-      Common__Filter_builder__Core.Set.t := Set.t;
-      Common__Filter_builder__Core.Tune.t := Tune.t;
-      Common__Filter_builder__Core.Version.t := Version.t;
-      Common__Filter_builder__Core.User.t := User.t;
+    type predicate = [%import: Dancelor_common.Filter_builder.Core.Any.predicate [@with Dancelor_common.Entry.Id.t := Id.t;
+      Dancelor_common.Model_builder.Core.Version.t := Model.Version.t;
+      Dancelor_common.Model_builder.Core.Person.t := Model.Person.t;
+      Dancelor_common.Model_builder.Core.Tune.t := Model.Tune.t;
+      Dancelor_common.Model_builder.Core.Dance.t := Model.Dance.t;
+      Dancelor_common.Model_builder.Core.Set.t := Model.Set.t;
+      Dancelor_common.Model_builder.Core.Book.t := Model.Book.t;
+      Dancelor_common.Model_builder.Core.Source.t := Model.Source.t;
+      Dancelor_common.Model_builder.Core.User.t := Entry.User.t;
+      Dancelor_common.Model_builder.Core.Any.Type.t := Model.Any.Type.t;
+      Dancelor_common.Kind.Base.Filter.t := Kind.Base.Filter.t;
+      Dancelor_common.Kind.Version.Filter.t := Kind.Version.Filter.t;
+      Dancelor_common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+      Dancelor_common.Formula.t := Formula.t;
+      Dancelor_common.Formula_entry.t := Formula_entry.t;
+      Dancelor_common.Formula_entry.gen := Formula_entry.gen;
+      Dancelor_common.Formula_entry.public := Formula_entry.public;
+      Dancelor_common.Formula_entry.private_ := Formula_entry.private_;
+      Dancelor_common__Filter_builder__Core.Source.t := Source.t;
+      Dancelor_common__Filter_builder__Core.Person.t := Person.t;
+      Dancelor_common__Filter_builder__Core.Dance.t := Dance.t;
+      Dancelor_common__Filter_builder__Core.Book.t := Book.t;
+      Dancelor_common__Filter_builder__Core.Set.t := Set.t;
+      Dancelor_common__Filter_builder__Core.Tune.t := Tune.t;
+      Dancelor_common__Filter_builder__Core.Version.t := Version.t;
+      Dancelor_common__Filter_builder__Core.User.t := User.t;
       ]
     ]
     [@@deriving qcheck2]
-    type t = [%import: Common.Filter_builder.Core.Any.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Dancelor_common.Filter_builder.Core.Any.t [@with Dancelor_common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end

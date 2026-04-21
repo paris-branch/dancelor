@@ -2,7 +2,7 @@ open Nes
 
 (** {2 Common tests and assertions} *)
 
-include Common.Permission_builder
+include Dancelor_common.Permission_builder
 include Make(Model.User)
 
 (** {3 Tests} *)

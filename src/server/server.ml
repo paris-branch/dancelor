@@ -1,7 +1,7 @@
 open Cohttp_lwt_unix
 
 open Nes
-open Common
+open Dancelor_common
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server": Logs.LOG)
 
@@ -10,7 +10,7 @@ let log_exn ~msg exn =
   let repr =
     match exn with
     | Database.Error.Exn error ->
-      "Common.Error." ^ Database.Error.show error
+      "Dancelor_common.Error." ^ Database.Error.show error
     | exn -> Printexc.to_string exn
   in
   m "%a" (Format.pp_multiline_sensible msg) (repr ^ "\n" ^ (Printexc.get_backtrace ()))

@@ -1,5 +1,5 @@
 open Nes
-open Common
+open Dancelor_common
 
 let get env id =
   match Database.Tune.get id with

@@ -25,4 +25,4 @@ let of_char c =
   | 'e' -> E
   | 'f' -> F
   | 'g' -> G
-  | _ -> failwith "Common.Music.note_of_char"
+  | _ -> failwith "Dancelor_common.Music.note_of_char"

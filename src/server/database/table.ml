@@ -1,5 +1,5 @@
 open Nes
-open Common
+open Dancelor_common
 
 (** {2 Type of a model} *)
 

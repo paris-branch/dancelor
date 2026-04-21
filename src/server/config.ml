@@ -5,7 +5,7 @@ module Log = (val Logs.src_log @@ Logs.Src.create "server.config": Logs.LOG)
 type t = {
   database: string;
   init_only: bool;
-  loglevel: Common.Logger.loglevel_map;
+  loglevel: Dancelor_common.Logger.loglevel_map;
   pid_file: string;
   port: int;
   share: string;

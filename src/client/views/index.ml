@@ -56,8 +56,8 @@ let create () =
           S.from_lwt (Utils.Tables.placeholder ~rows: length ()) @@
             let filter =
               (* FIXME: There should be a more direct way to do this *)
-              let newest () = Common.Formula_entry.(meta' newest') in
-              Common.Formula.or_l
+              let newest () = Dancelor_common.Formula_entry.(meta' newest') in
+              Dancelor_common.Formula.or_l
                 Filter.Any.[source' (newest ());
                 person' (newest ());
                 dance' (newest ());
@@ -68,7 +68,7 @@ let create () =
                 ]
             in
             let slice = Slice.make ~length () in
-            let%lwt results = snd <$> Madge_client.call_exn Common.Endpoints.Api.(route @@ Any Search) slice filter in
+            let%lwt results = snd <$> Madge_client.call_exn Dancelor_common.Endpoints.Api.(route @@ Any Search) slice filter in
             lwt [Utils.Tables.any results]
         );
       ];
@@ -94,7 +94,7 @@ let create () =
         faq_item ~id: "faq-scddb" ~question: "How is Dancelor different from the SCDDB?" [
           p [
             txt "The SCDDB (";
-            a ~a: [a_href Common.SCDDB.root] [txt "my.strathspey.org"];
+            a ~a: [a_href Dancelor_common.SCDDB.root] [txt "my.strathspey.org"];
             txt ") is the most comprehensive database of metadata for Scottish country ";
             txt "dancing, and we love it! ";
             txt "However, the SCDDB does not host sheet music. ";

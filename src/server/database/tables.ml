@@ -1,5 +1,5 @@
 open NesUnix
-open Common
+open Dancelor_common
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server.database.tables": Logs.LOG)
 

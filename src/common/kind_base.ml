@@ -44,7 +44,7 @@ let of_string s =
   | "p" | "polka" -> Polka
   | "j98" | "jig[9/8]" -> Jig_9_8
   | "o" | "other" -> Other
-  | _ -> invalid_arg "Common.Kind.Base.of_string"
+  | _ -> invalid_arg "Dancelor_common.Kind.Base.of_string"
 
 let of_string_opt s =
   try
@@ -61,9 +61,9 @@ let of_yojson = function
       try
         Ok (of_string s)
       with
-        | _ -> Error "Common.Kind.Base.of_yojson: not a valid base kind"
+        | _ -> Error "Dancelor_common.Kind.Base.of_yojson: not a valid base kind"
     )
-  | _ -> Error "Common.Kind.Base.of_yojson: not a JSON string"
+  | _ -> Error "Dancelor_common.Kind.Base.of_yojson: not a JSON string"
 
 let tempo = function
   | Jig -> ("4.", 104)
