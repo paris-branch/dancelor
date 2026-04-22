@@ -86,7 +86,7 @@ let call_nix fun_ json =
        resulting expression and cache it. *)
     Lwt_io.with_temp_file @@ fun (fname, ochan) ->
     Lwt_io.write ochan (Yojson.Safe.to_string json);%lwt
-    Lwt_process.pread ("", [|"nix"; "store"; "add"; "--name"; "renderer-input.json"; "--mode"; "flat"; fname|])
+    Lwt_process.pread ("", [|"nix"; "--extra-experimental-features"; "nix-command"; "store"; "add"; "--name"; "renderer-input.json"; "--mode"; "flat"; fname|])
   in
   lwt @@
     Job.Expr (
