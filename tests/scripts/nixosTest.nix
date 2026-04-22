@@ -11,7 +11,6 @@
 
       services.dancelor = {
         enable = true;
-        databaseRepositoryFile = "FIXME";
         listeningPort = 8080;
         githubTokenFile = "${pkgs.writeText "github-token" "dummy github token"}";
         githubRepository = "github.com/paris-branch/dancelor";
