@@ -111,6 +111,10 @@ let callback _ request body =
     else
       lwt_unit
 
+  let run_migrations () =
+    Logger.bracket_lwt (module Log) "applying migrations" @@ fun () ->
+    Database.Migrations.apply_migrations ()
+
   let initialise_database () =
     Logger.bracket_lwt (module Log) "initialising database" @@ fun () ->
     Database.Tables.initialise ()
@@ -154,6 +158,7 @@ let callback _ request body =
       read_configuration ();%lwt
       initialise_logs ();
       write_pid ();%lwt
+      run_migrations ();%lwt
       initialise_database ();%lwt
       check_init_only ();
       start_routines ();
