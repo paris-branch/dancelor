@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -eufo pipefail
+
+MARIADB_PID=$MYSQL_HOME/mariadb.pid
+
+if [ -f "$MARIADB_PID" ] && kill -0 "$(cat "$MARIADB_PID")" 2>/dev/null; then
+    printf 'Stopping MariaDB...'
+    mariadb-admin shutdown
+    printf ' done.\n'
+else
+    printf 'MariaDB is not running.\n'
+fi

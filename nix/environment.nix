@@ -40,6 +40,19 @@
         topiary-latest = gitHookFor myTopiaryConfig // {
           enable = true;
         };
+
+        sqlfluff = {
+          enable = true;
+          name = "sqlfluff";
+          entry = "${../scripts/sqlfluff-fix} --sqlfluff ${pkgs.sqlfluff}/bin/sqlfluff";
+          files = "\\.sql$";
+          excludes = [
+            "^src/server/database/schema\\.sql$"
+            "^tests/database\\.sql$"
+          ];
+          language = "system";
+          pass_filenames = true;
+        };
       };
 
       devShells.default = pkgs.mkShell {
@@ -55,7 +68,11 @@
           ])
           ## Development environment
           ++ [ (gitHookBinFor myTopiaryConfig) ]
-          ++ [ pkgs.watchexec ]
+          ++ (with pkgs; [
+            mariadb
+            sqlfluff
+            watchexec
+          ])
           ++ (with pkgs.ocamlPackages; [
             merlin
             ocaml-lsp # called `ocaml-lsp-server` in opam.
@@ -66,7 +83,10 @@
           ## System testing environment
           ++ (self.makeIntegrationCheckInputs pkgs);
         inputsFrom = [ self'.packages.dancelor ];
-        shellHook = config.pre-commit.installationScript;
+        shellHook = ''
+          ${config.pre-commit.installationScript}
+          export MYSQL_HOME="$(git rev-parse --show-toplevel)"/.mariadb
+        '';
         ## Dancelor runs Nix, and we want it to use the same `nixpkgs`. We
         ## expose the flake input `nixpkgs` as a channel in the Nix path.
         NIX_PATH = "nixpkgs=${inputs.nixpkgs}";

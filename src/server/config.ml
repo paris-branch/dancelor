@@ -2,15 +2,30 @@ open Nes
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server.config": Logs.LOG)
 
-type t = {
+type endpoint =
+  | Address of string * int
+  | Socket of string
+[@@deriving show {with_path = false}, yojson]
+
+type mariadb = {
+  endpoint: endpoint;
   database: string;
+  user: string;
+  password: string option;
+}
+[@@deriving show {with_path = false}, yojson]
+
+type database =
+  MariaDB of mariadb
+[@@deriving show {with_path = false}, yojson]
+
+type t = {
+  database: database;
   init_only: bool;
   loglevel: Dancelor_common.Logger.loglevel_map;
   pid_file: string;
   port: int;
   share: string;
-  sync_storage: bool;
-  write_storage: bool;
   github_token: string;
   github_token_file: string;
   github_repository: string;
@@ -31,7 +46,7 @@ let load_from_file filename =
   Log.debug (fun m -> m "Reading configuration from file %s" filename);
   let%lwt content = Lwt_io.with_file ~flags: [O_RDONLY] ~mode: Lwt_io.input filename Lwt_io.read in
   let content = Yojson.Safe.from_string content in
-  let config = match of_yojson content with Ok config -> config | Error msg -> failwithf "Could not parse config file: %s" msg in
+  let config = match of_yojson content with Ok config -> config | Error msg -> failwithf "Could not parse config file `%s`: %s" filename msg in
   let%lwt config =
     match config.github_token, config.github_token_file with
     | "", "" ->

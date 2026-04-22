@@ -33,5 +33,18 @@
           }
         ];
       };
+
+      checks.schema = pkgs.testers.runNixOSTest {
+        name = "schema";
+
+        imports = [
+          ../tests/schemaNixosTest.nix
+          {
+            nodes.machine = {
+              imports = [ self.nixosModules.dancelor ];
+            };
+          }
+        ];
+      };
     };
 }

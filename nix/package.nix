@@ -65,18 +65,21 @@
         version = "dev";
         src = ../.;
 
-        nativeBuildInputs =
-          (with pkgs.ocamlPackages; [
-            menhir
-            js_of_ocaml
-          ])
-          ++ (with pkgs; [ sassc ]);
+        nativeBuildInputs = [
+          self'.packages.sqlgg
+        ]
+        ++ (with pkgs.ocamlPackages; [
+          menhir
+          js_of_ocaml
+        ])
+        ++ (with pkgs; [ sassc ]);
 
         buildInputs = with pkgs.ocamlPackages; [
           self'.packages.nes
           self'.packages.madge
           self'.packages.ocaml-argon2
           self'.packages.prometheus-app
+          self'.packages.sqlgg
 
           cohttp
           cohttp-lwt
@@ -170,6 +173,45 @@
           description = "Client library for Prometheus monitoring";
           license = lib.licenses.asl20;
           maintainers = [ lib.maintainers.ulrikstrid ];
+        };
+      };
+
+      packages.sqlgg = pkgs.ocamlPackages.buildDunePackage rec {
+        pname = "sqlgg";
+        version = "20231201";
+        src = pkgs.fetchFromGitHub {
+          owner = "ygrek";
+          repo = pname;
+          rev = version;
+          sha256 = "sha256-o9+PwJVYxcm9+6CgU6y1w0Lj4/N/ajVP/nZE6PnrVhE=";
+        };
+        nativeBuildInputs = with pkgs.ocamlPackages; [
+          menhir
+        ];
+        buildInputs = with pkgs.ocamlPackages; [
+          self'.packages.mybuild
+          extlib
+          integers
+          odoc
+          ounit
+          ppx_deriving
+          yojson
+        ];
+        propagatedBuildInputs = [
+          pkgs.ocamlPackages.mariadb
+          pkgs.mariadb
+        ];
+      };
+
+      ## NOTE: Dependency of sqlgg.
+      packages.mybuild = pkgs.ocamlPackages.buildDunePackage rec {
+        pname = "mybuild";
+        version = "7";
+        src = pkgs.fetchFromGitHub {
+          owner = "ygrek";
+          repo = pname;
+          rev = "v${version}";
+          sha256 = "sha256-3NBu+8orypL7I8PBU7trI5DA4kbtg8wA/qzyCLUUWYM=";
         };
       };
     };

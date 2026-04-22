@@ -15,11 +15,6 @@
       options.services.dancelor = {
         enable = lib.mkEnableOption "Enable the Dancelor service";
 
-        databaseRepositoryFile = lib.mkOption {
-          type = lib.types.str;
-          description = "Path to a file that contains the link to the database repository.";
-        };
-
         listeningPort = lib.mkOption {
           type = lib.types.int;
           default = 6872;
@@ -79,71 +74,27 @@
           inherit (pkgs) writeText writeShellApplication;
           inherit (pkgs.stdenv.hostPlatform) system;
 
-          stateDir = "/var/lib/dancelor";
-          databaseDir = "${stateDir}/database";
-
-          ## Part of the `init-dancelor` process that runs as the Dancelor user.
-          init-dancelor-as-dancelor = writeShellApplication {
-            name = "init-dancelor";
-            runtimeInputs = with pkgs; [ git ];
-            excludeShellChecks = [ "SC2016" ];
-            text =
-              if cfg.testMode then
-                ''
-                  ln -sf ${../tests/database} ${databaseDir}
-                ''
-              else
-                ''
-                  ## If the repository does not exist, then we clone it.
-                  if ! [ -e ${databaseDir} ]; then
-                    echo "Cloning the repository to ${databaseDir}..."
-                    git clone "$(cat ${cfg.databaseRepositoryFile})" ${databaseDir}
-                    echo 'done.'
-                  fi
-                  cd ${databaseDir} 
-                  ## Once the repository exists and is a Git repository, we
-                  ## configure it. Most of these will not change, but they might
-                  ## sometimes (in particular the repository) and it will not hurt
-                  ## to do that again.
-                  if [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = true ]; then
-                    (
-                      echo 'Setting up the git repository...'
-                      echo '  - username...'
-                      git config user.name Dancelor
-                      echo '  - email...'
-                      git config user.email dancelor@dancelor.org
-                      echo '  - remote...'
-                      git remote set-url origin "$(cat ${cfg.databaseRepositoryFile})"
-                      echo 'done.'
-                    )
-                  else
-                    echo "The directory '${databaseDir}' exists but is not a Git repository." >&2
-                    exit 1
-                  fi
-                '';
-          };
-
-          ## The actual `init-dancelor` process, just a small wrapper around the
-          ## previous one.
-          init-dancelor = writeShellApplication {
-            name = "init-dancelor";
-            text = ''
-              mkdir -p ${stateDir}
-              chown -R dancelor:dancelor ${stateDir}
-              ${pkgs.su}/bin/su -s /bin/sh dancelor -c ${init-dancelor-as-dancelor}/bin/init-dancelor
-            '';
-          };
+          socketPath = "/run/mysqld/mysqld.sock";
 
           run-dancelor = writeShellApplication {
-            name = "run-dancelor";
+            name = "dancelor";
             text = ''
-              ${self.apps.${system}.dancelor.program} ${
+              exec ${self.apps.${system}.dancelor.program} ${
                 writeText "dancelor-config" (toJSON {
                   port = cfg.listeningPort;
-                  database = databaseDir;
+                  database = [
+                    "MariaDB"
+                    {
+                      endpoint = [
+                        "Socket"
+                        socketPath
+                      ];
+                      database = "dancelor";
+                      user = "dancelor";
+                      password = null;
+                    }
+                  ];
                   share = "${self.packages.${system}.dancelor}/share/dancelor";
-                  sync_storage = !cfg.testMode;
-                  write_storage = !cfg.testMode;
                   github_token = "";
                   github_token_file = cfg.githubTokenFile;
                   github_repository = cfg.githubRepository;
@@ -163,38 +114,51 @@
 
         in
         {
-          ## Create a user and a group `dancelor:dancelor`.
+          ## User and group `dancelor:dancelor`.
           users.users.dancelor = {
             isSystemUser = true;
             group = "dancelor";
           };
           users.groups.dancelor = { };
 
-          ## Initialisation service. Runs once as root so as to create the right
-          ## directories for the actual service which will run as `dancelor`.
-          systemd.services.dancelor-init = {
-            wantedBy = [ "multi-user.target" ];
-            serviceConfig = {
-              ExecStart = "${init-dancelor}/bin/init-dancelor";
-              Type = "oneshot";
-            };
-          };
-
-          ## Actual service that runs `dancelor`. Requires the service above. Runs as
-          ## `dancelor:dancelor`.
+          ## Systemd service running Dancelor and restarting it constantly.
+          ##
           systemd.services.dancelor = {
             after = [
               "network.target"
-              "dancelor-init.service"
+              "mysql.service"
             ];
-            requires = [ "dancelor-init.service" ];
+            requires = [ "mysql.service" ];
             wantedBy = [ "multi-user.target" ];
             serviceConfig = {
-              ExecStart = "${run-dancelor}/bin/run-dancelor";
+              Type = "notify";
+              NotifyAccess = "all";
+              ExecStart = "${run-dancelor}/bin/dancelor";
               Restart = "always";
               User = "dancelor";
               Group = "dancelor";
             };
+          };
+
+          ## MariaDB with a `dancelor` database and user
+          ##
+          ## NOTE: We might want to leave some of this configuration to the
+          ## client code, but since it's mostly us we can keep it for now.
+          ## Better over-specify and have Nix catch our mistakes later.
+          ##
+          services.mysql = {
+            enable = true;
+            package = pkgs.mariadb;
+            ensureDatabases = [ "dancelor" ];
+            ensureUsers = [
+              {
+                name = "dancelor";
+                ensurePermissions = {
+                  "dancelor.*" = "ALL PRIVILEGES";
+                };
+              }
+            ];
+            settings.mysqld.socket = socketPath;
           };
         }
       );

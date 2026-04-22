@@ -1,6 +1,8 @@
 open Nes
 open Dancelor_common
 
+module Queries_sql = Queries_sql.Sqlgg(Sqlgg_mariadb_lwt)
+
 (** {2 Type of a model} *)
 
 module type Model = sig
@@ -33,7 +35,7 @@ module type S = sig
 
   type t = value database_state
 
-  val load : unit -> unit Lwt.t
+  val load : Sqlgg_mariadb_lwt.Mariadb.t -> unit Lwt.t
   val list_dependency_problems : unit -> Error.t list
 
   val get : value Entry.id -> entry option
@@ -110,23 +112,35 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
 
   let (table : (value Entry.id, entry) Hashtbl.t) = Hashtbl.create 8
 
-  let load () =
+  let query_fold = function
+    | "book" -> Queries_sql.Fold.list_books
+    | "dance" -> Queries_sql.Fold.list_dances
+    | "person" -> Queries_sql.Fold.list_persons
+    | "set" -> Queries_sql.Fold.list_sets
+    | "source" -> Queries_sql.Fold.list_sources
+    | "tune" -> Queries_sql.Fold.list_tunes
+    | "user" -> Queries_sql.Fold.list_users
+    | "version" -> Queries_sql.Fold.list_versions
+    | _ -> assert false
+
+  let load db =
     Log.debug (fun m -> m "Loading table: %s" _key);
-    let load entry =
-      Log.debug (fun m -> m "Loading %s %s" _key entry);
-      Storage.read_entry_yaml Model._key entry "meta.yaml" >>= fun json ->
-      lwt @@
-        match Entry.of_yojson_no_id (Entry.Id.of_string_exn entry) Model.of_yojson Model.access_of_yojson json with
+    query_fold
+      Model._key
+      db
+      (fun ~id ~yaml () ->
+        Log.debug (fun m -> m "Loading %s %s" _key id);
+        let json = Storage.Json.from_yaml_string yaml in
+        match Entry.of_yojson_no_id (Entry.Id.of_string_exn id) Model.of_yojson Model.access_of_yojson json with
         | Ok model ->
           Globally_unique_id.register model ~wrap_any: Model.wrap_any;
           Hashtbl.add table (Entry.id model) model;
-          Log.debug (fun m -> m "Loaded %s %s" _key entry);
+          Log.debug (fun m -> m "Loaded %s %s" _key id);
         | Error msg ->
-          Log.err (fun m -> m "Could not unserialize %s > %s > %s: %s" Model._key entry "meta.yaml" msg);
+          Log.err (fun m -> m "Could not unserialize %s > %s > %s: %s" Model._key id "meta.yaml" msg);
           exit 1
-    in
-    let%lwt entries = Storage.list_entries Model._key in
-    Lwt_list.iter_s load entries;%lwt
+      )
+      ();%lwt
     Log.debug (fun m -> m "Loaded table: %s" _key);
     lwt_unit
 
@@ -158,7 +172,18 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
 
   let get_all () = Hashtbl.to_seq_values table
 
-  let create_or_update maybe_id model access =
+  let query_update = function
+    | "book" -> Queries_sql.update_book
+    | "dance" -> Queries_sql.update_dance
+    | "person" -> Queries_sql.update_person
+    | "set" -> Queries_sql.update_set
+    | "source" -> Queries_sql.update_source
+    | "tune" -> Queries_sql.update_tune
+    | "user" -> Queries_sql.update_user
+    | "version" -> Queries_sql.update_version
+    | _ -> assert false
+
+  let create_or_update db maybe_id model access =
     let (is_create, id, model) =
       match maybe_id with
       | None ->
@@ -179,11 +204,7 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
           (false, id, model)
     in
     let json = Entry.to_yojson_no_id Model.to_yojson Model.access_to_yojson model in
-    Storage.write_entry_yaml Model._key (Entry.Id.to_string id) "meta.yaml" json;%lwt
-    Storage.save_changes_on_entry
-      ~msg: (spf "%s %s / %s" (if is_create then "create" else "update") Model._key (Entry.Id.to_string id))
-      Model._key
-      (Entry.Id.to_string id);%lwt
+    let%lwt _ = query_update Model._key db ~id: (Entry.Id.to_string id) ~yaml: (Storage.Json.to_yaml_string json) in
     if is_create then
       (
         Globally_unique_id.register model ~wrap_any: Model.wrap_any;
@@ -193,20 +214,29 @@ module Make (Model : Model) : S with type value = Model.t and type access = Mode
       Hashtbl.replace table id model;
     lwt model
 
-  let create model access = create_or_update None model access
-  let update id model access = create_or_update (Some id) model access
+  (* FIXME: Disgusting to open a connection every time *)
+  let create model access = Connection.with_ @@ fun db -> create_or_update db None model access
+  let update id model access = Connection.with_ @@ fun db -> create_or_update db (Some id) model access
 
   let dependencies = List.map snd % Model.dependencies
+
+  let query_delete = function
+    | "book" -> Queries_sql.delete_book
+    | "dance" -> Queries_sql.delete_dance
+    | "person" -> Queries_sql.delete_person
+    | "set" -> Queries_sql.delete_set
+    | "source" -> Queries_sql.delete_source
+    | "tune" -> Queries_sql.delete_tune
+    | "user" -> Queries_sql.delete_user
+    | "version" -> Queries_sql.delete_version
+    | _ -> assert false
 
   let make_delete reverse_dependencies_of = fun id ->
     let rev_deps = reverse_dependencies_of id in
     match rev_deps with
     | Reverse_dependencies [] ->
-      Storage.delete_entry Model._key (Entry.Id.to_string id);%lwt
-      Storage.save_changes_on_entry
-        ~msg: (spf "delete %s / %s" Model._key (Entry.Id.to_string id))
-        Model._key
-        (Entry.Id.to_string id);%lwt
+      Connection.with_ @@ fun db ->
+      let%lwt _ = query_delete Model._key db ~id: (Entry.Id.to_string id) in
       Hashtbl.remove table id;
       lwt_unit
     | Reverse_dependencies ((one_key, one_id) :: _) ->

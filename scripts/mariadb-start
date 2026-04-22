@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+set -euCfo pipefail
+
+mkdir -p "$MYSQL_HOME"
+
+cat >| $MYSQL_HOME/my.cnf <<EOF
+[client]
+socket = $MYSQL_HOME/mariadb.sock
+
+[mariadb-client]
+database = dancelor
+
+[mysqld]
+socket = $MYSQL_HOME/mariadb.sock
+EOF
+
+MARIADB_PID=$MYSQL_HOME/mariadb.pid
+
+## Start MariaDB if it is not already running. `kill -0` checks whether the
+## process is alive without sending a signal.
+
+if [ -f "$MARIADB_PID" ] && kill -0 "$(cat "$MARIADB_PID")" 2>/dev/null; then
+    printf 'MariaDB is already running.\n'
+
+else
+    if [ -d "$MYSQL_HOME/data" ]; then
+        INITIALISED=true
+    else
+        INITIALISED=false
+    fi
+
+    if ! $INITIALISED; then
+        printf 'Initialising MariaDB data directory...'
+        mariadb-install-db --datadir="$MYSQL_HOME/data" >/dev/null
+        printf ' done.\n'
+    fi
+
+    printf 'Starting MariaDB...'
+    mariadbd-safe \
+        --datadir="$MYSQL_HOME/data" \
+        --socket="$MYSQL_HOME/mariadb.sock" \
+        --pid-file="$MARIADB_PID" \
+        --log-error="$MYSQL_HOME/mariadb.log" \
+        --skip-networking \
+        >/dev/null 2>&1 \
+        &
+    printf ' done.\n'
+
+    printf 'Waiting for MariaDB to be ready...'
+    until mariadb-admin ping --silent >/dev/null; do
+        printf '.'
+        sleep 1
+    done
+    printf ' done.\n'
+
+    ## If the database hadn't been initialised, then create the database and
+    ## user if they do not already exist, then import the snapshot of test data.
+
+    if ! $INITIALISED; then
+        printf 'Creating `dancelor` database and user...'
+        mariadb --database= <<EOF
+CREATE DATABASE IF NOT EXISTS dancelor;
+CREATE USER IF NOT EXISTS 'dancelor'@'localhost';
+GRANT ALL PRIVILEGES ON dancelor.* TO 'dancelor'@'localhost';
+EOF
+        printf ' done.\n'
+
+        printf 'Importing the snapshot of test data...'
+        mariadb < tests/database.sql
+        printf ' done.\n'
+    fi
+fi

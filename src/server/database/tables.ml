@@ -121,20 +121,9 @@ let reverse_dependencies_of (id : 'any Entry.Id.t) : Table.reverse_dependencies 
   )
 
 module Initialise = struct
-  let sync_db () =
-    if not (Config.get ()).init_only && (Config.get ()).sync_storage then
-      (
-        Log.debug (fun m -> m "Syncing database changes");
-        Storage.sync_changes ();%lwt
-        Log.info (fun m -> m "Done syncing database changes");
-        lwt_unit
-      )
-    else
-      lwt_unit
-
   let load_tables () =
     Logger.bracket_lwt (module Log) "loading all tables" @@ fun () ->
-    Lwt_list.iter_s (fun (module Table : Table.S) -> Table.load ()) tables
+    Lwt_list.iter_s (fun (module Table : Table.S) -> Connection.with_ Table.load) tables
 
   let check_dependency_problems () =
     Logger.bracket (module Log) "checking for dependency problems" @@ fun () ->
@@ -162,7 +151,6 @@ module Initialise = struct
     | Some problem -> Error.fail problem
 
   let initialise () =
-    sync_db ();%lwt
     load_tables ();%lwt
     check_dependency_problems ();
     lwt_unit

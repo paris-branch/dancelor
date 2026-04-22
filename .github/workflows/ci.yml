@@ -49,6 +49,10 @@ jobs:
           nix build .#checks.x86_64-linux.renderer-tune-snippets --print-build-logs --no-link
           nix build .#checks.x86_64-linux.renderer-book-pdf --print-build-logs --no-link
 
+      - name: Run schema tests
+        run: |
+          nix build .#checks.x86_64-linux.schema --print-build-logs --no-link
+
       ## NOTE: The following is the dirtiest hack: because integration tests are
       ## very flaky, we just run them a bunch of times in a row.
       - name: Run integration tests
