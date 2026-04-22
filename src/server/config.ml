@@ -2,8 +2,25 @@ open Nes
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server.config": Logs.LOG)
 
-type t = {
+type endpoint =
+  | Address of string * int
+  | Socket of string
+[@@deriving show {with_path = false}, yojson]
+
+type mariadb = {
+  endpoint: endpoint;
   database: string;
+  user: string;
+  password: string option;
+}
+[@@deriving show {with_path = false}, yojson]
+
+type database =
+  MariaDB of mariadb
+[@@deriving show {with_path = false}, yojson]
+
+type t = {
+  database: database;
   init_only: bool;
   loglevel: Dancelor_common.Logger.loglevel_map;
   pid_file: string;

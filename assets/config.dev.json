@@ -1,6 +1,14 @@
 {
   "port": 8080,
-  "database": "../dancelor-database",
+  "database": [
+    "MariaDB",
+    {
+      "endpoint": ["Socket", ".mariadb/mariadb.sock"],
+      "database": "dancelor",
+      "user": "dancelor",
+      "password": null
+    }
+  ],
   "share": "_build/install/default/share/dancelor",
   "sync_storage": false,
   "write_storage": false,
