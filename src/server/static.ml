@@ -1,6 +1,6 @@
 open Tyxml.Html
 open Nes
-open Common
+open Dancelor_common
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server.static": Logs.LOG)
 

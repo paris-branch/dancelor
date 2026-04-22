@@ -1,5 +1,5 @@
 open Nes
-open Common
+open Dancelor_common
 
 let rountrip_test ~name ~gen ~show ~to_string ~of_string ~equal =
   QCheck_alcotest.to_alcotest

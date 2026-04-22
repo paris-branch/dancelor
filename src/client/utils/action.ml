@@ -1,5 +1,5 @@
 open Nes
-open Common
+open Dancelor_common
 open Html
 
 let delete ?label_suffix ~onclick ~model () =
@@ -33,6 +33,6 @@ let scddb type_ id =
   Button.make_a
     ~label: "See on SCDDB"
     ~icon: (Action See_outside)
-    ~href: (S.const @@ Common.SCDDB.entry_uri type_ id)
+    ~href: (S.const @@ Dancelor_common.SCDDB.entry_uri type_ id)
     ~dropdown: true
     ()

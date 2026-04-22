@@ -1,4 +1,4 @@
-open Common
+open Dancelor_common
 open Html
 
 val works' :

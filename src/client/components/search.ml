@@ -48,7 +48,7 @@ module Search = struct
       {pagination; search_bar; min_characters}
 
   let render
-      ~(make_result : ?context: Common.Endpoints.Page.context S.t -> 'result -> Html_types.tr Html.elt)
+      ~(make_result : ?context: Dancelor_common.Endpoints.Page.context S.t -> 'result -> Html_types.tr Html.elt)
       ?(results_when_no_search = [])
       ?(attached_buttons = [])
       ?(show_table_headers = true)
@@ -141,7 +141,7 @@ module Search = struct
                             @@ fun (_, state) ->
                             match state with
                             | Results results ->
-                              let context = S.map Common.Endpoints.Page.in_search @@ Search_bar.text t.search_bar in
+                              let context = S.map Dancelor_common.Endpoints.Page.in_search @@ Search_bar.text t.search_bar in
                               List.map (make_result ~context) results
                             | Start_typing | Continue_typing | No_results | Errors _ ->
                               List.map make_result results_when_no_search

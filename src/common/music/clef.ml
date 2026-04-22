@@ -13,7 +13,7 @@ let of_string = function
   | "alto" -> Alto
   | "tenor" -> Tenor
   | "bass" -> Bass
-  | _ -> failwith "Common.Music.Clef.of_string"
+  | _ -> failwith "Dancelor_common.Music.Clef.of_string"
 
 let to_symbol = function
   | Treble -> "𝄞"
@@ -22,4 +22,4 @@ let to_symbol = function
   | Bass -> "𝄢"
 
 let to_yojson = Utils.to_yojson__of__to_string to_string
-let of_yojson = Utils.of_yojson__of__of_string of_string "Common.Music.Clef.of_yojson"
+let of_yojson = Utils.of_yojson__of__of_string of_string "Dancelor_common.Music.Clef.of_yojson"

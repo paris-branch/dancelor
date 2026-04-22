@@ -1,4 +1,4 @@
-open Common
+open Dancelor_common
 
 include Tables.Source
 let delete = make_delete Tables.reverse_dependencies_of

@@ -14,7 +14,7 @@ let to_string key = Pitch.to_string key.pitch ^ Mode.to_string key.mode
 let to_pretty_string key = Pitch.to_pretty_string key.pitch ^ Mode.to_string key.mode
 
 let of_string = function
-  | "" -> failwith "Common.Music.Key.of_string"
+  | "" -> failwith "Dancelor_common.Music.Key.of_string"
   | str ->
     (* FIXME: dirty; does not use mode_of_string *)
     let pitch_str, mode =
@@ -32,4 +32,4 @@ let of_string_opt s =
     | Failure _ -> None
 
 let to_yojson = Utils.to_yojson__of__to_string to_string
-let of_yojson = Utils.of_yojson__of__of_string of_string "Common.Music.Key.of_yojson"
+let of_yojson = Utils.of_yojson__of__of_string of_string "Dancelor_common.Music.Key.of_yojson"

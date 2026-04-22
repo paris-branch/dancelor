@@ -1,5 +1,5 @@
 open Nes
-open Common
+open Dancelor_common
 
 module Source = Source
 module Person = Person

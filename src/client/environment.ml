@@ -1,5 +1,5 @@
 open Nes
-open Common
+open Dancelor_common
 open Html
 
 type run_status = Running | Offline | Newer

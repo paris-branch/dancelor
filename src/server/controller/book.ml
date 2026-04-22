@@ -1,5 +1,5 @@
 open NesUnix
-open Common
+open Dancelor_common
 
 let get env id =
   match Database.Book.get id with

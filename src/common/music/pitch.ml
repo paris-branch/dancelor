@@ -12,7 +12,7 @@ let alteration_of_string = function
   | "b" -> Flat
   | "#" -> Sharp
   | "" -> Natural
-  | _ -> failwith "Common.Music.alteration_of_string"
+  | _ -> failwith "Dancelor_common.Music.alteration_of_string"
 
 type octave = int
 [@@deriving eq, ord, show {with_path = false}]
@@ -30,11 +30,11 @@ let octave_of_string = function
   | str ->
     let chr = str.[0] in
     if String.exists ((<>) chr) str then
-      failwith "Common.Music.octave_of_string";
+      failwith "Dancelor_common.Music.octave_of_string";
     match chr with
     | '\'' -> String.length str
     | ',' -> -(String.length str)
-    | _ -> failwith "Common.Music.octave_of_string"
+    | _ -> failwith "Dancelor_common.Music.octave_of_string"
 
 type t = {
   note: Note.t;
@@ -65,7 +65,7 @@ let to_lilypond_string pitch =
   octave_to_lilypond_string pitch.octave
 
 let of_string = function
-  | "" -> failwith "Common.Music.Pitch.of_string"
+  | "" -> failwith "Dancelor_common.Music.Pitch.of_string"
   | s ->
     let note_alteration_str, octave_str =
       (* FIXME: Dirty as fuck *)
@@ -88,7 +88,7 @@ let of_string = function
     }
 
 let to_yojson = Utils.to_yojson__of__to_string to_string
-let of_yojson = Utils.of_yojson__of__of_string of_string "Common.Music.Pitch.of_yojson"
+let of_yojson = Utils.of_yojson__of__of_string of_string "Dancelor_common.Music.Pitch.of_yojson"
 
 let to_int pitch =
   (
