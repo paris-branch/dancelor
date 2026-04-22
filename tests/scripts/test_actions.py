@@ -1,5 +1,6 @@
 import os
 import html
+import subprocess
 import yaml
 from selenium.webdriver.common.by import By
 
@@ -22,10 +23,14 @@ class TestActions():
     self.driver.get("http://localhost:8080/tune/qdod-ad7l-8gr2/xzzb-wasm-babe")
     self.driver.find_element(By.XPATH, "(//i[contains(@class, 'bi-three-dots-vertical')])[2]").click()
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Show LilyPond')]").click()
-    with open("tests/database/version/xzzb-wasm-babe/meta.yaml") as meta_file:
-      [kind, payload] = yaml.safe_load(meta_file)["value"]["content"]
-      assert (kind == "Monolithic")
-      expected = payload["lilypond"]
+    result = subprocess.run(
+      ["mariadb", "dancelor", "--skip-column-names", "--raw", "-e",
+       "SELECT `yaml` FROM `version` WHERE `id` = 'xzzb-wasm-babe'"],
+      capture_output=True, text=True, check=True,
+    )
+    [kind, payload] = yaml.safe_load(result.stdout)["value"]["content"]
+    assert (kind == "Monolithic")
+    expected = payload["lilypond"]
     shown = self.driver.find_element(By.XPATH, "//pre[contains(text(), 'clef')]").get_attribute("innerHTML")
     assert(html.unescape(shown.strip()) == expected.strip())
     ## TODO: also check the “copy to clipboard” functionality, but the following
