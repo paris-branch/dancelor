@@ -134,23 +134,35 @@ let callback _ request body =
     Log.info (fun m -> m "Dying");
     exit 1
 
+  let notify_systemd_ready () =
+    Sys.getenv_opt "NOTIFY_SOCKET"
+    |> Option.iter @@ fun path ->
+      Log.debug (fun m -> m "Notifying systemd");
+      let sock = Unix.socket Unix.PF_UNIX Unix.SOCK_DGRAM 0 in
+      let addr = Unix.ADDR_UNIX path in
+      let msg = "READY=1\n" in
+      ignore (Unix.sendto sock (Bytes.of_string msg) 0 (String.length msg) [] addr);
+      Unix.close sock;
+      Log.debug (fun m -> m "Done notifying systemd")
+
   let run_server () =
     Log.debug (fun m -> m "Starting server");
     catchall
       ~place: "the server"
       ~die: log_die
       @@ fun () ->
-      let server =
+      let wait_for_server =
         Server.create
           ~mode: (`TCP (`Port (Config.get ()).port))
           (Server.make ~callback ())
       in
       Log.info (fun m -> m "Server is up and running");
-      server
+      notify_systemd_ready ();
+      wait_for_server
 
   let () = Random.self_init ()
 
-  let main =
+  let main : unit Lwt.t =
     catchall
       ~place: "main"
       ~die: log_die

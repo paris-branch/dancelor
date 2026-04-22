@@ -79,7 +79,7 @@
           run-dancelor = writeShellApplication {
             name = "dancelor";
             text = ''
-              ${self.apps.${system}.dancelor.program} ${
+              exec ${self.apps.${system}.dancelor.program} ${
                 writeText "dancelor-config" (toJSON {
                   port = cfg.listeningPort;
                   database = [
@@ -131,6 +131,8 @@
             requires = [ "mysql.service" ];
             wantedBy = [ "multi-user.target" ];
             serviceConfig = {
+              Type = "notify";
+              NotifyAccess = "all";
               ExecStart = "${run-dancelor}/bin/dancelor";
               Restart = "always";
               User = "dancelor";
