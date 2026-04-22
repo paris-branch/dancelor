@@ -46,7 +46,10 @@
           name = "sqlfluff";
           entry = "${../scripts/sqlfluff-fix} --sqlfluff ${pkgs.sqlfluff}/bin/sqlfluff";
           files = "\\.sql$";
-          excludes = [ "^src/server/database/schema\\.sql$" ];
+          excludes = [
+            "^src/server/database/schema\\.sql$"
+            "^tests/database\\.sql$"
+          ];
           language = "system";
           pass_filenames = true;
         };

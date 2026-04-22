@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -eufo pipefail
+
+mariadb-dump \
+    --skip-dump-date \
+    dancelor
