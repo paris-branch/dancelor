@@ -10,8 +10,6 @@
     }
   ],
   "share": "_build/install/default/share/dancelor",
-  "sync_storage": false,
-  "write_storage": false,
   "github_token": "",
   "github_token_file": "",
   "github_repository": "paris-branch/test-dancelor",

@@ -26,8 +26,6 @@ type t = {
   pid_file: string;
   port: int;
   share: string;
-  sync_storage: bool;
-  write_storage: bool;
   github_token: string;
   github_token_file: string;
   github_repository: string;
