@@ -1,7 +1,5 @@
 open NesUnix
 
-module Log = (val Logs.src_log @@ Logs.Src.create "server.database.storage": Logs.LOG)
-
 module Json = struct
   include Json
 
