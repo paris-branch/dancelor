@@ -27,7 +27,7 @@ let delete env id =
     the tune agree on this publication *)
 let with_copyright_check env version f =
   let%lwt tune = Model.Version.tune' version in
-  let connected = Permission.is_connected env in
+  let%lwt connected = Permission.is_connected env in
   let%lwt composer_agrees =
     let%lwt composers = Model.Tune.composers' tune in
     let%lwt arrangers = Model.Version.arrangers' version in
@@ -98,11 +98,10 @@ include Search.Build(struct
 
   let get_all env =
     let can_get_and_copyright_ok version =
-      (&&) (Permission.can_get_public env version)
-      <$> (
-          ((<>) Endpoints.Version.Protected)
-          <$> with_copyright_check env version (const lwt_unit)
-        )
+      Lwt.l2
+        (&&)
+        (Permission.can_get_public env version)
+        (((<>) Endpoints.Version.Protected) <$> with_copyright_check env version (const lwt_unit))
     in
     let all = Database.Version.get_all () in
     let stream = (Lwt_stream.filter_s can_get_and_copyright_ok % Lwt_stream.of_list) <$> all in

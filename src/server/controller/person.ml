@@ -28,9 +28,10 @@ let for_user env id =
     match%lwt Database.Person.get (Entry.id person) with
     | None -> lwt_none
     | Some person ->
-      if Permission.can_get_public env person then
+      if%lwt Permission.can_get_public env person then
         lwt_some person
-      else lwt_none
+      else
+        lwt_none
 
 let create env person =
   Permission.assert_can_create_public env;%lwt
@@ -50,7 +51,7 @@ include Search.Build(struct
 
   let get_all env =
     let all = Database.Person.get_all () in
-    let stream = (Lwt_stream.filter (Permission.can_get_public env) % Lwt_stream.of_list) <$> all in
+    let stream = (Lwt_stream.filter_s (Permission.can_get_public env) % Lwt_stream.of_list) <$> all in
     Lwt_stream.flip_lwt stream
 
   let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_public Filter.Person.converter)

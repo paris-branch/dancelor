@@ -27,7 +27,7 @@ include Search.Build(struct
 
   let get_all env =
     let all = Database.Set.get_all () in
-    let stream = (Lwt_stream.filter (Permission.can_get_private env) % Lwt_stream.of_list) <$> all in
+    let stream = (Lwt_stream.filter_s (Permission.can_get_private env) % Lwt_stream.of_list) <$> all in
     Lwt_stream.flip_lwt stream
 
   let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_private Filter.Set.converter)

@@ -38,7 +38,7 @@ let pp fmt env =
     Datetime.pp
     !(env.session).expires
 
-let user env = Option.bind (user (!(env.session))) Database.User.get
+let user env = Option.fold (user (!(env.session))) ~some: Database.User.get ~none: lwt_none
 
 let register_response_cookie env cookie =
   env.response_cookies := cookie :: !(env.response_cookies)
@@ -68,7 +68,7 @@ let set_user env user =
 (** Helper to update the user in the database. *)
 let database_update_user user f =
   let%lwt new_user = f @@ Entry.value user in
-  ignore <$> Database.User.update (Entry.id user) new_user Entry.Access.Public
+  ignore <$> Database.User.update (Entry.id user) new_user
 
 (* Given an environment, check whether we should log in a user via their
    remember me token. This is meant to be used in {!make}, before returning a
@@ -86,7 +86,7 @@ let process_remember_me_cookie env remember_me_cookie =
       register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
       lwt_unit
     | Some id ->
-      match Database.User.get id with
+      match%lwt Database.User.get id with
       | None ->
         Log.info (fun m -> m "Rejecting because of wrong username.");
         register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
@@ -232,5 +232,5 @@ type cache_key = {
 let cache_key env =
   let {session_id; session; response_cookies = _} : t = env in
   let {user; expires} : session = !session in
-  let user = Option.bind user Database.User.get in
-    ({session_id; session = {user; expires}}: cache_key)
+  let%lwt user = Option.fold user ~some: Database.User.get ~none: lwt_none in
+  lwt ({session_id; session = {user; expires}}: cache_key)

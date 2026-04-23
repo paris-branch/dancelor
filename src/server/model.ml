@@ -1,7 +1,6 @@
-open Nes
 open Dancelor_common
 include Model_builder.Build(struct
-  let get_user = lwt % Database.User.get
+  let get_user = Database.User.get
   let get_book = Database.Book.get
   let get_dance = Database.Dance.get
   let get_person = Database.Person.get
