@@ -2,7 +2,7 @@ open Nes
 open Dancelor_common
 
 let get env id =
-  match Database.Person.get id with
+  match%lwt Database.Person.get id with
   | None -> Permission.reject_can_get ()
   | Some person ->
     Permission.assert_can_get_public env person;%lwt
@@ -11,18 +11,21 @@ let get env id =
 (** FIXME: This is really the ugliest hack. Basically, we are missing more and
     more a good database system; this should be an easy query. *)
 let for_user env id =
+  let%lwt all = Database.Person.get_all () in
   let%lwt person =
-    Database.Person.get_all ()
-    |> Monadise_lwt.monadise_1_1 Seq.find (fun person ->
+    Monadise_lwt.monadise_1_1
+      List.find_opt
+      (fun person ->
         match%lwt Model.Person.user' person with
         | None -> lwt_false
         | Some user -> lwt @@ Entry.Id.equal' (Entry.id user) id
       )
+      all
   in
   match person with
   | None -> lwt_none
   | Some person ->
-    match Database.Person.get (Entry.id person) with
+    match%lwt Database.Person.get (Entry.id person) with
     | None -> lwt_none
     | Some person ->
       if Permission.can_get_public env person then
@@ -31,11 +34,11 @@ let for_user env id =
 
 let create env person =
   Permission.assert_can_create_public env;%lwt
-  Database.Person.create person Entry.Access.Public
+  Database.Person.create person
 
 let update env id person =
   Permission.assert_can_update_public env =<< get env id;%lwt
-  Database.Person.update id person Entry.Access.Public
+  Database.Person.update id person
 
 let delete env id =
   Permission.assert_can_delete_public env =<< get env id;%lwt
@@ -46,7 +49,9 @@ include Search.Build(struct
   type filter = (Model.Person.t, Filter.Person.t) Formula_entry.public
 
   let get_all env =
-    Lwt_stream.filter (Permission.can_get_public env) @@ Lwt_stream.of_seq @@ Database.Person.get_all ()
+    let all = Database.Person.get_all () in
+    let stream = (Lwt_stream.filter (Permission.can_get_public env) % Lwt_stream.of_list) <$> all in
+    Lwt_stream.flip_lwt stream
 
   let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_public Filter.Person.converter)
   let filter_is_empty = (=) Formula.False

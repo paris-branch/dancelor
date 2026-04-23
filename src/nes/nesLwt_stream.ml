@@ -34,3 +34,6 @@ let return_lwt' promise =
     )
   else
     Lwt.return_none
+
+let flip_lwt promise =
+  concat (return_lwt' promise)
