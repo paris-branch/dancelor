@@ -1,7 +1,7 @@
 open Nes
 open Dancelor_common
 
-module Queries_sql = Queries_sql.Sqlgg(Sqlgg_mariadb_lwt)
+module Queries_sql = Queries_sql.Sqlgg(Connection.Sqlgg_mariadb_lwt)
 
 (** {2 Type of a model} *)
 
@@ -35,7 +35,7 @@ module type S = sig
 
   type t = value database_state
 
-  val load : Sqlgg_mariadb_lwt.Mariadb.t -> unit Lwt.t
+  val load : Connection.t -> unit Lwt.t
   val list_dependency_problems : unit -> Error.t list
 
   val get : value Entry.id -> entry option

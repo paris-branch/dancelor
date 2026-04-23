@@ -2,11 +2,11 @@ open Nes
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server.database.migrations": Logs.LOG)
 
-module Migrations_sql = Migrations_sql.Sqlgg(Sqlgg_mariadb_lwt)
+module Migrations_sql = Migrations_sql.Sqlgg(Connection.Sqlgg_mariadb_lwt)
 
 type migration = {
   name: string;
-  apply: (Sqlgg_mariadb_lwt.Mariadb.t -> unit Lwt.t);
+  apply: (Connection.t -> unit Lwt.t);
 }
 
 let make_custom name apply =

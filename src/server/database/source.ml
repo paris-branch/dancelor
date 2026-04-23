@@ -1,6 +1,6 @@
 open Dancelor_common
 
-module Queries_sql = Queries_sql.Sqlgg(Sqlgg_mariadb_lwt)
+module Queries_sql = Queries_sql.Sqlgg(Connection.Sqlgg_mariadb_lwt)
 
 include Tables.Source
 let delete = make_delete Tables.reverse_dependencies_of
