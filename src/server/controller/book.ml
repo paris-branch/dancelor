@@ -2,7 +2,7 @@ open NesUnix
 open Dancelor_common
 
 let get env id =
-  match Database.Book.get id with
+  match%lwt Database.Book.get id with
   | None -> Permission.reject_can_get ()
   | Some book ->
     Permission.assert_can_get_private env book;%lwt
@@ -25,7 +25,9 @@ include Search.Build(struct
   type filter = (Model.Book.t, Filter.Book.t) Formula_entry.private_
 
   let get_all env =
-    Lwt_stream.filter (Permission.can_get_private env) @@ Lwt_stream.of_seq @@ Database.Book.get_all ()
+    let all = Database.Book.get_all () in
+    let stream = (Lwt_stream.filter (Permission.can_get_private env) % Lwt_stream.of_list) <$> all in
+    Lwt_stream.flip_lwt stream
 
   let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_private Filter.Book.converter)
   let filter_is_empty = (=) Formula.False
