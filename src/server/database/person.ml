@@ -19,10 +19,9 @@ let get_all () =
   Person_sql.List.get_all db (fun ~id ~yaml -> of_yaml (Entry.Id.of_string_exn id) yaml)
 
 let create person =
-  let id = Table.Globally_unique_id.make () in
+  let%lwt id = Globally_unique_id.make Person in
   let person = Entry.make ~id ~access: Entry.Access.Public person in
   let json = Entry.to_yojson_no_id Model_builder.Core.Person.to_yojson Model_builder.Core.Person.access_to_yojson person in
-  Table.Globally_unique_id.register person ~wrap_any: Model_builder.Core.Any.person;
   let%lwt _ : int64 =
     Connection.with_ @@ fun db ->
     Person_sql.update db ~id: (Entry.Id.to_string id) ~yaml: (Storage.Json.to_yaml_string json)

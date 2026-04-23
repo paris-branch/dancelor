@@ -19,10 +19,9 @@ let get_all () =
   Dance_sql.List.get_all db (fun ~id ~yaml -> of_yaml (Entry.Id.of_string_exn id) yaml)
 
 let create dance =
-  let id = Table.Globally_unique_id.make () in
+  let%lwt id = Globally_unique_id.make Dance in
   let dance = Entry.make ~id ~access: Entry.Access.Public dance in
   let json = Entry.to_yojson_no_id Model_builder.Core.Dance.to_yojson Model_builder.Core.Dance.access_to_yojson dance in
-  Table.Globally_unique_id.register dance ~wrap_any: Model_builder.Core.Any.dance;
   let%lwt _ : int64 =
     Connection.with_ @@ fun db ->
     Dance_sql.update db ~id: (Entry.Id.to_string id) ~yaml: (Storage.Json.to_yaml_string json)

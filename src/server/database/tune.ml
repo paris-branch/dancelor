@@ -19,10 +19,9 @@ let get_all () =
   Tune_sql.List.get_all db (fun ~id ~yaml -> of_yaml (Entry.Id.of_string_exn id) yaml)
 
 let create tune =
-  let id = Table.Globally_unique_id.make () in
+  let%lwt id = Globally_unique_id.make Tune in
   let tune = Entry.make ~id ~access: Entry.Access.Public tune in
   let json = Entry.to_yojson_no_id Model_builder.Core.Tune.to_yojson Model_builder.Core.Tune.access_to_yojson tune in
-  Table.Globally_unique_id.register tune ~wrap_any: Model_builder.Core.Any.tune;
   let%lwt _ : int64 =
     Connection.with_ @@ fun db ->
     Tune_sql.update db ~id: (Entry.Id.to_string id) ~yaml: (Storage.Json.to_yaml_string json)

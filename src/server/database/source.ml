@@ -19,10 +19,9 @@ let get_all () =
   Source_sql.List.get_all db (fun ~id ~yaml -> of_yaml (Entry.Id.of_string_exn id) yaml)
 
 let create source =
-  let id = Table.Globally_unique_id.make () in
+  let%lwt id = Globally_unique_id.make Source in
   let source = Entry.make ~id ~access: Entry.Access.Public source in
   let json = Entry.to_yojson_no_id Model_builder.Core.Source.to_yojson Model_builder.Core.Source.access_to_yojson source in
-  Table.Globally_unique_id.register source ~wrap_any: Model_builder.Core.Any.source;
   let%lwt _ : int64 =
     Connection.with_ @@ fun db ->
     Source_sql.update db ~id: (Entry.Id.to_string id) ~yaml: (Storage.Json.to_yaml_string json)

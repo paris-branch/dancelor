@@ -19,10 +19,9 @@ let get_all () =
   Set_sql.List.get_all db (fun ~id ~yaml -> of_yaml (Entry.Id.of_string_exn id) yaml)
 
 let create set access =
-  let id = Table.Globally_unique_id.make () in
+  let%lwt id = Globally_unique_id.make Set in
   let set = Entry.make ~id ~access set in
   let json = Entry.to_yojson_no_id Model_builder.Core.Set.to_yojson Model_builder.Core.Set.access_to_yojson set in
-  Table.Globally_unique_id.register set ~wrap_any: Model_builder.Core.Any.set;
   let%lwt _ : int64 =
     Connection.with_ @@ fun db ->
     Set_sql.update db ~id: (Entry.Id.to_string id) ~yaml: (Storage.Json.to_yaml_string json)

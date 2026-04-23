@@ -19,6 +19,14 @@
    (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
 
 (rule
+ (target globally_unique_id_sql.ml)
+ (deps schema.sql globally_unique_id.sql)
+ (action
+  (with-stdout-to
+   %{target}
+   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+
+(rule
  (target book_sql.ml)
  (deps schema.sql book.sql)
  (action

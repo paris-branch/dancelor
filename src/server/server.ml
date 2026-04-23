@@ -115,10 +115,6 @@ let callback _ request body =
     Logger.bracket_lwt (module Log) "applying migrations" @@ fun () ->
     Database.Migrations.apply_migrations ()
 
-  let initialise_database () =
-    Logger.bracket_lwt (module Log) "initialising database" @@ fun () ->
-    Database.Tables.initialise ()
-
   let check_init_only () =
     if (Config.get ()).init_only then
       (
@@ -171,7 +167,6 @@ let callback _ request body =
       initialise_logs ();
       write_pid ();%lwt
       run_migrations ();%lwt
-      initialise_database ();%lwt
       check_init_only ();
       start_routines ();
       run_server ()

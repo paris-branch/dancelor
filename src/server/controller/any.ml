@@ -2,7 +2,7 @@ open Nes
 open Dancelor_common
 
 let get env id =
-  match Database.Any.get id with
+  match%lwt Database.Any.get id with
   | None -> Permission.reject_can_get ()
   | Some any ->
     Model.Any.to_entry'
