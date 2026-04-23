@@ -5,7 +5,7 @@ include Model_builder.Build(struct
   let get_book = Database.Book.get
   let get_dance = Database.Dance.get
   let get_person = Database.Person.get
-  let get_set = lwt % Database.Set.get
+  let get_set = Database.Set.get
   let get_source = Database.Source.get
   let get_tune = lwt % Database.Tune.get
   let get_version = lwt % Database.Version.get
