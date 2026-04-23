@@ -18,9 +18,8 @@
         testMode = true;
       };
 
-      environment.systemPackages = with pkgs; [
-        mariadb
-      ];
+      services.mysql.package = pkgs.mariadb;
+      environment.systemPackages = [ pkgs.mariadb ];
     };
 
   testScript = ''

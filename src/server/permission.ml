@@ -11,7 +11,8 @@ include Make(Model.User)
 (** {3 Tests} *)
 
 let can can = fun env ->
-  can (Environment.user env) <> None
+  let%lwt user = Environment.user env in
+  lwt (can user <> None)
 
 let can_get_public env entry = can (flip can_get_public entry) env
 
@@ -32,7 +33,7 @@ let can_delete_private env entry = can (flip can_delete_private entry) env
 (** {3 Assertions} *)
 
 let assert_ ~access_type ?(shortcut_forbidden = Madge_server.shortcut_forbidden) ~forbidden_message can = fun env ->
-  if can env then
+  if%lwt can env then
     (
       (* FIXME: print reason *)
       Log.debug (fun m -> m "Granting %s access to %a." access_type Environment.pp env);
@@ -109,10 +110,12 @@ let assert_can_delete_private env entry =
 
 (** {2 Ad-hoc tests and assertions} *)
 
-let is_connected env = Environment.user env <> None
+let is_connected env =
+  let%lwt user = Environment.user env in
+  lwt (user <> None)
 
 let assert_is_connected env =
-  if is_connected env then
+  if%lwt is_connected env then
     (
       Log.debug (fun m -> m "Granting access to %a." Environment.pp env);
       lwt_unit
@@ -124,11 +127,13 @@ let assert_is_connected env =
     )
 
 let can_administrate env =
-  Option.fold (Environment.user env) ~none: false ~some: Model.User.is_administrator'
+  let%lwt user = Environment.user env in
+  lwt @@ Option.fold user ~none: false ~some: Model.User.is_administrator'
 
 let assert_can_administrate env f =
+  let%lwt user = Environment.user env in
   Option.fold
-    (Environment.user env)
+    user
     ~none: (fun () ->
       Log.info (fun m -> m "Refusing admin access to %a." Environment.pp env);
       Madge_server.shortcut_forbidden "You do not have permission to administrate this instance."

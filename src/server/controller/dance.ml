@@ -4,7 +4,7 @@ open Dancelor_common
 module Log = (val Logs.src_log @@ Logs.Src.create "server.controller.dance": Logs.LOG)
 
 let get env id =
-  match Database.Dance.get id with
+  match%lwt Database.Dance.get id with
   | None -> Permission.reject_can_get ()
   | Some dance ->
     Permission.assert_can_get_public env dance;%lwt
@@ -12,11 +12,11 @@ let get env id =
 
 let create env dance =
   Permission.assert_can_create_public env;%lwt
-  Database.Dance.create dance Entry.Access.Public
+  Database.Dance.create dance
 
 let update env id dance =
   Permission.assert_can_update_public env =<< get env id;%lwt
-  Database.Dance.update id dance Entry.Access.Public
+  Database.Dance.update id dance
 
 let delete env id =
   Permission.assert_can_delete_public env =<< get env id;%lwt
@@ -27,7 +27,9 @@ include Search.Build(struct
   type filter = (Model.Dance.t, Filter.Dance.t) Formula_entry.public
 
   let get_all env =
-    Lwt_stream.filter (Permission.can_get_public env) @@ Lwt_stream.of_seq @@ Database.Dance.get_all ()
+    let all = Database.Dance.get_all () in
+    let stream = (Lwt_stream.filter_s (Permission.can_get_public env) % Lwt_stream.of_list) <$> all in
+    Lwt_stream.flip_lwt stream
 
   let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_public Filter.Dance.converter)
   let filter_is_empty = (=) Formula.False

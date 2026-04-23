@@ -4,17 +4,17 @@ open Dancelor_common
 module Log = (val Logs.src_log @@ Logs.Src.create "server.controller.user": Logs.LOG)
 
 let get env id =
-  match Database.User.get id with
+  match%lwt Database.User.get id with
   | None -> Permission.reject_can_get ()
   | Some user ->
     Permission.assert_can_get_public env user;%lwt
     lwt user
 
-let status = lwt % Environment.user
+let status = Environment.user
 
 let sign_in env username password remember_me =
   Log.info (fun m -> m "Attempt to sign in with username `%s`." (Model.User.Username.to_string username));
-  match Environment.user env with
+  match%lwt Environment.user env with
   | Some _user ->
     Log.info (fun m -> m "Rejecting because already signed in.");
     lwt_none
@@ -38,7 +38,7 @@ let sign_in env username password remember_me =
         lwt_some user
 
 let sign_out env =
-  match Environment.user env with
+  match%lwt Environment.user env with
   | None -> lwt_unit
   | Some user -> Environment.sign_out env user
 
@@ -57,7 +57,7 @@ let create env user =
   )
   in
   let%lwt user = Model.User.update user ~password_reset_token: (const @@ Some hashed_token) in
-  let%lwt user = Database.User.create user Entry.Access.Public in
+  let%lwt user = Database.User.create user in
   lwt (user, token)
 
 let prepare_reset_password env username =
@@ -83,8 +83,7 @@ let prepare_reset_password env username =
           password = None;
           password_reset_token = Some hashed_token;
           remember_me_tokens = Model.User.Remember_me_key.Map.empty;
-        }
-        Entry.Access.Public;%lwt
+        };%lwt
     Log.info (fun m -> m "Password reset token generated for user `%s`." (Model.User.Username.to_string username));
     lwt token
 
@@ -130,7 +129,6 @@ let reset_password username token password =
                 password = Some password;
                 password_reset_token = None;
               }
-              Entry.Access.Public
         )
 
 let set_omniscience env value =
@@ -145,14 +143,15 @@ let set_omniscience env value =
           | _ -> assert false
         )
       }
-      Entry.Access.Public
 
 include Search.Build(struct
   type value = Model.User.entry
   type filter = (Model.User.t, Filter.User.t) Formula_entry.public
 
   let get_all env =
-    Lwt_stream.filter (Permission.can_get_public env) @@ Lwt_stream.of_seq @@ Database.User.get_all ()
+    let all = Database.User.get_all () in
+    let stream = (Lwt_stream.filter_s (Permission.can_get_public env) % Lwt_stream.of_list) <$> all in
+    Lwt_stream.flip_lwt stream
 
   let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_public Filter.User.converter)
   let filter_is_empty = (=) Formula.False

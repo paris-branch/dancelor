@@ -22,3 +22,5 @@ val return_lwt' : 'a Lwt.t -> 'a t
 (** Variant of {!Lwt_stream.return_lwt} which, when the promise becomes
     rejected, forwards the exception to the consumer of the stream, instead of
     simply returning an empty stream. *)
+
+val flip_lwt : 'a t Lwt.t -> 'a t

@@ -11,8 +11,72 @@
 ;; TABLE` etc. may take place.
 
 (rule
- (target queries_sql.ml)
- (deps schema.sql queries.sql)
+ (target globally_unique_id_sql.ml)
+ (deps schema.sql globally_unique_id.sql)
+ (action
+  (with-stdout-to
+   %{target}
+   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+
+(rule
+ (target book_sql.ml)
+ (deps schema.sql book.sql)
+ (action
+  (with-stdout-to
+   %{target}
+   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+
+(rule
+ (target dance_sql.ml)
+ (deps schema.sql dance.sql)
+ (action
+  (with-stdout-to
+   %{target}
+   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+
+(rule
+ (target person_sql.ml)
+ (deps schema.sql person.sql)
+ (action
+  (with-stdout-to
+   %{target}
+   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+
+(rule
+ (target set_sql.ml)
+ (deps schema.sql set.sql)
+ (action
+  (with-stdout-to
+   %{target}
+   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+
+(rule
+ (target source_sql.ml)
+ (deps schema.sql source.sql)
+ (action
+  (with-stdout-to
+   %{target}
+   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+
+(rule
+ (target tune_sql.ml)
+ (deps schema.sql tune.sql)
+ (action
+  (with-stdout-to
+   %{target}
+   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+
+(rule
+ (target user_sql.ml)
+ (deps schema.sql user.sql)
+ (action
+  (with-stdout-to
+   %{target}
+   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+
+(rule
+ (target version_sql.ml)
+ (deps schema.sql version.sql)
  (action
   (with-stdout-to
    %{target}

@@ -25,7 +25,7 @@ val with_ :
 (** {2 Interface for controllers} *)
 
 (** Returns the user that is signed-in in the current session. *)
-val user : t -> Model.User.entry option
+val user : t -> Model.User.entry option Lwt.t
 
 (** Set the user as signed in for the current session. Subsequent calls to
     {!user} (across requests) will return that user. If the [~remember_me] flag
@@ -50,4 +50,4 @@ type cache_key
 
 (** One should not use the environment directly as a cache key, because it does
     not contain all the information. Use {!cache_key} instead. *)
-val cache_key : t -> cache_key
+val cache_key : t -> cache_key Lwt.t

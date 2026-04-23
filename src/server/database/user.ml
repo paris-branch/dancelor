@@ -1,10 +1,55 @@
 open Nes
-include Tables.User
+open Dancelor_common
+
+module User_sql = User_sql.Sqlgg(Connection.Sqlgg_mariadb_lwt)
+
+type t = Model_builder.Core.User.t
+type entry = Model_builder.Core.User.entry
+
+let of_yaml id yaml =
+  let json = Storage.Json.from_yaml_string yaml in
+  Result.get_ok @@ Entry.of_yojson_no_id id Model_builder.Core.User.of_yojson Model_builder.Core.User.access_of_yojson json
+
+let get id : Model_builder.Core.User.entry option Lwt.t =
+  Connection.with_ @@ fun db ->
+  User_sql.Fold.get db ~id: (Entry.Id.to_string id) (fun ~yaml _ -> Some (of_yaml id yaml)) None
+
+let get_all () =
+  Connection.with_ @@ fun db ->
+  User_sql.List.get_all db (fun ~id ~yaml -> of_yaml (Entry.Id.of_string_exn id) yaml)
+
+let create user =
+  let%lwt id = Globally_unique_id.make User in
+  let user = Entry.make ~id ~access: Entry.Access.Public user in
+  let json = Entry.to_yojson_no_id Model_builder.Core.User.to_yojson Model_builder.Core.User.access_to_yojson user in
+  let%lwt _ : int64 =
+    Connection.with_ @@ fun db ->
+    User_sql.update db ~id: (Entry.Id.to_string id) ~yaml: (Storage.Json.to_yaml_string json)
+  in
+  lwt user
+
+let update id user =
+  let user = Entry.make ~id ~access: Entry.Access.Public user in
+  let json = Entry.to_yojson_no_id Model_builder.Core.User.to_yojson Model_builder.Core.User.access_to_yojson user in
+  let%lwt _ : int64 =
+    Connection.with_ @@ fun db ->
+    User_sql.update db ~id: (Entry.Id.to_string id) ~yaml: (Storage.Json.to_yaml_string json)
+  in
+  lwt user
+
+let delete id =
+  let%lwt _ : int64 =
+    Connection.with_ @@ fun db ->
+    User_sql.delete db ~id: (Entry.Id.to_string id)
+  in
+  lwt_unit
 
 let get_from_username username =
-  let all = get_all () in
-  let this = Seq.filter ((=) username % Dancelor_common.Model_builder.Core.User.username % Dancelor_common.Entry.value) all in
-  match this () with
-  | Nil -> lwt_none
-  | Cons (this, next) when next () = Nil -> lwt_some this
+  (* FIXME: just write an efficient query for this, once the username is its own
+     column (with an index). *)
+  let%lwt all = get_all () in
+  let this = List.filter ((=) username % Dancelor_common.Model_builder.Core.User.username % Dancelor_common.Entry.value) all in
+  match this with
+  | [] -> lwt_none
+  | [this] -> lwt_some this
   | _ -> assert false

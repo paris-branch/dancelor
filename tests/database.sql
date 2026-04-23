@@ -26,7 +26,8 @@ DROP TABLE IF EXISTS `book`;
 CREATE TABLE `book` (
   `id` varchar(14) NOT NULL,
   `yaml` text NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_book_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -51,7 +52,8 @@ DROP TABLE IF EXISTS `dance`;
 CREATE TABLE `dance` (
   `id` varchar(14) NOT NULL,
   `yaml` text NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_dance_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -64,6 +66,41 @@ LOCK TABLES `dance` WRITE;
 INSERT INTO `dance` VALUES
 ('l02q-i1j0-qpoi','value:\n  kind: 8 x 32 R\n  devisers:\n    - 8h62-3eis-xfem\n  names:\n    - The Architect\nmeta:\n  created-at: \"2023-12-21T17:11:33\"\n  modified-at: \"2023-12-21T17:11:33\"\naccess:\n  - Public\n');
 /*!40000 ALTER TABLE `dance` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `globally_unique_id`
+--
+
+DROP TABLE IF EXISTS `globally_unique_id`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `globally_unique_id` (
+  `id` varchar(14) NOT NULL,
+  `type` enum('Book','Dance','Person','Set','Source','Tune','User','Version') NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `globally_unique_id`
+--
+
+LOCK TABLES `globally_unique_id` WRITE;
+/*!40000 ALTER TABLE `globally_unique_id` DISABLE KEYS */;
+INSERT INTO `globally_unique_id` VALUES
+('0fi3-1iot-6tbq','Book'),
+('2f8s-90v8-33do','Source'),
+('4plf-srss-ihav','Person'),
+('8h62-3eis-xfem','Person'),
+('l02q-i1j0-qpoi','Dance'),
+('lt3h-edgt-ac97','User'),
+('qdod-ad7l-8gr2','Tune'),
+('ului-yd9x-o35w','Set'),
+('uwoe-u6ij-ikgp','Person'),
+('wrwk-cz9g-g3wi','Set'),
+('xzzb-wasm-babe','Version');
+/*!40000 ALTER TABLE `globally_unique_id` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -94,7 +131,24 @@ INSERT INTO `migrations` VALUES
 ('m005_2026_04_add_source_table','2026-04-22 12:52:21'),
 ('m006_2026_04_add_tune_table','2026-04-22 12:52:21'),
 ('m007_2026_04_add_user_table','2026-04-22 12:52:21'),
-('m008_2026_04_add_version_table','2026-04-22 12:52:21');
+('m008_2026_04_add_version_table','2026-04-22 12:52:21'),
+('m009_2026_04_add_globally_unique_id_table','2026-04-23 21:38:30'),
+('m010_2026_04_insert_ids_from_book_into_globally_unique_id','2026-04-23 21:47:34'),
+('m011_2026_04_add_fk_book_id_key','2026-04-23 21:47:34'),
+('m012_2026_04_insert_ids_from_dance_into_globally_unique_id','2026-04-23 21:47:34'),
+('m013_2026_04_add_fk_dance_id_key','2026-04-23 21:47:34'),
+('m014_2026_04_insert_ids_from_person_into_globally_unique_id','2026-04-23 21:47:34'),
+('m015_2026_04_add_fk_person_id_key','2026-04-23 21:47:34'),
+('m016_2026_04_insert_ids_from_set_into_globally_unique_id','2026-04-23 21:47:34'),
+('m017_2026_04_add_fk_set_id_key','2026-04-23 21:47:34'),
+('m018_2026_04_insert_ids_from_source_into_globally_unique_id','2026-04-23 21:47:34'),
+('m019_2026_04_add_fk_source_id_key','2026-04-23 21:47:34'),
+('m020_2026_04_insert_ids_from_tune_into_globally_unique_id','2026-04-23 21:47:34'),
+('m021_2026_04_add_fk_tune_id_key','2026-04-23 21:47:34'),
+('m022_2026_04_insert_ids_from_user_into_globally_unique_id','2026-04-23 21:47:34'),
+('m023_2026_04_add_fk_user_id_key','2026-04-23 21:47:34'),
+('m024_2026_04_insert_ids_from_version_into_globally_unique_id','2026-04-23 21:47:34'),
+('m025_2026_04_add_fk_version_id_key','2026-04-23 21:47:34');
 /*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -108,7 +162,8 @@ DROP TABLE IF EXISTS `person`;
 CREATE TABLE `person` (
   `id` varchar(14) NOT NULL,
   `yaml` text NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_person_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -135,7 +190,8 @@ DROP TABLE IF EXISTS `set`;
 CREATE TABLE `set` (
   `id` varchar(14) NOT NULL,
   `yaml` text NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_set_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -162,7 +218,8 @@ CREATE TABLE `source` (
   `id` varchar(14) NOT NULL,
   `yaml` text NOT NULL,
   `cover` mediumblob DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_source_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -187,7 +244,8 @@ DROP TABLE IF EXISTS `tune`;
 CREATE TABLE `tune` (
   `id` varchar(14) NOT NULL,
   `yaml` text NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_tune_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -212,7 +270,8 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `id` varchar(14) NOT NULL,
   `yaml` text NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_user_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -237,7 +296,8 @@ DROP TABLE IF EXISTS `version`;
 CREATE TABLE `version` (
   `id` varchar(14) NOT NULL,
   `yaml` text NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_version_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

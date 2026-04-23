@@ -2,7 +2,7 @@ open Nes
 open Dancelor_common
 
 let get env id =
-  match Database.Source.get id with
+  match%lwt Database.Source.get id with
   | None -> Permission.reject_can_get ()
   | Some source ->
     Permission.assert_can_get_public env source;%lwt
@@ -10,11 +10,11 @@ let get env id =
 
 let create env source =
   Permission.assert_can_create_public env;%lwt
-  Database.Source.create source Entry.Access.Public
+  Database.Source.create source
 
 let update env id source =
   Permission.assert_can_update_public env =<< get env id;%lwt
-  Database.Source.update id source Entry.Access.Public
+  Database.Source.update id source
 
 let delete env id =
   Permission.assert_can_delete_public env =<< get env id;%lwt
@@ -25,7 +25,9 @@ include Search.Build(struct
   type filter = (Model.Source.t, Filter.Source.t) Formula_entry.public
 
   let get_all env =
-    Lwt_stream.filter (Permission.can_get_public env) @@ Lwt_stream.of_seq @@ Database.Source.get_all ()
+    let all = Database.Source.get_all () in
+    let stream = (Lwt_stream.filter_s (Permission.can_get_public env) % Lwt_stream.of_list) <$> all in
+    Lwt_stream.flip_lwt stream
 
   let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_public Filter.Source.converter)
   let filter_is_empty = (=) Formula.False
