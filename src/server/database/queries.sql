@@ -28,10 +28,6 @@ SELECT
     `yaml`
 FROM `source`;
 
--- @get_source_cover
-SELECT `cover` FROM `source`
-WHERE `id` = @id;
-
 -- @list_tunes
 SELECT
     `id`,

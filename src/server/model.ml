@@ -6,7 +6,7 @@ include Model_builder.Build(struct
   let get_dance = lwt % Database.Dance.get
   let get_person = Database.Person.get
   let get_set = lwt % Database.Set.get
-  let get_source = lwt % Database.Source.get
+  let get_source = Database.Source.get
   let get_tune = lwt % Database.Tune.get
   let get_version = lwt % Database.Version.get
 end)
