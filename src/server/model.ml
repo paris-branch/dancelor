@@ -3,7 +3,7 @@ open Dancelor_common
 include Model_builder.Build(struct
   let get_user = lwt % Database.User.get
   let get_book = Database.Book.get
-  let get_dance = lwt % Database.Dance.get
+  let get_dance = Database.Dance.get
   let get_person = Database.Person.get
   let get_set = lwt % Database.Set.get
   let get_source = Database.Source.get
