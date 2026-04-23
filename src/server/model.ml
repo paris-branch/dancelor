@@ -8,5 +8,5 @@ include Model_builder.Build(struct
   let get_set = Database.Set.get
   let get_source = Database.Source.get
   let get_tune = Database.Tune.get
-  let get_version = lwt % Database.Version.get
+  let get_version = Database.Version.get
 end)

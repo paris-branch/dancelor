@@ -4,7 +4,7 @@ open Dancelor_common
 module Log = (val Logs.src_log @@ Logs.Src.create "server.controller.version": Logs.LOG)
 
 let get env id =
-  match Database.Version.get id with
+  match%lwt Database.Version.get id with
   | None -> Permission.reject_can_get ()
   | Some version ->
     Permission.assert_can_get_public env version;%lwt
@@ -12,11 +12,11 @@ let get env id =
 
 let create env version =
   Permission.assert_can_create_public env;%lwt
-  Database.Version.create version Entry.Access.Public
+  Database.Version.create version
 
 let update env id version =
   Permission.assert_can_update_public env =<< get env id;%lwt
-  Database.Version.update id version Entry.Access.Public
+  Database.Version.update id version
 
 let delete env id =
   Permission.assert_can_delete_public env =<< get env id;%lwt
@@ -104,7 +104,9 @@ include Search.Build(struct
           <$> with_copyright_check env version (const lwt_unit)
         )
     in
-    Lwt_stream.filter_s can_get_and_copyright_ok @@ Lwt_stream.of_seq @@ Database.Version.get_all ()
+    let all = Database.Version.get_all () in
+    let stream = (Lwt_stream.filter_s can_get_and_copyright_ok % Lwt_stream.of_list) <$> all in
+    Lwt_stream.flip_lwt stream
 
   let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_public Filter.Version.converter)
   let filter_is_empty = (=) Formula.False

@@ -65,3 +65,11 @@
   (with-stdout-to
    %{target}
    (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+
+(rule
+ (target version_sql.ml)
+ (deps schema.sql version.sql)
+ (action
+  (with-stdout-to
+   %{target}
+   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
