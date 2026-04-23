@@ -17,6 +17,9 @@
         githubDatabaseRepository = "github.com/paris-branch/dancelor-database";
         testMode = true;
       };
+
+      services.mysql.package = pkgs.mariadb;
+      environment.systemPackages = [ pkgs.mariadb ];
     };
 
   testScript = ''
