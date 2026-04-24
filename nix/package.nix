@@ -176,14 +176,35 @@
         };
       };
 
+      ## NOTE: We need a version of ocaml-mariadb newer than 1.3.0, because
+      ## sqlgg depends on the Int64/UInt64 support added in commit e9f9ac7.
+      packages.ocaml-mariadb = pkgs.ocamlPackages.buildDunePackage {
+        pname = "mariadb";
+        version = "dev";
+        src = pkgs.fetchFromGitHub {
+          owner = "ocaml-community";
+          repo = "ocaml-mariadb";
+          rev = "e9f9ac750abd5adebb589da5e553e5c45d8ec066";
+          sha256 = "sha256-w1HRfZTCR9ygWyrGhA4lrCPRsUGKVxWpLD5+4m39+Uk=";
+        };
+        buildInputs = [
+          pkgs.mariadb
+          pkgs.libmysqlclient
+          pkgs.ocamlPackages.dune-configurator
+        ];
+        propagatedBuildInputs = [
+          pkgs.ocamlPackages.ctypes
+        ];
+      };
+
       packages.sqlgg = pkgs.ocamlPackages.buildDunePackage rec {
         pname = "sqlgg";
-        version = "20231201";
+        version = "dev";
         src = pkgs.fetchFromGitHub {
           owner = "ygrek";
           repo = pname;
-          rev = version;
-          sha256 = "sha256-o9+PwJVYxcm9+6CgU6y1w0Lj4/N/ajVP/nZE6PnrVhE=";
+          rev = "16813a2350a7dcd0f95ead007ac871f9420581fb";
+          sha256 = "sha256-ESoWJ2EukKw45Wa9lksQvYyvZGXZmyVQhpuFoC2fZkI=";
         };
         nativeBuildInputs = with pkgs.ocamlPackages; [
           menhir
