@@ -7,7 +7,13 @@ module Log = (val Logs.src_log @@ Logs.Src.create "server": Logs.LOG)
 
 let log_exn ~msg exn =
   Log.err @@ fun m ->
-  m "%a" (Format.pp_multiline_sensible msg) (Printexc.to_string exn ^ "\n" ^ (Printexc.get_backtrace ()))
+  let repr =
+    match exn with
+    | Database.Error.Exn error ->
+      "Dancelor_common.Error." ^ Database.Error.show error
+    | exn -> Printexc.to_string exn
+  in
+  m "%a" (Format.pp_multiline_sensible msg) (repr ^ "\n" ^ (Printexc.get_backtrace ()))
 
 include Madge_server.Make_apply_controller(struct
   include Endpoints.Api
@@ -107,7 +113,7 @@ let callback _ request body =
 
   let run_migrations () =
     Logger.bracket_lwt (module Log) "applying migrations" @@ fun () ->
-    Database.apply_migrations ()
+    Database.Migrations.apply_migrations ()
 
   let check_init_only () =
     if (Config.get ()).init_only then
