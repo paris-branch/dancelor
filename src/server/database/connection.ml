@@ -47,7 +47,7 @@ module Mariadb_lwt : Mariadb.Nonblocking.S with type 'a future = 'a Lwt.t = stru
                 ~write: (Lwt_unix.writable fd)
                 ()
             )
-            (Lwt.choose waits)
+            (Lwt.pick waits)
         )
         (function
           | Lwt_unix.Timeout -> lwt @@ M.Status.create ~timeout: true ()
