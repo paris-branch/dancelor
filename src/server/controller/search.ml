@@ -35,11 +35,12 @@ module Build (M : Searchable) : S with type value = M.value and type filter = M.
   (* Hardcoded threshold for all of Dancelor. *)
   let threshold = 0.4
 
-  let cache = Cache.create ~lifetime: 600 ()
+  let cache : (Environment.cache_key * float * filter, (int * (value * float) Seq.t) Lwt.t) Cache.t = Cache.create ~lifetime: 600 ()
 
   let search' env filter =
     let filter = M.optimise_filter filter in
-    Cache.use ~cache ~key: (Environment.cache_key env, threshold, filter) @@ fun () ->
+    let%lwt cache_key = Environment.cache_key env in
+    Cache.use ~cache ~key: (cache_key, threshold, filter) @@ fun () ->
     if M.filter_is_empty filter then
       lwt (0, Seq.empty)
     else

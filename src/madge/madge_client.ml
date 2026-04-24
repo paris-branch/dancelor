@@ -118,7 +118,7 @@ let call_batch (request : Request.t) : (Response.t, error) result Lwt.t =
   promise
 
 (** A very short-lived cache to avoid performing the exact same request several times in a row. *)
-let cache = Cache.create ~lifetime: 1 ()
+let cache : (Request.t, (Response.t, error) result Lwt.t) Cache.t = Cache.create ~lifetime: 1 ()
 
 let call_gen
   : type a r z. ?retry: bool ->
