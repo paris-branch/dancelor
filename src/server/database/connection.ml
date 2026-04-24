@@ -78,7 +78,29 @@ let actually_open () : t Lwt.t =
   let db = cfg.database in
   let user = cfg.user in
   let pass = cfg.password in
-  match%lwt Mariadb_lwt.connect ?host ?port ?socket ~db ~user ?pass () with
+  let res =
+    Mariadb_lwt.connect
+      ?host
+      ?port
+      ?socket
+      ~db
+      ~user
+      ?pass
+      ~options: [
+        (* handle CR_SERVER_GONE_ERROR transparently *)
+        Reconnect true;
+        (* don't hang forever on initial connect *)
+        Connect_timeout 10;
+        (* abort if server stops sending mid-query *)
+        Read_timeout 30;
+        (* abort if server stops receiving *)
+        Write_timeout 10;
+        (* surface data integrity issues explicitly *)
+        Report_data_truncation true;
+      ]
+      ()
+  in
+  match%lwt res with
   | Error (no, msg) -> Lwt.fail (Connection_failed (no, msg))
   | Ok db -> lwt db
 
