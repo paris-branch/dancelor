@@ -137,6 +137,7 @@
               Restart = "always";
               User = "dancelor";
               Group = "dancelor";
+              LimitNOFILE = 8092; # default soft max is 1024, which can easily be exhausted
             };
           };
 
