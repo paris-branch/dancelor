@@ -121,6 +121,9 @@ let min_number = 10
 (* the max allowed number of connections *)
 let max_number = 100
 
+(* NOTE: The logic before the first Lwt yield point must remain synchronous so
+   that the read of [!number] and the [incr]/[decr] are atomic under Lwt's
+   cooperative scheduling. *)
 let open_ () : t Lwt.t =
   Log.debug (fun m -> m "open; %d <= %d <= %d" min_number !number max_number);
   match Lwt_stream.get_available_1 pool with
@@ -136,6 +139,7 @@ let open_ () : t Lwt.t =
     Log.warn (fun m -> m "Stalled because max number (%d) of connections is reached" max_number);
     Option.get <$> Lwt_stream.get pool
 
+(* NOTE: Same atomicity requirement as [open_] above. *)
 let close conn =
   Log.debug (fun m -> m "close; %d <= %d <= %d" min_number !number max_number);
   if !number > min_number then
