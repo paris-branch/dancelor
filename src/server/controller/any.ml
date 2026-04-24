@@ -47,10 +47,11 @@ let slice_lwt_stream = fun ?(strict = true) slice xs ->
   in
   Lwt_stream.from next
 
-let cache = Cache.create ~lifetime: 600 ()
+let cache : (Environment.cache_key * Filter.Any.t, (int * (Model.Any.t * float) Lwt_stream.t) Lwt.t) Cache.t = Cache.create ~lifetime: 600 ()
 
 let search' env filter =
-  Cache.use ~cache ~key: (env, filter) @@ fun () ->
+  let%lwt cache_key = Environment.cache_key env in
+  Cache.use ~cache ~key: (cache_key, filter) @@ fun () ->
   let (book_f, dance_f, person_f, set_f, source_f, tune_f, version_f) = Filter.Any.specialise filter in
   let%lwt (count_persons, persons) = Person.search' env person_f in
   let%lwt (count_dances, dances) = Dance.search' env dance_f in
