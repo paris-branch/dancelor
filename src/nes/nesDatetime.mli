@@ -2,6 +2,9 @@
 
 type t [@@deriving eq, ord, yojson]
 
+val of_string : string -> t
+(** Parses an ISO 8601 datetime string. *)
+
 val to_string : t -> string
 (** Prints the date and time as an ISO 8601 string. *)
 
