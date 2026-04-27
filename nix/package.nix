@@ -106,7 +106,6 @@
           ppx_variants_conv
           react
           tyxml
-          yaml
         ];
       };
 

@@ -1,18 +1,18 @@
 -- @get
-SELECT "yaml"
+SELECT "json"
 FROM "version"
 WHERE "id" = @id;
 
 -- @get_all
 SELECT
     "id",
-    "yaml"
+    "json"
 FROM "version";
 
 -- @update
-INSERT INTO "version" ("id", "yaml")
-VALUES (@id, @yaml)
-ON CONFLICT ("id") DO UPDATE SET "yaml" = EXCLUDED."yaml";
+INSERT INTO "version" ("id", "json")
+VALUES (@id, @json)
+ON CONFLICT ("id") DO UPDATE SET "json" = @json;
 
 -- @delete
 DELETE FROM "version"

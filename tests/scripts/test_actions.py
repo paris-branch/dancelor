@@ -1,7 +1,7 @@
 import os
 import html
 import subprocess
-import yaml
+import json
 from selenium.webdriver.common.by import By
 
 import utils
@@ -25,10 +25,10 @@ class TestActions():
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Show LilyPond')]").click()
     result = subprocess.run(
       ["psql", "--username=dancelor", "--dbname=dancelor", "--tuples-only", "--no-align",
-       "--command", "SELECT \"yaml\" FROM \"version\" WHERE \"id\" = 'xzzb-wasm-babe'"],
+       "--command", """SELECT "json" FROM "version" WHERE "id" = 'xzzb-wasm-babe'"""],
       capture_output=True, text=True, check=True,
     )
-    [kind, payload] = yaml.safe_load(result.stdout)["value"]["content"]
+    [kind, payload] = json.loads(result.stdout)["value"]["content"]
     assert (kind == "Monolithic")
     expected = payload["lilypond"]
     shown = self.driver.find_element(By.XPATH, "//pre[contains(text(), 'clef')]").get_attribute("innerHTML")

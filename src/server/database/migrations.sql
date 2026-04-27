@@ -16,56 +16,56 @@ WHERE "name" = @name;
 INSERT INTO "migrations" ("name") VALUES (@name);
 
 -- -------------------------------------------------------------------------- --
--- First migrations: creation of basic id->yaml tables
+-- First migrations: creation of basic id->json tables
 -- -------------------------------------------------------------------------- --
 
 -- @m001_2026_04_add_book_table
 CREATE TABLE "book" (
     "id" VARCHAR(14) PRIMARY KEY,
-    "yaml" TEXT NOT NULL
+    "json" JSON NOT NULL
 );
 
 -- @m002_2026_04_add_dance_table
 CREATE TABLE "dance" (
     "id" VARCHAR(14) PRIMARY KEY,
-    "yaml" TEXT NOT NULL
+    "json" JSON NOT NULL
 );
 
 -- @m003_2026_04_add_person_table
 CREATE TABLE "person" (
     "id" VARCHAR(14) PRIMARY KEY,
-    "yaml" TEXT NOT NULL
+    "json" JSON NOT NULL
 );
 
 -- @m004_2026_04_add_set_table
 CREATE TABLE "set" (
     "id" VARCHAR(14) PRIMARY KEY,
-    "yaml" TEXT NOT NULL
+    "json" JSON NOT NULL
 );
 
 -- @m005_2026_04_add_source_table
 CREATE TABLE "source" (
     "id" VARCHAR(14) PRIMARY KEY,
-    "yaml" TEXT NOT NULL,
+    "json" JSON NOT NULL,
     "cover" BYTEA
 );
 
 -- @m006_2026_04_add_tune_table
 CREATE TABLE "tune" (
     "id" VARCHAR(14) PRIMARY KEY,
-    "yaml" TEXT NOT NULL
+    "json" JSON NOT NULL
 );
 
 -- @m007_2026_04_add_user_table
 CREATE TABLE "user" (
     "id" VARCHAR(14) PRIMARY KEY,
-    "yaml" TEXT NOT NULL
+    "json" JSON NOT NULL
 );
 
 -- @m008_2026_04_add_version_table
 CREATE TABLE "version" (
     "id" VARCHAR(14) PRIMARY KEY,
-    "yaml" TEXT NOT NULL
+    "json" JSON NOT NULL
 );
 
 -- @m009_2026_04_add_globally_unique_id_table

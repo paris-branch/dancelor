@@ -1,14 +1,29 @@
 #!/usr/bin/env python3
-"""Migrate the YAML file-based database into MariaDB."""
+"""Migrate the YAML file-based database into PostgreSQL."""
 
+import datetime
+import json
 import os
 import sys
+
+import yaml
 
 TABLES = ["book", "dance", "person", "set", "source", "tune", "user", "version"]
 
 
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (datetime.datetime, datetime.date)):
+            return obj.isoformat()
+        return super().default(obj)
+
+
 def esc(s):
-    return s.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
+    return s.replace("'", "''")
+
+
+def yaml_to_json(s):
+    return json.dumps(yaml.safe_load(s), cls=DateTimeEncoder, ensure_ascii=False, separators=(",", ":"))
 
 
 def main():
@@ -30,20 +45,20 @@ def main():
                 continue
 
             with open(meta_path) as f:
-                yaml_content = f.read()
+                json_content = yaml_to_json(f.read())
 
             cover_path = os.path.join(entry_dir, "cover.webp")
             if table == "source" and os.path.isfile(cover_path):
                 with open(cover_path, "rb") as f:
                     cover_hex = f.read().hex()
                 print(
-                    f"INSERT INTO `{table}` (`id`, `yaml`, `cover`) "
-                    f"VALUES ('{esc(entry_id)}', '{esc(yaml_content)}', X'{cover_hex}');"
+                    f"""INSERT INTO "{table}" ("id", "json", "cover") """
+                    f"""VALUES ('{esc(entry_id)}', '{esc(json_content)}', '\\x{cover_hex}');"""
                 )
             else:
                 print(
-                    f"INSERT INTO `{table}` (`id`, `yaml`) "
-                    f"VALUES ('{esc(entry_id)}', '{esc(yaml_content)}');"
+                    f"""INSERT INTO "{table}" ("id", "json") """
+                    f"""VALUES ('{esc(entry_id)}', '{esc(json_content)}');"""
                 )
 
 

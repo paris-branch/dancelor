@@ -18,8 +18,7 @@
   sqlgg.traits
   str
   tyxml
-  uri
-  yaml)
+  uri)
  (preprocess
   (pps
    lwt_ppx
