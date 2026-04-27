@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-set -eufo pipefail
-
-printf 'Removing MariaDB data directory...'
-rm -Rf "$MYSQL_HOME"
-printf ' done.\n'

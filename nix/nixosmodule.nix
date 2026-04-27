@@ -74,7 +74,7 @@
           inherit (pkgs) writeText writeShellApplication;
           inherit (pkgs.stdenv.hostPlatform) system;
 
-          socketPath = "/run/mysqld/mysqld.sock";
+          socketPath = "/run/postgresql";
 
           run-dancelor = writeShellApplication {
             name = "dancelor";
@@ -126,9 +126,9 @@
           systemd.services.dancelor = {
             after = [
               "network.target"
-              "mysql.service"
+              "postgresql.target"
             ];
-            requires = [ "mysql.service" ];
+            requires = [ "postgresql.target" ];
             wantedBy = [ "multi-user.target" ];
             serviceConfig = {
               Type = "notify";
@@ -141,24 +141,22 @@
             };
           };
 
-          ## MariaDB with a `dancelor` database and user
+          ## PostgreSQL with a `dancelor` database and user
           ##
           ## NOTE: We might want to leave some of this configuration to the
           ## client code, but since it's mostly us we can keep it for now.
           ## Better over-specify and have Nix catch our mistakes later.
           ##
-          services.mysql = {
+          services.postgresql = {
             enable = true;
             ensureDatabases = [ "dancelor" ];
             ensureUsers = [
               {
                 name = "dancelor";
-                ensurePermissions = {
-                  "dancelor.*" = "ALL PRIVILEGES";
-                };
+                ensureDBOwnership = true;
               }
             ];
-            settings.mysqld.socket = socketPath;
+            settings.unix_socket_directories = socketPath;
           };
         }
       );

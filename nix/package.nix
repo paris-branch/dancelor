@@ -95,6 +95,7 @@
           monadise
           monadise-lwt
           omd
+          postgresql
           ppx_blob
           ppx_deriving_qcheck
           ppx_deriving_yojson
@@ -176,27 +177,6 @@
         };
       };
 
-      ## NOTE: We need a version of ocaml-mariadb newer than 1.3.0, because
-      ## sqlgg depends on the Int64/UInt64 support added in commit e9f9ac7.
-      packages.ocaml-mariadb = pkgs.ocamlPackages.buildDunePackage {
-        pname = "mariadb";
-        version = "dev";
-        src = pkgs.fetchFromGitHub {
-          owner = "ocaml-community";
-          repo = "ocaml-mariadb";
-          rev = "e9f9ac750abd5adebb589da5e553e5c45d8ec066";
-          sha256 = "sha256-w1HRfZTCR9ygWyrGhA4lrCPRsUGKVxWpLD5+4m39+Uk=";
-        };
-        buildInputs = [
-          pkgs.mariadb
-          pkgs.libmysqlclient
-          pkgs.ocamlPackages.dune-configurator
-        ];
-        propagatedBuildInputs = [
-          pkgs.ocamlPackages.ctypes
-        ];
-      };
-
       packages.sqlgg = pkgs.ocamlPackages.buildDunePackage rec {
         pname = "sqlgg";
         version = "dev";
@@ -217,10 +197,6 @@
           ounit
           ppx_deriving
           yojson
-        ];
-        propagatedBuildInputs = [
-          pkgs.ocamlPackages.mariadb
-          pkgs.mariadb
         ];
       };
 

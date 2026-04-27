@@ -9,10 +9,19 @@ fi
 
 ## RF06 flags unnecessarily-quoted identifiers; we prefer quoting all identifiers.
 ## LT05 flags lines longer than 80 characters.
+CONFIG=$(mktemp)
+trap 'rm -f "$CONFIG"' EXIT
+cat > "$CONFIG" <<EOF
+[sqlfluff:templater:placeholder]
+param_regex = @[a-zA-Z_]+
+EOF
+
 "$SQLFLUFF" \
     fix \
     --ignore-local-config \
-    --dialect mysql \
+    --config "$CONFIG" \
+    --dialect postgres \
+    --templater placeholder \
     --exclude-rules RF06,LT05 \
     --show-lint-violations \
     "$@"

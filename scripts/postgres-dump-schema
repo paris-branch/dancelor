@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -eufo pipefail
+
+pg_dump \
+    --schema-only \
+    \
+    --quote-all-identifiers \
+    --no-owner \
+    --no-comments \
+    --no-publications \
+    --no-security-labels \
+    --no-subscriptions \
+    --no-table-access-method \
+    --no-tablespaces \
+    --no-toast-compression \
+    --no-unlogged-table-data \
+    --restrict-key=ybiQOqa6jiLe8LvxFznU4q8n34iwf9VXgUBS2e7j5NMdWOEHU3ms2YSbcIZ871W

@@ -18,15 +18,14 @@
         testMode = true;
       };
 
-      services.mysql.package = pkgs.mariadb;
-      environment.systemPackages = [ pkgs.mariadb ];
+      environment.systemPackages = [ pkgs.postgresql ];
     };
 
   testScript = ''
     machine.start()
     machine.wait_for_unit("dancelor.service")
 
-    machine.succeed("${../scripts/mariadb-dump-schema} > /tmp/actual-schema.sql")
+    machine.succeed("${../scripts/postgres-dump-schema} > /tmp/actual-schema.sql")
     machine.succeed("diff --unified --ignore-space-change ${../src/server/database/schema.sql} /tmp/actual-schema.sql >&2")
   '';
 }

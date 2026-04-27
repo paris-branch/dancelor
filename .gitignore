@@ -8,9 +8,7 @@
 .envrc
 /.pre-commit-config.yaml
 /result
-
-## MariaDB
-/.mariadb
+/.postgres
 
 ## Dune
 /*.install

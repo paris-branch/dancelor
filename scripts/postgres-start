@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -euCfo pipefail
+
+mkdir -p "$PGDIR"/run
+
+cat >| $PGDIR/postgres.conf <<EOF
+unix_socket_directories = '$PGDIR/run'
+external_pid_file = '$PGDIR/postgres.pid'
+EOF
+
+## Start PostgreSQL if it is not already running. `kill -0` checks whether the
+## process is alive without sending a signal.
+
+if [ -f "$PGDIR"/postgres.pid ] && kill -0 "$(cat "$PGDIR"/postgres.pid)" 2>/dev/null; then
+    printf 'PostgreSQL is already running.\n'
+
+else
+    if [ -d "$PGDATA" ]; then
+        INITIALISED=true
+    else
+        INITIALISED=false
+    fi
+
+    if ! $INITIALISED; then
+        printf 'Initialising PostgreSQL data directory...'
+        pg_ctl initdb --options=--auth=trust --silent
+        printf ' done.\n'
+    fi
+
+    printf 'Starting PostgreSQL...'
+    pg_ctl start --wait --log="$PGDIR"/postgres.log --options=--config_file="$PGDIR"/postgres.conf --silent
+    printf ' done.\n'
+
+    ## If the database hadn't been initialised, then create the database and
+    ## user if they do not already exist, then import the snapshot of test data.
+
+    if ! $INITIALISED; then
+        printf 'Creating `dancelor` database and user...'
+        createuser --username=$(whoami) dancelor
+        createdb --username=$(whoami) --owner=dancelor dancelor
+        printf ' done.\n'
+
+        printf 'Importing the snapshot of test data...'
+        psql --file=tests/database.sql --output=/dev/null
+        printf ' done.\n'
+    fi
+fi
