@@ -21,11 +21,38 @@
       environment.systemPackages = [ pkgs.postgresql ];
     };
 
-  testScript = ''
-    machine.start()
-    machine.wait_for_unit("dancelor.service")
+  testScript =
+    let
+      dump =
+        db:
+        "sudo -u dancelor pg_dump"
+        + " --schema-only"
+        + " --exclude-table=migrations"
+        + " --quote-all-identifiers"
+        + " --no-owner"
+        + " --no-comments"
+        + " --no-publications"
+        + " --no-security-labels"
+        + " --no-subscriptions"
+        + " --no-table-access-method"
+        + " --no-tablespaces"
+        + " --no-toast-compression"
+        + " --no-unlogged-table-data"
+        + " --restrict-key=ybiQOqa6jiLe8LvxFznU4q8n34iwf9VXgUBS2e7j5NMdWOEHU3ms2YSbcIZ871W"
+        + " ${db}";
+    in
+    ''
+      machine.start()
+      machine.wait_for_unit("dancelor.service")
 
-    machine.succeed("${../scripts/postgres-dump-schema} > /tmp/actual-schema.sql")
-    machine.succeed("diff --unified --ignore-space-change ${../src/server/database/schema.sql} /tmp/actual-schema.sql >&2")
-  '';
+      ## The `dancelor` database now has the schema produced by migrations.
+      ## Create a second database and import schema.sql directly into it.
+      machine.succeed("sudo -u postgres createdb --owner=dancelor dancelor_from_schema")
+      machine.succeed("sudo -u dancelor psql --dbname=dancelor_from_schema --file=${../src/server/database/schema.sql}")
+
+      ## Dump both schemas and compare.
+      machine.succeed("${dump "dancelor"} > /tmp/from-migrations.sql")
+      machine.succeed("${dump "dancelor_from_schema"} > /tmp/from-schema.sql")
+      machine.succeed("diff --unified /tmp/from-migrations.sql /tmp/from-schema.sql >&2")
+    '';
 }

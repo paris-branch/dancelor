@@ -24,8 +24,8 @@ class TestActions():
     self.driver.find_element(By.XPATH, "(//i[contains(@class, 'bi-three-dots-vertical')])[2]").click()
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Show LilyPond')]").click()
     result = subprocess.run(
-      ["mariadb", "dancelor", "--skip-column-names", "--raw", "-e",
-       "SELECT `yaml` FROM `version` WHERE `id` = 'xzzb-wasm-babe'"],
+      ["psql", "--username=dancelor", "--dbname=dancelor", "--tuples-only", "--no-align",
+       "--command", "SELECT \"yaml\" FROM \"version\" WHERE \"id\" = 'xzzb-wasm-babe'"],
       capture_output=True, text=True, check=True,
     )
     [kind, payload] = yaml.safe_load(result.stdout)["value"]["content"]

@@ -9,6 +9,7 @@
       ...
     }:
     let
+      inherit (lib) mkIf;
       cfg = config.services.dancelor;
     in
     {
@@ -155,6 +156,7 @@
               }
             ];
             settings.unix_socket_directories = socketPath;
+            authentication = mkIf cfg.testMode "local all all trust";
           };
         }
       );

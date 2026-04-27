@@ -1,3 +1,8 @@
+CREATE TABLE "globally_unique_id" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "type" TEXT NOT NULL
+);
+
 CREATE TABLE "book" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
     "yaml" TEXT NOT NULL,
@@ -8,11 +13,6 @@ CREATE TABLE "dance" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
     "yaml" TEXT NOT NULL,
     CONSTRAINT "fk_dance_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
-);
-
-CREATE TABLE "globally_unique_id" (
-    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "type" TEXT NOT NULL
 );
 
 CREATE TABLE "person" (
