@@ -1,24 +1,24 @@
 -- @get
-SELECT `yaml`
-FROM `source`
-WHERE `id` = @id;
+SELECT "yaml"
+FROM "source"
+WHERE "id" = @id;
 
 -- @get_all
 SELECT
-    `id`,
-    `yaml`
-FROM `source`;
+    "id",
+    "yaml"
+FROM "source";
 
 -- @update
-INSERT INTO `source` (`id`, `yaml`)
+INSERT INTO "source" ("id", "yaml")
 VALUES (@id, @yaml)
-ON DUPLICATE KEY UPDATE `yaml` = @yaml;
+ON CONFLICT ("id") DO UPDATE SET "yaml" = EXCLUDED."yaml";
 
 -- @delete
-DELETE FROM `source`
-WHERE `id` = @id;
+DELETE FROM "source"
+WHERE "id" = @id;
 
 -- @get_cover
-SELECT `cover`
-FROM `source`
-WHERE `id` = @id;
+SELECT "cover"
+FROM "source"
+WHERE "id" = @id;

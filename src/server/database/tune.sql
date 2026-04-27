@@ -1,19 +1,19 @@
 -- @get
-SELECT `yaml`
-FROM `tune`
-WHERE `id` = @id;
+SELECT "yaml"
+FROM "tune"
+WHERE "id" = @id;
 
 -- @get_all
 SELECT
-    `id`,
-    `yaml`
-FROM `tune`;
+    "id",
+    "yaml"
+FROM "tune";
 
 -- @update
-INSERT INTO `tune` (`id`, `yaml`)
+INSERT INTO "tune" ("id", "yaml")
 VALUES (@id, @yaml)
-ON DUPLICATE KEY UPDATE `yaml` = @yaml;
+ON CONFLICT ("id") DO UPDATE SET "yaml" = EXCLUDED."yaml";
 
 -- @delete
-DELETE FROM `tune`
-WHERE `id` = @id;
+DELETE FROM "tune"
+WHERE "id" = @id;
