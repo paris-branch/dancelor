@@ -1,14 +1,12 @@
 {
   "port": 8080,
-  "database": [
-    "MariaDB",
-    {
-      "endpoint": ["Socket", ".mariadb/mariadb.sock"],
-      "database": "dancelor",
-      "user": "dancelor",
-      "password": null
-    }
-  ],
+  "database": {
+    "driver": "postgresql",
+    "endpoint": ["Socket", ".postgres/run"],
+    "database": "dancelor",
+    "user": "dancelor",
+    "password": null
+  },
   "share": "_build/install/default/share/dancelor",
   "github_token": "",
   "github_token_file": "",

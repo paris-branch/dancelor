@@ -82,18 +82,16 @@
               exec ${self.apps.${system}.dancelor.program} ${
                 writeText "dancelor-config" (toJSON {
                   port = cfg.listeningPort;
-                  database = [
-                    "MariaDB"
-                    {
-                      endpoint = [
-                        "Socket"
-                        socketPath
-                      ];
-                      database = "dancelor";
-                      user = "dancelor";
-                      password = null;
-                    }
-                  ];
+                  database = {
+                    driver = "postgresql";
+                    endpoint = [
+                      "Socket"
+                      socketPath
+                    ];
+                    database = "dancelor";
+                    user = "dancelor";
+                    password = null;
+                  };
                   share = "${self.packages.${system}.dancelor}/share/dancelor";
                   github_token = "";
                   github_token_file = cfg.githubTokenFile;
