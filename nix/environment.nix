@@ -40,16 +40,6 @@
         topiary-latest = gitHookFor myTopiaryConfig // {
           enable = true;
         };
-
-        sqlfluff = {
-          enable = true;
-          name = "sqlfluff";
-          entry = "${../scripts/sqlfluff-fix} --sqlfluff ${pkgs.sqlfluff}/bin/sqlfluff";
-          files = "\\.sql$";
-          excludes = [ "^tests/database\\.sql$" ];
-          language = "system";
-          pass_filenames = true;
-        };
       };
 
       devShells.default = pkgs.mkShell {
@@ -67,7 +57,6 @@
           ++ [ (gitHookBinFor myTopiaryConfig) ]
           ++ (with pkgs; [
             postgresql
-            sqlfluff
             watchexec
           ])
           ++ (with pkgs.ocamlPackages; [
