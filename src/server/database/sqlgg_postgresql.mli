@@ -1,4 +1,7 @@
-type pg_conn = {conn: Postgresql.connection; fd: Lwt_unix.file_descr}
+type pg_conn = {
+  conn: Postgresql.connection;
+  fd: Lwt_unix.file_descr;
+}
 
 include Sqlgg_traits.M_io with
 type 'a connection = pg_conn

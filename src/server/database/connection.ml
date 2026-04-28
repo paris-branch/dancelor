@@ -50,3 +50,6 @@ let pool : t Lwt_pool.t =
 
 let with_ (f : t -> 'a Lwt.t) : 'a Lwt.t =
   Lwt_pool.use pool f
+
+let bypass_exec (db : t) (query : string) =
+  db.Sqlgg_postgresql.conn#exec query
