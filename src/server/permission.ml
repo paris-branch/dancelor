@@ -14,21 +14,21 @@ let can can = fun env ->
   let%lwt user = Environment.user env in
   lwt (can user <> None)
 
-let can_get_public env entry = can (flip can_get_public entry % Option.map Database.User.entry_to_common) env
+let can_get_public env entry = can (flip can_get_public entry) env
 
-let can_create_public env = can (can_create_public % Option.map Database.User.entry_to_common) env
+let can_create_public env = can can_create_public env
 
-let can_update_public env entry = can (flip can_update_public entry % Option.map Database.User.entry_to_common) env
+let can_update_public env entry = can (flip can_update_public entry) env
 
-let can_delete_public env entry = can (flip can_delete_public entry % Option.map Database.User.entry_to_common) env
+let can_delete_public env entry = can (flip can_delete_public entry) env
 
-let can_get_private env entry = can (flip can_get_private entry % Option.map Database.User.entry_to_common) env
+let can_get_private env entry = can (flip can_get_private entry) env
 
-let can_create_private env = can (can_create_private % Option.map Database.User.entry_to_common) env
+let can_create_private env = can can_create_private env
 
-let can_update_private env entry = can (flip can_update_private entry % Option.map Database.User.entry_to_common) env
+let can_update_private env entry = can (flip can_update_private entry) env
 
-let can_delete_private env entry = can (flip can_delete_private entry % Option.map Database.User.entry_to_common) env
+let can_delete_private env entry = can (flip can_delete_private entry) env
 
 (** {3 Assertions} *)
 
@@ -127,7 +127,7 @@ let assert_is_connected env =
     )
 
 let can_administrate env =
-  let%lwt user = Option.map Database.User.entry_to_common <$> Environment.user env in
+  let%lwt user = Environment.user env in
   lwt @@ Option.fold user ~none: false ~some: Model.User.is_administrator'
 
 let assert_can_administrate env f =
@@ -139,7 +139,7 @@ let assert_can_administrate env f =
       Madge_server.shortcut_forbidden "You do not have permission to administrate this instance."
     )
     ~some: (fun user () ->
-      if Model.User.is_administrator' @@ Database.User.entry_to_common user then
+      if Model.User.is_administrator' user then
         f user
       else
         (

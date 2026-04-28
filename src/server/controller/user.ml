@@ -4,14 +4,13 @@ open Dancelor_common
 module Log = (val Logs.src_log @@ Logs.Src.create "server.controller.user": Logs.LOG)
 
 let get env id =
-  match%lwt Database.User.(get % id_of_common) id with
+  match%lwt Database.User.get id with
   | None -> Permission.reject_can_get ()
   | Some user ->
     Permission.assert_can_get_public env user;%lwt
-    lwt @@ Database.User.entry_to_common user
+    lwt user
 
-let status env =
-  Option.map Database.User.entry_to_common <$> Environment.user env
+let status = Environment.user
 
 let sign_in env username password remember_me =
   Log.info (fun m -> m "Attempt to sign in with username `%s`." (Username.to_string username));
@@ -20,12 +19,13 @@ let sign_in env username password remember_me =
     Log.info (fun m -> m "Rejecting because already signed in.");
     lwt_none
   | None ->
+    (* FIXME: should be included in [get_password_from_username] except we return a user  *)
     match%lwt Database.User.get_from_username username with
     | None ->
       Log.info (fun m -> m "Rejecting because of wrong username.");
       lwt_none
     | Some user ->
-      match Database.User.password @@ Entry.value user with
+      match%lwt Database.User.get_password_from_username username with
       | None ->
         Log.info (fun m -> m "Rejecting because user has no password.");
         lwt_none
@@ -36,7 +36,7 @@ let sign_in env username password remember_me =
       | Some _ ->
         Environment.sign_in env user ~remember_me;%lwt
         Log.info (fun m -> m "Accepted sign in for %a." Environment.pp env);
-        lwt_some @@ Database.User.entry_to_common user
+        lwt_some user
 
 let sign_out env =
   match%lwt Environment.user env with
@@ -50,14 +50,15 @@ let create env user =
      is only available on the server side (NesHashedSecretUnix), not in common code. *)
   let password_reset_token_hash = Database.User.Password_reset_token_hashed.inject @@ HashedSecret.make ~clear: (Model.User.Password_reset_token_clear.project token) in
   let password_reset_token_max_date = Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600) in
-  let%lwt user =
+  let%lwt id =
     Database.User.create
       ~username: (Model.User.username user)
       ~role: (Model.User.role user)
       ~password_reset_token_hash
       ~password_reset_token_max_date
   in
-  lwt (Database.User.entry_to_common user, token)
+  let%lwt user = Option.get <$> Database.User.get id in
+  lwt (user, token)
 
 let prepare_reset_password env username =
   Permission.assert_can_administrate env @@ fun _admin ->
@@ -78,12 +79,13 @@ let prepare_reset_password env username =
 
 let reset_password username token password =
   Log.info (fun m -> m "Attempt to reset password for user `%s`." (Username.to_string username));
+  (* FIXME: should be included in [get_password_reset_token_from_username] except we return a user  *)
   match%lwt Database.User.get_from_username username with
   | None ->
     Log.info (fun m -> m "Rejecting because of wrong username.");
     Madge_server.shortcut_forbidden_no_leak ()
   | Some user ->
-    match Database.User.password_reset_token @@ Entry.value user with
+    match%lwt Database.User.get_password_reset_token_from_username username with
     | None ->
       Log.info (fun m -> m "Rejecting because of lack of token.");
       Madge_server.shortcut_forbidden_no_leak ()
@@ -117,7 +119,7 @@ include Search.Build(struct
   type filter = (Model.User.t, Filter.User.t) Formula_entry.public
 
   let get_all env =
-    let all = List.map Database.User.entry_to_common <$> Database.User.get_all () in
+    let all = Database.User.get_all () in
     let stream = (Lwt_stream.filter_s (Permission.can_get_public env) % Lwt_stream.of_list) <$> all in
     Lwt_stream.flip_lwt stream
 

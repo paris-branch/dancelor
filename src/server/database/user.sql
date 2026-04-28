@@ -1,9 +1,6 @@
 -- @get
 SELECT
     "username",
-    "password",
-    "password_reset_token_hash",
-    "password_reset_token_max_date",
     "role",
     "omniscience",
     "created_at",
@@ -15,14 +12,34 @@ WHERE "id" = @id;
 SELECT
     "id",
     "username",
-    "password",
-    "password_reset_token_hash",
-    "password_reset_token_max_date",
     "role",
     "omniscience",
     "created_at",
     "modified_at"
 FROM "user";
+
+-- @get_from_username
+SELECT
+    "id",
+    "role",
+    "omniscience",
+    "created_at",
+    "modified_at"
+FROM "user"
+WHERE "username" = @username;
+
+-- @get_password_from_username
+SELECT
+    "password"
+FROM "user"
+WHERE "username" = @username;
+
+-- @get_password_reset_token_from_username
+SELECT
+    "password_reset_token_hash",
+    "password_reset_token_max_date"
+FROM "user"
+WHERE "username" = @username;
 
 -- @create
 INSERT INTO "user" (
@@ -45,22 +62,6 @@ VALUES (
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 );
-
--- @update
-UPDATE "user"
-SET
-    "username" = @username,
-    "password" = @password,
-    "password_reset_token_hash" = @password_reset_token_hash,
-    "password_reset_token_max_date" = @password_reset_token_max_date,
-    "role" = @role,
-    "omniscience" = @omniscience,
-    "modified_at" = CURRENT_TIMESTAMP
-WHERE "id" = @id;
-
--- @delete
-DELETE FROM "user"
-WHERE "id" = @id;
 
 -- @set_password_reset_token
 UPDATE "user"

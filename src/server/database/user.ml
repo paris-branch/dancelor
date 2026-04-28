@@ -8,8 +8,12 @@ module Remember_me_key = Fresh.Make(String)
 module Remember_me_token_clear = Fresh.Make(String)
 module Remember_me_token_hashed = Fresh.Make(HashedSecret)
 
+type t = Entry.User.t
+type entry = t Entry.public
+
 (* NOTE: Do not reorder as that would break serialisation to and deserialisation
    from PostgreSQL. *)
+(* FIXME: We should just have a proper enum in PostgreSQL... *)
 type role =
   | Normal_user
   | Maintainer
@@ -26,65 +30,59 @@ let role_of_common = function
   | Maintainer -> (Maintainer, false)
   | Administrator {omniscience} -> (Administrator, omniscience)
 
-type t = {
-  username: Username.t;
-  password: Password_hashed.t option;
-  password_reset_token: (Password_reset_token_hashed.t * Datetime.t) option;
-  role: role;
-  omniscience: bool;
-}
-[@@deriving fields, make]
-
-type entry = t Entry.public
-
-let id_to_common : t Entry.id -> Entry.User.t Entry.id = Entry.Id.unsafe_coerce
-let id_of_common : Entry.User.t Entry.id -> t Entry.id = Entry.Id.unsafe_coerce
-
-let to_common user =
-  Entry.User.make ~username: (username user) ~role: (role_to_common (omniscience user) (role user)) ()
-
-let entry_to_common user =
-  Entry.unsafe_map_value to_common user
-
 let row_to_user
     ~id
     ~username
-    ~password
-    ~password_reset_token_hash
-    ~password_reset_token_max_date
     ~role
     ~omniscience
     ~created_at
     ~modified_at
   =
   Entry.make
-    ~id
+    ~id: (Entry.Id.of_string_exn id)
     ~meta: (Entry.Meta.make ~created_at ~modified_at ())
     ~access: Entry.Access.Public
     (
-      make
+      Entry.User.make
         ~username: (Username.of_string_exn username)
-        ?password: (Option.map (Password_hashed.inject % HashedSecret.unsafe_of_string) password)
-        ?password_reset_token: (
-          Option.bind password_reset_token_hash @@ fun password_reset_token_hash ->
-          Option.bind password_reset_token_max_date @@ fun password_reset_token_max_date ->
-          Some (
-            (Password_hashed.inject % HashedSecret.unsafe_of_string) password_reset_token_hash,
-            password_reset_token_max_date
-          )
-        )
-        ~role: (Option.get @@ role_of_enum @@ Int64.to_int role)
-        ~omniscience
+        ~role: (role_to_common omniscience @@ Option.get @@ role_of_enum @@ Int64.to_int role)
         ()
     )
 
 let get id : entry option Lwt.t =
+  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
-  User_sql.Single.get db ~id: (Entry.Id.to_string id) (row_to_user ~id)
+  User_sql.Single.get db ~id (row_to_user ~id)
+
+let get_from_username username =
+  let username = Username.to_string username in
+  Connection.with_ @@ fun db ->
+  User_sql.Single.get_from_username db ~username (row_to_user ~username)
 
 let get_all () : entry list Lwt.t =
   Connection.with_ @@ fun db ->
-  User_sql.List.get_all db (fun ~id -> row_to_user ~id: (Entry.Id.of_string_exn id))
+  User_sql.List.get_all db row_to_user
+
+let get_password_from_username username =
+  let username = Username.to_string username in
+  Connection.with_ @@ fun db ->
+  Option.join
+  <$> User_sql.Single.get_password_from_username db ~username (fun ~password ->
+      Option.map (Password_hashed.inject % HashedSecret.unsafe_of_string) password
+    )
+
+let get_password_reset_token_from_username username =
+  let username = Username.to_string username in
+  Connection.with_ @@ fun db ->
+  Option.join
+  <$> User_sql.Single.get_password_reset_token_from_username db ~username (fun ~password_reset_token_hash ~password_reset_token_max_date ->
+      Option.bind password_reset_token_hash @@ fun password_reset_token_hash ->
+      Option.bind password_reset_token_max_date @@ fun password_reset_token_max_date ->
+      Some (
+        (Password_reset_token_hashed.inject @@ HashedSecret.unsafe_of_string password_reset_token_hash),
+        password_reset_token_max_date
+      )
+    )
 
 let create ~username ~role ~password_reset_token_hash ~password_reset_token_max_date =
   let (role, omniscience) = role_of_common role in
@@ -100,48 +98,7 @@ let create ~username ~role ~password_reset_token_hash ~password_reset_token_max_
       ~password_reset_token_hash: (some @@ HashedSecret.unsafe_to_string @@ Password_reset_token_hashed.project password_reset_token_hash)
       ~password_reset_token_max_date: (Some password_reset_token_max_date)
   in
-  (* FIXME: the [created_at] and [modified_at] values here will be wrong *)
-  lwt @@
-  Entry.make ~id ~access: Entry.Access.Public @@
-  make
-    ~username
-    ~role
-    ~omniscience
-    ~password_reset_token: (password_reset_token_hash, password_reset_token_max_date)
-    ()
-
-let update id user =
-  let%lwt _ =
-    Connection.with_ @@ fun db ->
-    User_sql.update
-      db
-      ~id: (Entry.Id.to_string id)
-      ~username: (Username.to_string @@ username user)
-      ~password: (Option.map (HashedSecret.unsafe_to_string % Password_hashed.project) @@ password user)
-      ~password_reset_token_hash: (Option.map (HashedSecret.unsafe_to_string % Password_reset_token_hashed.project % fst) @@ password_reset_token user)
-      ~password_reset_token_max_date: (Option.map snd @@ password_reset_token user)
-      ~role: (Int64.of_int @@ role_to_enum @@ role user)
-      ~omniscience: (omniscience user)
-  in
-  (* FIXME: the [created_at] and [modified_at] values here will be wrong *)
-  lwt @@ Entry.make ~id ~access: Entry.Access.Public user
-
-let delete id =
-  let%lwt _ =
-    Connection.with_ @@ fun db ->
-    User_sql.delete db ~id: (Entry.Id.to_string id)
-  in
-  lwt_unit
-
-let get_from_username target_username =
-  (* FIXME: just write an efficient query for this, once the username is its own
-     column (with an index). *)
-  let%lwt all = get_all () in
-  let this = List.filter ((=) target_username % username % Entry.value) all in
-  match this with
-  | [] -> lwt_none
-  | [this] -> lwt_some this
-  | _ -> assert false
+  lwt id
 
 let remove_all_remember_me_tokens user_id =
   Connection.with_ @@ fun db ->

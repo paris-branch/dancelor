@@ -13,17 +13,8 @@ module Remember_me_token_hashed : Fresh.T with type base = HashedSecret.t
 
 (** {2 User} *)
 
-type t
+type t = Entry.User.t
 type entry = t Entry.public
-
-val id_of_common : Entry.User.t Entry.id -> t Entry.id
-val id_to_common : t Entry.id -> Entry.User.t Entry.id
-
-val to_common : t -> Entry.User.t
-val entry_to_common : entry -> Entry.User.t Entry.public
-
-val password : t -> Password_hashed.t option
-val password_reset_token : t -> (Password_reset_token_hashed.t * Datetime.t) option
 
 (** {2 Queries} *)
 
@@ -34,16 +25,16 @@ val get_all : unit -> entry list Lwt.t
 
 val get_from_username : Username.t -> entry option Lwt.t
 
+val get_password_from_username : Username.t -> Password_hashed.t option Lwt.t
+
+val get_password_reset_token_from_username : Username.t -> (Password_reset_token_hashed.t * Datetime.t) option Lwt.t
+
 val create :
   username: Username.t ->
   role: Entry.User.role ->
   password_reset_token_hash: Password_reset_token_hashed.t ->
   password_reset_token_max_date: Datetime.t ->
-  entry Lwt.t
-
-val update : t Entry.id -> t -> entry Lwt.t
-
-val delete : t Entry.id -> unit Lwt.t
+  t Entry.id Lwt.t
 
 val set_password_reset_token : t Entry.id -> Password_reset_token_hashed.t -> Datetime.t -> unit Lwt.t
 (** For the given user, set the password reset token and max date, and clear the
