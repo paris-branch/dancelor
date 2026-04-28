@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euCfo pipefail
+
+if [ -f "$PGDIR"/postgres.pid ] && kill -0 "$(cat "$PGDIR"/postgres.pid)" 2>/dev/null; then
+    printf 'Stopping PostgreSQL...'
+    pg_ctl stop --silent
+    printf ' done.\n'
+else
+    printf 'PostgreSQL is not running.\n'
+fi
+
+printf 'Removing PostgreSQL data directory...'
+rm -Rf "$PGDIR"
+printf ' done.\n'

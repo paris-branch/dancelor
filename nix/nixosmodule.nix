@@ -9,6 +9,7 @@
       ...
     }:
     let
+      inherit (lib) mkIf;
       cfg = config.services.dancelor;
     in
     {
@@ -74,7 +75,7 @@
           inherit (pkgs) writeText writeShellApplication;
           inherit (pkgs.stdenv.hostPlatform) system;
 
-          socketPath = "/run/mysqld/mysqld.sock";
+          socketPath = "/run/postgresql";
 
           run-dancelor = writeShellApplication {
             name = "dancelor";
@@ -82,18 +83,16 @@
               exec ${self.apps.${system}.dancelor.program} ${
                 writeText "dancelor-config" (toJSON {
                   port = cfg.listeningPort;
-                  database = [
-                    "MariaDB"
-                    {
-                      endpoint = [
-                        "Socket"
-                        socketPath
-                      ];
-                      database = "dancelor";
-                      user = "dancelor";
-                      password = null;
-                    }
-                  ];
+                  database = {
+                    driver = "postgresql";
+                    endpoint = [
+                      "Socket"
+                      socketPath
+                    ];
+                    database = "dancelor";
+                    user = "dancelor";
+                    password = null;
+                  };
                   share = "${self.packages.${system}.dancelor}/share/dancelor";
                   github_token = "";
                   github_token_file = cfg.githubTokenFile;
@@ -126,9 +125,9 @@
           systemd.services.dancelor = {
             after = [
               "network.target"
-              "mysql.service"
+              "postgresql.target"
             ];
-            requires = [ "mysql.service" ];
+            requires = [ "postgresql.target" ];
             wantedBy = [ "multi-user.target" ];
             serviceConfig = {
               Type = "notify";
@@ -141,24 +140,23 @@
             };
           };
 
-          ## MariaDB with a `dancelor` database and user
+          ## PostgreSQL with a `dancelor` database and user
           ##
           ## NOTE: We might want to leave some of this configuration to the
           ## client code, but since it's mostly us we can keep it for now.
           ## Better over-specify and have Nix catch our mistakes later.
           ##
-          services.mysql = {
+          services.postgresql = {
             enable = true;
             ensureDatabases = [ "dancelor" ];
             ensureUsers = [
               {
                 name = "dancelor";
-                ensurePermissions = {
-                  "dancelor.*" = "ALL PRIVILEGES";
-                };
+                ensureDBOwnership = true;
               }
             ];
-            settings.mysqld.socket = socketPath;
+            settings.unix_socket_directories = socketPath;
+            authentication = mkIf cfg.testMode "local all all trust";
           };
         }
       );

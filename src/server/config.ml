@@ -7,16 +7,30 @@ type endpoint =
   | Socket of string
 [@@deriving show {with_path = false}, yojson]
 
-type mariadb = {
+type driver =
+  | PostgreSQL
+[@@deriving show {with_path = false}]
+
+let driver_to_string = function
+  | PostgreSQL -> "postgresql"
+
+let driver_of_string = function
+  | "postgresql" -> PostgreSQL
+  | _ -> failwith "driver_of_string"
+
+let driver_to_yojson d = `String (driver_to_string d)
+
+let driver_of_yojson = function
+  | `String s -> (try Ok (driver_of_string s) with Failure msg -> Error msg)
+  | _ -> Error "not a string"
+
+type database = {
+  driver: driver;
   endpoint: endpoint;
   database: string;
   user: string;
   password: string option;
 }
-[@@deriving show {with_path = false}, yojson]
-
-type database =
-  MariaDB of mariadb
 [@@deriving show {with_path = false}, yojson]
 
 type t = {

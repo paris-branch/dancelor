@@ -1,324 +1,401 @@
-/*M!999999\- enable the sandbox mode */ 
--- MariaDB dump 10.19-11.4.9-MariaDB, for Linux (x86_64)
 --
--- Host: localhost    Database: dancelor
--- ------------------------------------------------------
--- Server version	11.4.9-MariaDB
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
-
---
--- Table structure for table `book`
+-- PostgreSQL database dump
 --
 
-DROP TABLE IF EXISTS `book`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `book` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_book_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+\restrict ybiQOqa6jiLe8LvxFznU4q8n34iwf9VXgUBS2e7j5NMdWOEHU3ms2YSbcIZ871W
+
+-- Dumped from database version 17.9
+-- Dumped by pg_dump version 17.9
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
 
 --
--- Dumping data for table `book`
+-- Name: dancelor; Type: SCHEMA; Schema: -; Owner: -
 --
 
-LOCK TABLES `book` WRITE;
-/*!40000 ALTER TABLE `book` DISABLE KEYS */;
-INSERT INTO `book` VALUES
-('0fi3-1iot-6tbq','value:\n  title: The Tam Lin Book\n  contents:\n    - - Versions\n      - - - xzzb-wasm-babe\n          - {}\n    - - Set\n      - ului-yd9x-o35w\n      - {}\nmeta:\n  created-at: \"2020-12-03T11:55:36+01:00\"\n  modified-at: \"2023-06-25T16:51:15+02:00\"\naccess:\n  owners:\n    - lt3h-edgt-ac97\n  visibility:\n    - Everyone\n');
-/*!40000 ALTER TABLE `book` ENABLE KEYS */;
-UNLOCK TABLES;
+CREATE SCHEMA "dancelor";
+
 
 --
--- Table structure for table `dance`
+-- Name: globally_unique_id_type; Type: TYPE; Schema: dancelor; Owner: -
 --
 
-DROP TABLE IF EXISTS `dance`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `dance` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_dance_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TYPE "dancelor"."globally_unique_id_type" AS ENUM (
+    'Book',
+    'Dance',
+    'Person',
+    'Set',
+    'Source',
+    'Tune',
+    'User',
+    'Version'
+);
+
 
 --
--- Dumping data for table `dance`
+-- Name: book; Type: TABLE; Schema: dancelor; Owner: -
 --
 
-LOCK TABLES `dance` WRITE;
-/*!40000 ALTER TABLE `dance` DISABLE KEYS */;
-INSERT INTO `dance` VALUES
-('l02q-i1j0-qpoi','value:\n  kind: 8 x 32 R\n  devisers:\n    - 8h62-3eis-xfem\n  names:\n    - The Architect\nmeta:\n  created-at: \"2023-12-21T17:11:33\"\n  modified-at: \"2023-12-21T17:11:33\"\naccess:\n  - Public\n');
-/*!40000 ALTER TABLE `dance` ENABLE KEYS */;
-UNLOCK TABLES;
+CREATE TABLE "dancelor"."book" (
+    "id" character varying(14) NOT NULL,
+    "json" json NOT NULL
+);
+
 
 --
--- Table structure for table `globally_unique_id`
+-- Name: dance; Type: TABLE; Schema: dancelor; Owner: -
 --
 
-DROP TABLE IF EXISTS `globally_unique_id`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `globally_unique_id` (
-  `id` varchar(14) NOT NULL,
-  `type` enum('Book','Dance','Person','Set','Source','Tune','User','Version') NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE "dancelor"."dance" (
+    "id" character varying(14) NOT NULL,
+    "json" json NOT NULL
+);
+
 
 --
--- Dumping data for table `globally_unique_id`
+-- Name: globally_unique_id; Type: TABLE; Schema: dancelor; Owner: -
 --
 
-LOCK TABLES `globally_unique_id` WRITE;
-/*!40000 ALTER TABLE `globally_unique_id` DISABLE KEYS */;
-INSERT INTO `globally_unique_id` VALUES
-('0fi3-1iot-6tbq','Book'),
-('2f8s-90v8-33do','Source'),
-('4plf-srss-ihav','Person'),
-('8h62-3eis-xfem','Person'),
-('l02q-i1j0-qpoi','Dance'),
-('lt3h-edgt-ac97','User'),
-('qdod-ad7l-8gr2','Tune'),
-('ului-yd9x-o35w','Set'),
-('uwoe-u6ij-ikgp','Person'),
-('wrwk-cz9g-g3wi','Set'),
-('xzzb-wasm-babe','Version');
-/*!40000 ALTER TABLE `globally_unique_id` ENABLE KEYS */;
-UNLOCK TABLES;
+CREATE TABLE "dancelor"."globally_unique_id" (
+    "id" character varying(14) NOT NULL,
+    "type" "dancelor"."globally_unique_id_type" NOT NULL
+);
+
 
 --
--- Table structure for table `migrations`
+-- Name: migrations; Type: TABLE; Schema: dancelor; Owner: -
 --
 
-DROP TABLE IF EXISTS `migrations`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `migrations` (
-  `name` varchar(255) NOT NULL,
-  `applied_at` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE "dancelor"."migrations" (
+    "name" character varying(255) NOT NULL,
+    "applied_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
 
 --
--- Dumping data for table `migrations`
+-- Name: person; Type: TABLE; Schema: dancelor; Owner: -
 --
 
-LOCK TABLES `migrations` WRITE;
-/*!40000 ALTER TABLE `migrations` DISABLE KEYS */;
-INSERT INTO `migrations` VALUES
-('m001_2026_04_add_book_table','2026-04-22 12:52:21'),
-('m002_2026_04_add_dance_table','2026-04-22 12:52:21'),
-('m003_2026_04_add_person_table','2026-04-22 12:52:21'),
-('m004_2026_04_add_set_table','2026-04-22 12:52:21'),
-('m005_2026_04_add_source_table','2026-04-22 12:52:21'),
-('m006_2026_04_add_tune_table','2026-04-22 12:52:21'),
-('m007_2026_04_add_user_table','2026-04-22 12:52:21'),
-('m008_2026_04_add_version_table','2026-04-22 12:52:21'),
-('m009_2026_04_add_globally_unique_id_table','2026-04-23 21:38:30'),
-('m010_2026_04_insert_ids_from_book_into_globally_unique_id','2026-04-23 21:47:34'),
-('m011_2026_04_add_fk_book_id_key','2026-04-23 21:47:34'),
-('m012_2026_04_insert_ids_from_dance_into_globally_unique_id','2026-04-23 21:47:34'),
-('m013_2026_04_add_fk_dance_id_key','2026-04-23 21:47:34'),
-('m014_2026_04_insert_ids_from_person_into_globally_unique_id','2026-04-23 21:47:34'),
-('m015_2026_04_add_fk_person_id_key','2026-04-23 21:47:34'),
-('m016_2026_04_insert_ids_from_set_into_globally_unique_id','2026-04-23 21:47:34'),
-('m017_2026_04_add_fk_set_id_key','2026-04-23 21:47:34'),
-('m018_2026_04_insert_ids_from_source_into_globally_unique_id','2026-04-23 21:47:34'),
-('m019_2026_04_add_fk_source_id_key','2026-04-23 21:47:34'),
-('m020_2026_04_insert_ids_from_tune_into_globally_unique_id','2026-04-23 21:47:34'),
-('m021_2026_04_add_fk_tune_id_key','2026-04-23 21:47:34'),
-('m022_2026_04_insert_ids_from_user_into_globally_unique_id','2026-04-23 21:47:34'),
-('m023_2026_04_add_fk_user_id_key','2026-04-23 21:47:34'),
-('m024_2026_04_insert_ids_from_version_into_globally_unique_id','2026-04-23 21:47:34'),
-('m025_2026_04_add_fk_version_id_key','2026-04-23 21:47:34');
-/*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
-UNLOCK TABLES;
+CREATE TABLE "dancelor"."person" (
+    "id" character varying(14) NOT NULL,
+    "json" json NOT NULL
+);
+
 
 --
--- Table structure for table `person`
+-- Name: set; Type: TABLE; Schema: dancelor; Owner: -
 --
 
-DROP TABLE IF EXISTS `person`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `person` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_person_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE "dancelor"."set" (
+    "id" character varying(14) NOT NULL,
+    "json" json NOT NULL
+);
+
 
 --
--- Dumping data for table `person`
+-- Name: source; Type: TABLE; Schema: dancelor; Owner: -
 --
 
-LOCK TABLES `person` WRITE;
-/*!40000 ALTER TABLE `person` DISABLE KEYS */;
-INSERT INTO `person` VALUES
-('4plf-srss-ihav','value:\n  name: Davey Arthur\n  composed_tunes_are_public: true\nmeta:\n  created-at: \"2018-12-07T01:18:53+01:00\"\n  modified-at: \"2023-06-25T16:51:15+02:00\"\naccess:\n  - Public\n'),
-('8h62-3eis-xfem','value:\n  name: Mervyn C Short\n  scddb-id: 347\nmeta:\n  created-at: \"2023-07-03T14:17:45\"\n  modified-at: \"2023-07-03T14:17:45\"\naccess:\n  - Public\n'),
-('uwoe-u6ij-ikgp','value:\n  name: Nicolas “Niols” Jeannerod\n  scddb-id: 11781\n  composed_tunes_are_public: true\n  user: lt3h-edgt-ac97\nmeta:\n  created-at: \"2018-10-12T11:50:54+02:00\"\n  modified-at: \"2023-06-25T16:51:15+02:00\"\naccess:\n  - Public\n');
-/*!40000 ALTER TABLE `person` ENABLE KEYS */;
-UNLOCK TABLES;
+CREATE TABLE "dancelor"."source" (
+    "id" character varying(14) NOT NULL,
+    "json" json NOT NULL,
+    "cover" "bytea"
+);
+
 
 --
--- Table structure for table `set`
+-- Name: tune; Type: TABLE; Schema: dancelor; Owner: -
 --
 
-DROP TABLE IF EXISTS `set`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `set` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_set_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE "dancelor"."tune" (
+    "id" character varying(14) NOT NULL,
+    "json" json NOT NULL
+);
+
 
 --
--- Dumping data for table `set`
+-- Name: user; Type: TABLE; Schema: dancelor; Owner: -
 --
 
-LOCK TABLES `set` WRITE;
-/*!40000 ALTER TABLE `set` DISABLE KEYS */;
-INSERT INTO `set` VALUES
-('ului-yd9x-o35w','value:\n  name: Tam Lin Thrice\n  conceptors:\n    - uwoe-u6ij-ikgp\n  kind: 3x32R\n  versions-and-parameters:\n    - - xzzb-wasm-babe\n      - {}\n    - - xzzb-wasm-babe\n      - transposition: 2\n    - - xzzb-wasm-babe\n      - transposition: 7\n  order: 1,2,3\nmeta:\n  created-at: \"2023-05-02T11:16:55+00:00\"\n  modified-at: \"2023-06-25T16:51:15+02:00\"\naccess:\n  owners:\n    - lt3h-edgt-ac97\n  visibility:\n    - Everyone\n'),
-('wrwk-cz9g-g3wi','value:\n  name: A Private Set\n  conceptors:\n    - uwoe-u6ij-ikgp\n  kind: 3x32R\n  versions-and-parameters: []\n  order: \"1\"\nmeta:\n  created-at: \"2023-05-02T11:16:55+00:00\"\n  modified-at: \"2023-06-25T16:51:15+02:00\"\naccess:\n  owners:\n    - lt3h-edgt-ac97\n  visibility:\n    - Owners_only\n');
-/*!40000 ALTER TABLE `set` ENABLE KEYS */;
-UNLOCK TABLES;
+CREATE TABLE "dancelor"."user" (
+    "id" character varying(14) NOT NULL,
+    "json" json NOT NULL
+);
+
 
 --
--- Table structure for table `source`
+-- Name: version; Type: TABLE; Schema: dancelor; Owner: -
 --
 
-DROP TABLE IF EXISTS `source`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `source` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  `cover` mediumblob DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_source_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE "dancelor"."version" (
+    "id" character varying(14) NOT NULL,
+    "json" json NOT NULL
+);
+
 
 --
--- Dumping data for table `source`
+-- Data for Name: book; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-LOCK TABLES `source` WRITE;
-/*!40000 ALTER TABLE `source` DISABLE KEYS */;
-INSERT INTO `source` VALUES
-('2f8s-90v8-33do','value:\n  name: The Tam Lin Source\nmeta:\n  created-at: \"2025-04-12T18:45:27+00:00\"\n  modified-at: \"2025-04-12T18:45:27+00:00\"\naccess:\n  - Public\n',NULL);
-/*!40000 ALTER TABLE `source` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO "dancelor"."book" ("id", "json") VALUES ('0fi3-1iot-6tbq', '{"value":{"title":"The Tam Lin Book","contents":[["Versions",[["xzzb-wasm-babe",{}]]],["Set","ului-yd9x-o35w",{}]]},"meta":{"created-at":"2020-12-03T11:55:36+01:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":{"owners":["lt3h-edgt-ac97"],"visibility":["Everyone"]}}');
+
 
 --
--- Table structure for table `tune`
+-- Data for Name: dance; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-DROP TABLE IF EXISTS `tune`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `tune` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_tune_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+INSERT INTO "dancelor"."dance" ("id", "json") VALUES ('l02q-i1j0-qpoi', '{"value":{"kind":"8 x 32 R","devisers":["8h62-3eis-xfem"],"names":["The Architect"]},"meta":{"created-at":"2023-12-21T17:11:33","modified-at":"2023-12-21T17:11:33"},"access":["Public"]}');
+
 
 --
--- Dumping data for table `tune`
+-- Data for Name: globally_unique_id; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-LOCK TABLES `tune` WRITE;
-/*!40000 ALTER TABLE `tune` DISABLE KEYS */;
-INSERT INTO `tune` VALUES
-('qdod-ad7l-8gr2','value:\n  names:\n    - Tam Lin\n  kind: R\n  composers:\n    - composer: 4plf-srss-ihav\n      details: \"\"\n  dances:\n    - l02q-i1j0-qpoi\nmeta:\n  created-at: \"2018-12-07T01:18:53+01:00\"\n  modified-at: \"2023-06-25T16:51:15+02:00\"\naccess:\n  - Public\n');
-/*!40000 ALTER TABLE `tune` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('0fi3-1iot-6tbq', 'Book');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('2f8s-90v8-33do', 'Source');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('4plf-srss-ihav', 'Person');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('8h62-3eis-xfem', 'Person');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('l02q-i1j0-qpoi', 'Dance');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('lt3h-edgt-ac97', 'User');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('qdod-ad7l-8gr2', 'Tune');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('ului-yd9x-o35w', 'Set');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('uwoe-u6ij-ikgp', 'Person');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('wrwk-cz9g-g3wi', 'Set');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xzzb-wasm-babe', 'Version');
+
 
 --
--- Table structure for table `user`
+-- Data for Name: migrations; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-DROP TABLE IF EXISTS `user`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_user_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m001_2026_04_add_book_table', '2026-04-22 14:52:21+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m002_2026_04_add_dance_table', '2026-04-22 14:52:21+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m003_2026_04_add_person_table', '2026-04-22 14:52:21+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m004_2026_04_add_set_table', '2026-04-22 14:52:21+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m005_2026_04_add_source_table', '2026-04-22 14:52:21+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m006_2026_04_add_tune_table', '2026-04-22 14:52:21+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m007_2026_04_add_user_table', '2026-04-22 14:52:21+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m008_2026_04_add_version_table', '2026-04-22 14:52:21+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m009_2026_04_add_globally_unique_id_table', '2026-04-23 23:38:30+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m010_2026_04_insert_ids_from_book_into_globally_unique_id', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m011_2026_04_add_fk_book_id_key', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m012_2026_04_insert_ids_from_dance_into_globally_unique_id', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m013_2026_04_add_fk_dance_id_key', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m014_2026_04_insert_ids_from_person_into_globally_unique_id', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m015_2026_04_add_fk_person_id_key', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m016_2026_04_insert_ids_from_set_into_globally_unique_id', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m017_2026_04_add_fk_set_id_key', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m018_2026_04_insert_ids_from_source_into_globally_unique_id', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m019_2026_04_add_fk_source_id_key', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m020_2026_04_insert_ids_from_tune_into_globally_unique_id', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m021_2026_04_add_fk_tune_id_key', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m022_2026_04_insert_ids_from_user_into_globally_unique_id', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m023_2026_04_add_fk_user_id_key', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m024_2026_04_insert_ids_from_version_into_globally_unique_id', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m025_2026_04_add_fk_version_id_key', '2026-04-23 23:47:34+00');
+
 
 --
--- Dumping data for table `user`
+-- Data for Name: person; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-LOCK TABLES `user` WRITE;
-/*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES
-('lt3h-edgt-ac97','value:\n  password: $argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w\n  username: Niols\nmeta:\n  created-at: \"2025-04-13T18:48:00+02:00\"\n  modified-at: \"2025-04-13T18:48:00+02:00\"\naccess:\n  - Public\n');
-/*!40000 ALTER TABLE `user` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO "dancelor"."person" ("id", "json") VALUES ('4plf-srss-ihav', '{"value":{"name":"Davey Arthur","composed_tunes_are_public":true},"meta":{"created-at":"2018-12-07T01:18:53+01:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
+INSERT INTO "dancelor"."person" ("id", "json") VALUES ('8h62-3eis-xfem', '{"value":{"name":"Mervyn C Short","scddb-id":347},"meta":{"created-at":"2023-07-03T14:17:45","modified-at":"2023-07-03T14:17:45"},"access":["Public"]}');
+INSERT INTO "dancelor"."person" ("id", "json") VALUES ('uwoe-u6ij-ikgp', '{"value":{"name":"Nicolas “Niols” Jeannerod","scddb-id":11781,"composed_tunes_are_public":true,"user":"lt3h-edgt-ac97"},"meta":{"created-at":"2018-10-12T11:50:54+02:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
+
 
 --
--- Table structure for table `version`
+-- Data for Name: set; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-DROP TABLE IF EXISTS `version`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `version` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_version_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+INSERT INTO "dancelor"."set" ("id", "json") VALUES ('ului-yd9x-o35w', '{"value":{"name":"Tam Lin Thrice","conceptors":["uwoe-u6ij-ikgp"],"kind":"3x32R","versions-and-parameters":[["xzzb-wasm-babe",{}],["xzzb-wasm-babe",{"transposition":2}],["xzzb-wasm-babe",{"transposition":7}]],"order":"1,2,3"},"meta":{"created-at":"2023-05-02T11:16:55+00:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":{"owners":["lt3h-edgt-ac97"],"visibility":["Everyone"]}}');
+INSERT INTO "dancelor"."set" ("id", "json") VALUES ('wrwk-cz9g-g3wi', '{"value":{"name":"A Private Set","conceptors":["uwoe-u6ij-ikgp"],"kind":"3x32R","versions-and-parameters":[],"order":"1"},"meta":{"created-at":"2023-05-02T11:16:55+00:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":{"owners":["lt3h-edgt-ac97"],"visibility":["Owners_only"]}}');
+
 
 --
--- Dumping data for table `version`
+-- Data for Name: source; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-LOCK TABLES `version` WRITE;
-/*!40000 ALTER TABLE `version` DISABLE KEYS */;
-INSERT INTO `version` VALUES
-('xzzb-wasm-babe','value:\n  tune: qdod-ad7l-8gr2\n  key: Dm\n  disambiguation: Niols\'s Version\n  arrangers:\n    - uwoe-u6ij-ikgp\n  sources:\n    - source: 2f8s-90v8-33do\n      structure: AABB\n  content:\n    - Monolithic\n    - bars: 32\n      structure: AABB\n      lilypond:\n        \"\\\\relative c\' <<\\n  {\\n    \\\\clef treble\\n    \\\\key d \\\\minor\\n \\\n        \\   \\\\time 4/4\\n\\n    \\\\repeat volta 2 {\\n      \\\\partial 8 r8 |\\n      a4\\\n        \\ d8 a f\' a, d a |\\n      bes4 d8 bes f\' bes, d bes |\\n      c4 e8 c g\' c,\\\n        \\ e g |\\n      f8 e d c d c a g |\\n      \\\\break\\n\\n      a4 d8 a f\' a, d\\\n        \\ a |\\n      bes4 d8 bes f\' bes, d bes |\\n      c4 e8 c g\' c, e g |\\n    \\\n        \\  f8 e d c d4.\\n    } \\\\break\\n\\n    \\\\repeat volta 2 {\\n      a\'8 |\\n  \\\n        \\    d8 a a a f a d, a\' |\\n      d8 a a a f a d, a\' |\\n      c8 g g g c g\\\n        \\ e\' g, |\\n      c8 g g g c[ r c cis] |\\n      \\\\break\\n\\n      d8 a a a f\\\n        \\ a d, a\' |\\n      d8 a a a f[ a] d, r |\\n      bes8 a bes c d c d e |\\n \\\n        \\     f8 e d c a[ d] d\\n    }\\n  }\\n\\n  \\\\new ChordNames {\\n    \\\\chordmode\\\n        \\ {\\n      s8 |\\n      d1:m | bes | c | d2:m a:m |\\n      d1:m | bes | c |\\\n        \\ a2:m d4.:m\\n\\n      s8 |\\n      d1:m | s | c | s |\\n      d1:m | s | g:m\\\n        \\ | a2:m d4.:m\\n    }\\n  }\\n\\n  \\\\new ChordNames {\\n    \\\\chordmode {\\n  \\\n        \\    s8 |\\n      s1 | \\\\parenthesize g:m | s | s |\\n      s1 | \\\\parenthesize\\\n        \\ g:m | s | s2 s4.\\n\\n      s8 |\\n      s1 | s | s | s |\\n      \\\\parenthesize\\\n        \\ bes1 | s | s | s2 s4.\\n    }\\n  }\\n>>\\n\"\nmeta:\n  created-at: \"2023-04-04T18:45:27+00:00\"\n  modified-at: \"2023-06-25T16:51:15+02:00\"\naccess:\n  - Public\n');
-/*!40000 ALTER TABLE `version` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+INSERT INTO "dancelor"."source" ("id", "json", "cover") VALUES ('2f8s-90v8-33do', '{"value":{"name":"The Tam Lin Source"},"meta":{"created-at":"2025-04-12T18:45:27+00:00","modified-at":"2025-04-12T18:45:27+00:00"},"access":["Public"]}', null);
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed
+--
+-- Data for Name: tune; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."tune" ("id", "json") VALUES ('qdod-ad7l-8gr2', '{"value":{"names":["Tam Lin"],"kind":"R","composers":[{"composer":"4plf-srss-ihav","details":""}],"dances":["l02q-i1j0-qpoi"]},"meta":{"created-at":"2018-12-07T01:18:53+01:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
+
+
+--
+-- Data for Name: user; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."user" ("id", "json") VALUES ('lt3h-edgt-ac97', '{"value":{"password":"$argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w","username":"Niols"},"meta":{"created-at":"2025-04-13T18:48:00+02:00","modified-at":"2025-04-13T18:48:00+02:00"},"access":["Public"]}');
+
+
+--
+-- Data for Name: version; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."version" ("id", "json") VALUES ('xzzb-wasm-babe', '{"value":{"tune":"qdod-ad7l-8gr2","key":"Dm","disambiguation":"Niols''s Version","arrangers":["uwoe-u6ij-ikgp"],"sources":[{"source":"2f8s-90v8-33do","structure":"AABB"}],"content":["Monolithic",{"bars":32,"structure":"AABB","lilypond":"\\relative c'' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    \\repeat volta 2 {\n      \\partial 8 r8 |\n      a4 d8 a f'' a, d a |\n      bes4 d8 bes f'' bes, d bes |\n      c4 e8 c g'' c, e g |\n      f8 e d c d c a g |\n      \\break\n\n      a4 d8 a f'' a, d a |\n      bes4 d8 bes f'' bes, d bes |\n      c4 e8 c g'' c, e g |\n      f8 e d c d4.\n    } \\break\n\n    \\repeat volta 2 {\n      a''8 |\n      d8 a a a f a d, a'' |\n      d8 a a a f a d, a'' |\n      c8 g g g c g e'' g, |\n      c8 g g g c[ r c cis] |\n      \\break\n\n      d8 a a a f a d, a'' |\n      d8 a a a f[ a] d, r |\n      bes8 a bes c d c d e |\n      f8 e d c a[ d] d\n    }\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      s8 |\n      d1:m | bes | c | d2:m a:m |\n      d1:m | bes | c | a2:m d4.:m\n\n      s8 |\n      d1:m | s | c | s |\n      d1:m | s | g:m | a2:m d4.:m\n    }\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      s8 |\n      s1 | \\parenthesize g:m | s | s |\n      s1 | \\parenthesize g:m | s | s2 s4.\n\n      s8 |\n      s1 | s | s | s |\n      \\parenthesize bes1 | s | s | s2 s4.\n    }\n  }\n>>\n"}]},"meta":{"created-at":"2023-04-04T18:45:27+00:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
+
+
+--
+-- Name: book idx_16409_primary; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book"
+ADD CONSTRAINT "idx_16409_primary" PRIMARY KEY ("id");
+
+
+--
+-- Name: dance idx_16414_primary; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."dance"
+ADD CONSTRAINT "idx_16414_primary" PRIMARY KEY ("id");
+
+
+--
+-- Name: globally_unique_id idx_16419_primary; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."globally_unique_id"
+ADD CONSTRAINT "idx_16419_primary" PRIMARY KEY ("id");
+
+
+--
+-- Name: migrations idx_16422_primary; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."migrations"
+ADD CONSTRAINT "idx_16422_primary" PRIMARY KEY ("name");
+
+
+--
+-- Name: person idx_16426_primary; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."person"
+ADD CONSTRAINT "idx_16426_primary" PRIMARY KEY ("id");
+
+
+--
+-- Name: set idx_16431_primary; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."set"
+ADD CONSTRAINT "idx_16431_primary" PRIMARY KEY ("id");
+
+
+--
+-- Name: source idx_16436_primary; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."source"
+ADD CONSTRAINT "idx_16436_primary" PRIMARY KEY ("id");
+
+
+--
+-- Name: tune idx_16441_primary; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."tune"
+ADD CONSTRAINT "idx_16441_primary" PRIMARY KEY ("id");
+
+
+--
+-- Name: user idx_16446_primary; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."user"
+ADD CONSTRAINT "idx_16446_primary" PRIMARY KEY ("id");
+
+
+--
+-- Name: version idx_16451_primary; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."version"
+ADD CONSTRAINT "idx_16451_primary" PRIMARY KEY ("id");
+
+
+--
+-- Name: book fk_book_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book"
+ADD CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id" ("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: dance fk_dance_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."dance"
+ADD CONSTRAINT "fk_dance_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id" ("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: person fk_person_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."person"
+ADD CONSTRAINT "fk_person_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id" ("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: set fk_set_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."set"
+ADD CONSTRAINT "fk_set_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id" ("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: source fk_source_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."source"
+ADD CONSTRAINT "fk_source_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id" ("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: tune fk_tune_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."tune"
+ADD CONSTRAINT "fk_tune_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id" ("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: user fk_user_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."user"
+ADD CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id" ("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: version fk_version_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."version"
+ADD CONSTRAINT "fk_version_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id" ("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\unrestrict ybiQOqa6jiLe8LvxFznU4q8n34iwf9VXgUBS2e7j5NMdWOEHU3ms2YSbcIZ871W

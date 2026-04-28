@@ -1,46 +1,45 @@
 open Nes
 open Dancelor_common
 
-module User_sql = User_sql.Sqlgg(Connection.Sqlgg_mariadb_lwt)
+module User_sql = User_sql.Sqlgg(Sqlgg_postgresql)
 
 type t = Model_builder.Core.User.t
 type entry = Model_builder.Core.User.entry
 
-let of_yaml id yaml =
-  let json = Storage.Json.from_yaml_string yaml in
+let of_json id json =
   Result.get_ok @@ Entry.of_yojson_no_id id Model_builder.Core.User.of_yojson Model_builder.Core.User.access_of_yojson json
 
 let get id : Model_builder.Core.User.entry option Lwt.t =
   Connection.with_ @@ fun db ->
-  User_sql.Fold.get db ~id: (Entry.Id.to_string id) (fun ~yaml _ -> Some (of_yaml id yaml)) None
+  lwt @@ Option.map (of_json id) (User_sql.get db ~id: (Entry.Id.to_string id))
 
 let get_all () =
   Connection.with_ @@ fun db ->
-  User_sql.List.get_all db (fun ~id ~yaml -> of_yaml (Entry.Id.of_string_exn id) yaml)
+  lwt @@ User_sql.List.get_all db (fun ~id ~json -> of_json (Entry.Id.of_string_exn id) json)
 
 let create user =
   let%lwt id = Globally_unique_id.make User in
   let user = Entry.make ~id ~access: Entry.Access.Public user in
   let json = Entry.to_yojson_no_id Model_builder.Core.User.to_yojson Model_builder.Core.User.access_to_yojson user in
-  let%lwt _ : int64 =
+  let%lwt _ =
     Connection.with_ @@ fun db ->
-    User_sql.update db ~id: (Entry.Id.to_string id) ~yaml: (Storage.Json.to_yaml_string json)
+    lwt @@ User_sql.update db ~id: (Entry.Id.to_string id) ~json
   in
   lwt user
 
 let update id user =
   let user = Entry.make ~id ~access: Entry.Access.Public user in
   let json = Entry.to_yojson_no_id Model_builder.Core.User.to_yojson Model_builder.Core.User.access_to_yojson user in
-  let%lwt _ : int64 =
+  let%lwt _ =
     Connection.with_ @@ fun db ->
-    User_sql.update db ~id: (Entry.Id.to_string id) ~yaml: (Storage.Json.to_yaml_string json)
+    lwt @@ User_sql.update db ~id: (Entry.Id.to_string id) ~json
   in
   lwt user
 
 let delete id =
-  let%lwt _ : int64 =
+  let%lwt _ =
     Connection.with_ @@ fun db ->
-    User_sql.delete db ~id: (Entry.Id.to_string id)
+    lwt @@ User_sql.delete db ~id: (Entry.Id.to_string id)
   in
   lwt_unit
 

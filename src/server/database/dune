@@ -4,7 +4,7 @@
  (action
   (with-stdout-to
    %{target}
-   (run sqlgg -gen caml_io -params unnamed %{deps}))))
+   (run sqlgg -gen caml -dialect postgresql -params postgresql %{deps}))))
 
 ;; NOTE: Queries need to type-check against the schema, so we call `sqlgg` with
 ;; both, but we disable the DDL category such that no `CREATE TABLE` or `ALTER
@@ -16,7 +16,17 @@
  (action
   (with-stdout-to
    %{target}
-   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+   (run
+    sqlgg
+    -gen
+    caml
+    -category
+    -DDL
+    -dialect
+    postgresql
+    -params
+    postgresql
+    %{deps}))))
 
 (rule
  (target book_sql.ml)
@@ -24,7 +34,17 @@
  (action
   (with-stdout-to
    %{target}
-   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+   (run
+    sqlgg
+    -gen
+    caml
+    -category
+    -DDL
+    -dialect
+    postgresql
+    -params
+    postgresql
+    %{deps}))))
 
 (rule
  (target dance_sql.ml)
@@ -32,7 +52,17 @@
  (action
   (with-stdout-to
    %{target}
-   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+   (run
+    sqlgg
+    -gen
+    caml
+    -category
+    -DDL
+    -dialect
+    postgresql
+    -params
+    postgresql
+    %{deps}))))
 
 (rule
  (target person_sql.ml)
@@ -40,7 +70,17 @@
  (action
   (with-stdout-to
    %{target}
-   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+   (run
+    sqlgg
+    -gen
+    caml
+    -category
+    -DDL
+    -dialect
+    postgresql
+    -params
+    postgresql
+    %{deps}))))
 
 (rule
  (target set_sql.ml)
@@ -48,7 +88,17 @@
  (action
   (with-stdout-to
    %{target}
-   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+   (run
+    sqlgg
+    -gen
+    caml
+    -category
+    -DDL
+    -dialect
+    postgresql
+    -params
+    postgresql
+    %{deps}))))
 
 (rule
  (target source_sql.ml)
@@ -56,7 +106,17 @@
  (action
   (with-stdout-to
    %{target}
-   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+   (run
+    sqlgg
+    -gen
+    caml
+    -category
+    -DDL
+    -dialect
+    postgresql
+    -params
+    postgresql
+    %{deps}))))
 
 (rule
  (target tune_sql.ml)
@@ -64,7 +124,17 @@
  (action
   (with-stdout-to
    %{target}
-   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+   (run
+    sqlgg
+    -gen
+    caml
+    -category
+    -DDL
+    -dialect
+    postgresql
+    -params
+    postgresql
+    %{deps}))))
 
 (rule
  (target user_sql.ml)
@@ -72,7 +142,17 @@
  (action
   (with-stdout-to
    %{target}
-   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+   (run
+    sqlgg
+    -gen
+    caml
+    -category
+    -DDL
+    -dialect
+    postgresql
+    -params
+    postgresql
+    %{deps}))))
 
 (rule
  (target version_sql.ml)
@@ -80,4 +160,14 @@
  (action
   (with-stdout-to
    %{target}
-   (run sqlgg -gen caml_io -category -DDL -params unnamed %{deps}))))
+   (run
+    sqlgg
+    -gen
+    caml
+    -category
+    -DDL
+    -dialect
+    postgresql
+    -params
+    postgresql
+    %{deps}))))

@@ -95,6 +95,7 @@
           monadise
           monadise-lwt
           omd
+          postgresql
           ppx_blob
           ppx_deriving_qcheck
           ppx_deriving_yojson
@@ -105,7 +106,6 @@
           ppx_variants_conv
           react
           tyxml
-          yaml
         ];
       };
 
@@ -178,12 +178,12 @@
 
       packages.sqlgg = pkgs.ocamlPackages.buildDunePackage rec {
         pname = "sqlgg";
-        version = "20231201";
+        version = "dev";
         src = pkgs.fetchFromGitHub {
           owner = "ygrek";
           repo = pname;
-          rev = version;
-          sha256 = "sha256-o9+PwJVYxcm9+6CgU6y1w0Lj4/N/ajVP/nZE6PnrVhE=";
+          rev = "16813a2350a7dcd0f95ead007ac871f9420581fb";
+          sha256 = "sha256-ESoWJ2EukKw45Wa9lksQvYyvZGXZmyVQhpuFoC2fZkI=";
         };
         nativeBuildInputs = with pkgs.ocamlPackages; [
           menhir
@@ -196,10 +196,6 @@
           ounit
           ppx_deriving
           yojson
-        ];
-        propagatedBuildInputs = [
-          pkgs.ocamlPackages.mariadb
-          pkgs.mariadb
         ];
       };
 

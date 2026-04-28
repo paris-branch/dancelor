@@ -11,7 +11,6 @@
           pyperclip
           pytest
           pytest-xdist
-          pyyaml
           selenium
         ]
       ))

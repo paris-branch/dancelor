@@ -1,64 +1,53 @@
- 
-
-CREATE TABLE `book` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_book_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
+CREATE TABLE "globally_unique_id" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "type" TEXT NOT NULL
 );
 
-CREATE TABLE `dance` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_dance_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
+CREATE TABLE "book" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "json" JSON NOT NULL,
+    CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
-CREATE TABLE `globally_unique_id` (
-  `id` varchar(14) NOT NULL,
-  `type` enum('Book','Dance','Person','Set','Source','Tune','User','Version') NOT NULL,
-  PRIMARY KEY (`id`)
+CREATE TABLE "dance" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "json" JSON NOT NULL,
+    CONSTRAINT "fk_dance_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
-CREATE TABLE `person` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_person_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
+CREATE TABLE "person" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "json" JSON NOT NULL,
+    CONSTRAINT "fk_person_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
-CREATE TABLE `set` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_set_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
+CREATE TABLE "set" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "json" JSON NOT NULL,
+    CONSTRAINT "fk_set_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
-CREATE TABLE `source` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  `cover` mediumblob DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_source_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
+CREATE TABLE "source" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "json" JSON NOT NULL,
+    "cover" BYTEA DEFAULT NULL,
+    CONSTRAINT "fk_source_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
-CREATE TABLE `tune` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_tune_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
+CREATE TABLE "tune" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "json" JSON NOT NULL,
+    CONSTRAINT "fk_tune_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
-CREATE TABLE `user` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_user_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
+CREATE TABLE "user" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "json" JSON NOT NULL,
+    CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
-CREATE TABLE `version` (
-  `id` varchar(14) NOT NULL,
-  `yaml` text NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_version_id` FOREIGN KEY (`id`) REFERENCES `globally_unique_id` (`id`)
+CREATE TABLE "version" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "json" JSON NOT NULL,
+    CONSTRAINT "fk_version_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );

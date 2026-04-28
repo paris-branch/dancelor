@@ -1,19 +1,19 @@
 -- @get
-SELECT `yaml`
-FROM `person`
-WHERE `id` = @id;
+SELECT "json"
+FROM "person"
+WHERE "id" = @id;
 
 -- @get_all
 SELECT
-    `id`,
-    `yaml`
-FROM `person`;
+    "id",
+    "json"
+FROM "person";
 
 -- @update
-INSERT INTO `person` (`id`, `yaml`)
-VALUES (@id, @yaml)
-ON DUPLICATE KEY UPDATE `yaml` = @yaml;
+INSERT INTO "person" ("id", "json")
+VALUES (@id, @json)
+ON CONFLICT ("id") DO UPDATE SET "json" = @json;
 
 -- @delete
-DELETE FROM `person`
-WHERE `id` = @id;
+DELETE FROM "person"
+WHERE "id" = @id;

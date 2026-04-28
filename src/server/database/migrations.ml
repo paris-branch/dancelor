@@ -2,18 +2,18 @@ open Nes
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server.database.migrations": Logs.LOG)
 
-module Migrations_sql = Migrations_sql.Sqlgg(Connection.Sqlgg_mariadb_lwt)
+module Migrations_sql = Migrations_sql.Sqlgg(Sqlgg_postgresql)
 
 type migration = {
   name: string;
-  apply: (Connection.t -> unit Lwt.t);
+  apply: (Connection.t -> unit);
 }
 
 let make_custom name apply =
   {name; apply}
 
 let make_ddl name ddl =
-  let apply = fun db -> ignore <$> ddl db in
+  let apply = fun db -> ignore (ddl db) in
   make_custom name apply
 
 let migrations : migration list = [
@@ -45,31 +45,34 @@ let migrations : migration list = [
 ]
 
 let apply_migrations db =
-  let rec skip_already_applied_migrations db = function
-    | [] -> lwt_nil
+  let rec skip_already_applied_migrations = function
+    | [] -> []
     | migration :: migrations ->
       Log.debug (fun m -> m "Checking whether migration %S has already been applied" migration.name);
-      if%lwt Migrations_sql.Fold.get_migration db (fun ~applied_at: _ _ -> true) ~name: migration.name false then
-        skip_already_applied_migrations db migrations
+      let already_applied = Option.is_some (Migrations_sql.get_migration db ~name: migration.name) in
+      if already_applied then
+        skip_already_applied_migrations migrations
       else
-        lwt (migration :: migrations)
+        migration :: migrations
   in
-  let%lwt _ = Migrations_sql.create_table_migrations db in
+  ignore (Migrations_sql.create_table_migrations db);
   Log.debug (fun m -> m "Checking already applied migrations");
-  let%lwt migrations = skip_already_applied_migrations db migrations in
+  let migrations = skip_already_applied_migrations migrations in
   match migrations with
   | [] ->
-    Log.debug (fun m -> m "There are no remaining migrations");
-    lwt_unit
+    Log.debug (fun m -> m "There are no remaining migrations")
   | first_migration :: _ ->
     Log.debug (fun m -> m "First remaining migration: %S" first_migration.name);
     Log.debug (fun m -> m "Applying %d remaining migrations" (List.length migrations));
-    Lwt_list.iter_s
+    List.iter
       (fun migration ->
         Log.debug (fun m -> m "Applying migration %S" migration.name);
-        migration.apply db;%lwt
-        ignore <$> Migrations_sql.register_migration db ~name: migration.name
+        migration.apply db;
+        ignore (Migrations_sql.register_migration db ~name: migration.name)
       )
       migrations
 
-let apply_migrations () = Connection.with_ apply_migrations
+let apply_migrations () =
+  Connection.with_ @@ fun db ->
+  apply_migrations db;
+  lwt_unit

@@ -9,13 +9,16 @@
   nes.unix
   dancelor.common
   madge.server
+  integers
   logs
   lwt.unix
   monadise-lwt
+  postgresql
+  sqlgg.json_path
+  sqlgg.traits
   str
-  sqlgg.mariadb
   tyxml
-  yaml)
+  uri)
  (preprocess
   (pps
    lwt_ppx
