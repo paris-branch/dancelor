@@ -4,37 +4,9 @@ open Dancelor_common
 module User_sql = User_sql.Sqlgg(Sqlgg_postgresql)
 module Password_hashed = Fresh.Make(HashedSecret)
 module Password_reset_token_hashed = Fresh.Make(HashedSecret)
-
-module Remember_me_key = struct
-  include Fresh.Make(String)
-  module Map = struct
-    include Map.Make(struct
-      type nonrec t = t
-      let compare a b = String.compare (project a) (project b)
-    end)
-
-    let to_yojson value_to_yojson map =
-      `Assoc (List.map (fun (k, v) -> (project k, value_to_yojson v)) (bindings map))
-
-    let of_yojson value_of_yojson = function
-      | `Assoc pairs ->
-        List.fold_left
-          (fun acc (k, v) ->
-            Result.bind acc @@ fun map ->
-            Result.map (fun v -> add (inject k) v map) (value_of_yojson v)
-          )
-          (Ok empty)
-          pairs
-      | _ -> Error "Expected JSON object"
-  end
-end
-
+module Remember_me_key = Fresh.Make(String)
 module Remember_me_token_clear = Fresh.Make(String)
 module Remember_me_token_hashed = Fresh.Make(HashedSecret)
-
-type remember_me_tokens =
-(Remember_me_token_hashed.t * Datetime.t) Remember_me_key.Map.t
-[@@deriving yojson]
 
 (* NOTE: Do not reorder as that would break serialisation to and deserialisation
    from PostgreSQL. *)
@@ -58,7 +30,6 @@ type t = {
   username: Username.t;
   password: Password_hashed.t option;
   password_reset_token: (Password_reset_token_hashed.t * Datetime.t) option;
-  remember_me_tokens: remember_me_tokens;
   role: role;
   omniscience: bool;
 }
@@ -81,7 +52,6 @@ let row_to_user
     ~password
     ~password_reset_token_hash
     ~password_reset_token_max_date
-    ~remember_me_tokens
     ~role
     ~omniscience
     ~created_at
@@ -103,7 +73,6 @@ let row_to_user
             password_reset_token_max_date
           )
         )
-        ~remember_me_tokens: (Result.get_ok @@ remember_me_tokens_of_yojson remember_me_tokens)
         ~role: (Option.get @@ role_of_enum @@ Int64.to_int role)
         ~omniscience
         ()
@@ -139,7 +108,6 @@ let create ~username ~role ~password_reset_token_hash ~password_reset_token_max_
     ~role
     ~omniscience
     ~password_reset_token: (password_reset_token_hash, password_reset_token_max_date)
-    ~remember_me_tokens: Remember_me_key.Map.empty
     ()
 
 let update id user =
@@ -152,7 +120,6 @@ let update id user =
       ~password: (Option.map (HashedSecret.unsafe_to_string % Password_hashed.project) @@ password user)
       ~password_reset_token_hash: (Option.map (HashedSecret.unsafe_to_string % Password_reset_token_hashed.project % fst) @@ password_reset_token user)
       ~password_reset_token_max_date: (Option.map snd @@ password_reset_token user)
-      ~remember_me_tokens: (remember_me_tokens_to_yojson @@ remember_me_tokens user)
       ~role: (Int64.of_int @@ role_to_enum @@ role user)
       ~omniscience: (omniscience user)
   in
@@ -176,8 +143,24 @@ let get_from_username target_username =
   | [this] -> lwt_some this
   | _ -> assert false
 
+let remove_all_remember_me_tokens user_id =
+  Connection.with_ @@ fun db ->
+  (* FIXME: an index covering user_id *)
+  ignore
+  <$> User_sql.remove_all_remember_me_tokens db ~user_id: (Entry.Id.to_string user_id)
+
+let remove_one_remember_me_token user_id key =
+  Connection.with_ @@ fun db ->
+  (* FIXME: an index covering (user_id, key) *)
+  ignore
+  <$> User_sql.remove_one_remember_me_token
+      db
+      ~user_id: (Entry.Id.to_string user_id)
+      ~key: (Remember_me_key.project key)
+
 let set_password_reset_token id password_reset_token_hash password_reset_token_max_date =
   Connection.with_ @@ fun db ->
+  ignore <$> remove_all_remember_me_tokens id;%lwt
   ignore
   <$> User_sql.set_password_reset_token
       db
@@ -187,23 +170,33 @@ let set_password_reset_token id password_reset_token_hash password_reset_token_m
 
 let set_password id password =
   Connection.with_ @@ fun db ->
+  ignore <$> remove_all_remember_me_tokens id;%lwt
   ignore
   <$> User_sql.set_password
       db
       ~id: (Entry.Id.to_string id)
       ~password: (some @@ HashedSecret.unsafe_to_string @@ Password_hashed.project password)
 
-let find_remember_me_token user key =
-  Remember_me_key.Map.find_opt key (Entry.value user).remember_me_tokens
+let find_remember_me_token user_id key =
+  Connection.with_ @@ fun db ->
+  match%lwt User_sql.List.find_remember_me_token
+    db
+    ~user_id: (Entry.Id.to_string user_id)
+    ~key: (Remember_me_key.project key)
+    (fun ~hash ~max_date -> (Remember_me_token_hashed.inject @@ HashedSecret.unsafe_of_string hash, max_date)) with
+  | [] -> lwt_none
+  | [x] -> lwt_some x
+  | _ -> assert false
 
-let add_remember_me_token user key hashed_token max_date =
-  ignore <$> update (Entry.id user) {(Entry.value user) with remember_me_tokens = Remember_me_key.Map.add key (hashed_token, max_date) (Entry.value user).remember_me_tokens}
-
-let remove_one_remember_me_token user key =
-  ignore <$> update (Entry.id user) {(Entry.value user) with remember_me_tokens = Remember_me_key.Map.remove key (Entry.value user).remember_me_tokens}
-
-let remove_all_remember_me_tokens user =
-  ignore <$> update (Entry.id user) {(Entry.value user) with remember_me_tokens = Remember_me_key.Map.empty}
+let add_remember_me_token user_id key hash max_date =
+  Connection.with_ @@ fun db ->
+  ignore
+  <$> User_sql.add_remember_me_token
+      db
+      ~user_id: (Entry.Id.to_string user_id)
+      ~key: (Remember_me_key.project key)
+      ~hash: (HashedSecret.unsafe_to_string @@ Remember_me_token_hashed.project hash)
+      ~max_date
 
 let set_omniscience id value =
   Connection.with_ @@ fun db ->

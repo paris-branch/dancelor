@@ -236,3 +236,16 @@ DROP COLUMN "role",
 CHANGE COLUMN "role_new" "role_new" SMALLINT NOT NULL,
 CHANGE COLUMN "omniscience" "omniscience" BOOLEAN NOT NULL,
 RENAME COLUMN "role_new" TO "role";
+
+-- @m028_2026_04_add_remember_me_tokens_table
+CREATE TABLE "remember_me_tokens" (
+    "user_id" VARCHAR(14) NOT NULL,
+    "key" VARCHAR(256) NOT NULL,
+    "hash" VARCHAR(256) NOT NULL,
+    "max_date" TIMESTAMP NOT NULL,
+    CONSTRAINT "fk_user_id" FOREIGN KEY ("user_id") REFERENCES "user" ("id")
+);
+
+-- @m029_2026_04_drop_remember_me_tokens_column
+ALTER TABLE "user"
+DROP COLUMN "remember_me_tokens";

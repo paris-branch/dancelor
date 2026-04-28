@@ -7,14 +7,7 @@ open Dancelor_common
 
 module Password_hashed : Fresh.T with type base = HashedSecret.t
 module Password_reset_token_hashed : Fresh.T with type base = HashedSecret.t
-
-module Remember_me_key : sig
-  include Fresh.T with type base = string
-  module Map : sig
-    include Map.S with type key = t
-  end
-end
-
+module Remember_me_key : Fresh.T with type base = string
 module Remember_me_token_clear : Fresh.T with type base = string
 module Remember_me_token_hashed : Fresh.T with type base = HashedSecret.t
 
@@ -29,10 +22,8 @@ val id_to_common : t Entry.id -> Entry.User.t Entry.id
 val to_common : t -> Entry.User.t
 val entry_to_common : entry -> Entry.User.t Entry.public
 
-val username : t -> Username.t
 val password : t -> Password_hashed.t option
 val password_reset_token : t -> (Password_reset_token_hashed.t * Datetime.t) option
-val remember_me_tokens : t -> (Remember_me_token_hashed.t * Datetime.t) Remember_me_key.Map.t
 
 (** {2 Queries} *)
 
@@ -61,10 +52,10 @@ val set_password_reset_token : t Entry.id -> Password_reset_token_hashed.t -> Da
 val set_password : t Entry.id -> Password_hashed.t -> unit Lwt.t
 (** For the given user, set the password and clear the password reset token. *)
 
-val find_remember_me_token : entry -> Remember_me_key.t -> (Remember_me_token_hashed.t * Datetime.t) option
-val add_remember_me_token : entry -> Remember_me_key.t -> Remember_me_token_hashed.t -> Datetime.t -> unit Lwt.t
-val remove_one_remember_me_token : entry -> Remember_me_key.t -> unit Lwt.t
-val remove_all_remember_me_tokens : entry -> unit Lwt.t
+val find_remember_me_token : t Entry.id -> Remember_me_key.t -> (Remember_me_token_hashed.t * Datetime.t) option Lwt.t
+val add_remember_me_token : t Entry.id -> Remember_me_key.t -> Remember_me_token_hashed.t -> Datetime.t -> unit Lwt.t
+val remove_one_remember_me_token : t Entry.id -> Remember_me_key.t -> unit Lwt.t
+val remove_all_remember_me_tokens : t Entry.id -> unit Lwt.t
 
 val set_omniscience : t Entry.id -> bool -> unit Lwt.t
 (** For the given user, set omniscience to the given boolean. *)

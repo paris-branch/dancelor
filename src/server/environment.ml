@@ -87,21 +87,21 @@ let process_remember_me_cookie env remember_me_cookie =
         register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
         lwt_unit
       | Some user ->
-        match Database.User.find_remember_me_token user key with
+        match%lwt Database.User.find_remember_me_token (Entry.id user) key with
         | None ->
           Log.info (fun m -> m "Rejecting because user does not have the “remember me” key `%a`." Database.User.Remember_me_key.pp key);
           register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
           lwt_unit
         | Some (_, token_max_date) when Datetime.in_the_past token_max_date ->
           Log.info (fun m -> m "Rejecting because token is too old.");
-          Database.User.remove_one_remember_me_token user key;%lwt
+          Database.User.remove_one_remember_me_token (Entry.id user) key;%lwt
           register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
           lwt_unit
         | Some (hashed_token, _) when not @@ HashedSecret.is ~clear: (Database.User.Remember_me_token_clear.project token) (Database.User.Remember_me_token_hashed.project hashed_token) ->
           Log.info (fun m -> m "Rejecting because tokens do not match.");
           (* someone got their hand on a "remember me" key - invalidate all known tokens *)
           (* NOTE: Similar to password reset tokens, we should be able to compare directly but need to project. *)
-          Database.User.remove_all_remember_me_tokens user;%lwt
+          Database.User.remove_all_remember_me_tokens (Entry.id user);%lwt
           register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
           lwt_unit
         | Some _ ->
@@ -179,7 +179,7 @@ let sign_in env user ~remember_me =
          will be sent as cookie, to be sure not to lie to our clients *)
       let max_date = Datetime.make_in_the_future (float_of_int @@ 60 + remember_me_token_max_age) in
       (* let remember_me_token = Some (hashed_token, max_date) in *)
-      Database.User.add_remember_me_token user key_typed hashed_token max_date
+      Database.User.add_remember_me_token (Entry.id user) key_typed hashed_token max_date
     );%lwt
     register_response_cookie
       env
@@ -199,7 +199,7 @@ let sign_out env user =
   let session = {!(env.session) with user = None} in
   Hashtbl.replace sessions env.session_id session;
   env.session := session;
-  Database.User.remove_all_remember_me_tokens user;%lwt
+  Database.User.remove_all_remember_me_tokens (Entry.id user);%lwt
   register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
   lwt_unit
 

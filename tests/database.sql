@@ -93,6 +93,18 @@ CREATE TABLE "dancelor"."person" (
 
 
 --
+-- Name: remember_me_tokens; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."remember_me_tokens" (
+    "user_id" character varying(14) NOT NULL,
+    "key" character varying(256) NOT NULL,
+    "hash" character varying(256) NOT NULL,
+    "max_date" timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: set; Type: TABLE; Schema: dancelor; Owner: -
 --
 
@@ -133,7 +145,6 @@ CREATE TABLE "dancelor"."user" (
     "password" character varying(256),
     "password_reset_token_hash" character varying(256),
     "password_reset_token_max_date" timestamp without time zone,
-    "remember_me_tokens" json NOT NULL,
     "created_at" timestamp without time zone NOT NULL,
     "modified_at" timestamp without time zone NOT NULL,
     "role" smallint NOT NULL,
@@ -213,6 +224,8 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m024_2026_04
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m025_2026_04_add_fk_version_id_key', '2026-04-23 23:47:34+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m026_2026_04_split_user_yaml_into_fields', '2026-04-28 09:45:10.421107+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m027_2026_04_split_role_json_into_fields', '2026-04-28 21:45:03.248478+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m028_2026_04_add_remember_me_tokens_table', '2026-04-28 21:51:55.458519+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m029_2026_04_drop_remember_me_tokens_column', '2026-04-28 21:51:55.460895+00');
 
 
 --
@@ -222,6 +235,12 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m027_2026_04
 INSERT INTO "dancelor"."person" ("id", "json") VALUES ('4plf-srss-ihav', '{"value":{"name":"Davey Arthur","composed_tunes_are_public":true},"meta":{"created-at":"2018-12-07T01:18:53+01:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
 INSERT INTO "dancelor"."person" ("id", "json") VALUES ('8h62-3eis-xfem', '{"value":{"name":"Mervyn C Short","scddb-id":347},"meta":{"created-at":"2023-07-03T14:17:45","modified-at":"2023-07-03T14:17:45"},"access":["Public"]}');
 INSERT INTO "dancelor"."person" ("id", "json") VALUES ('uwoe-u6ij-ikgp', '{"value":{"name":"Nicolas “Niols” Jeannerod","scddb-id":11781,"composed_tunes_are_public":true,"user":"lt3h-edgt-ac97"},"meta":{"created-at":"2018-10-12T11:50:54+02:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
+
+
+--
+-- Data for Name: remember_me_tokens; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
 
 
 --
@@ -250,7 +269,7 @@ INSERT INTO "dancelor"."tune" ("id", "json") VALUES ('qdod-ad7l-8gr2', '{"value"
 -- Data for Name: user; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_token_hash", "password_reset_token_max_date", "remember_me_tokens", "created_at", "modified_at", "role", "omniscience") VALUES ('lt3h-edgt-ac97', 'Niols', '$argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w', NULL, NULL, '{}', '2025-04-13 16:48:00', '2025-04-13 16:48:00', 0, false);
+INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_token_hash", "password_reset_token_max_date", "created_at", "modified_at", "role", "omniscience") VALUES ('lt3h-edgt-ac97', 'Niols', '$argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w', NULL, NULL, '2025-04-13 16:48:00', '2025-04-13 16:48:00', 0, false);
 
 
 --
@@ -394,6 +413,14 @@ ALTER TABLE ONLY "dancelor"."source"
 
 ALTER TABLE ONLY "dancelor"."tune"
     ADD CONSTRAINT "fk_tune_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: remember_me_tokens fk_user_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."remember_me_tokens"
+    ADD CONSTRAINT "fk_user_id" FOREIGN KEY ("user_id") REFERENCES "dancelor"."user"("id");
 
 
 --

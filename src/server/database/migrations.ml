@@ -153,6 +153,8 @@ let migrations : migration list = [
     ignore (Connection.bypass_exec db {| ALTER TABLE "user" RENAME COLUMN "role_new" TO "role"; |});
     lwt_unit
   );
+  make_ddl "m028_2026_04_add_remember_me_tokens_table" Migrations_sql.m028_2026_04_add_remember_me_tokens_table;
+  make_ddl "m029_2026_04_drop_remember_me_tokens_column" Migrations_sql.m029_2026_04_drop_remember_me_tokens_column;
 ]
 
 exception Migration_failed of string * exn
