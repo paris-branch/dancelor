@@ -42,7 +42,14 @@ CREATE TABLE "tune" (
 
 CREATE TABLE "user" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "json" JSON NOT NULL,
+    "username" VARCHAR(256) NOT NULL UNIQUE,
+    "password" VARCHAR(256),
+    "password_reset_token_hash" VARCHAR(256),
+    "password_reset_token_max_date" TIMESTAMP,
+    "role" JSON NOT NULL,
+    "remember_me_tokens" JSON NOT NULL,
+    "created_at" TIMESTAMP NOT NULL,
+    "modified_at" TIMESTAMP NOT NULL,
     CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 

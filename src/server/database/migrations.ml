@@ -16,6 +16,28 @@ let make_ddl name ddl =
   let apply = fun db -> ignore <$> ddl db in
   make_custom name apply
 
+type m026_2026_04_split_user_json_into_fields__user_value = {
+  username: string;
+  password: string option; [@default None]
+  password_reset_token: (string * Datetime.t) option; [@default None] [@key "password-reset-token"]
+  remember_me_tokens: Yojson.Safe.t; [@default `Assoc []] [@key "remember-me-token"] [@of_yojson Result.ok]
+  role: Yojson.Safe.t; [@default `List [`String "Normal_user"]] [@of_yojson Result.ok]
+}
+[@@deriving of_yojson]
+
+type m026_2026_04_split_user_json_into_fields__user_meta = {
+  created_at: Datetime.t; [@key "created-at"]
+  modified_at: Datetime.t; [@key "modified-at"]
+}
+[@@deriving of_yojson]
+
+type m026_2026_04_split_user_json_into_fields__user = {
+  value: m026_2026_04_split_user_json_into_fields__user_value;
+  meta: m026_2026_04_split_user_json_into_fields__user_meta;
+  access: string list;
+}
+[@@deriving of_yojson]
+
 let migrations : migration list = [
   make_ddl "m001_2026_04_add_book_table" Migrations_sql.m001_2026_04_add_book_table;
   make_ddl "m002_2026_04_add_dance_table" Migrations_sql.m002_2026_04_add_dance_table;
@@ -42,7 +64,54 @@ let migrations : migration list = [
   make_ddl "m023_2026_04_add_fk_user_id_key" Migrations_sql.m023_2026_04_add_fk_user_id_key;
   make_ddl "m024_2026_04_insert_ids_from_version_into_globally_unique_id" Migrations_sql.m024_2026_04_insert_ids_from_version_into_globally_unique_id;
   make_ddl "m025_2026_04_add_fk_version_id_key" Migrations_sql.m025_2026_04_add_fk_version_id_key;
+  make_custom "m026_2026_04_split_user_yaml_into_fields" (fun db ->
+    let%lwt _ = Migrations_sql.m026_2026_04_split_user_json_into_fields__add_columns db in
+    let%lwt all = Migrations_sql.List.m026_2026_04_split_user_json_into_fields__get_all db (fun ~id ~json -> (id, json)) in
+    Lwt_list.iter_s
+      (fun (id, json) ->
+        let user =
+          match m026_2026_04_split_user_json_into_fields__user_of_yojson json with
+          | Ok user -> user
+          | Error msg ->
+            Log.err (fun m -> m "Could not unserialise user: %s" msg);
+            assert false
+        in
+        ignore
+        <$> Migrations_sql.m026_2026_04_split_user_json_into_fields__update_one
+            db
+            ~id
+            ~username: (Some user.value.username)
+            ~password: user.value.password
+            ~password_reset_token_hash: (Option.map fst user.value.password_reset_token)
+            ~password_reset_token_max_date: (Option.map snd user.value.password_reset_token)
+            ~remember_me_tokens: (Some user.value.remember_me_tokens)
+            ~role: (Some user.value.role)
+            ~created_at: (Some user.meta.created_at)
+            ~modified_at: (Some user.meta.modified_at)
+      )
+      all;%lwt
+    (* NOTE: As of April 2026, Sqlgg does not support `ALTER COLUMN` but only
+       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
+       SQL for Sqlgg to infer the right column types, but exec a
+       PostgreSQL-compatible one manually here. *)
+    ignore @@
+      Connection.bypass_exec
+        db
+        {|
+          ALTER TABLE "user"
+            ALTER COLUMN "username" SET NOT NULL,
+            ALTER COLUMN "role" SET NOT NULL,
+            ALTER COLUMN "remember_me_tokens" SET NOT NULL,
+            ALTER COLUMN "created_at" SET NOT NULL,
+            ALTER COLUMN "modified_at" SET NOT NULL,
+            ADD UNIQUE ("username");
+        |};
+    let%lwt _ = Migrations_sql.m026_2026_04_split_user_json_into_fields__drop_json_column db in
+    lwt_unit
+  );
 ]
+
+exception Migration_failed of string * exn
 
 let apply_migrations db =
   let rec skip_already_applied_migrations = function
@@ -67,7 +136,14 @@ let apply_migrations db =
     Lwt_list.iter_s
       (fun migration ->
         Log.debug (fun m -> m "Applying migration %S" migration.name);
-        migration.apply db;%lwt
+        (
+          try%lwt
+            migration.apply db
+          with
+            | exn ->
+              Log.err (fun m -> m "Could not apply migration %S:\n%s\n%s" migration.name (Printexc.to_string exn) (Printexc.get_backtrace ()));
+              raise (Migration_failed (migration.name, exn))
+        );%lwt
         ignore <$> Migrations_sql.register_migration db ~name: migration.name
       )
       migrations
