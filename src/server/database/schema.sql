@@ -46,10 +46,11 @@ CREATE TABLE "user" (
     "password" VARCHAR(256),
     "password_reset_token_hash" VARCHAR(256),
     "password_reset_token_max_date" TIMESTAMP,
-    "role" JSON NOT NULL,
     "remember_me_tokens" JSON NOT NULL,
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
+    "role" SMALLINT NOT NULL,
+    "omniscience" BOOLEAN NOT NULL,
     CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 

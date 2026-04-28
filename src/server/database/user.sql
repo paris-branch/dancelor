@@ -6,6 +6,7 @@ SELECT
     "password_reset_token_max_date",
     "remember_me_tokens",
     "role",
+    "omniscience",
     "created_at",
     "modified_at"
 FROM "user"
@@ -20,6 +21,7 @@ SELECT
     "password_reset_token_max_date",
     "remember_me_tokens",
     "role",
+    "omniscience",
     "created_at",
     "modified_at"
 FROM "user";
@@ -32,6 +34,7 @@ INSERT INTO "user" (
     "password_reset_token_max_date",
     "remember_me_tokens",
     "role",
+    "omniscience",
     "created_at",
     "modified_at"
 )
@@ -42,6 +45,7 @@ VALUES (
     @password_reset_token_max_date,
     '{}',
     @role,
+    @omniscience,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 );
@@ -55,6 +59,7 @@ SET
     "password_reset_token_max_date" = @password_reset_token_max_date,
     "remember_me_tokens" = @remember_me_tokens,
     "role" = @role,
+    "omniscience" = @omniscience,
     "modified_at" = CURRENT_TIMESTAMP
 WHERE "id" = @id;
 
@@ -77,4 +82,10 @@ SET
     "password" = @password,
     "password_reset_token_hash" = NULL,
     "password_reset_token_max_date" = NULL
+WHERE "id" = @id;
+
+-- @set_omniscience
+UPDATE "user"
+SET
+    "omniscience" = @omniscience
 WHERE "id" = @id;

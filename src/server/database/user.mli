@@ -33,7 +33,6 @@ val username : t -> Username.t
 val password : t -> Password_hashed.t option
 val password_reset_token : t -> (Password_reset_token_hashed.t * Datetime.t) option
 val remember_me_tokens : t -> (Remember_me_token_hashed.t * Datetime.t) Remember_me_key.Map.t
-val role : t -> Entry.User.role
 
 (** {2 Queries} *)
 
@@ -67,5 +66,5 @@ val add_remember_me_token : entry -> Remember_me_key.t -> Remember_me_token_hash
 val remove_one_remember_me_token : entry -> Remember_me_key.t -> unit Lwt.t
 val remove_all_remember_me_tokens : entry -> unit Lwt.t
 
-val set_omniscience : entry -> bool -> unit Lwt.t
+val set_omniscience : t Entry.id -> bool -> unit Lwt.t
 (** For the given user, set omniscience to the given boolean. *)

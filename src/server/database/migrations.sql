@@ -211,3 +211,28 @@ CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL;
 -- @m026_2026_04_split_user_json_into_fields__drop_json_column
 ALTER TABLE "user"
 DROP COLUMN "json";
+
+-- @m027_2026_04_split_role_json_into_fields__add_columns
+ALTER TABLE "user"
+ADD COLUMN "role_new" SMALLINT,
+ADD COLUMN "omniscience" BOOLEAN;
+
+-- @m027_2026_04_split_role_json_into_fields__get_all
+SELECT
+    "id",
+    "role"
+FROM "user";
+
+-- @m027_2026_04_split_role_json_into_fields__update_one
+UPDATE "user"
+SET
+    "role_new" = @role_new,
+    "omniscience" = @omniscience
+WHERE id = @id;
+
+-- @m027_2026_04_split_role_json_into_fields__cleanup_columns__for_sqlgg
+ALTER TABLE "user"
+DROP COLUMN "role",
+CHANGE COLUMN "role_new" "role_new" SMALLINT NOT NULL,
+CHANGE COLUMN "omniscience" "omniscience" BOOLEAN NOT NULL,
+RENAME COLUMN "role_new" TO "role";

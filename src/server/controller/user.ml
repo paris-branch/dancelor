@@ -110,7 +110,7 @@ let reset_password username token password =
 
 let set_omniscience env value =
   Permission.assert_can_administrate env @@ fun user ->
-  Database.User.set_omniscience user value
+  Database.User.set_omniscience (Entry.id user) value
 
 include Search.Build(struct
   type value = Model.User.entry

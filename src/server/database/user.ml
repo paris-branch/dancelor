@@ -36,12 +36,31 @@ type remember_me_tokens =
 (Remember_me_token_hashed.t * Datetime.t) Remember_me_key.Map.t
 [@@deriving yojson]
 
+(* NOTE: Do not reorder as that would break serialisation to and deserialisation
+   from PostgreSQL. *)
+type role =
+  | Normal_user
+  | Maintainer
+  | Administrator
+[@@deriving enum]
+
+let role_to_common omniscience = function
+  | Normal_user -> Entry.User.Normal_user
+  | Maintainer -> Maintainer
+  | Administrator -> Administrator {omniscience}
+
+let role_of_common = function
+  | Entry.User.Normal_user -> (Normal_user, false)
+  | Maintainer -> (Maintainer, false)
+  | Administrator {omniscience} -> (Administrator, omniscience)
+
 type t = {
   username: Username.t;
   password: Password_hashed.t option;
   password_reset_token: (Password_reset_token_hashed.t * Datetime.t) option;
   remember_me_tokens: remember_me_tokens;
-  role: Entry.User.role;
+  role: role;
+  omniscience: bool;
 }
 [@@deriving fields, make]
 
@@ -51,7 +70,7 @@ let id_to_common : t Entry.id -> Entry.User.t Entry.id = Entry.Id.unsafe_coerce
 let id_of_common : Entry.User.t Entry.id -> t Entry.id = Entry.Id.unsafe_coerce
 
 let to_common user =
-  Entry.User.make ~username: (username user) ~role: (role user) ()
+  Entry.User.make ~username: (username user) ~role: (role_to_common (omniscience user) (role user)) ()
 
 let entry_to_common user =
   Entry.unsafe_map_value to_common user
@@ -64,6 +83,7 @@ let row_to_user
     ~password_reset_token_max_date
     ~remember_me_tokens
     ~role
+    ~omniscience
     ~created_at
     ~modified_at
   =
@@ -84,7 +104,8 @@ let row_to_user
           )
         )
         ~remember_me_tokens: (Result.get_ok @@ remember_me_tokens_of_yojson remember_me_tokens)
-        ~role: (Result.get_ok @@ Entry.User.role_of_yojson role)
+        ~role: (Option.get @@ role_of_enum @@ Int64.to_int role)
+        ~omniscience
         ()
     )
 
@@ -97,6 +118,7 @@ let get_all () : entry list Lwt.t =
   User_sql.List.get_all db (fun ~id -> row_to_user ~id: (Entry.Id.of_string_exn id))
 
 let create ~username ~role ~password_reset_token_hash ~password_reset_token_max_date =
+  let (role, omniscience) = role_of_common role in
   let%lwt id = Globally_unique_id.make User in
   Connection.with_ @@ fun db ->
   let%lwt _ =
@@ -104,7 +126,8 @@ let create ~username ~role ~password_reset_token_hash ~password_reset_token_max_
       db
       ~id: (Entry.Id.to_string id)
       ~username: (Username.to_string username)
-      ~role: (Entry.User.role_to_yojson role)
+      ~role: (Int64.of_int @@ role_to_enum role)
+      ~omniscience
       ~password_reset_token_hash: (some @@ HashedSecret.unsafe_to_string @@ Password_reset_token_hashed.project password_reset_token_hash)
       ~password_reset_token_max_date: (Some password_reset_token_max_date)
   in
@@ -114,6 +137,7 @@ let create ~username ~role ~password_reset_token_hash ~password_reset_token_max_
   make
     ~username
     ~role
+    ~omniscience
     ~password_reset_token: (password_reset_token_hash, password_reset_token_max_date)
     ~remember_me_tokens: Remember_me_key.Map.empty
     ()
@@ -129,7 +153,8 @@ let update id user =
       ~password_reset_token_hash: (Option.map (HashedSecret.unsafe_to_string % Password_reset_token_hashed.project % fst) @@ password_reset_token user)
       ~password_reset_token_max_date: (Option.map snd @@ password_reset_token user)
       ~remember_me_tokens: (remember_me_tokens_to_yojson @@ remember_me_tokens user)
-      ~role: (Entry.User.role_to_yojson @@ role user)
+      ~role: (Int64.of_int @@ role_to_enum @@ role user)
+      ~omniscience: (omniscience user)
   in
   (* FIXME: the [created_at] and [modified_at] values here will be wrong *)
   lwt @@ Entry.make ~id ~access: Entry.Access.Public user
@@ -180,14 +205,6 @@ let remove_one_remember_me_token user key =
 let remove_all_remember_me_tokens user =
   ignore <$> update (Entry.id user) {(Entry.value user) with remember_me_tokens = Remember_me_key.Map.empty}
 
-let set_omniscience user value =
-  ignore
-  <$> update
-      (Entry.id user)
-      {(Entry.value user) with
-        role = (
-          match role @@ Entry.value user with
-          | Administrator {omniscience = _} -> Administrator {omniscience = value}
-          | _ -> assert false
-        )
-      }
+let set_omniscience id value =
+  Connection.with_ @@ fun db ->
+  ignore <$> User_sql.set_omniscience db ~id: (Entry.Id.to_string id) ~omniscience: value
