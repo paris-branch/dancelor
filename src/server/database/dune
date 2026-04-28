@@ -4,7 +4,7 @@
  (action
   (with-stdout-to
    %{target}
-   (run sqlgg -gen caml -dialect postgresql -params postgresql %{deps}))))
+   (run sqlgg -gen caml_io -dialect postgresql -params postgresql %{deps}))))
 
 ;; NOTE: Queries need to type-check against the schema, so we call `sqlgg` with
 ;; both, but we disable the DDL category such that no `CREATE TABLE` or `ALTER
@@ -19,7 +19,7 @@
    (run
     sqlgg
     -gen
-    caml
+    caml_io
     -category
     -DDL
     -dialect
@@ -37,7 +37,7 @@
    (run
     sqlgg
     -gen
-    caml
+    caml_io
     -category
     -DDL
     -dialect
@@ -55,7 +55,7 @@
    (run
     sqlgg
     -gen
-    caml
+    caml_io
     -category
     -DDL
     -dialect
@@ -73,7 +73,7 @@
    (run
     sqlgg
     -gen
-    caml
+    caml_io
     -category
     -DDL
     -dialect
@@ -91,7 +91,7 @@
    (run
     sqlgg
     -gen
-    caml
+    caml_io
     -category
     -DDL
     -dialect
@@ -109,7 +109,7 @@
    (run
     sqlgg
     -gen
-    caml
+    caml_io
     -category
     -DDL
     -dialect
@@ -127,7 +127,7 @@
    (run
     sqlgg
     -gen
-    caml
+    caml_io
     -category
     -DDL
     -dialect
@@ -145,7 +145,7 @@
    (run
     sqlgg
     -gen
-    caml
+    caml_io
     -category
     -DDL
     -dialect
@@ -163,7 +163,7 @@
    (run
     sqlgg
     -gen
-    caml
+    caml_io
     -category
     -DDL
     -dialect
