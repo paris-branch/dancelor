@@ -38,6 +38,12 @@ type m026_2026_04_split_user_json_into_fields__user = {
 }
 [@@deriving of_yojson]
 
+type m027_2026_04_split_role_json_into_fields__role =
+  | Normal_user
+  | Maintainer
+  | Administrator of {omniscience: bool}
+[@@deriving of_yojson]
+
 let migrations : migration list = [
   make_ddl "m001_2026_04_add_book_table" Migrations_sql.m001_2026_04_add_book_table;
   make_ddl "m002_2026_04_add_dance_table" Migrations_sql.m002_2026_04_add_dance_table;
@@ -109,6 +115,46 @@ let migrations : migration list = [
     let%lwt _ = Migrations_sql.m026_2026_04_split_user_json_into_fields__drop_json_column db in
     lwt_unit
   );
+  make_custom "m027_2026_04_split_role_json_into_fields" (fun db ->
+    let%lwt _ = Migrations_sql.m027_2026_04_split_role_json_into_fields__add_columns db in
+    let%lwt all = Migrations_sql.List.m027_2026_04_split_role_json_into_fields__get_all db (fun ~id ~role -> (id, role)) in
+    Lwt_list.iter_s
+      (fun (id, role) ->
+        let (role_new, omniscience) =
+          match Result.get_ok @@ m027_2026_04_split_role_json_into_fields__role_of_yojson role with
+          | Normal_user -> (0, false)
+          | Maintainer -> (1, false)
+          | Administrator {omniscience} -> (2, omniscience)
+        in
+        ignore
+        <$> Migrations_sql.m027_2026_04_split_role_json_into_fields__update_one
+            db
+            ~id
+            ~role_new: (some @@ Int64.of_int role_new)
+            ~omniscience: (Some omniscience)
+      )
+      all;%lwt
+    (* NOTE: As of April 2026, Sqlgg does not support `ALTER COLUMN` but only
+       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
+       SQL for Sqlgg to infer the right column types, but exec a
+       PostgreSQL-compatible one manually here. *)
+    ignore (
+      Connection.bypass_exec
+        db
+        {|
+          ALTER TABLE "user"
+            DROP COLUMN "role",
+            ALTER COLUMN "role_new" TYPE SMALLINT,
+            ALTER COLUMN "role_new" SET NOT NULL,
+            ALTER COLUMN "omniscience" TYPE BOOLEAN,
+            ALTER COLUMN "omniscience" SET NOT NULL;
+        |}
+    );
+    ignore (Connection.bypass_exec db {| ALTER TABLE "user" RENAME COLUMN "role_new" TO "role"; |});
+    lwt_unit
+  );
+  make_ddl "m028_2026_04_add_remember_me_tokens_table" Migrations_sql.m028_2026_04_add_remember_me_tokens_table;
+  make_ddl "m029_2026_04_drop_remember_me_tokens_column" Migrations_sql.m029_2026_04_drop_remember_me_tokens_column;
 ]
 
 exception Migration_failed of string * exn

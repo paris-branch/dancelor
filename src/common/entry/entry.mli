@@ -84,3 +84,6 @@ val unsafe_erase_value : ('value, 'access) t -> (unit, 'access) t
 val unsafe_erase_value_and_access : ('value, 'access) t -> (unit, unit) t
 (** Create an entry with the same id and metadata but holding no value and with
     no access information. *)
+
+val unsafe_map_value : ('value1 -> 'value2) -> ('value1, 'access) t -> ('value2, 'access) t
+(** Maps a function over the value in the entry, without changing the id. *)

@@ -11,7 +11,7 @@ let open_token_result_dialog user token =
       ~title: (lwt "Password reset link generated")
       [p [
         txt "Password reset link for user ";
-        txt (Model.User.Username.to_string @@ Model.User.username' user);
+        txt (Username.to_string @@ Model.User.username' user);
         txt " has been generated. Pass them the following link: ";
       ];
       p [
@@ -30,7 +30,7 @@ let create () =
     Selector.make
       ~label: "User"
       ~model_name: "user"
-      ~make_descr: (lwt % Model.User.Username.to_string % Model.User.username')
+      ~make_descr: (lwt % Username.to_string % Model.User.username')
       ~make_result: (Any_result.make_user_result ?context: None)
       ~results_when_no_search: lwt_nil
       ~search: (fun slice input ->

@@ -25,18 +25,18 @@ val with_ :
 (** {2 Interface for controllers} *)
 
 (** Returns the user that is signed-in in the current session. *)
-val user : t -> Model.User.entry option Lwt.t
+val user : t -> Database.User.entry option Lwt.t
 
 (** Set the user as signed in for the current session. Subsequent calls to
     {!user} (across requests) will return that user. If the [~remember_me] flag
     is set, then also set up the user to be remembered in the future, modifying
     the database and registering the appropriate response cookie. *)
-val sign_in : t -> Model.User.entry -> remember_me: bool -> unit Lwt.t
+val sign_in : t -> Database.User.entry -> remember_me: bool -> unit Lwt.t
 
 (** Set the user as signed out for the current session. Subsequent calls to
     {!user} (across requests) will return [None]. Any “remember me” token will
     be erased from the database and the client's cookies. *)
-val sign_out : t -> Model.User.entry -> unit Lwt.t
+val sign_out : t -> Database.User.entry -> unit Lwt.t
 
 (** {2 Other} *)
 

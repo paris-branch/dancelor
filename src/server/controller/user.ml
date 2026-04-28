@@ -13,22 +13,23 @@ let get env id =
 let status = Environment.user
 
 let sign_in env username password remember_me =
-  Log.info (fun m -> m "Attempt to sign in with username `%s`." (Model.User.Username.to_string username));
+  Log.info (fun m -> m "Attempt to sign in with username `%s`." (Username.to_string username));
   match%lwt Environment.user env with
   | Some _user ->
     Log.info (fun m -> m "Rejecting because already signed in.");
     lwt_none
   | None ->
+    (* FIXME: should be included in [get_password_from_username] except we return a user  *)
     match%lwt Database.User.get_from_username username with
     | None ->
       Log.info (fun m -> m "Rejecting because of wrong username.");
       lwt_none
     | Some user ->
-      match Model.User.password' user with
+      match%lwt Database.User.get_password_from_username username with
       | None ->
         Log.info (fun m -> m "Rejecting because user has no password.");
         lwt_none
-      | Some hashedPassword when not @@ HashedSecret.is ~clear: (Model.User.Password_clear.project password) (Model.User.Password_hashed.project hashedPassword) ->
+      | Some hashedPassword when not @@ HashedSecret.is ~clear: (Entry.User.Password_clear.project password) (Database.User.Password_hashed.project hashedPassword) ->
         (* NOTE: Similar to other tokens, we should be able to compare directly but need to project. *)
         Log.info (fun m -> m "Rejecting because passwords do not match.");
         lwt_none
@@ -44,25 +45,24 @@ let sign_out env =
 
 let create env user =
   Permission.assert_can_administrate env @@ fun _admin ->
-  (* FIXME: A module for usernames that reject malformed ones *)
-  (* match Entry.Id.check username with *)
-  (* | false -> Madge_server.shortcut_bad_request "The username does not have the right shape." *)
-  (* | true -> *)
   let token = Model.User.Password_reset_token_clear.make () in
   (* NOTE: We should use Password_reset_token_hashed.make here, but HashedSecret.make
      is only available on the server side (NesHashedSecretUnix), not in common code. *)
-  let hashed_token = (
-    Model.User.Password_reset_token_hashed.inject @@ HashedSecret.make ~clear: (Model.User.Password_reset_token_clear.project token),
-    Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)
-  )
+  let password_reset_token_hash = Database.User.Password_reset_token_hashed.inject @@ HashedSecret.make ~clear: (Model.User.Password_reset_token_clear.project token) in
+  let password_reset_token_max_date = Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600) in
+  let%lwt id =
+    Database.User.create
+      ~username: (Model.User.username user)
+      ~role: (Model.User.role user)
+      ~password_reset_token_hash
+      ~password_reset_token_max_date
   in
-  let%lwt user = Model.User.update user ~password_reset_token: (const @@ Some hashed_token) in
-  let%lwt user = Database.User.create user in
+  let%lwt user = Option.get <$> Database.User.get id in
   lwt (user, token)
 
 let prepare_reset_password env username =
   Permission.assert_can_administrate env @@ fun _admin ->
-  Log.info (fun m -> m "Preparing password reset for user `%s`." (Model.User.Username.to_string username));
+  Log.info (fun m -> m "Preparing password reset for user `%s`." (Username.to_string username));
   match%lwt Database.User.get_from_username username with
   | None ->
     Log.info (fun m -> m "Rejecting because username not found.");
@@ -71,36 +71,21 @@ let prepare_reset_password env username =
     let token = Model.User.Password_reset_token_clear.make () in
     (* NOTE: We should use Password_reset_token_hashed.make here, but HashedSecret.make
        is only available on the server side (NesHashedSecretUnix), not in common code. *)
-    let hashed_token = (
-      Model.User.Password_reset_token_hashed.inject @@ HashedSecret.make ~clear: (Model.User.Password_reset_token_clear.project token),
-      Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)
-    )
-    in
-    ignore
-    <$> Database.User.update
-        (Entry.id user)
-        {(Entry.value user) with
-          password = None;
-          password_reset_token = Some hashed_token;
-          remember_me_tokens = Model.User.Remember_me_key.Map.empty;
-        };%lwt
-    Log.info (fun m -> m "Password reset token generated for user `%s`." (Model.User.Username.to_string username));
+    let hashed_token = Database.User.Password_reset_token_hashed.inject @@ HashedSecret.make ~clear: (Model.User.Password_reset_token_clear.project token) in
+    let max_date = Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600) in
+    Database.User.set_password_reset_token (Entry.id user) hashed_token max_date;%lwt
+    Log.info (fun m -> m "Password reset token generated for user `%s`." (Username.to_string username));
     lwt token
 
 let reset_password username token password =
-  Log.info (fun m -> m "Attempt to reset password for user `%s`." (Model.User.Username.to_string username));
-  (* FIXME: A module for usernames that reject malformed ones *)
-  (* match Entry.Id.check username with *)
-  (* | false -> *)
-  (*   Log.info (fun m -> m "Rejecting because username is not even a id."); *)
-  (*   Madge_server.shortcut_bad_request "The username does not have the right shape." *)
-  (* | true -> *)
+  Log.info (fun m -> m "Attempt to reset password for user `%s`." (Username.to_string username));
+  (* FIXME: should be included in [get_password_reset_token_from_username] except we return a user  *)
   match%lwt Database.User.get_from_username username with
   | None ->
     Log.info (fun m -> m "Rejecting because of wrong username.");
     Madge_server.shortcut_forbidden_no_leak ()
   | Some user ->
-    match Model.User.password_reset_token' user with
+    match%lwt Database.User.get_password_reset_token_from_username username with
     | None ->
       Log.info (fun m -> m "Rejecting because of lack of token.");
       Madge_server.shortcut_forbidden_no_leak ()
@@ -111,7 +96,7 @@ let reset_password username token password =
       (* NOTE: We should be able to compare Password_reset_token_clear with
          Password_reset_token_hashed directly, but we need to project because
          HashedSecret.is is only available on the server side. *)
-      if not @@ HashedSecret.is ~clear: (Model.User.Password_reset_token_clear.project token) (Model.User.Password_reset_token_hashed.project hashed_token) then
+      if not @@ HashedSecret.is ~clear: (Model.User.Password_reset_token_clear.project token) (Database.User.Password_reset_token_hashed.project hashed_token) then
         (
           Log.info (fun m -> m "Rejecting because tokens do no match.");
           Madge_server.shortcut_forbidden_no_leak ()
@@ -121,28 +106,13 @@ let reset_password username token password =
           Log.info (fun m -> m "Accepting to reset password.");
           (* NOTE: We should use Password_hashed.make here, but HashedSecret.make
              is only available on the server side (NesHashedSecretUnix), not in common code. *)
-          let password = Model.User.Password_hashed.inject @@ HashedSecret.make ~clear: (Model.User.Password_clear.project password) in
-          ignore
-          <$> Database.User.update
-              (Entry.id user)
-              {(Entry.value user) with
-                password = Some password;
-                password_reset_token = None;
-              }
+          let password = Database.User.Password_hashed.inject @@ HashedSecret.make ~clear: (Model.User.Password_clear.project password) in
+          Database.User.set_password (Entry.id user) password
         )
 
 let set_omniscience env value =
   Permission.assert_can_administrate env @@ fun user ->
-  ignore
-  <$> Database.User.update
-      (Entry.id user)
-      {(Entry.value user) with
-        role = (
-          match Model.User.role' user with
-          | Administrator {omniscience = _} -> Administrator {omniscience = value}
-          | _ -> assert false
-        )
-      }
+  Database.User.set_omniscience (Entry.id user) value
 
 include Search.Build(struct
   type value = Model.User.entry
@@ -159,7 +129,7 @@ include Search.Build(struct
   let score_true = Formula.interpret_true
 
   let tiebreakers =
-    Lwt_list.[increasing (lwt % Model.User.Username.to_string % Model.User.username') String.Sensible.compare]
+    Lwt_list.[increasing (lwt % Username.to_string % Model.User.username') String.Sensible.compare]
 end)
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a = fun env endpoint ->
