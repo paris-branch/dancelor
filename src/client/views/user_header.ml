@@ -111,17 +111,6 @@ let rec ping_until_success () =
   | true -> lwt_unit
   | false -> ping_until_success ()
 
-let victorise () =
-  Lwt.async (fun () ->
-    try%lwt
-      ignore <$> Madge_client.call ~retry: false Endpoints.Api.(route Victor)
-    with
-      | Madge_client.(Error (Server_unreachable _)) -> lwt_unit
-  );
-  Toast.open_
-    ~title: "Victorisation"
-    [txt "Victorisation in progress. Please wait."]
-
 let set_omniscience enable =
   let%lwt _ = Madge_client.call Endpoints.Api.(route @@ User Set_omniscience) enable in
   Toast.open_
@@ -197,14 +186,6 @@ let header_item =
                             ~icon: (Action Edit)
                             ~dropdown: true
                             ~href: (S.const @@ Endpoints.Page.(href User_prepare_reset_password))
-                            ()
-                        ];
-                        li [
-                          Button.make
-                            ~label: "Victorise"
-                            ~icon: (Action Stop)
-                            ~dropdown: true
-                            ~onclick: (fun () -> victorise (); lwt_unit)
                             ()
                         ];
                         li [

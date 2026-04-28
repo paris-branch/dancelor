@@ -27,12 +27,6 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.t -> a =
   | User endpoint -> User.dispatch env endpoint
   | Job endpoint -> Job.dispatch env endpoint
   | Report_issue -> Issue_report.report env
-  | Victor ->
-    Log.debug (fun m -> m "Triggering controller for Victor");
-    Permission.assert_is_connected env;%lwt
-    (* FIXME: eventually, only for database editors *)
-    Log.info (fun m -> m "Exiting with return code 101");
-    exit 101
   | Boot_time ->
     Log.debug (fun m -> m "Answering boot time");
     lwt Environment.boot_time
