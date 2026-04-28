@@ -129,7 +129,14 @@ CREATE TABLE "dancelor"."tune" (
 
 CREATE TABLE "dancelor"."user" (
     "id" character varying(14) NOT NULL,
-    "json" json NOT NULL
+    "username" character varying(256) NOT NULL,
+    "password" character varying(256),
+    "password_reset_token_hash" character varying(256),
+    "password_reset_token_max_date" timestamp without time zone,
+    "role" json NOT NULL,
+    "remember_me_tokens" json NOT NULL,
+    "created_at" timestamp without time zone NOT NULL,
+    "modified_at" timestamp without time zone NOT NULL
 );
 
 
@@ -203,6 +210,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m022_2026_04
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m023_2026_04_add_fk_user_id_key', '2026-04-23 23:47:34+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m024_2026_04_insert_ids_from_version_into_globally_unique_id', '2026-04-23 23:47:34+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m025_2026_04_add_fk_version_id_key', '2026-04-23 23:47:34+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m026_2026_04_split_user_yaml_into_fields', '2026-04-28 09:45:10.421107+00');
 
 
 --
@@ -240,7 +248,7 @@ INSERT INTO "dancelor"."tune" ("id", "json") VALUES ('qdod-ad7l-8gr2', '{"value"
 -- Data for Name: user; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."user" ("id", "json") VALUES ('lt3h-edgt-ac97', '{"value":{"password":"$argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w","username":"Niols"},"meta":{"created-at":"2025-04-13T18:48:00+02:00","modified-at":"2025-04-13T18:48:00+02:00"},"access":["Public"]}');
+INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_token_hash", "password_reset_token_max_date", "role", "remember_me_tokens", "created_at", "modified_at") VALUES ('lt3h-edgt-ac97', 'Niols', '$argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w', NULL, NULL, '["Normal_user"]', '{}', '2025-04-13 16:48:00', '2025-04-13 16:48:00');
 
 
 --
@@ -328,6 +336,14 @@ ALTER TABLE ONLY "dancelor"."user"
 
 ALTER TABLE ONLY "dancelor"."version"
     ADD CONSTRAINT "idx_16451_primary" PRIMARY KEY ("id");
+
+
+--
+-- Name: user user_username_key; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."user"
+    ADD CONSTRAINT "user_username_key" UNIQUE ("username");
 
 
 --

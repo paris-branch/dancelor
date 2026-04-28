@@ -169,3 +169,45 @@ FROM "version";
 ALTER TABLE "version"
 ADD CONSTRAINT "fk_version_id"
 FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id");
+
+-- @m026_2026_04_split_user_json_into_fields__add_columns
+ALTER TABLE "user"
+ADD COLUMN "username" VARCHAR(256),
+ADD COLUMN "password" VARCHAR(256),
+ADD COLUMN "password_reset_token_hash" VARCHAR(256),
+ADD COLUMN "password_reset_token_max_date" TIMESTAMP,
+ADD COLUMN "role" JSON,
+ADD COLUMN "remember_me_tokens" JSON,
+ADD COLUMN "created_at" TIMESTAMP,
+ADD COLUMN "modified_at" TIMESTAMP;
+
+-- @m026_2026_04_split_user_json_into_fields__get_all
+SELECT
+    "id",
+    "json"
+FROM "user";
+
+-- @m026_2026_04_split_user_json_into_fields__update_one
+UPDATE "user"
+SET
+    "username" = @username,
+    "password" = @password,
+    "password_reset_token_hash" = @password_reset_token_hash,
+    "password_reset_token_max_date" = @password_reset_token_max_date,
+    "remember_me_tokens" = @remember_me_tokens,
+    "role" = @role,
+    "created_at" = @created_at,
+    "modified_at" = @modified_at
+WHERE "id" = @id;
+
+-- @m026_2026_04_split_user_json_into_fields__set_not_null__for_sqlgg
+ALTER TABLE "user"
+CHANGE COLUMN "username" "username" VARCHAR(256) NOT NULL UNIQUE,
+CHANGE COLUMN "role" "role" JSON NOT NULL,
+CHANGE COLUMN "remember_me_tokens" "remember_me_tokens" JSON NOT NULL,
+CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
+CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL;
+
+-- @m026_2026_04_split_user_json_into_fields__drop_json_column
+ALTER TABLE "user"
+DROP COLUMN "json";
