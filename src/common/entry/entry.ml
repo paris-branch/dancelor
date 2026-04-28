@@ -26,6 +26,8 @@ let make ~id ?meta ~access value =
 let id' e = Id.unsafe_coerce (id e)
 let id_as_string e = Id.to_string (id e)
 
+let unsafe_map_value f entry = {entry with id = Id.unsafe_coerce entry.id; value = f entry.value}
+
 (* equality and comparison are simply based on the ids *)
 let equal' e f = Id.equal' (id e) (id f)
 let compare' e f = Id.compare' (id e) (id f)

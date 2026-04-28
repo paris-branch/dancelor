@@ -7,7 +7,7 @@ let session_max_age = 43200 (* 43200 seconds = 12 hours *)
 let remember_me_token_max_age = 15552000 (* 15552000 seconds = 6 * 30 days *)
 
 type session = {
-  user: Model.User.t Entry.id option;
+  user: Database.User.t Entry.id option;
   expires: Datetime.t;
 }
 [@@deriving fields]
@@ -65,11 +65,6 @@ let set_user env user =
   env.session := {!(env.session) with user = Some user};
   Hashtbl.replace sessions env.session_id !(env.session)
 
-(** Helper to update the user in the database. *)
-let database_update_user user f =
-  let%lwt new_user = f @@ Entry.value user in
-  ignore <$> Database.User.update (Entry.id user) new_user
-
 (* Given an environment, check whether we should log in a user via their
    remember me token. This is meant to be used in {!make}, before returning a
    transient environment. *)
@@ -77,8 +72,8 @@ let process_remember_me_cookie env remember_me_cookie =
   match String.split_3_on_char ':' remember_me_cookie with
   | None -> lwt_unit
   | Some (id, key, token) ->
-    let key = Model.User.Remember_me_key.inject key in
-    let token = Model.User.Remember_me_token_clear.inject token in
+    let key = Database.User.Remember_me_key.inject key in
+    let token = Database.User.Remember_me_token_clear.inject token in
     Log.info (fun m -> m "Attempt to get remembered with id `%s`." id);
     match Entry.Id.of_string id with
     | None ->
@@ -92,22 +87,21 @@ let process_remember_me_cookie env remember_me_cookie =
         register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
         lwt_unit
       | Some user ->
-        let tokens = Model.User.remember_me_tokens' user in
-        match Model.User.Remember_me_key.Map.find_opt key tokens with
+        match Database.User.find_remember_me_token user key with
         | None ->
-          Log.info (fun m -> m "Rejecting because user does not have the “remember me” key `%a`." Model.User.Remember_me_key.pp key);
+          Log.info (fun m -> m "Rejecting because user does not have the “remember me” key `%a`." Database.User.Remember_me_key.pp key);
           register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
           lwt_unit
         | Some (_, token_max_date) when Datetime.in_the_past token_max_date ->
           Log.info (fun m -> m "Rejecting because token is too old.");
-          database_update_user user (Model.User.update ~remember_me_tokens: (Model.User.Remember_me_key.Map.remove key));%lwt
+          Database.User.remove_one_remember_me_token user key;%lwt
           register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
           lwt_unit
-        | Some (hashed_token, _) when not @@ HashedSecret.is ~clear: (Model.User.Remember_me_token_clear.project token) (Model.User.Remember_me_token_hashed.project hashed_token) ->
+        | Some (hashed_token, _) when not @@ HashedSecret.is ~clear: (Database.User.Remember_me_token_clear.project token) (Database.User.Remember_me_token_hashed.project hashed_token) ->
           Log.info (fun m -> m "Rejecting because tokens do not match.");
           (* someone got their hand on a "remember me" key - invalidate all known tokens *)
           (* NOTE: Similar to password reset tokens, we should be able to compare directly but need to project. *)
-          database_update_user user (Model.User.update ~remember_me_tokens: (const Model.User.Remember_me_key.Map.empty));%lwt
+          Database.User.remove_all_remember_me_tokens user;%lwt
           register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
           lwt_unit
         | Some _ ->
@@ -177,15 +171,15 @@ let sign_in env user ~remember_me =
     let key = uid () in
     let token = uid () in
     (
-      let key_typed = Model.User.Remember_me_token_clear.inject key in
+      let key_typed = Database.User.Remember_me_key.inject key in
       (* NOTE: We should use Remember_me_token_hashed.make here, but HashedSecret.make
          is only available on the server side (NesHashedSecretUnix), not in common code. *)
-      let hashed_token = Model.User.Remember_me_token_hashed.inject @@ HashedSecret.make ~clear: token in
+      let hashed_token = Database.User.Remember_me_token_hashed.inject @@ HashedSecret.make ~clear: token in
       (* the max date stored in database is one more minute than the max age that
          will be sent as cookie, to be sure not to lie to our clients *)
       let max_date = Datetime.make_in_the_future (float_of_int @@ 60 + remember_me_token_max_age) in
       (* let remember_me_token = Some (hashed_token, max_date) in *)
-      database_update_user user (Model.User.update ~remember_me_tokens: (Model.User.Remember_me_key.Map.add key_typed (hashed_token, max_date)))
+      Database.User.add_remember_me_token user key_typed hashed_token max_date
     );%lwt
     register_response_cookie
       env
@@ -205,14 +199,14 @@ let sign_out env user =
   let session = {!(env.session) with user = None} in
   Hashtbl.replace sessions env.session_id session;
   env.session := session;
-  database_update_user user (Model.User.update ~remember_me_tokens: (const Model.User.Remember_me_key.Map.empty));%lwt
+  Database.User.remove_all_remember_me_tokens user;%lwt
   register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
   lwt_unit
 
 let boot_time = Datetime.now ()
 
 type cache_key_session = {
-  user: Model.User.entry option;
+  user: Database.User.entry option;
   expires: Datetime.t;
 }
 [@@ocaml.warning "-69"]

@@ -33,8 +33,8 @@ let create () =
       ~type_: Text
       ~placeholder: "JeanMilligan"
       ~label: "Username"
-      ~serialise: Model.User.Username.to_string
-      ~validate: (S.const % Option.to_result ~none: "Invalid username format." % Model.User.Username.from_string)
+      ~serialise: Username.to_string
+      ~validate: (S.const % Option.to_result ~none: "Invalid username format." % Username.from_string)
       ""
   in
   let signal =

@@ -1,14 +1,60 @@
-open Nes
+open NesUnix
 open Dancelor_common
 
 module User_sql = User_sql.Sqlgg(Sqlgg_postgresql)
+module Password_hashed = Fresh.Make(HashedSecret)
+module Password_reset_token_hashed = Fresh.Make(HashedSecret)
 
-type t = Model_builder.Core.User.t
-type entry = Model_builder.Core.User.entry
+module Remember_me_key = struct
+  include Fresh.Make(String)
+  module Map = struct
+    include Map.Make(struct
+      type nonrec t = t
+      let compare a b = String.compare (project a) (project b)
+    end)
+
+    let to_yojson value_to_yojson map =
+      `Assoc (List.map (fun (k, v) -> (project k, value_to_yojson v)) (bindings map))
+
+    let of_yojson value_of_yojson = function
+      | `Assoc pairs ->
+        List.fold_left
+          (fun acc (k, v) ->
+            Result.bind acc @@ fun map ->
+            Result.map (fun v -> add (inject k) v map) (value_of_yojson v)
+          )
+          (Ok empty)
+          pairs
+      | _ -> Error "Expected JSON object"
+  end
+end
+
+module Remember_me_token_clear = Fresh.Make(String)
+module Remember_me_token_hashed = Fresh.Make(HashedSecret)
 
 type remember_me_tokens =
-(Entry.User.Remember_me_token_hashed.t * Datetime.t) Entry.User.Remember_me_key.Map.t
+(Remember_me_token_hashed.t * Datetime.t) Remember_me_key.Map.t
 [@@deriving yojson]
+
+type t = {
+  username: Username.t;
+  password: Password_hashed.t option;
+  password_reset_token: (Password_reset_token_hashed.t * Datetime.t) option;
+  remember_me_tokens: remember_me_tokens;
+  role: Entry.User.role;
+}
+[@@deriving fields, make]
+
+type entry = t Entry.public
+
+let id_to_common : t Entry.id -> Entry.User.t Entry.id = Entry.Id.unsafe_coerce
+let id_of_common : Entry.User.t Entry.id -> t Entry.id = Entry.Id.unsafe_coerce
+
+let to_common user =
+  Entry.User.make ~username: (username user) ~role: (role user) ()
+
+let entry_to_common user =
+  Entry.unsafe_map_value to_common user
 
 let row_to_user
     ~id
@@ -26,14 +72,14 @@ let row_to_user
     ~meta: (Entry.Meta.make ~created_at ~modified_at ())
     ~access: Entry.Access.Public
     (
-      Model_builder.Core.User.make
-        ~username: (Entry.User.Username.of_string_exn username)
-        ?password: (Option.map (Entry.User.Password_hashed.inject % HashedSecret.unsafe_of_string) password)
+      make
+        ~username: (Username.of_string_exn username)
+        ?password: (Option.map (Password_hashed.inject % HashedSecret.unsafe_of_string) password)
         ?password_reset_token: (
           Option.bind password_reset_token_hash @@ fun password_reset_token_hash ->
           Option.bind password_reset_token_max_date @@ fun password_reset_token_max_date ->
           Some (
-            (Entry.User.Password_hashed.inject % HashedSecret.unsafe_of_string) password_reset_token_hash,
+            (Password_hashed.inject % HashedSecret.unsafe_of_string) password_reset_token_hash,
             password_reset_token_max_date
           )
         )
@@ -42,46 +88,51 @@ let row_to_user
         ()
     )
 
-let get id : Model_builder.Core.User.entry option Lwt.t =
+let get id : entry option Lwt.t =
   Connection.with_ @@ fun db ->
   User_sql.Single.get db ~id: (Entry.Id.to_string id) (row_to_user ~id)
 
-let get_all () =
+let get_all () : entry list Lwt.t =
   Connection.with_ @@ fun db ->
   User_sql.List.get_all db (fun ~id -> row_to_user ~id: (Entry.Id.of_string_exn id))
 
-let create user =
+let create ~username ~role ~password_reset_token_hash ~password_reset_token_max_date =
   let%lwt id = Globally_unique_id.make User in
-  let user = Entry.make ~id ~access: Entry.Access.Public user in
   Connection.with_ @@ fun db ->
   let%lwt _ =
-    User_sql.insert
+    User_sql.create
       db
       ~id: (Entry.Id.to_string id)
-      ~username: (Entry.User.Username.to_string @@ Model_builder.Core.User.username' user)
-      ~password: (Option.map (HashedSecret.unsafe_to_string % Entry.User.Password_hashed.project) @@ Model_builder.Core.User.password' user)
-      ~password_reset_token_hash: (Option.map (HashedSecret.unsafe_to_string % Entry.User.Password_reset_token_hashed.project % fst) @@ Model_builder.Core.User.password_reset_token' user)
-      ~password_reset_token_max_date: (Option.map snd @@ Model_builder.Core.User.password_reset_token' user)
-      ~remember_me_tokens: (remember_me_tokens_to_yojson @@ Model_builder.Core.User.remember_me_tokens' user)
-      ~role: (Entry.User.role_to_yojson @@ Model_builder.Core.User.role' user)
+      ~username: (Username.to_string username)
+      ~role: (Entry.User.role_to_yojson role)
+      ~password_reset_token_hash: (some @@ HashedSecret.unsafe_to_string @@ Password_reset_token_hashed.project password_reset_token_hash)
+      ~password_reset_token_max_date: (Some password_reset_token_max_date)
   in
-  lwt user
+  (* FIXME: the [created_at] and [modified_at] values here will be wrong *)
+  lwt @@
+  Entry.make ~id ~access: Entry.Access.Public @@
+  make
+    ~username
+    ~role
+    ~password_reset_token: (password_reset_token_hash, password_reset_token_max_date)
+    ~remember_me_tokens: Remember_me_key.Map.empty
+    ()
 
 let update id user =
-  let user = Entry.make ~id ~access: Entry.Access.Public user in
   let%lwt _ =
     Connection.with_ @@ fun db ->
     User_sql.update
       db
       ~id: (Entry.Id.to_string id)
-      ~username: (Entry.User.Username.to_string @@ Model_builder.Core.User.username' user)
-      ~password: (Option.map (HashedSecret.unsafe_to_string % Entry.User.Password_hashed.project) @@ Model_builder.Core.User.password' user)
-      ~password_reset_token_hash: (Option.map (HashedSecret.unsafe_to_string % Entry.User.Password_reset_token_hashed.project % fst) @@ Model_builder.Core.User.password_reset_token' user)
-      ~password_reset_token_max_date: (Option.map snd @@ Model_builder.Core.User.password_reset_token' user)
-      ~remember_me_tokens: (remember_me_tokens_to_yojson @@ Model_builder.Core.User.remember_me_tokens' user)
-      ~role: (Entry.User.role_to_yojson @@ Model_builder.Core.User.role' user)
+      ~username: (Username.to_string @@ username user)
+      ~password: (Option.map (HashedSecret.unsafe_to_string % Password_hashed.project) @@ password user)
+      ~password_reset_token_hash: (Option.map (HashedSecret.unsafe_to_string % Password_reset_token_hashed.project % fst) @@ password_reset_token user)
+      ~password_reset_token_max_date: (Option.map snd @@ password_reset_token user)
+      ~remember_me_tokens: (remember_me_tokens_to_yojson @@ remember_me_tokens user)
+      ~role: (Entry.User.role_to_yojson @@ role user)
   in
-  lwt user
+  (* FIXME: the [created_at] and [modified_at] values here will be wrong *)
+  lwt @@ Entry.make ~id ~access: Entry.Access.Public user
 
 let delete id =
   let%lwt _ =
@@ -90,12 +141,53 @@ let delete id =
   in
   lwt_unit
 
-let get_from_username username =
+let get_from_username target_username =
   (* FIXME: just write an efficient query for this, once the username is its own
      column (with an index). *)
   let%lwt all = get_all () in
-  let this = List.filter ((=) username % Dancelor_common.Model_builder.Core.User.username % Dancelor_common.Entry.value) all in
+  let this = List.filter ((=) target_username % username % Entry.value) all in
   match this with
   | [] -> lwt_none
   | [this] -> lwt_some this
   | _ -> assert false
+
+let set_password_reset_token id password_reset_token_hash password_reset_token_max_date =
+  Connection.with_ @@ fun db ->
+  ignore
+  <$> User_sql.set_password_reset_token
+      db
+      ~id: (Entry.Id.to_string id)
+      ~password_reset_token_hash: (Some (HashedSecret.unsafe_to_string @@ Password_reset_token_hashed.project password_reset_token_hash))
+      ~password_reset_token_max_date: (Some password_reset_token_max_date)
+
+let set_password id password =
+  Connection.with_ @@ fun db ->
+  ignore
+  <$> User_sql.set_password
+      db
+      ~id: (Entry.Id.to_string id)
+      ~password: (some @@ HashedSecret.unsafe_to_string @@ Password_hashed.project password)
+
+let find_remember_me_token user key =
+  Remember_me_key.Map.find_opt key (Entry.value user).remember_me_tokens
+
+let add_remember_me_token user key hashed_token max_date =
+  ignore <$> update (Entry.id user) {(Entry.value user) with remember_me_tokens = Remember_me_key.Map.add key (hashed_token, max_date) (Entry.value user).remember_me_tokens}
+
+let remove_one_remember_me_token user key =
+  ignore <$> update (Entry.id user) {(Entry.value user) with remember_me_tokens = Remember_me_key.Map.remove key (Entry.value user).remember_me_tokens}
+
+let remove_all_remember_me_tokens user =
+  ignore <$> update (Entry.id user) {(Entry.value user) with remember_me_tokens = Remember_me_key.Map.empty}
+
+let set_omniscience user value =
+  ignore
+  <$> update
+      (Entry.id user)
+      {(Entry.value user) with
+        role = (
+          match role @@ Entry.value user with
+          | Administrator {omniscience = _} -> Administrator {omniscience = value}
+          | _ -> assert false
+        )
+      }

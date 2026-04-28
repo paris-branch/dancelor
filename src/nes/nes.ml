@@ -35,6 +35,7 @@ module NEList = NesNEList
 module NEString = NesNEString
 module Pair = NesPair
 module Fresh = NesFresh
+module Username = NesUsername
 
 (* Monads *)
 

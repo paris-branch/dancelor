@@ -9,9 +9,6 @@ type entry = t Entry.public
 [@@deriving eq, show, yojson]
 
 let username' = username % Entry.value_public
-let password' = password % Entry.value_public
-let password_reset_token' = password_reset_token % Entry.value_public
-let remember_me_tokens' = remember_me_tokens % Entry.value_public
 let role' = role % Entry.value_public
 
 let is_maintainer user = is_maintainer (role user)

@@ -24,11 +24,10 @@ SELECT
     "modified_at"
 FROM "user";
 
--- @insert
+-- @create
 INSERT INTO "user" (
     "id",
     "username",
-    "password",
     "password_reset_token_hash",
     "password_reset_token_max_date",
     "remember_me_tokens",
@@ -39,10 +38,9 @@ INSERT INTO "user" (
 VALUES (
     @id,
     @username,
-    @password,
     @password_reset_token_hash,
     @password_reset_token_max_date,
-    @remember_me_tokens,
+    '{}',
     @role,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
@@ -62,4 +60,21 @@ WHERE "id" = @id;
 
 -- @delete
 DELETE FROM "user"
+WHERE "id" = @id;
+
+-- @set_password_reset_token
+UPDATE "user"
+SET
+    "password" = NULL,
+    "remember_me_tokens" = '{}',
+    "password_reset_token_hash" = @password_reset_token_hash,
+    "password_reset_token_max_date" = @password_reset_token_max_date
+WHERE "id" = @id;
+
+-- @set_password
+UPDATE "user"
+SET
+    "password" = @password,
+    "password_reset_token_hash" = NULL,
+    "password_reset_token_max_date" = NULL
 WHERE "id" = @id;

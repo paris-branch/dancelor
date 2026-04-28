@@ -25,4 +25,4 @@ let converter : predicate Text_formula_converter.t =
 let accepts filter user =
   Formula.interpret filter @@ function
     | Username sfilter ->
-      Formula_string.accepts sfilter @@ Model_builder.Core.User.Username.to_string @@ Model_builder.Core.User.username user
+      Formula_string.accepts sfilter @@ Username.to_string @@ Model_builder.Core.User.username user

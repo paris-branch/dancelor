@@ -14,10 +14,10 @@ let open_sign_in_dialog () =
       ~label: "Username"
       ~placeholder: "JeanMilligan"
       ~oninput: (fun _ -> set_status_signal Dont_know)
-      ~serialise: Model.User.Username.to_string
+      ~serialise: Username.to_string
       ~validate: (fun username ->
         Fun.flip S.map status_signal @@ fun status ->
-        match Model.User.Username.from_string username with
+        match Username.from_string username with
         | None -> Error "Invalid username format."
         | Some username ->
           match status with
@@ -159,7 +159,7 @@ let header_item =
       | Some user ->
         [
           Button.make
-            ~label: (Model.User.Username.to_string @@ Model.User.username' user)
+            ~label: (Username.to_string @@ Model.User.username' user)
             ~icon: (Model User)
             ~classes: ["text-white"; "dropdown-toggle"]
             ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
