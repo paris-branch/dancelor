@@ -1,5 +1,8 @@
-include Sqlgg_traits.M with
-type 'a connection = Postgresql.connection
+type pg_conn = {conn: Postgresql.connection; fd: Lwt_unix.file_descr}
+
+include Sqlgg_traits.M_io with
+type 'a connection = pg_conn
+and type 'a IO.future = 'a Lwt.t
 and type Types.Bool.t = bool
 and type Types.Int.t = int64
 and type Types.UInt64.t = Unsigned.UInt64.t

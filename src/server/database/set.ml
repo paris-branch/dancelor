@@ -11,11 +11,11 @@ let of_json id json =
 
 let get id : Model_builder.Core.Set.entry option Lwt.t =
   Connection.with_ @@ fun db ->
-  lwt @@ Option.map (of_json id) (Set_sql.get db ~id: (Entry.Id.to_string id))
+  Option.map (of_json id) <$> Set_sql.get db ~id: (Entry.Id.to_string id)
 
 let get_all () =
   Connection.with_ @@ fun db ->
-  lwt @@ Set_sql.List.get_all db (fun ~id ~json -> of_json (Entry.Id.of_string_exn id) json)
+  Set_sql.List.get_all db (fun ~id ~json -> of_json (Entry.Id.of_string_exn id) json)
 
 let create set access =
   let%lwt id = Globally_unique_id.make Set in
@@ -23,7 +23,7 @@ let create set access =
   let json = Entry.to_yojson_no_id Model_builder.Core.Set.to_yojson Model_builder.Core.Set.access_to_yojson set in
   let%lwt _ =
     Connection.with_ @@ fun db ->
-    lwt @@ Set_sql.update db ~id: (Entry.Id.to_string id) ~json
+    Set_sql.update db ~id: (Entry.Id.to_string id) ~json
   in
   lwt set
 
@@ -32,13 +32,13 @@ let update id set access =
   let json = Entry.to_yojson_no_id Model_builder.Core.Set.to_yojson Model_builder.Core.Set.access_to_yojson set in
   let%lwt _ =
     Connection.with_ @@ fun db ->
-    lwt @@ Set_sql.update db ~id: (Entry.Id.to_string id) ~json
+    Set_sql.update db ~id: (Entry.Id.to_string id) ~json
   in
   lwt set
 
 let delete id =
   let%lwt _ =
     Connection.with_ @@ fun db ->
-    lwt @@ Set_sql.delete db ~id: (Entry.Id.to_string id)
+    Set_sql.delete db ~id: (Entry.Id.to_string id)
   in
   lwt_unit

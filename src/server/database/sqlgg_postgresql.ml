@@ -5,12 +5,23 @@ exception Oops of string
 
 (* ---- Core types ---- *)
 
-type 'a connection = Postgresql.connection
-type statement = {sql: string; conn: Postgresql.connection}
+type pg_conn = {conn: Postgresql.connection; fd: Lwt_unix.file_descr}
+type 'a connection = pg_conn
+type statement = {sql: string; connection: pg_conn}
 type row = Postgresql.result * int
 type result = Postgresql.result
 type params = {stmt: statement; values: string array; mutable pos: int}
 type execute_response = {affected_rows: int64; insert_id: int64 option}
+
+(* ---- IO ---- *)
+
+module IO = struct
+  type 'a future = 'a Lwt.t
+  let return = Lwt.return
+  let (>>=) = Lwt.bind
+  let bracket x fin f =
+    Lwt.bind x (fun x -> Lwt.finalize (fun () -> f x) (fun () -> fin x))
+end
 
 (* ---- Helpers ---- *)
 
@@ -26,6 +37,37 @@ let nullable f row col = if is_null row col then None else Some (f row col)
 let set_param p s =
   p.values.(p.pos) <- s;
   p.pos <- p.pos + 1
+
+(* ---- Async query execution ---- *)
+
+let async_exec {conn; fd} ?params sql =
+  (
+    match params with
+    | Some params -> conn#send_query ~params sql
+    | None -> conn#send_query sql
+  );
+  let rec flush () =
+    match conn#flush with
+    | Postgresql.Successful -> Lwt.return_unit
+    | Postgresql.Data_left_to_send ->
+      Lwt_unix.wait_write fd >>= fun () ->
+      flush ()
+  in
+  let rec poll () =
+    Lwt_unix.wait_read fd >>= fun () ->
+    conn#consume_input;
+    if conn#is_busy then poll ()
+    else
+      match conn#get_result with
+      | None -> Lwt.fail (Oops "async_exec: no result")
+      | Some r ->
+        (* Drain any remaining results *)
+        ignore (conn#get_result);
+        check r;
+        Lwt.return r
+  in
+  flush () >>= fun () ->
+  poll ()
 
 (* ---- Types ---- *)
 
@@ -211,32 +253,31 @@ let start_params stmt n =
   {stmt; values = Array.make n Postgresql.null; pos = 0}
 
 let finish_params p =
-  let r = p.stmt.conn#exec ~params: p.values p.stmt.sql in
-  check r; r
+  async_exec p.stmt.connection ~params: p.values p.stmt.sql
 
 let no_params stmt =
-  let r = stmt.conn#exec stmt.sql in
-  check r; r
+  async_exec stmt.connection stmt.sql
 
 let select conn sql f callback =
-  let r = f {sql; conn} in
-  for i = 0 to r#ntuples - 1 do callback (r, i) done
+  f {sql; connection = conn} >>= fun r ->
+  for i = 0 to r#ntuples - 1 do callback (r, i) done;
+  Lwt.return_unit
 
 let select_one_maybe conn sql f callback =
-  let r = f {sql; conn} in
-  if r#ntuples = 0 then None
-  else Some (callback (r, 0))
+  f {sql; connection = conn} >>= fun r ->
+  if r#ntuples = 0 then Lwt.return_none
+  else Lwt.return_some (callback (r, 0))
 
 let select_one conn sql f callback =
-  match select_one_maybe conn sql f callback with
-  | Some x -> x
-  | None -> raise (Oops "select_one: no rows returned")
+  select_one_maybe conn sql f callback >>= function
+    | Some x -> Lwt.return x
+    | None -> Lwt.fail (Oops "select_one: no rows returned")
 
 let execute conn sql f =
-  let r = f {sql; conn} in
+  f {sql; connection = conn} >>= fun r ->
   let affected_rows =
     match r#cmd_tuples with
     | "" -> 0L
     | s -> Int64.of_string s
   in
-    {affected_rows; insert_id = None}
+  Lwt.return {affected_rows; insert_id = None}
