@@ -5,13 +5,32 @@ exception Oops of string
 
 (* ---- Core types ---- *)
 
-type pg_conn = {conn: Postgresql.connection; fd: Lwt_unix.file_descr}
+type pg_conn = {
+  conn: Postgresql.connection;
+  fd: Lwt_unix.file_descr;
+}
+
 type 'a connection = pg_conn
-type statement = {sql: string; connection: pg_conn}
+
+type statement = {
+  sql: string;
+  connection: pg_conn;
+}
+
 type row = Postgresql.result * int
+
 type result = Postgresql.result
-type params = {stmt: statement; values: string array; mutable pos: int}
-type execute_response = {affected_rows: int64; insert_id: int64 option}
+
+type params = {
+  stmt: statement;
+  values: string array;
+  mutable pos: int;
+}
+
+type execute_response = {
+  affected_rows: int64;
+  insert_id: int64 option;
+}
 
 (* ---- IO ---- *)
 
