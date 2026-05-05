@@ -8,6 +8,12 @@ SELECT
 FROM "user"
 WHERE "id" = @id;
 
+-- @get_person
+SELECT
+    "person_id"
+FROM "user"
+WHERE "id" = @id;
+
 -- @get_all
 SELECT
     "id",
