@@ -6,35 +6,61 @@ module Person_sql = Person_sql.Sqlgg(Sqlgg_postgresql)
 type t = Model_builder.Core.Person.t
 type entry = Model_builder.Core.Person.entry
 
-let of_json id json =
-  Result.get_ok @@ Entry.of_yojson_no_id id Model_builder.Core.Person.of_yojson Model_builder.Core.Person.access_of_yojson json
+let row_to_person
+    ~id
+    ~name
+    ~scddb_id
+    ~composed_tunes_are_public
+    ~published_tunes_are_public
+    ~created_at
+    ~modified_at
+  =
+  Entry.make
+    ~id: (Entry.Id.of_string_exn id)
+    ~meta: (Entry.Meta.make ~created_at ~modified_at ())
+    ~access: Entry.Access.Public
+    (
+      Model_builder.Core.Person.make
+        ~name: (NEString.of_string_exn name)
+        ~scddb_id: (Option.map Int64.to_int scddb_id)
+        ~composed_tunes_are_public
+        ~published_tunes_are_public
+        ()
+    )
 
 let get id : Model_builder.Core.Person.entry option Lwt.t =
+  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
-  Option.map (of_json id) <$> Person_sql.get db ~id: (Entry.Id.to_string id)
+  Person_sql.Single.get db ~id (row_to_person ~id)
 
 let get_all () =
   Connection.with_ @@ fun db ->
-  Person_sql.List.get_all db (fun ~id ~json -> of_json (Entry.Id.of_string_exn id) json)
+  Person_sql.List.get_all db row_to_person
 
 let create person =
   let%lwt id = Globally_unique_id.make Person in
-  let person = Entry.make ~id ~access: Entry.Access.Public person in
-  let json = Entry.to_yojson_no_id Model_builder.Core.Person.to_yojson Model_builder.Core.Person.access_to_yojson person in
+  Connection.with_ @@ fun db ->
   let%lwt _ =
-    Connection.with_ @@ fun db ->
-    Person_sql.update db ~id: (Entry.Id.to_string id) ~json
+    Person_sql.create
+      db
+      ~id: (Entry.Id.to_string id)
+      ~name: (NEString.to_string @@ Model_builder.Core.Person.name person)
+      ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Person.scddb_id person)
+      ~composed_tunes_are_public: (Model_builder.Core.Person.composed_tunes_are_public person)
+      ~published_tunes_are_public: (Model_builder.Core.Person.published_tunes_are_public person)
   in
-  lwt person
+  lwt id
 
 let update id person =
-  let person = Entry.make ~id ~access: Entry.Access.Public person in
-  let json = Entry.to_yojson_no_id Model_builder.Core.Person.to_yojson Model_builder.Core.Person.access_to_yojson person in
-  let%lwt _ =
-    Connection.with_ @@ fun db ->
-    Person_sql.update db ~id: (Entry.Id.to_string id) ~json
-  in
-  lwt person
+  Connection.with_ @@ fun db ->
+  ignore
+  <$> Person_sql.update
+      db
+      ~id: (Entry.Id.to_string id)
+      ~name: (NEString.to_string @@ Model_builder.Core.Person.name person)
+      ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Person.scddb_id person)
+      ~composed_tunes_are_public: (Model_builder.Core.Person.composed_tunes_are_public person)
+      ~published_tunes_are_public: (Model_builder.Core.Person.published_tunes_are_public person)
 
 let delete id =
   let%lwt _ =
