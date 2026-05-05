@@ -262,7 +262,7 @@ INSERT INTO "dancelor"."set" ("id", "json") VALUES ('wrwk-cz9g-g3wi', '{"value":
 -- Data for Name: source; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."source" ("id", "json", "cover") VALUES ('2f8s-90v8-33do', '{"value":{"name":"The Tam Lin Source"},"meta":{"created-at":"2025-04-12T18:45:27+00:00","modified-at":"2025-04-12T18:45:27+00:00"},"access":["Public"]}', NULL);
+INSERT INTO "dancelor"."source" ("id", "json", "cover") VALUES ('2f8s-90v8-33do', '{"value":{"name":"The Tam Lin Source","short-name":"Tam","editors":["4plf-srss-ihav","8h62-3eis-xfem"],"description":"this is a description","date":"2012-03"},"meta":{"created-at":"2026-05-05T20:27:49","modified-at":"2026-05-05T20:27:49"},"access":["Public"]}', NULL);
 
 
 --
@@ -276,7 +276,7 @@ INSERT INTO "dancelor"."tune" ("id", "json") VALUES ('qdod-ad7l-8gr2', '{"value"
 -- Data for Name: user; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_token_hash", "password_reset_token_max_date", "created_at", "modified_at", "role", "omniscience", "person_id") VALUES ('lt3h-edgt-ac97', 'Niols', '$argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w', NULL, NULL, '2025-04-13 16:48:00', '2025-04-13 16:48:00', 0, false, 'uwoe-u6ij-ikgp');
+INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_token_hash", "password_reset_token_max_date", "created_at", "modified_at", "role", "omniscience", "person_id") VALUES ('lt3h-edgt-ac97', 'Niols', '$argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w', NULL, NULL, '2025-04-13 16:48:00', '2025-04-13 16:48:00', 2, false, 'uwoe-u6ij-ikgp');
 
 
 --
