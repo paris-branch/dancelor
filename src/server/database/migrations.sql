@@ -253,7 +253,7 @@ DROP COLUMN "remember_me_tokens";
 -- @m030_2026_05_split_person_json_into_fields__add_columns
 ALTER TABLE "person"
 ADD COLUMN "name" VARCHAR(256),
-ADD COLUMN "scddb_id" INT UNIQUE,
+ADD COLUMN "scddb_id" INT,
 ADD COLUMN "composed_tunes_are_public" BOOLEAN,
 ADD COLUMN "published_tunes_are_public" BOOLEAN,
 ADD COLUMN "created_at" TIMESTAMP,

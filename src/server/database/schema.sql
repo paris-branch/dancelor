@@ -18,7 +18,7 @@ CREATE TABLE "dance" (
 CREATE TABLE "person" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
     "name" VARCHAR(256) NOT NULL,
-    "scddb_id" INT NULL UNIQUE,
+    "scddb_id" INT,
     "composed_tunes_are_public" BOOLEAN NOT NULL,
     "published_tunes_are_public" BOOLEAN NOT NULL,
     "created_at" TIMESTAMP NOT NULL,
