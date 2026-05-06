@@ -367,14 +367,6 @@ ALTER TABLE ONLY "dancelor"."version"
 
 
 --
--- Name: person person_scddb_id_key; Type: CONSTRAINT; Schema: dancelor; Owner: -
---
-
-ALTER TABLE ONLY "dancelor"."person"
-    ADD CONSTRAINT "person_scddb_id_key" UNIQUE ("scddb_id");
-
-
---
 -- Name: user user_username_key; Type: CONSTRAINT; Schema: dancelor; Owner: -
 --
 
