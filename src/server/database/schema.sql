@@ -17,7 +17,12 @@ CREATE TABLE "dance" (
 
 CREATE TABLE "person" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "json" JSON NOT NULL,
+    "name" VARCHAR(256) NOT NULL,
+    "scddb_id" INT NULL UNIQUE,
+    "composed_tunes_are_public" BOOLEAN NOT NULL,
+    "published_tunes_are_public" BOOLEAN NOT NULL,
+    "created_at" TIMESTAMP NOT NULL,
+    "modified_at" TIMESTAMP NOT NULL,
     CONSTRAINT "fk_person_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
@@ -50,7 +55,9 @@ CREATE TABLE "user" (
     "modified_at" TIMESTAMP NOT NULL,
     "role" SMALLINT NOT NULL,
     "omniscience" BOOLEAN NOT NULL,
-    CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+    "person_id" VARCHAR(14) NULL,
+    CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id"),
+    CONSTRAINT "fk_user_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
 );
 
 CREATE TABLE "remember_me_tokens" (

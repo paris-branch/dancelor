@@ -88,7 +88,12 @@ CREATE TABLE "dancelor"."migrations" (
 
 CREATE TABLE "dancelor"."person" (
     "id" character varying(14) NOT NULL,
-    "json" json NOT NULL
+    "name" character varying(256) NOT NULL,
+    "scddb_id" integer,
+    "composed_tunes_are_public" boolean NOT NULL,
+    "published_tunes_are_public" boolean NOT NULL,
+    "created_at" timestamp without time zone NOT NULL,
+    "modified_at" timestamp without time zone NOT NULL
 );
 
 
@@ -148,7 +153,8 @@ CREATE TABLE "dancelor"."user" (
     "created_at" timestamp without time zone NOT NULL,
     "modified_at" timestamp without time zone NOT NULL,
     "role" smallint NOT NULL,
-    "omniscience" boolean NOT NULL
+    "omniscience" boolean NOT NULL,
+    "person_id" character varying(14)
 );
 
 
@@ -226,15 +232,16 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m026_2026_04
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m027_2026_04_split_role_json_into_fields', '2026-04-28 21:45:03.248478+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m028_2026_04_add_remember_me_tokens_table', '2026-04-28 21:51:55.458519+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m029_2026_04_drop_remember_me_tokens_column', '2026-04-28 21:51:55.460895+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m030_2026_05_split_person_json_into_fields', '2026-05-05 15:34:03.454472+00');
 
 
 --
 -- Data for Name: person; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."person" ("id", "json") VALUES ('4plf-srss-ihav', '{"value":{"name":"Davey Arthur","composed_tunes_are_public":true},"meta":{"created-at":"2018-12-07T01:18:53+01:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
-INSERT INTO "dancelor"."person" ("id", "json") VALUES ('8h62-3eis-xfem', '{"value":{"name":"Mervyn C Short","scddb-id":347},"meta":{"created-at":"2023-07-03T14:17:45","modified-at":"2023-07-03T14:17:45"},"access":["Public"]}');
-INSERT INTO "dancelor"."person" ("id", "json") VALUES ('uwoe-u6ij-ikgp', '{"value":{"name":"Nicolas “Niols” Jeannerod","scddb-id":11781,"composed_tunes_are_public":true,"user":"lt3h-edgt-ac97"},"meta":{"created-at":"2018-10-12T11:50:54+02:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
+INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_public", "published_tunes_are_public", "created_at", "modified_at") VALUES ('4plf-srss-ihav', 'Davey Arthur', NULL, true, false, '2018-12-07 00:18:53', '2023-06-25 14:51:15');
+INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_public", "published_tunes_are_public", "created_at", "modified_at") VALUES ('8h62-3eis-xfem', 'Mervyn C Short', 347, false, false, '2023-07-03 14:17:45', '2023-07-03 14:17:45');
+INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_public", "published_tunes_are_public", "created_at", "modified_at") VALUES ('uwoe-u6ij-ikgp', 'Nicolas “Niols” Jeannerod', 11781, true, false, '2018-10-12 09:50:54', '2023-06-25 14:51:15');
 
 
 --
@@ -269,7 +276,7 @@ INSERT INTO "dancelor"."tune" ("id", "json") VALUES ('qdod-ad7l-8gr2', '{"value"
 -- Data for Name: user; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_token_hash", "password_reset_token_max_date", "created_at", "modified_at", "role", "omniscience") VALUES ('lt3h-edgt-ac97', 'Niols', '$argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w', NULL, NULL, '2025-04-13 16:48:00', '2025-04-13 16:48:00', 0, false);
+INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_token_hash", "password_reset_token_max_date", "created_at", "modified_at", "role", "omniscience", "person_id") VALUES ('lt3h-edgt-ac97', 'Niols', '$argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w', NULL, NULL, '2025-04-13 16:48:00', '2025-04-13 16:48:00', 0, false, 'uwoe-u6ij-ikgp');
 
 
 --
@@ -360,6 +367,14 @@ ALTER TABLE ONLY "dancelor"."version"
 
 
 --
+-- Name: person person_scddb_id_key; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."person"
+    ADD CONSTRAINT "person_scddb_id_key" UNIQUE ("scddb_id");
+
+
+--
 -- Name: user user_username_key; Type: CONSTRAINT; Schema: dancelor; Owner: -
 --
 
@@ -429,6 +444,14 @@ ALTER TABLE ONLY "dancelor"."remember_me_tokens"
 
 ALTER TABLE ONLY "dancelor"."user"
     ADD CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: user fk_user_person_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."user"
+    ADD CONSTRAINT "fk_user_person_id" FOREIGN KEY ("person_id") REFERENCES "dancelor"."person"("id");
 
 
 --

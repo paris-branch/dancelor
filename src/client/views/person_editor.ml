@@ -26,7 +26,8 @@ let editor =
   nil
 
 let assemble (name, (scddb_id, ())) =
-  Model.Person.make ~name ?scddb_id ()
+  (* FIXME: This is obviously very wrong as it erases the _tunes_are_public information. *)
+  Model.Person.make ~name ~scddb_id ~composed_tunes_are_public: false ~published_tunes_are_public: false ()
 
 let submit mode person =
   match mode with

@@ -4,18 +4,6 @@ module Log = (val Logs.src_log @@ Logs.Src.create "server.database.migrations": 
 
 module Migrations_sql = Migrations_sql.Sqlgg(Sqlgg_postgresql)
 
-type migration = {
-  name: string;
-  apply: (Connection.t -> unit Lwt.t);
-}
-
-let make_custom name apply =
-  {name; apply}
-
-let make_ddl name ddl =
-  let apply = fun db -> ignore <$> ddl db in
-  make_custom name apply
-
 type m026_2026_04_split_user_json_into_fields__user_value = {
   username: string;
   password: string option; [@default None]
@@ -43,6 +31,34 @@ type m027_2026_04_split_role_json_into_fields__role =
   | Maintainer
   | Administrator of {omniscience: bool}
 [@@deriving of_yojson]
+
+type m030_2026_05_split_person_json_into_fields__person_value = {
+  name: NEString.t;
+  user: string option; [@default None]
+  scddb_id: int option; [@default None] [@key "scddb-id"]
+  composed_tunes_are_public: bool; [@default false]
+  published_tunes_are_public: bool; [@default false]
+}
+[@@deriving of_yojson]
+
+type m030_2026_05_split_person_json_into_fields__person = {
+  value: m030_2026_05_split_person_json_into_fields__person_value;
+  meta: m026_2026_04_split_user_json_into_fields__user_meta;
+  access: string list;
+}
+[@@deriving of_yojson]
+
+type migration = {
+  name: string;
+  apply: (Connection.t -> unit Lwt.t);
+}
+
+let make_custom name apply =
+  {name; apply}
+
+let make_ddl name ddl =
+  let apply = fun db -> ignore <$> ddl db in
+  make_custom name apply
 
 let migrations : migration list = [
   make_ddl "m001_2026_04_add_book_table" Migrations_sql.m001_2026_04_add_book_table;
@@ -155,6 +171,54 @@ let migrations : migration list = [
   );
   make_ddl "m028_2026_04_add_remember_me_tokens_table" Migrations_sql.m028_2026_04_add_remember_me_tokens_table;
   make_ddl "m029_2026_04_drop_remember_me_tokens_column" Migrations_sql.m029_2026_04_drop_remember_me_tokens_column;
+  make_custom "m030_2026_05_split_person_json_into_fields" (fun db ->
+    let%lwt _ = Migrations_sql.m030_2026_05_split_person_json_into_fields__add_columns db in
+    let%lwt _ = Migrations_sql.m030_2026_05_split_person_json_into_fields__add_column_to_user db in
+    let%lwt all = Migrations_sql.List.m030_2026_05_split_person_json_into_fields__get_all db (fun ~id ~json -> (id, json)) in
+    Lwt_list.iter_s
+      (fun (id, json) ->
+        let person =
+          match m030_2026_05_split_person_json_into_fields__person_of_yojson json with
+          | Ok person -> person
+          | Error msg ->
+            Log.err (fun m -> m "Could not unserialise person: %s" msg);
+            assert false
+        in
+        ignore
+        <$> Migrations_sql.m030_2026_05_split_person_json_into_fields__update_one
+            db
+            ~id
+            ~name: (some @@ NEString.to_string person.value.name)
+            ~scddb_id: (Option.map Int64.of_int person.value.scddb_id)
+            ~composed_tunes_are_public: (Some person.value.composed_tunes_are_public)
+            ~published_tunes_are_public: (Some person.value.published_tunes_are_public)
+            ~created_at: (Some person.meta.created_at)
+            ~modified_at: (Some person.meta.modified_at);%lwt
+        match person.value.user with
+        | None -> lwt_unit
+        | Some user -> ignore <$> Migrations_sql.m030_2026_05_split_person_json_into_fields__update_user db ~id: user ~person_id: (Some id)
+      )
+      all;%lwt
+    (* NOTE: As of May 2026, Sqlgg does not support `ALTER COLUMN` but only
+       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
+       SQL for Sqlgg to infer the right column types, but exec a
+       PostgreSQL-compatible one manually here. *)
+    ignore (
+      Connection.bypass_exec
+        db
+        {|
+            ALTER TABLE "person"
+              ALTER COLUMN "name" SET NOT NULL,
+              ALTER COLUMN "composed_tunes_are_public" SET NOT NULL,
+              ALTER COLUMN "published_tunes_are_public" SET NOT NULL,
+              ALTER COLUMN "created_at" SET NOT NULL,
+              ALTER COLUMN "modified_at" SET NOT NULL,
+              DROP COLUMN "json";
+          |}
+    );
+    ignore <$> Migrations_sql.m030_2026_05_split_person_json_into_fields__add_constraint db;%lwt
+    lwt_unit
+  );
 ]
 
 exception Migration_failed of string * exn

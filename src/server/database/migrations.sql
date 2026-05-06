@@ -249,3 +249,52 @@ CREATE TABLE "remember_me_tokens" (
 -- @m029_2026_04_drop_remember_me_tokens_column
 ALTER TABLE "user"
 DROP COLUMN "remember_me_tokens";
+
+-- @m030_2026_05_split_person_json_into_fields__add_columns
+ALTER TABLE "person"
+ADD COLUMN "name" VARCHAR(256),
+ADD COLUMN "scddb_id" INT UNIQUE,
+ADD COLUMN "composed_tunes_are_public" BOOLEAN,
+ADD COLUMN "published_tunes_are_public" BOOLEAN,
+ADD COLUMN "created_at" TIMESTAMP,
+ADD COLUMN "modified_at" TIMESTAMP;
+
+-- @m030_2026_05_split_person_json_into_fields__add_column_to_user
+ALTER TABLE "user"
+ADD COLUMN "person_id" VARCHAR(14);
+
+-- @m030_2026_05_split_person_json_into_fields__get_all
+SELECT
+    "id",
+    "json"
+FROM "person";
+
+-- @m030_2026_05_split_person_json_into_fields__update_one
+UPDATE "person"
+SET
+    "name" = @name,
+    "scddb_id" = @scddb_id,
+    "composed_tunes_are_public" = @composed_tunes_are_public,
+    "published_tunes_are_public" = @published_tunes_are_public,
+    "created_at" = @created_at,
+    "modified_at" = @modified_at
+WHERE "id" = @id;
+
+-- @m030_2026_05_split_person_json_into_fields__update_user
+UPDATE "user"
+SET
+    "person_id" = @person_id
+WHERE "id" = @id;
+
+-- @m030_2026_05_split_person_json_into_fields__cleanup_columns__for_sqlgg
+ALTER TABLE "person"
+CHANGE COLUMN "name" "name" VARCHAR(256) NOT NULL,
+CHANGE COLUMN "composed_tunes_are_public" "composed_tunes_are_public" BOOLEAN NOT NULL,
+CHANGE COLUMN "published_tunes_are_public" "published_tunes_are_public" BOOLEAN NOT NULL,
+CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
+CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
+DROP COLUMN "json";
+
+-- @m030_2026_05_split_person_json_into_fields__add_constraint
+ALTER TABLE "user"
+ADD CONSTRAINT "fk_user_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
