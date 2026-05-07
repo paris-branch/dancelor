@@ -39,7 +39,7 @@ let with_copyright_check env version f =
   in
   let%lwt publisher_agrees =
     let source_editors_agree source =
-      let%lwt editors = Model.Source.editors' source in
+      let%lwt editors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Source.editors' source in
       lwt @@ List.exists Model.Person.published_tunes_are_public' editors
     in
     Lwt_list.filter_s source_editors_agree =<< (List.map Model.Version.source_source <$> Model.Version.sources' version)

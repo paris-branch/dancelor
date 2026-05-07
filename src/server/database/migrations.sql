@@ -297,4 +297,56 @@ DROP COLUMN "json";
 
 -- @m030_2026_05_split_person_json_into_fields__add_constraint
 ALTER TABLE "user"
-ADD CONSTRAINT "fk_user_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
+ADD CONSTRAINT "fk_user_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id");
+
+-- @m031_2026_05_split_source_json_into_fields__add_columns
+ALTER TABLE "source"
+ADD COLUMN "name" VARCHAR(256),
+ADD COLUMN "short_name" VARCHAR(64),
+ADD COLUMN "scddb_id" INT,
+ADD COLUMN "description" TEXT,
+ADD COLUMN "date" VARCHAR(32),
+ADD COLUMN "created_at" TIMESTAMP,
+ADD COLUMN "modified_at" TIMESTAMP;
+
+-- @m031_2026_05_split_source_json_into_fields__add_source_editors_table
+CREATE TABLE "source_editors" (
+    "source_id" VARCHAR(14) NOT NULL,
+    "person_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_source_editors_source_id" FOREIGN KEY ("source_id") REFERENCES "source" ("id"),
+    CONSTRAINT "fk_source_editors_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
+);
+
+-- @m031_2026_05_split_source_json_into_fields__get_all
+SELECT
+    "id",
+    "json"
+FROM "source";
+
+-- @m031_2026_05_split_source_json_into_fields__update_one
+UPDATE "source"
+SET
+    "name" = @name,
+    "short_name" = @short_name,
+    "scddb_id" = @scddb_id,
+    "description" = @description,
+    "date" = @date,
+    "created_at" = @created_at,
+    "modified_at" = @modified_at
+WHERE "id" = @id;
+
+-- @m031_2026_05_split_source_json_into_fields__add_one_editor
+INSERT INTO "source_editors" (
+    "source_id",
+    "person_id"
+) VALUES (
+    @source_id,
+    @person_id
+);
+
+-- @m031_2026_05_split_source_json_into_fields__cleanup_columns__for_sqlgg
+ALTER TABLE "source"
+CHANGE COLUMN "name" "name" VARCHAR(256) NOT NULL,
+CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
+CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
+DROP COLUMN "json";

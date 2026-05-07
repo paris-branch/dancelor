@@ -1,18 +1,83 @@
 -- @get
-SELECT "json"
+SELECT
+    "name",
+    "short_name",
+    "scddb_id",
+    "description",
+    "date",
+    "created_at",
+    "modified_at"
 FROM "source"
 WHERE "id" = @id;
 
 -- @get_all
 SELECT
     "id",
-    "json"
+    "name",
+    "short_name",
+    "scddb_id",
+    "description",
+    "date",
+    "created_at",
+    "modified_at"
 FROM "source";
 
+-- @create
+INSERT INTO "source" (
+    "id",
+    "name",
+    "short_name",
+    "scddb_id",
+    "description",
+    "date",
+    "created_at",
+    "modified_at"
+) VALUES (
+    @id,
+    @name,
+    @short_name,
+    @scddb_id,
+    @description,
+    @date,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+);
+
+-- @get_editors
+SELECT
+    "person_id"
+FROM "source_editors"
+WHERE "source_id" = @source_id;
+
+-- @get_all_editors
+SELECT
+    "source_id",
+    "person_id"
+FROM "source_editors";
+
+-- @delete_all_editors
+DELETE FROM "source_editors"
+WHERE "source_id" = @source_id;
+
+-- @add_one_editor
+INSERT INTO "source_editors" (
+    "source_id",
+    "person_id"
+) VALUES (
+    @source_id,
+    @person_id
+);
+
 -- @update
-INSERT INTO "source" ("id", "json")
-VALUES (@id, @json)
-ON CONFLICT ("id") DO UPDATE SET "json" = @json;
+UPDATE "source"
+SET
+    "name" = @name,
+    "short_name" = @short_name,
+    "scddb_id" = @scddb_id,
+    "description" = @description,
+    "date" = @date,
+    "modified_at" = CURRENT_TIMESTAMP
+WHERE "id" = @id;
 
 -- @delete
 DELETE FROM "source"

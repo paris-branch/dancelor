@@ -125,8 +125,24 @@ CREATE TABLE "dancelor"."set" (
 
 CREATE TABLE "dancelor"."source" (
     "id" character varying(14) NOT NULL,
-    "json" json NOT NULL,
-    "cover" "bytea"
+    "cover" "bytea",
+    "name" character varying(256) NOT NULL,
+    "short_name" character varying(64),
+    "scddb_id" integer,
+    "description" "text",
+    "date" character varying(32),
+    "created_at" timestamp without time zone NOT NULL,
+    "modified_at" timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: source_editors; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."source_editors" (
+    "source_id" character varying(14) NOT NULL,
+    "person_id" character varying(14) NOT NULL
 );
 
 
@@ -233,6 +249,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m027_2026_04
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m028_2026_04_add_remember_me_tokens_table', '2026-04-28 21:51:55.458519+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m029_2026_04_drop_remember_me_tokens_column', '2026-04-28 21:51:55.460895+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m030_2026_05_split_person_json_into_fields', '2026-05-05 15:34:03.454472+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m031_2026_05_split_source_json_into_fields', '2026-05-07 20:33:37.340054+00');
 
 
 --
@@ -262,7 +279,15 @@ INSERT INTO "dancelor"."set" ("id", "json") VALUES ('wrwk-cz9g-g3wi', '{"value":
 -- Data for Name: source; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."source" ("id", "json", "cover") VALUES ('2f8s-90v8-33do', '{"value":{"name":"The Tam Lin Source"},"meta":{"created-at":"2025-04-12T18:45:27+00:00","modified-at":"2025-04-12T18:45:27+00:00"},"access":["Public"]}', NULL);
+INSERT INTO "dancelor"."source" ("id", "cover", "name", "short_name", "scddb_id", "description", "date", "created_at", "modified_at") VALUES ('2f8s-90v8-33do', NULL, 'The Tam Lin Source', 'Tam', NULL, 'this is a description', '2012-03', '2026-05-05 20:27:49', '2026-05-05 20:27:49');
+
+
+--
+-- Data for Name: source_editors; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."source_editors" ("source_id", "person_id") VALUES ('2f8s-90v8-33do', '4plf-srss-ihav');
+INSERT INTO "dancelor"."source_editors" ("source_id", "person_id") VALUES ('2f8s-90v8-33do', '8h62-3eis-xfem');
 
 
 --
@@ -276,7 +301,7 @@ INSERT INTO "dancelor"."tune" ("id", "json") VALUES ('qdod-ad7l-8gr2', '{"value"
 -- Data for Name: user; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_token_hash", "password_reset_token_max_date", "created_at", "modified_at", "role", "omniscience", "person_id") VALUES ('lt3h-edgt-ac97', 'Niols', '$argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w', NULL, NULL, '2025-04-13 16:48:00', '2025-04-13 16:48:00', 0, false, 'uwoe-u6ij-ikgp');
+INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_token_hash", "password_reset_token_max_date", "created_at", "modified_at", "role", "omniscience", "person_id") VALUES ('lt3h-edgt-ac97', 'Niols', '$argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w', NULL, NULL, '2025-04-13 16:48:00', '2025-04-13 16:48:00', 2, false, 'uwoe-u6ij-ikgp');
 
 
 --
@@ -404,6 +429,22 @@ ALTER TABLE ONLY "dancelor"."person"
 
 ALTER TABLE ONLY "dancelor"."set"
     ADD CONSTRAINT "fk_set_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: source_editors fk_source_editors_person_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."source_editors"
+    ADD CONSTRAINT "fk_source_editors_person_id" FOREIGN KEY ("person_id") REFERENCES "dancelor"."person"("id");
+
+
+--
+-- Name: source_editors fk_source_editors_source_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."source_editors"
+    ADD CONSTRAINT "fk_source_editors_source_id" FOREIGN KEY ("source_id") REFERENCES "dancelor"."source"("id");
 
 
 --

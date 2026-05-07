@@ -14,11 +14,11 @@ module type S = sig
 
   val make :
     name: NEString.t ->
-    ?short_name: NEString.t ->
-    ?editors: Core.Person.entry list ->
-    ?scddb_id: int ->
-    ?description: string ->
-    ?date: PartialDate.t ->
+    short_name: NEString.t option ->
+    editors: Core.Person.t Entry.id list ->
+    scddb_id: int option ->
+    description: string option ->
+    date: PartialDate.t option ->
     unit ->
     t
 
@@ -30,8 +30,8 @@ module type S = sig
   val short_name : t -> NEString.t option
   val short_name' : entry -> NEString.t option
 
-  val editors : t -> Core.Person.entry list Lwt.t
-  val editors' : entry -> Core.Person.entry list Lwt.t
+  val editors : t -> Core.Person.t Entry.id list
+  val editors' : entry -> Core.Person.t Entry.id list
 
   val scddb_id : t -> int option
   val scddb_id' : entry -> int option

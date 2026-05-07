@@ -72,7 +72,8 @@ let editor =
   nil
 
 let assemble (name, (short_name, (editors, (date, (scddb_id, (description, ())))))) =
-  Model.Source.make ~name ?short_name ~editors ?scddb_id ?description ?date ()
+  let editors = List.map Entry.id editors in
+  Model.Source.make ~name ~short_name ~editors ~scddb_id ~description ~date ()
 
 let submit mode source =
   match mode with
@@ -84,7 +85,7 @@ let unsubmit = lwt % Entry.value
 let disassemble source =
   let name = Model.Source.name source in
   let short_name = Model.Source.short_name source in
-  let%lwt editors = Model.Source.editors source in
+  let%lwt editors = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Source.editors source) in
   let date = Model.Source.date source in
   let scddb_id = Model.Source.scddb_id source in
   let description = Model.Source.description source in

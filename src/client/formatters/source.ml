@@ -39,7 +39,7 @@ let date_and_editors source =
       | Some date -> [txt (spf "Published %s" (NesPartialDate.to_pretty_string ~at: true date))]
     in
     let%lwt editors =
-      match%lwt Model.Source.editors source with
+      match%lwt Lwt_list.map_p (Option.get <%> Model.Person.get) @@ Model.Source.editors source with
       | [] -> lwt_nil
       | editors -> lwt [txt "by "; Person.names' ~links: true editors]
     in
