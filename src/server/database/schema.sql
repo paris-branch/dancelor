@@ -34,9 +34,22 @@ CREATE TABLE "set" (
 
 CREATE TABLE "source" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "json" JSON NOT NULL,
     "cover" BYTEA DEFAULT NULL,
+    "name" VARCHAR(256) NOT NULL,
+    "short_name" VARCHAR(64),
+    "scddb_id" INT,
+    "description" TEXT,
+    "date" VARCHAR(32),
+    "created_at" TIMESTAMP NOT NULL,
+    "modified_at" TIMESTAMP NOT NULL,
     CONSTRAINT "fk_source_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+);
+
+CREATE TABLE "source_editors" (
+    "source_id" VARCHAR(14) NOT NULL,
+    "person_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_source_editors_source_id" FOREIGN KEY ("source_id") REFERENCES "source" ("id"),
+    CONSTRAINT "fk_source_editors_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
 );
 
 CREATE TABLE "tune" (

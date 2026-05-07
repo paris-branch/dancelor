@@ -81,7 +81,7 @@ module Make (Model : Model_builder.S) = struct
           (Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Source.name source)
           (Option.fold ~none: (lwt Formula.interpret_false) ~some: (Formula_string.accepts sfilter % NEString.to_string) @@ Model.Source.short_name source)
       | Editors pfilter ->
-        let%lwt editors = Model.Source.editors source in
+        let%lwt editors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Source.editors source in
         Formula_list.accepts accepts_person' pfilter editors
 
   and accepts_tune filter tune =

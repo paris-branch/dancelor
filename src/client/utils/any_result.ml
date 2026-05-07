@@ -28,7 +28,7 @@ let make_source_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) 
       prefix @
       [L.td (Lwt.pause ();%lwt lwt [Formatters.Source.name' ~link: (onclick = None) ?context source]);
       L.td (Lwt.pause ();%lwt lwt [txt (Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) (Source.date' source))]);
-      L.td (Lwt.pause ();%lwt List.singleton <$> (Formatters.Person.names' ~links: (onclick = None) ~short: true <$> Source.editors' source));
+      L.td (Lwt.pause ();%lwt List.singleton <$> (Formatters.Person.names' ~links: (onclick = None) ~short: true <$> Lwt_list.map_p (Option.get <%> Person.get) (Source.editors' source)));
       ] @
       suffix
     )

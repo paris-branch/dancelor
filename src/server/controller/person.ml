@@ -27,7 +27,7 @@ let create env person =
 
 let update env id person =
   Permission.assert_can_update_public env =<< get env id;%lwt
-  ignore <$> Database.Person.update id person;%lwt
+  Database.Person.update id person;%lwt
   Option.get <$> Database.Person.get id
 
 let delete env id =

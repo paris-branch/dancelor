@@ -16,13 +16,13 @@ type access = Entry.Access.public [@@deriving yojson]
 type entry = t Entry.public
 [@@deriving eq, ord, show, yojson]
 
-let make ~name ?short_name ?editors ?scddb_id ?description ?date () =
+let make ~name ~short_name ~editors ~scddb_id ~description ~date () =
   let name = NEString.map_exn (String.remove_duplicates ~char: ' ') name in
-  let editors = Option.map (List.map Entry.id) editors in
-  make ~name ~short_name ?editors ~scddb_id ~description ~date ()
+  make ~name ~short_name ~editors ~scddb_id ~description ~date ()
 
 let name' = name % Entry.value_public
 let short_name' = short_name % Entry.value_public
 let scddb_id' = scddb_id % Entry.value_public
 let description' = description % Entry.value_public
 let date' = date % Entry.value_public
+let editors' = editors % Entry.value_public

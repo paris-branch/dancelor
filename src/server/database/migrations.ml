@@ -48,6 +48,23 @@ type m030_2026_05_split_person_json_into_fields__person = {
 }
 [@@deriving of_yojson]
 
+type m031_2026_05_split_source_json_into_fields__source_value = {
+  name: NEString.t;
+  short_name: NEString.t option; [@default None] [@key "short-name"]
+  editors: string list; [@default []]
+  scddb_id: int option; [@default None] [@key "scddb-id"]
+  description: string option; [@default None]
+  date: string option; [@default None]
+}
+[@@deriving of_yojson]
+
+type m031_2026_05_split_source_json_into_fields__source = {
+  value: m031_2026_05_split_source_json_into_fields__source_value;
+  meta: m026_2026_04_split_user_json_into_fields__user_meta;
+  access: string list;
+}
+[@@deriving of_yojson]
+
 type migration = {
   name: string;
   apply: (Connection.t -> unit Lwt.t);
@@ -217,6 +234,58 @@ let migrations : migration list = [
           |}
     );
     ignore <$> Migrations_sql.m030_2026_05_split_person_json_into_fields__add_constraint db;%lwt
+    lwt_unit
+  );
+  make_custom "m031_2026_05_split_source_json_into_fields" (fun db ->
+    let%lwt _ = Migrations_sql.m031_2026_05_split_source_json_into_fields__add_columns db in
+    let%lwt _ = Migrations_sql.m031_2026_05_split_source_json_into_fields__add_source_editors_table db in
+    let%lwt all = Migrations_sql.List.m031_2026_05_split_source_json_into_fields__get_all db (fun ~id ~json -> (id, json)) in
+    Lwt_list.iter_s
+      (fun (id, json) ->
+        let source =
+          match m031_2026_05_split_source_json_into_fields__source_of_yojson json with
+          | Ok source -> source
+          | Error msg ->
+            Log.err (fun m -> m "Could not unserialise: %s" msg);
+            assert false
+        in
+        ignore
+        <$> Migrations_sql.m031_2026_05_split_source_json_into_fields__update_one
+            db
+            ~id
+            ~name: (some @@ NEString.to_string source.value.name)
+            ~short_name: (Option.map NEString.to_string source.value.short_name)
+            ~scddb_id: (Option.map Int64.of_int source.value.scddb_id)
+            ~description: source.value.description
+            ~date: source.value.date
+            ~created_at: (Some source.meta.created_at)
+            ~modified_at: (Some source.meta.modified_at);%lwt
+        Lwt_list.iter_s
+          (fun person_id ->
+            ignore
+            <$> Migrations_sql.m031_2026_05_split_source_json_into_fields__add_one_editor
+                db
+                ~source_id: id
+                ~person_id
+          )
+          source.value.editors
+      )
+      all;%lwt
+    (* NOTE: As of May 2026, Sqlgg does not support `ALTER COLUMN` but only
+       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
+       SQL for Sqlgg to infer the right column types, but exec a
+       PostgreSQL-compatible one manually here. *)
+    ignore (
+      Connection.bypass_exec
+        db
+        {|
+            ALTER TABLE "source"
+              ALTER COLUMN "name" SET NOT NULL,
+              ALTER COLUMN "created_at" SET NOT NULL,
+              ALTER COLUMN "modified_at" SET NOT NULL,
+              DROP COLUMN "json";
+          |}
+    );
     lwt_unit
   );
 ]

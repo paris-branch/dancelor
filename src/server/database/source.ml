@@ -6,42 +6,95 @@ module Source_sql = Source_sql.Sqlgg(Sqlgg_postgresql)
 type t = Model_builder.Core.Source.t
 type entry = Model_builder.Core.Source.entry
 
-let of_json id json =
-  Result.get_ok @@ Entry.of_yojson_no_id id Model_builder.Core.Source.of_yojson Model_builder.Core.Source.access_of_yojson json
+let row_to_source
+    ~id
+    ~name
+    ~short_name
+    ~scddb_id
+    ~description
+    ~date
+    ~editors
+    ~created_at
+    ~modified_at
+  =
+  Entry.make
+    ~id: (Entry.Id.of_string_exn id)
+    ~meta: (Entry.Meta.make ~created_at ~modified_at ())
+    ~access: Entry.Access.Public
+    (
+      Model_builder.Core.Source.make
+        ~name: (NEString.of_string_exn name)
+        ~short_name: (Option.map NEString.of_string_exn short_name)
+        ~scddb_id: (Option.map Int64.to_int scddb_id)
+        ~description
+        ~date: (Option.map (Option.get % PartialDate.from_string) date)
+        ~editors
+        ()
+    )
+
+let source_to_row ~create_or_update ~delete_all_editors ~add_one_editor id source =
+  (* FIXME: transaction, maybe [Connection.with_transaction] *)
+  let id = Entry.Id.to_string id in
+  ignore <$> delete_all_editors ~source_id: id;%lwt
+  Lwt_list.iter_s
+    (fun person_id ->
+      ignore <$> add_one_editor ~source_id: id ~person_id: (Entry.Id.to_string person_id)
+    )
+    (Model_builder.Core.Source.editors source);%lwt
+  create_or_update
+    ~id
+    ~name: (NEString.to_string @@ Model_builder.Core.Source.name source)
+    ~short_name: (Option.map NEString.to_string @@ Model_builder.Core.Source.short_name source)
+    ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Source.scddb_id source)
+    ~description: (Model_builder.Core.Source.description source)
+    ~date: (Option.map PartialDate.to_string @@ Model_builder.Core.Source.date source)
 
 let get id : Model_builder.Core.Source.entry option Lwt.t =
+  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
-  Option.map (of_json id) <$> Source_sql.get db ~id: (Entry.Id.to_string id)
+  let%lwt editors = Source_sql.List.get_editors db ~source_id: id (fun ~person_id -> Entry.Id.of_string_exn person_id) in
+  Source_sql.Single.get db ~id (row_to_source ~id ~editors)
 
 let get_all () =
   Connection.with_ @@ fun db ->
-  Source_sql.List.get_all db (fun ~id ~json -> of_json (Entry.Id.of_string_exn id) json)
+  let editors = Hashtbl.create 8 in
+  Source_sql.Fold.get_all_editors
+    db
+    (fun ~source_id ~person_id () ->
+      Hashtbl.add editors source_id (Entry.Id.of_string_exn person_id)
+    )
+    ();%lwt
+  Source_sql.List.get_all db (fun ~id -> row_to_source ~id ~editors: (Hashtbl.find_all editors id))
 
 let create source =
-  let%lwt id = Globally_unique_id.make Source in
-  let source = Entry.make ~id ~access: Entry.Access.Public source in
-  let json = Entry.to_yojson_no_id Model_builder.Core.Source.to_yojson Model_builder.Core.Source.access_to_yojson source in
+  let%lwt id = Globally_unique_id.make Person in
+  Connection.with_ @@ fun db ->
   let%lwt _ =
-    Connection.with_ @@ fun db ->
-    Source_sql.update db ~id: (Entry.Id.to_string id) ~json
+    source_to_row
+      ~create_or_update: (Source_sql.create db)
+      ~delete_all_editors: (fun ~source_id: _ -> lwt_unit)
+      ~add_one_editor: (Source_sql.add_one_editor db)
+      id
+      source
   in
-  lwt source
+  lwt id
 
 let update id source =
-  let source = Entry.make ~id ~access: Entry.Access.Public source in
-  let json = Entry.to_yojson_no_id Model_builder.Core.Source.to_yojson Model_builder.Core.Source.access_to_yojson source in
+  Connection.with_ @@ fun db ->
   let%lwt _ =
-    Connection.with_ @@ fun db ->
-    Source_sql.update db ~id: (Entry.Id.to_string id) ~json
-  in
-  lwt source
-
-let delete id =
-  let%lwt _ =
-    Connection.with_ @@ fun db ->
-    Source_sql.delete db ~id: (Entry.Id.to_string id)
+    source_to_row
+      ~create_or_update: (fun ~id -> Source_sql.update db ~id)
+      ~delete_all_editors: (Source_sql.delete_all_editors db)
+      ~add_one_editor: (Source_sql.add_one_editor db)
+      id
+      source
   in
   lwt_unit
+
+let delete id =
+  Connection.with_ @@ fun db ->
+  ignore <$> Source_sql.delete_all_editors ~source_id: (Entry.Id.to_string id) db;%lwt
+  ignore <$> Source_sql.delete db ~id: (Entry.Id.to_string id)
 
 let with_cover id f =
   let%lwt cover =
