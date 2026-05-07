@@ -28,6 +28,14 @@ let row_to_person
         ()
     )
 
+let person_to_row ~create_or_update id person =
+  create_or_update
+    ~id: (Entry.Id.to_string id)
+    ~name: (NEString.to_string @@ Model_builder.Core.Person.name person)
+    ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Person.scddb_id person)
+    ~composed_tunes_are_public: (Model_builder.Core.Person.composed_tunes_are_public person)
+    ~published_tunes_are_public: (Model_builder.Core.Person.published_tunes_are_public person)
+
 let get id : Model_builder.Core.Person.entry option Lwt.t =
   let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
@@ -40,27 +48,12 @@ let get_all () =
 let create person =
   let%lwt id = Globally_unique_id.make Person in
   Connection.with_ @@ fun db ->
-  let%lwt _ =
-    Person_sql.create
-      db
-      ~id: (Entry.Id.to_string id)
-      ~name: (NEString.to_string @@ Model_builder.Core.Person.name person)
-      ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Person.scddb_id person)
-      ~composed_tunes_are_public: (Model_builder.Core.Person.composed_tunes_are_public person)
-      ~published_tunes_are_public: (Model_builder.Core.Person.published_tunes_are_public person)
-  in
+  let%lwt _ = person_to_row ~create_or_update: (Person_sql.create db) id person in
   lwt id
 
 let update id person =
   Connection.with_ @@ fun db ->
-  ignore
-  <$> Person_sql.update
-      db
-      ~id: (Entry.Id.to_string id)
-      ~name: (NEString.to_string @@ Model_builder.Core.Person.name person)
-      ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Person.scddb_id person)
-      ~composed_tunes_are_public: (Model_builder.Core.Person.composed_tunes_are_public person)
-      ~published_tunes_are_public: (Model_builder.Core.Person.published_tunes_are_public person)
+  ignore <$> person_to_row ~create_or_update: (fun ~id -> Person_sql.update db ~id) id person
 
 let delete id =
   let%lwt _ =
