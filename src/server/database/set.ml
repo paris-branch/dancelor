@@ -18,13 +18,11 @@ let get_all () =
   Set_sql.List.get_all db (fun ~id ~json -> of_json (Entry.Id.of_string_exn id) json)
 
 let create set access =
-  let%lwt id = Globally_unique_id.make Set in
+  Connection.with_ @@ fun db ->
+  let%lwt id = Globally_unique_id.make db Set in
   let set = Entry.make ~id ~access set in
   let json = Entry.to_yojson_no_id Model_builder.Core.Set.to_yojson Model_builder.Core.Set.access_to_yojson set in
-  let%lwt _ =
-    Connection.with_ @@ fun db ->
-    Set_sql.update db ~id: (Entry.Id.to_string id) ~json
-  in
+  let%lwt _ = Set_sql.update db ~id: (Entry.Id.to_string id) ~json in
   lwt set
 
 let update id set access =

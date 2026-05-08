@@ -18,13 +18,11 @@ let get_all () =
   Dance_sql.List.get_all db (fun ~id ~json -> of_json (Entry.Id.of_string_exn id) json)
 
 let create dance =
-  let%lwt id = Globally_unique_id.make Dance in
+  Connection.with_ @@ fun db ->
+  let%lwt id = Globally_unique_id.make db Dance in
   let dance = Entry.make ~id ~access: Entry.Access.Public dance in
   let json = Entry.to_yojson_no_id Model_builder.Core.Dance.to_yojson Model_builder.Core.Dance.access_to_yojson dance in
-  let%lwt _ =
-    Connection.with_ @@ fun db ->
-    Dance_sql.update db ~id: (Entry.Id.to_string id) ~json
-  in
+  let%lwt _ = Dance_sql.update db ~id: (Entry.Id.to_string id) ~json in
   lwt dance
 
 let update id dance =
