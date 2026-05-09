@@ -68,7 +68,7 @@ let get_all () =
 
 let create source =
   Connection.with_ @@ fun db ->
-  let%lwt id = Globally_unique_id.make db Person in
+  let%lwt id = Globally_unique_id.make db Source in
   let%lwt _ =
     source_to_row
       ~create_or_update: (Source_sql.create db)
