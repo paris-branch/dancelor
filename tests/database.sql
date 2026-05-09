@@ -196,6 +196,7 @@ INSERT INTO "dancelor"."book" ("id", "json") VALUES ('0fi3-1iot-6tbq', '{"value"
 --
 
 INSERT INTO "dancelor"."dance" ("id", "json") VALUES ('l02q-i1j0-qpoi', '{"value":{"kind":"8 x 32 R","devisers":["8h62-3eis-xfem"],"names":["The Architect"]},"meta":{"created-at":"2023-12-21T17:11:33","modified-at":"2023-12-21T17:11:33"},"access":["Public"]}');
+INSERT INTO "dancelor"."dance" ("id", "json") VALUES ('cy5n-qvpl-k0yl', '{"value":{"names":["Test dance","The test dance","A test dance","A test dance with many names"],"kind":"8 x 32 R","devisers":["uwoe-u6ij-ikgp","9fdg-glrm-0zoi","8h62-3eis-xfem"],"two-chords":["Two_chords"],"scddb-id":1234,"disambiguation":"sdlfkj","date":"2188"},"meta":{"created-at":"2026-05-09T13:11:26","modified-at":"2026-05-09T13:11:26"},"access":["Public"]}');
 
 
 --
@@ -213,6 +214,8 @@ INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('ului-yd9x-o3
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('uwoe-u6ij-ikgp', 'Person');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('wrwk-cz9g-g3wi', 'Set');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xzzb-wasm-babe', 'Version');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('9fdg-glrm-0zoi', 'Person');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('cy5n-qvpl-k0yl', 'Dance');
 
 
 --
@@ -259,6 +262,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m031_2026_05
 INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_public", "published_tunes_are_public", "created_at", "modified_at") VALUES ('4plf-srss-ihav', 'Davey Arthur', NULL, true, false, '2018-12-07 00:18:53', '2023-06-25 14:51:15');
 INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_public", "published_tunes_are_public", "created_at", "modified_at") VALUES ('8h62-3eis-xfem', 'Mervyn C Short', 347, false, false, '2023-07-03 14:17:45', '2023-07-03 14:17:45');
 INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_public", "published_tunes_are_public", "created_at", "modified_at") VALUES ('uwoe-u6ij-ikgp', 'Nicolas “Niols” Jeannerod', 11781, true, false, '2018-10-12 09:50:54', '2023-06-25 14:51:15');
+INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_public", "published_tunes_are_public", "created_at", "modified_at") VALUES ('9fdg-glrm-0zoi', 'John Doe', 129872873, false, false, '2026-05-09 13:11:10.200905', '2026-05-09 13:11:10.200905');
 
 
 --
