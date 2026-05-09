@@ -5,6 +5,8 @@ let to_list (L xs) = xs
 let of_list = function [] -> None | xs -> Some (L xs)
 let of_list_exn = function [] -> invalid_arg "NEList.of_list_exn" | xs -> L xs
 
+let cons x xs = L (x :: xs)
+
 type 'a mylist = 'a list [@@deriving yojson]
 
 let of_yojson a_of_yojson json =

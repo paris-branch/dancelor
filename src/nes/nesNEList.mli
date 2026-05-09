@@ -13,6 +13,9 @@ val of_list_exn : 'a list -> 'a t
 (** Convert a list to a non-empty string, or raise {!Invalid_argument} if the
     list is empty. *)
 
+val cons : 'a -> 'a list -> 'a t
+(** Add an element in front of a list and recover a non-empty list. *)
+
 val hd : 'a t -> 'a
 (** Get the head of a non-empty list, that is the first element of the list. *)
 
