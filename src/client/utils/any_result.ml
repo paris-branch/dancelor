@@ -52,7 +52,7 @@ let make_dance_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) d
       prefix @
       [L.td (Lwt.pause ();%lwt lwt [Formatters.Dance.name_and_disambiguation' ~name_link: (onclick = None) ?context dance]);
       L.td (Lwt.pause ();%lwt lwt [txt (Kind.Dance.to_string @@ Dance.kind' dance)]);
-      L.td (Lwt.pause ();%lwt List.singleton <$> (Formatters.Person.names' ~links: (onclick = None) ~short: true <$> Dance.devisers' dance));
+      L.td (Lwt.pause ();%lwt List.singleton <$> (Formatters.Person.names' ~links: (onclick = None) ~short: true <$> Lwt_list.map_p (Option.get <%> Person.get) (Dance.devisers' dance)));
       ] @
       suffix
     )

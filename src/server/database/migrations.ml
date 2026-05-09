@@ -65,6 +65,30 @@ type m031_2026_05_split_source_json_into_fields__source = {
 }
 [@@deriving of_yojson]
 
+type m032_2026_05_split_dance_json_into_fields__dance_value_two_chords =
+  | Dont_know
+  | One_chord
+  | Two_chords
+[@@deriving of_yojson]
+
+type m032_2026_05_split_dance_json_into_fields__dance_value = {
+  names_: NEString.t NEList.t; [@key "names"]
+  kind: string;
+  devisers: string list; [@default []]
+  two_chords: m032_2026_05_split_dance_json_into_fields__dance_value_two_chords; [@default Dont_know] [@key "two-chords"]
+  scddb_id: int option; [@default None] [@key "scddb-id"]
+  disambiguation: string; [@default ""]
+  date: string option; [@default None]
+}
+[@@deriving of_yojson]
+
+type m032_2026_05_split_dance_json_into_fields__dance = {
+  value: m032_2026_05_split_dance_json_into_fields__dance_value;
+  meta: m026_2026_04_split_user_json_into_fields__user_meta;
+  access: string list;
+}
+[@@deriving of_yojson]
+
 type migration = {
   name: string;
   apply: (Connection.t -> unit Lwt.t);
@@ -281,6 +305,79 @@ let migrations : migration list = [
         {|
             ALTER TABLE "source"
               ALTER COLUMN "name" SET NOT NULL,
+              ALTER COLUMN "created_at" SET NOT NULL,
+              ALTER COLUMN "modified_at" SET NOT NULL,
+              DROP COLUMN "json";
+          |}
+    );
+    lwt_unit
+  );
+  make_custom "m032_2026_05_split_dance_json_into_fields" (fun db ->
+    let%lwt _ = Migrations_sql.m032_2026_05_split_dance_json_into_fields__add_columns db in
+    let%lwt _ = Migrations_sql.m032_2026_05_split_dance_json_into_fields__add_dance_extra_names_table db in
+    let%lwt _ = Migrations_sql.m032_2026_05_split_dance_json_into_fields__add_dance_devisers_table db in
+    let%lwt all = Migrations_sql.List.m032_2026_05_split_dance_json_into_fields__get_all db (fun ~id ~json -> (id, json)) in
+    Lwt_list.iter_s
+      (fun (id, json) ->
+        let dance =
+          match m032_2026_05_split_dance_json_into_fields__dance_of_yojson json with
+          | Ok dance -> dance
+          | Error msg ->
+            Log.err (fun m -> m "Could not unserialise: %s" msg);
+            assert false
+        in
+        let two_chords =
+          match dance.value.two_chords with
+          | Dont_know -> 0
+          | One_chord -> 1
+          | Two_chords -> 2
+        in
+        ignore
+        <$> Migrations_sql.m032_2026_05_split_dance_json_into_fields__update_one
+            db
+            ~id
+            ~name: (some @@ NEString.to_string @@ NEList.hd dance.value.names_)
+            ~kind: (Some dance.value.kind)
+            ~two_chords: (some @@ Int64.of_int two_chords)
+            ~scddb_id: (Option.map Int64.of_int dance.value.scddb_id)
+            ~disambiguation: (Some dance.value.disambiguation)
+            ~date: dance.value.date
+            ~created_at: (Some dance.meta.created_at)
+            ~modified_at: (Some dance.meta.modified_at);%lwt
+        Lwt_list.iter_s
+          (fun extra_name ->
+            ignore
+            <$> Migrations_sql.m032_2026_05_split_dance_json_into_fields__add_one_extra_name
+                db
+                ~dance_id: id
+                ~extra_name
+          )
+          (List.map NEString.to_string @@ NEList.tl dance.value.names_);%lwt
+        Lwt_list.iteri_s
+          (fun index deviser_id ->
+            ignore
+            <$> Migrations_sql.m032_2026_05_split_dance_json_into_fields__add_one_deviser
+                db
+                ~dance_id: id
+                ~index: (Int64.of_int index)
+                ~deviser_id
+          )
+          dance.value.devisers
+      )
+      all;%lwt
+    (* NOTE: As of May 2026, Sqlgg does not support `ALTER COLUMN` but only
+       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
+       SQL for Sqlgg to infer the right column types, but exec a
+       PostgreSQL-compatible one manually here. *)
+    ignore (
+      Connection.bypass_exec
+        db
+        {|
+            ALTER TABLE "dance"
+              ALTER COLUMN "name" SET NOT NULL,
+              ALTER COLUMN "kind" SET NOT NULL,
+              ALTER COLUMN "two_chords" SET NOT NULL,
+              ALTER COLUMN "disambiguation" SET NOT NULL,
               ALTER COLUMN "created_at" SET NOT NULL,
               ALTER COLUMN "modified_at" SET NOT NULL,
               DROP COLUMN "json";

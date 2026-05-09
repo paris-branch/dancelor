@@ -350,3 +350,79 @@ CHANGE COLUMN "name" "name" VARCHAR(256) NOT NULL,
 CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
 CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
 DROP COLUMN "json";
+
+-- @m032_2026_05_split_dance_json_into_fields__add_columns
+ALTER TABLE "dance"
+ADD COLUMN "name" VARCHAR(256),
+ADD COLUMN "kind" VARCHAR(32),
+ADD COLUMN "two_chords" SMALLINT,
+ADD COLUMN "scddb_id" INT,
+ADD COLUMN "disambiguation" VARCHAR(256),
+ADD COLUMN "date" VARCHAR(32),
+ADD COLUMN "created_at" TIMESTAMP,
+ADD COLUMN "modified_at" TIMESTAMP;
+
+-- @m032_2026_05_split_dance_json_into_fields__add_dance_extra_names_table
+CREATE TABLE "dance_extra_names" (
+    "dance_id" VARCHAR(14) NOT NULL,
+    "extra_name" VARCHAR(256) NOT NULL,
+    CONSTRAINT "fk_dance_extra_names_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id")
+);
+
+-- @m032_2026_05_split_dance_json_into_fields__add_dance_devisers_table
+CREATE TABLE "dance_devisers" (
+    "dance_id" VARCHAR(14) NOT NULL,
+    "index" INT NOT NULL,
+    "deviser_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_dance_devisers_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id"),
+    CONSTRAINT "fk_dance_devisers_deviser_id" FOREIGN KEY ("deviser_id") REFERENCES "person" ("id")
+);
+
+-- @m032_2026_05_split_dance_json_into_fields__get_all
+SELECT
+    "id",
+    "json"
+FROM "dance";
+
+-- @m032_2026_05_split_dance_json_into_fields__update_one
+UPDATE "dance"
+SET
+    "name" = @name,
+    "kind" = @kind,
+    "two_chords" = @two_chords,
+    "scddb_id" = @scddb_id,
+    "disambiguation" = @disambiguation,
+    "date" = @date,
+    "created_at" = @created_at,
+    "modified_at" = @modified_at
+WHERE "id" = @id;
+
+-- @m032_2026_05_split_dance_json_into_fields__add_one_extra_name
+INSERT INTO "dance_extra_names" (
+    "dance_id",
+    "extra_name"
+) VALUES (
+    @dance_id,
+    @extra_name
+);
+
+-- @m032_2026_05_split_dance_json_into_fields__add_one_deviser
+INSERT INTO "dance_devisers" (
+    "dance_id",
+    "index",
+    "deviser_id"
+) VALUES (
+    @dance_id,
+    @index,
+    @deviser_id
+);
+
+-- @m032_2026_05_split_dance_json_into_fields__cleanup_columns__for_sqlgg
+ALTER TABLE "dance"
+CHANGE COLUMN "name" "name" VARCHAR(256) NOT NULL,
+CHANGE COLUMN "kind" "kind" VARCHAR(32) NOT NULL,
+CHANGE COLUMN "two_chords" "two_chords" SMALLINT NOT NULL,
+CHANGE COLUMN "disambiguation" "disambiguation" VARCHAR(256) NOT NULL,
+CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
+CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
+DROP COLUMN "json";

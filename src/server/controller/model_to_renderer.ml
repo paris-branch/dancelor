@@ -177,7 +177,7 @@ let page_to_renderer_page page book_params =
       let%lwt dance_params =
         let display_name = Model.Dance.one_name' dance in
         let%lwt display_conceptor =
-          let%lwt devisers = Model.Dance.devisers' dance in
+          let%lwt devisers = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Dance.devisers' dance) in
           lwt @@
           NEString.of_string_exn @@
           match devisers with

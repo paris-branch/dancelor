@@ -87,7 +87,8 @@ let editor =
   nil
 
 let assemble (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ()))))))) =
-  Model.Dance.make ~names ~kind ~devisers ~two_chords ?scddb_id ~disambiguation ?date ()
+  let devisers = List.map Entry.id devisers in
+  Model.Dance.make ~names ~kind ~devisers ~two_chords ~scddb_id ~disambiguation ~date ()
 
 let submit mode dance =
   match mode with
@@ -99,7 +100,7 @@ let unsubmit = lwt % Entry.value
 let disassemble dance =
   let names = Model.Dance.names dance in
   let kind = Model.Dance.kind dance in
-  let%lwt devisers = Model.Dance.devisers dance in
+  let%lwt devisers = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Dance.devisers dance) in
   let date = Model.Dance.date dance in
   let disambiguation = Model.Dance.disambiguation dance in
   let two_chords = Model.Dance.two_chords dance in
