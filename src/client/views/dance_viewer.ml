@@ -21,7 +21,7 @@ let view context id =
         with_span_placeholder @@
           let kind = [txt @@ Kind.Dance.to_pretty_string @@ Dance.kind' dance] in
           let%lwt by =
-            match%lwt Dance.devisers' dance with
+            match%lwt Lwt_list.map_p (Option.get <%> Person.get) (Dance.devisers' dance) with
             | [] -> lwt_nil
             | devisers -> lwt [txt " by "; Formatters.Person.names' ~links: true devisers]
           in

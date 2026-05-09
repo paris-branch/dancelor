@@ -16,11 +16,11 @@ module type S = sig
   val make :
     names: NEString.t NEList.t ->
     kind: Kind.Dance.t ->
-    ?devisers: Core.Person.entry list ->
-    ?two_chords: two_chords ->
-    ?scddb_id: int ->
-    ?disambiguation: string ->
-    ?date: PartialDate.t ->
+    devisers: Core.Person.t Entry.id list ->
+    two_chords: two_chords ->
+    scddb_id: int option ->
+    disambiguation: string ->
+    date: PartialDate.t option ->
     unit ->
     t
 
@@ -37,8 +37,8 @@ module type S = sig
   val kind : t -> Kind.Dance.t
   val kind' : entry -> Kind.Dance.t
 
-  val devisers : t -> Core.Person.entry list Lwt.t
-  val devisers' : entry -> Core.Person.entry list Lwt.t
+  val devisers : t -> Core.Person.t Entry.id list
+  val devisers' : entry -> Core.Person.t Entry.id list
 
   val two_chords : t -> two_chords
   val two_chords' : entry -> two_chords

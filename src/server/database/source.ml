@@ -67,8 +67,8 @@ let get_all () =
   Source_sql.List.get_all db (fun ~id -> row_to_source ~id ~editors: (Hashtbl.find_all editors id))
 
 let create source =
-  let%lwt id = Globally_unique_id.make Person in
   Connection.with_ @@ fun db ->
+  let%lwt id = Globally_unique_id.make db Source in
   let%lwt _ =
     source_to_row
       ~create_or_update: (Source_sql.create db)

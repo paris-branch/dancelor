@@ -3,18 +3,6 @@ CREATE TABLE "globally_unique_id" (
     "type" TEXT NOT NULL
 );
 
-CREATE TABLE "book" (
-    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "json" JSON NOT NULL,
-    CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
-);
-
-CREATE TABLE "dance" (
-    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "json" JSON NOT NULL,
-    CONSTRAINT "fk_dance_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
-);
-
 CREATE TABLE "person" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
     "name" VARCHAR(256) NOT NULL,
@@ -24,6 +12,39 @@ CREATE TABLE "person" (
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
     CONSTRAINT "fk_person_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+);
+
+CREATE TABLE "book" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "json" JSON NOT NULL,
+    CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+);
+
+CREATE TABLE "dance" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "name" VARCHAR(256) NOT NULL,
+    "kind" VARCHAR(32) NOT NULL,
+    "two_chords" SMALLINT NOT NULL,
+    "scddb_id" INT,
+    "disambiguation" VARCHAR(256) NOT NULL,
+    "date" VARCHAR(32),
+    "created_at" TIMESTAMP NOT NULL,
+    "modified_at" TIMESTAMP NOT NULL,
+    CONSTRAINT "fk_dance_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+);
+
+CREATE TABLE "dance_devisers" (
+    "dance_id" VARCHAR(14) NOT NULL,
+    "index" INT NOT NULL,
+    "deviser_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_dance_devisers_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id"),
+    CONSTRAINT "fk_dance_devisers_deviser_id" FOREIGN KEY ("deviser_id") REFERENCES "person" ("id")
+);
+
+CREATE TABLE "dance_extra_names" (
+    "dance_id" VARCHAR(14) NOT NULL,
+    "extra_name" VARCHAR(256) NOT NULL,
+    CONSTRAINT "fk_dance_extra_names_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id")
 );
 
 CREATE TABLE "set" (

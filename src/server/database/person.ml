@@ -46,8 +46,8 @@ let get_all () =
   Person_sql.List.get_all db row_to_person
 
 let create person =
-  let%lwt id = Globally_unique_id.make Person in
   Connection.with_ @@ fun db ->
+  let%lwt id = Globally_unique_id.make db Person in
   let%lwt _ = person_to_row ~create_or_update: (Person_sql.create db) id person in
   lwt id
 

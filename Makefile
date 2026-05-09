@@ -1,17 +1,22 @@
-.PHONY: build run entr clean postgres
+.PHONY: build run entr clean postgres-start postgres-reset postgres-dump
 
 build:
 	dune build @install @runtest
 
-run: postgres
+run: postgres-start
 	dune exec dancelor -- assets/config.dev.json
 
-entr: postgres
+entr: postgres-start
 	watchexec --clear --restart -- 'dune build @install @runtest && dune exec dancelor -- assets/config.dev.json'
 
-postgres:
+postgres-start:
 	@scripts/postgres-start
 
-clean:
+postgres-reset:
 	@scripts/postgres-reset
+
+postgres-dump:
+	@scripts/postgres-dump
+
+clean: postgres-reset
 	dune clean

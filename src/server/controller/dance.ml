@@ -12,11 +12,13 @@ let get env id =
 
 let create env dance =
   Permission.assert_can_create_public env;%lwt
-  Database.Dance.create dance
+  let%lwt id = Database.Dance.create dance in
+  Option.get <$> Database.Dance.get id
 
 let update env id dance =
   Permission.assert_can_update_public env =<< get env id;%lwt
-  Database.Dance.update id dance
+  Database.Dance.update id dance;%lwt
+  Option.get <$> Database.Dance.get id
 
 let delete env id =
   Permission.assert_can_delete_public env =<< get env id;%lwt

@@ -49,7 +49,7 @@ module Make (Model : Model_builder.S) = struct
       | Kind kfilter ->
         Kind.Dance.Filter.accepts kfilter @@ Model.Dance.kind dance
       | Devisers pfilter ->
-        let%lwt devisers = Model.Dance.devisers dance in
+        let%lwt devisers = Lwt_list.map_p (Option.get <%> Model.Person.get) @@ Model.Dance.devisers dance in
         Formula_list.accepts accepts_person' pfilter devisers
 
   and accepts_person filter person =

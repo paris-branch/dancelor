@@ -18,13 +18,11 @@ let get_all () =
   Book_sql.List.get_all db (fun ~id ~json -> of_json (Entry.Id.of_string_exn id) json)
 
 let create book access =
-  let%lwt id = Globally_unique_id.make Book in
+  Connection.with_ @@ fun db ->
+  let%lwt id = Globally_unique_id.make db Book in
   let book = Entry.make ~id ~access book in
   let json = Entry.to_yojson_no_id Model_builder.Core.Book.to_yojson Model_builder.Core.Book.access_to_yojson book in
-  let%lwt _ =
-    Connection.with_ @@ fun db ->
-    Book_sql.update db ~id: (Entry.Id.to_string id) ~json
-  in
+  let%lwt _ = Book_sql.update db ~id: (Entry.Id.to_string id) ~json in
   lwt book
 
 let update id book access =

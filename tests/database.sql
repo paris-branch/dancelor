@@ -58,7 +58,35 @@ CREATE TABLE "dancelor"."book" (
 
 CREATE TABLE "dancelor"."dance" (
     "id" character varying(14) NOT NULL,
-    "json" json NOT NULL
+    "name" character varying(256) NOT NULL,
+    "kind" character varying(32) NOT NULL,
+    "two_chords" smallint NOT NULL,
+    "scddb_id" integer,
+    "disambiguation" character varying(256) NOT NULL,
+    "date" character varying(32),
+    "created_at" timestamp without time zone NOT NULL,
+    "modified_at" timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: dance_devisers; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."dance_devisers" (
+    "dance_id" character varying(14) NOT NULL,
+    "index" integer NOT NULL,
+    "deviser_id" character varying(14) NOT NULL
+);
+
+
+--
+-- Name: dance_extra_names; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."dance_extra_names" (
+    "dance_id" character varying(14) NOT NULL,
+    "extra_name" character varying(256) NOT NULL
 );
 
 
@@ -195,7 +223,27 @@ INSERT INTO "dancelor"."book" ("id", "json") VALUES ('0fi3-1iot-6tbq', '{"value"
 -- Data for Name: dance; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."dance" ("id", "json") VALUES ('l02q-i1j0-qpoi', '{"value":{"kind":"8 x 32 R","devisers":["8h62-3eis-xfem"],"names":["The Architect"]},"meta":{"created-at":"2023-12-21T17:11:33","modified-at":"2023-12-21T17:11:33"},"access":["Public"]}');
+INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('l02q-i1j0-qpoi', 'The Architect', '8 x 32 R', 0, NULL, '', NULL, '2023-12-21 18:11:33', '2023-12-21 18:11:33');
+INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('cy5n-qvpl-k0yl', 'Test dance', '8 x 32 R', 2, 1234, 'sdlfkj', '2188', '2026-05-09 14:11:26', '2026-05-09 14:11:26');
+
+
+--
+-- Data for Name: dance_devisers; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALUES ('l02q-i1j0-qpoi', 0, '8h62-3eis-xfem');
+INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALUES ('cy5n-qvpl-k0yl', 0, 'uwoe-u6ij-ikgp');
+INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALUES ('cy5n-qvpl-k0yl', 1, '9fdg-glrm-0zoi');
+INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALUES ('cy5n-qvpl-k0yl', 2, '8h62-3eis-xfem');
+
+
+--
+-- Data for Name: dance_extra_names; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."dance_extra_names" ("dance_id", "extra_name") VALUES ('cy5n-qvpl-k0yl', 'The test dance');
+INSERT INTO "dancelor"."dance_extra_names" ("dance_id", "extra_name") VALUES ('cy5n-qvpl-k0yl', 'A test dance');
+INSERT INTO "dancelor"."dance_extra_names" ("dance_id", "extra_name") VALUES ('cy5n-qvpl-k0yl', 'A test dance with many names');
 
 
 --
@@ -213,6 +261,8 @@ INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('ului-yd9x-o3
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('uwoe-u6ij-ikgp', 'Person');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('wrwk-cz9g-g3wi', 'Set');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xzzb-wasm-babe', 'Version');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('9fdg-glrm-0zoi', 'Person');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('cy5n-qvpl-k0yl', 'Dance');
 
 
 --
@@ -250,6 +300,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m028_2026_04
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m029_2026_04_drop_remember_me_tokens_column', '2026-04-28 21:51:55.460895+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m030_2026_05_split_person_json_into_fields', '2026-05-05 15:34:03.454472+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m031_2026_05_split_source_json_into_fields', '2026-05-07 20:33:37.340054+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m032_2026_05_split_dance_json_into_fields', '2026-05-09 13:16:31.282711+00');
 
 
 --
@@ -259,6 +310,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m031_2026_05
 INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_public", "published_tunes_are_public", "created_at", "modified_at") VALUES ('4plf-srss-ihav', 'Davey Arthur', NULL, true, false, '2018-12-07 00:18:53', '2023-06-25 14:51:15');
 INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_public", "published_tunes_are_public", "created_at", "modified_at") VALUES ('8h62-3eis-xfem', 'Mervyn C Short', 347, false, false, '2023-07-03 14:17:45', '2023-07-03 14:17:45');
 INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_public", "published_tunes_are_public", "created_at", "modified_at") VALUES ('uwoe-u6ij-ikgp', 'Nicolas “Niols” Jeannerod', 11781, true, false, '2018-10-12 09:50:54', '2023-06-25 14:51:15');
+INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_public", "published_tunes_are_public", "created_at", "modified_at") VALUES ('9fdg-glrm-0zoi', 'John Doe', 129872873, false, false, '2026-05-09 13:11:10.200905', '2026-05-09 13:11:10.200905');
 
 
 --
@@ -408,6 +460,30 @@ ALTER TABLE ONLY "dancelor"."book"
 
 
 --
+-- Name: dance_devisers fk_dance_devisers_dance_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."dance_devisers"
+    ADD CONSTRAINT "fk_dance_devisers_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dancelor"."dance"("id");
+
+
+--
+-- Name: dance_devisers fk_dance_devisers_deviser_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."dance_devisers"
+    ADD CONSTRAINT "fk_dance_devisers_deviser_id" FOREIGN KEY ("deviser_id") REFERENCES "dancelor"."person"("id");
+
+
+--
+-- Name: dance_extra_names fk_dance_extra_names_dance_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."dance_extra_names"
+    ADD CONSTRAINT "fk_dance_extra_names_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dancelor"."dance"("id");
+
+
+--
 -- Name: dance fk_dance_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
 --
 
@@ -500,4 +576,3 @@ ALTER TABLE ONLY "dancelor"."version"
 --
 
 \unrestrict ybiQOqa6jiLe8LvxFznU4q8n34iwf9VXgUBS2e7j5NMdWOEHU3ms2YSbcIZ871W
-
