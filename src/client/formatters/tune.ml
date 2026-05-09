@@ -21,25 +21,39 @@ let name = name_gen % Either.left
 let name' ?(link = true) ?context tune = name_gen @@ Right (tune, link, context)
 
 let composers ?short ?links tune =
-  with_span_placeholder ~min: 1 ~max: 2 @@
-    (List.singleton <$> ((Person.names' ?short ?links % List.map Model.Tune.composer_composer) <$> Model.Tune.composers tune))
+  with_span_placeholder ~min: 1 ~max: 2 @@ (
+    List.singleton
+    <$> (
+        Person.names' ?short ?links
+        <$> Lwt_list.map_p (Option.get <%> Model.Person.get) @@
+            List.map Model.Tune.composer_composer (Model.Tune.composers tune)
+      )
+  )
 
 let composers' ?short ?links tune = composers ?short ?links (Entry.value tune)
 
 let description tune =
   with_span_placeholder @@
     let kind = Kind.Base.to_long_string ~capitalised: false @@ Model.Tune.kind tune in
-    match%lwt Model.Tune.composers tune with
+    let%lwt composers =
+      Lwt_list.map_p
+        (fun Model.Tune.{composer; details} ->
+          let%lwt composer = Option.get <$> Model.Person.get composer in
+          lwt (composer, details)
+        )
+        (Model.Tune.composers tune)
+    in
+    match composers with
     | [] ->
       lwt [txt (String.capitalize_ascii kind)]
-    | [composer] when NEString.to_string (Model.Person.name' @@ Model.Tune.composer_composer composer) = "Traditional" ->
+    | [(composer, _details)] when NEString.to_string (Model.Person.name' composer) = "Traditional" ->
       lwt [txt ("Traditional " ^ kind)]
     | composers ->
       lwt [
         txt (String.capitalize_ascii kind ^ " by ");
         Person.names'_with_details @@
           List.map
-            (fun Model.Tune.{composer; details} ->
+            (fun (composer, details) ->
               (
                 composer,
                 if details = "" then [] else [txtf " (%s)" details]

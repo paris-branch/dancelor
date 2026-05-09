@@ -375,7 +375,7 @@ let view context tune_id id =
         R.div
           (
             S.from_lwt (Tables.placeholder ()) @@
-              let%lwt dances = Tune.dances' tune in
+              let%lwt dances = Lwt_list.map_p (Option.get <%> Model.Dance.get) (Tune.dances' tune) in
               lwt
                 [
                   if dances = [] then

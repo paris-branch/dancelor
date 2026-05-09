@@ -126,6 +126,16 @@ CREATE TABLE "dancelor"."person" (
 
 
 --
+-- Name: recommended_tunes; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."recommended_tunes" (
+    "dance_id" character varying(14) NOT NULL,
+    "tune_id" character varying(14) NOT NULL
+);
+
+
+--
 -- Name: remember_me_tokens; Type: TABLE; Schema: dancelor; Owner: -
 --
 
@@ -180,7 +190,35 @@ CREATE TABLE "dancelor"."source_editors" (
 
 CREATE TABLE "dancelor"."tune" (
     "id" character varying(14) NOT NULL,
-    "json" json NOT NULL
+    "name" character varying(256) NOT NULL,
+    "kind" character varying(32) NOT NULL,
+    "remark" character varying(256) NOT NULL,
+    "scddb_id" integer,
+    "date" character varying(32),
+    "created_at" timestamp without time zone NOT NULL,
+    "modified_at" timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: tune_composers; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."tune_composers" (
+    "tune_id" character varying(14) NOT NULL,
+    "index" integer NOT NULL,
+    "composer_id" character varying(14) NOT NULL,
+    "details" character varying(256) NOT NULL
+);
+
+
+--
+-- Name: tune_extra_names; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."tune_extra_names" (
+    "tune_id" character varying(14) NOT NULL,
+    "extra_name" character varying(256) NOT NULL
 );
 
 
@@ -308,6 +346,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m029_2026_04
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m030_2026_05_split_person_json_into_fields', '2026-05-05 15:34:03.454472+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m031_2026_05_split_source_json_into_fields', '2026-05-07 20:33:37.340054+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m032_2026_05_split_dance_json_into_fields', '2026-05-09 13:16:31.282711+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m033_2026_05_split_tune_json_into_fields', '2026-05-10 11:48:14.488321+00');
 
 
 --
@@ -318,6 +357,14 @@ INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_p
 INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_public", "published_tunes_are_public", "created_at", "modified_at") VALUES ('8h62-3eis-xfem', 'Mervyn C Short', 347, false, false, '2023-07-03 14:17:45', '2023-07-03 14:17:45');
 INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_public", "published_tunes_are_public", "created_at", "modified_at") VALUES ('uwoe-u6ij-ikgp', 'Nicolas “Niols” Jeannerod', 11781, true, false, '2018-10-12 09:50:54', '2023-06-25 14:51:15');
 INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_public", "published_tunes_are_public", "created_at", "modified_at") VALUES ('9fdg-glrm-0zoi', 'John Doe', 129872873, false, false, '2026-05-09 13:11:10.200905', '2026-05-09 13:11:10.200905');
+
+
+--
+-- Data for Name: recommended_tunes; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."recommended_tunes" ("dance_id", "tune_id") VALUES ('l02q-i1j0-qpoi', 'qdod-ad7l-8gr2');
+INSERT INTO "dancelor"."recommended_tunes" ("dance_id", "tune_id") VALUES ('0xf7-xwz9-1fhj', 'rifw-ul36-3uq5');
 
 
 --
@@ -356,8 +403,22 @@ INSERT INTO "dancelor"."source_editors" ("source_id", "person_id") VALUES ('2wrv
 -- Data for Name: tune; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."tune" ("id", "json") VALUES ('qdod-ad7l-8gr2', '{"value":{"names":["Tam Lin"],"kind":"R","composers":[{"composer":"4plf-srss-ihav","details":""}],"dances":["l02q-i1j0-qpoi"]},"meta":{"created-at":"2018-12-07T01:18:53+01:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
-INSERT INTO "dancelor"."tune" ("id", "json") VALUES ('rifw-ul36-3uq5', '{"value":{"names":["A439"],"kind":"strathspey","composers":[{"composer":"uwoe-u6ij-ikgp"}],"dances":["0xf7-xwz9-1fhj"],"scddb-id":2398472},"meta":{"created-at":"2026-05-10T11:36:29","modified-at":"2026-05-10T11:36:29"},"access":["Public"]}');
+INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('qdod-ad7l-8gr2', 'Tam Lin', 'R', '', NULL, NULL, '2018-12-07 01:18:53', '2023-06-25 15:51:15');
+INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('rifw-ul36-3uq5', 'A439', 'strathspey', '', 2398472, NULL, '2026-05-10 12:36:29', '2026-05-10 12:36:29');
+
+
+--
+-- Data for Name: tune_composers; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."tune_composers" ("tune_id", "index", "composer_id", "details") VALUES ('qdod-ad7l-8gr2', 0, '4plf-srss-ihav', '');
+INSERT INTO "dancelor"."tune_composers" ("tune_id", "index", "composer_id", "details") VALUES ('rifw-ul36-3uq5', 0, 'uwoe-u6ij-ikgp', '');
+
+
+--
+-- Data for Name: tune_extra_names; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
 
 
 --
@@ -512,6 +573,22 @@ ALTER TABLE ONLY "dancelor"."person"
 
 
 --
+-- Name: recommended_tunes fk_recommended_tunes_dance_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."recommended_tunes"
+    ADD CONSTRAINT "fk_recommended_tunes_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dancelor"."dance"("id");
+
+
+--
+-- Name: recommended_tunes fk_recommended_tunes_tune_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."recommended_tunes"
+    ADD CONSTRAINT "fk_recommended_tunes_tune_id" FOREIGN KEY ("tune_id") REFERENCES "dancelor"."tune"("id");
+
+
+--
 -- Name: set fk_set_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
 --
 
@@ -541,6 +618,30 @@ ALTER TABLE ONLY "dancelor"."source_editors"
 
 ALTER TABLE ONLY "dancelor"."source"
     ADD CONSTRAINT "fk_source_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: tune_composers fk_tune_composers_composer_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."tune_composers"
+    ADD CONSTRAINT "fk_tune_composers_composer_id" FOREIGN KEY ("composer_id") REFERENCES "dancelor"."person"("id");
+
+
+--
+-- Name: tune_composers fk_tune_composers_tune_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."tune_composers"
+    ADD CONSTRAINT "fk_tune_composers_tune_id" FOREIGN KEY ("tune_id") REFERENCES "dancelor"."tune"("id");
+
+
+--
+-- Name: tune_extra_names fk_tune_extra_names_tune_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."tune_extra_names"
+    ADD CONSTRAINT "fk_tune_extra_names_tune_id" FOREIGN KEY ("tune_id") REFERENCES "dancelor"."tune"("id");
 
 
 --

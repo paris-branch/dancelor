@@ -426,3 +426,96 @@ CHANGE COLUMN "disambiguation" "disambiguation" VARCHAR(256) NOT NULL,
 CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
 CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
 DROP COLUMN "json";
+
+-- @m033_2026_05_split_tune_json_into_fields__add_columns
+ALTER TABLE "tune"
+ADD COLUMN "name" VARCHAR(256),
+ADD COLUMN "kind" VARCHAR(32),
+ADD COLUMN "remark" VARCHAR(256),
+ADD COLUMN "scddb_id" INT,
+ADD COLUMN "date" VARCHAR(32),
+ADD COLUMN "created_at" TIMESTAMP,
+ADD COLUMN "modified_at" TIMESTAMP;
+
+-- @m033_2026_05_split_tune_json_into_fields__add_tune_extra_names_table
+CREATE TABLE "tune_extra_names" (
+    "tune_id" VARCHAR(14) NOT NULL,
+    "extra_name" VARCHAR(256) NOT NULL,
+    CONSTRAINT "fk_tune_extra_names_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id")
+);
+
+-- @m033_2026_05_split_tune_json_into_fields__add_tune_composers_table
+CREATE TABLE "tune_composers" (
+    "tune_id" VARCHAR(14) NOT NULL,
+    "index" INT NOT NULL,
+    "composer_id" VARCHAR(14) NOT NULL,
+    "details" VARCHAR(256) NOT NULL,
+    CONSTRAINT "fk_tune_composers_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id"),
+    CONSTRAINT "fk_tune_composers_composer_id" FOREIGN KEY ("composer_id") REFERENCES "person" ("id")
+);
+
+-- @m033_2026_05_split_tune_json_into_fields__add_recommended_tunes_table
+CREATE TABLE "recommended_tunes" (
+    "dance_id" VARCHAR(14) NOT NULL,
+    "tune_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_recommended_tunes_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id"),
+    CONSTRAINT "fk_recommended_tunes_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id")
+);
+
+-- @m033_2026_05_split_tune_json_into_fields__get_all
+SELECT
+    "id",
+    "json"
+FROM "tune";
+
+-- @m033_2026_05_split_tune_json_into_fields__update_one
+UPDATE "tune"
+SET
+    "name" = @name,
+    "kind" = @kind,
+    "remark" = @remark,
+    "scddb_id" = @scddb_id,
+    "date" = @date,
+    "created_at" = @created_at,
+    "modified_at" = @modified_at
+WHERE "id" = @id;
+
+-- @m033_2026_05_split_tune_json_into_fields__add_one_extra_name
+INSERT INTO "tune_extra_names" (
+    "tune_id",
+    "extra_name"
+) VALUES (
+    @tune_id,
+    @extra_name
+);
+
+-- @m033_2026_05_split_tune_json_into_fields__add_one_composer
+INSERT INTO "tune_composers" (
+    "tune_id",
+    "index",
+    "composer_id",
+    "details"
+) VALUES (
+    @tune_id,
+    @index,
+    @composer_id,
+    @details
+);
+
+-- @m033_2026_05_split_tune_json_into_fields__add_one_recommended_tune
+INSERT INTO "recommended_tunes" (
+    "dance_id",
+    "tune_id"
+) VALUES (
+    @dance_id,
+    @tune_id
+);
+
+-- @m033_2026_05_split_tune_json_into_fields__cleanup_columns__for_sqlgg
+ALTER TABLE "tune"
+CHANGE COLUMN "name" "name" VARCHAR(256) NOT NULL,
+CHANGE COLUMN "kind" "kind" VARCHAR(32) NOT NULL,
+CHANGE COLUMN "remark" "remark" VARCHAR(256) NOT NULL,
+CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
+CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
+DROP COLUMN "json";

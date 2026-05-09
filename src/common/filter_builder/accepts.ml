@@ -89,12 +89,12 @@ module Make (Model : Model_builder.S) = struct
       | Core.Tune.Name sfilter ->
         Formula.interpret_or_l <$> Lwt_list.map_s (Formula_string.accepts sfilter % NEString.to_string) @@ NEList.to_list @@ Model.Tune.names tune
       | Composers pfilter ->
-        let%lwt composers = List.map Model.Tune.composer_composer <$> Model.Tune.composers tune in
+        let%lwt composers = Lwt_list.map_p (Option.get <%> Model.Person.get % Model.Tune.composer_composer) (Model.Tune.composers tune) in
         Formula_list.accepts accepts_person' pfilter composers
       | Kind kfilter ->
         Kind.Base.Filter.accepts kfilter @@ Model.Tune.kind tune
       | Dances dfilter ->
-        let%lwt dances = Model.Tune.dances tune in
+        let%lwt dances = Lwt_list.map_p (Option.get <%> Model.Dance.get) (Model.Tune.dances tune) in
         Formula_list.accepts (Formula_entry.accepts_public accepts_dance) dfilter dances
 
   and accepts_version filter version =

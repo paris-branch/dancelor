@@ -117,7 +117,7 @@ let composer_and_arranger ?(short = false) ?link ?(params = Model.Version_parame
   with_span_placeholder @@
     let%lwt tune = Model.Version.tune version in
     let composer_block = Tune.composers' ?links: link ~short tune in
-    let%lwt exist_composers = (not % List.is_empty) <$> Model.Tune.composers' tune in
+    let exist_composers = (not % List.is_empty) (Model.Tune.composers' tune) in
     let%lwt arranger_block =
       match%lwt Model.Version.arrangers version with
       | [] -> lwt_nil

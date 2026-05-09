@@ -4,11 +4,11 @@ module type S = sig
   open Nes
 
   type composer = Core.Tune.composer = {
-    composer: Core.Person.entry;
+    composer: Core.Person.t Entry.id;
     details: string;
   }
 
-  val composer_composer : composer -> Core.Person.entry
+  val composer_composer : composer -> Core.Person.t Entry.id
   val composer_details : composer -> string
 
   type t = Core.Tune.t
@@ -19,11 +19,11 @@ module type S = sig
   val make :
     names: NEString.t NEList.t ->
     kind: Kind.Base.t ->
-    ?composers: composer list ->
-    ?dances: Core.Dance.entry list ->
-    ?remark: string ->
-    ?scddb_id: int ->
-    ?date: PartialDate.t ->
+    composers: composer list ->
+    dances: Core.Dance.t Entry.id list ->
+    remark: string ->
+    scddb_id: int option ->
+    date: PartialDate.t option ->
     unit ->
     t
 
@@ -43,11 +43,11 @@ module type S = sig
   val kind : t -> Kind.Base.t
   val kind' : entry -> Kind.Base.t
 
-  val composers : t -> composer list Lwt.t
-  val composers' : entry -> composer list Lwt.t
+  val composers : t -> composer list
+  val composers' : entry -> composer list
 
-  val dances : t -> Core.Dance.entry list Lwt.t
-  val dances' : entry -> Core.Dance.entry list Lwt.t
+  val dances : t -> Core.Dance.t Entry.id list
+  val dances' : entry -> Core.Dance.t Entry.id list
 
   val remark : t -> string
   val remark' : entry -> string

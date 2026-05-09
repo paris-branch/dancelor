@@ -10,11 +10,13 @@ let get env id =
 
 let create env tune =
   Permission.assert_can_create_public env;%lwt
-  Database.Tune.create tune
+  let%lwt id = Database.Tune.create tune in
+  Option.get <$> Database.Tune.get id
 
 let update env id tune =
   Permission.assert_can_update_public env =<< get env id;%lwt
-  Database.Tune.update id tune
+  ignore <$> Database.Tune.update id tune;%lwt
+  Option.get <$> Database.Tune.get id
 
 let delete env id =
   Permission.assert_can_delete_public env =<< get env id;%lwt
