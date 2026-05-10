@@ -225,6 +225,7 @@ INSERT INTO "dancelor"."book" ("id", "json") VALUES ('0fi3-1iot-6tbq', '{"value"
 
 INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('l02q-i1j0-qpoi', 'The Architect', '8 x 32 R', 0, NULL, '', NULL, '2023-12-21 18:11:33', '2023-12-21 18:11:33');
 INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('cy5n-qvpl-k0yl', 'Test dance', '8 x 32 R', 2, 1234, 'sdlfkj', '2188', '2026-05-09 14:11:26', '2026-05-09 14:11:26');
+INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('0xf7-xwz9-1fhj', 'Test dance A439', '16 x 32 S', 2, 123199, '', '3088', '2026-05-10 11:36:21.52889', '2026-05-10 11:36:21.52889');
 
 
 --
@@ -235,6 +236,8 @@ INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALU
 INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALUES ('cy5n-qvpl-k0yl', 0, 'uwoe-u6ij-ikgp');
 INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALUES ('cy5n-qvpl-k0yl', 1, '9fdg-glrm-0zoi');
 INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALUES ('cy5n-qvpl-k0yl', 2, '8h62-3eis-xfem');
+INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALUES ('0xf7-xwz9-1fhj', 0, 'uwoe-u6ij-ikgp');
+INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALUES ('0xf7-xwz9-1fhj', 1, '9fdg-glrm-0zoi');
 
 
 --
@@ -263,6 +266,10 @@ INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('wrwk-cz9g-g3
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xzzb-wasm-babe', 'Version');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('9fdg-glrm-0zoi', 'Person');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('cy5n-qvpl-k0yl', 'Dance');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('0xf7-xwz9-1fhj', 'Dance');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('rifw-ul36-3uq5', 'Tune');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xsbz-vqy7-xj3s', 'Version');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('2wrv-25yu-yc07', 'Source');
 
 
 --
@@ -333,6 +340,7 @@ INSERT INTO "dancelor"."set" ("id", "json") VALUES ('wrwk-cz9g-g3wi', '{"value":
 --
 
 INSERT INTO "dancelor"."source" ("id", "cover", "name", "short_name", "scddb_id", "description", "date", "created_at", "modified_at") VALUES ('2f8s-90v8-33do', NULL, 'The Tam Lin Source', 'Tam', NULL, 'this is a description', '2012-03', '2026-05-05 20:27:49', '2026-05-05 20:27:49');
+INSERT INTO "dancelor"."source" ("id", "cover", "name", "short_name", "scddb_id", "description", "date", "created_at", "modified_at") VALUES ('2wrv-25yu-yc07', NULL, 'Sourceyyyyyyyy', 'Sourcey', NULL, 'sdk', NULL, '2026-05-10 11:47:17.753285', '2026-05-10 11:47:17.753285');
 
 
 --
@@ -341,6 +349,7 @@ INSERT INTO "dancelor"."source" ("id", "cover", "name", "short_name", "scddb_id"
 
 INSERT INTO "dancelor"."source_editors" ("source_id", "person_id") VALUES ('2f8s-90v8-33do', '4plf-srss-ihav');
 INSERT INTO "dancelor"."source_editors" ("source_id", "person_id") VALUES ('2f8s-90v8-33do', '8h62-3eis-xfem');
+INSERT INTO "dancelor"."source_editors" ("source_id", "person_id") VALUES ('2wrv-25yu-yc07', '9fdg-glrm-0zoi');
 
 
 --
@@ -348,6 +357,7 @@ INSERT INTO "dancelor"."source_editors" ("source_id", "person_id") VALUES ('2f8s
 --
 
 INSERT INTO "dancelor"."tune" ("id", "json") VALUES ('qdod-ad7l-8gr2', '{"value":{"names":["Tam Lin"],"kind":"R","composers":[{"composer":"4plf-srss-ihav","details":""}],"dances":["l02q-i1j0-qpoi"]},"meta":{"created-at":"2018-12-07T01:18:53+01:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
+INSERT INTO "dancelor"."tune" ("id", "json") VALUES ('rifw-ul36-3uq5', '{"value":{"names":["A439"],"kind":"strathspey","composers":[{"composer":"uwoe-u6ij-ikgp"}],"dances":["0xf7-xwz9-1fhj"],"scddb-id":2398472},"meta":{"created-at":"2026-05-10T11:36:29","modified-at":"2026-05-10T11:36:29"},"access":["Public"]}');
 
 
 --
@@ -362,6 +372,7 @@ INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_tok
 --
 
 INSERT INTO "dancelor"."version" ("id", "json") VALUES ('xzzb-wasm-babe', '{"value":{"tune":"qdod-ad7l-8gr2","key":"Dm","disambiguation":"Niols''s Version","arrangers":["uwoe-u6ij-ikgp"],"sources":[{"source":"2f8s-90v8-33do","structure":"AABB"}],"content":["Monolithic",{"bars":32,"structure":"AABB","lilypond":"\\relative c'' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    \\repeat volta 2 {\n      \\partial 8 r8 |\n      a4 d8 a f'' a, d a |\n      bes4 d8 bes f'' bes, d bes |\n      c4 e8 c g'' c, e g |\n      f8 e d c d c a g |\n      \\break\n\n      a4 d8 a f'' a, d a |\n      bes4 d8 bes f'' bes, d bes |\n      c4 e8 c g'' c, e g |\n      f8 e d c d4.\n    } \\break\n\n    \\repeat volta 2 {\n      a''8 |\n      d8 a a a f a d, a'' |\n      d8 a a a f a d, a'' |\n      c8 g g g c g e'' g, |\n      c8 g g g c[ r c cis] |\n      \\break\n\n      d8 a a a f a d, a'' |\n      d8 a a a f[ a] d, r |\n      bes8 a bes c d c d e |\n      f8 e d c a[ d] d\n    }\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      s8 |\n      d1:m | bes | c | d2:m a:m |\n      d1:m | bes | c | a2:m d4.:m\n\n      s8 |\n      d1:m | s | c | s |\n      d1:m | s | g:m | a2:m d4.:m\n    }\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      s8 |\n      s1 | \\parenthesize g:m | s | s |\n      s1 | \\parenthesize g:m | s | s2 s4.\n\n      s8 |\n      s1 | s | s | s |\n      \\parenthesize bes1 | s | s | s2 s4.\n    }\n  }\n>>\n"}]},"meta":{"created-at":"2023-04-04T18:45:27+00:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
+INSERT INTO "dancelor"."version" ("id", "json") VALUES ('xsbz-vqy7-xj3s', '{"value":{"tune":"rifw-ul36-3uq5","key":"Dm","sources":[{"source":"2wrv-25yu-yc07","structure":"AAAA"}],"content":["No_content"]},"meta":{"created-at":"2026-05-10T11:47:35","modified-at":"2026-05-10T11:47:35"},"access":["Public"]}');
 
 
 --
@@ -577,3 +588,4 @@ ALTER TABLE ONLY "dancelor"."version"
 --
 
 \unrestrict ybiQOqa6jiLe8LvxFznU4q8n34iwf9VXgUBS2e7j5NMdWOEHU3ms2YSbcIZ871W
+
