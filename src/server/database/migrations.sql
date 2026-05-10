@@ -519,3 +519,140 @@ CHANGE COLUMN "remark" "remark" VARCHAR NOT NULL,
 CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
 CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
 DROP COLUMN "json";
+
+
+
+
+
+
+
+
+-- @m034_2026_05_split_version_json_into_fields__add_columns
+ALTER TABLE "version"
+ADD COLUMN "tune_id" VARCHAR(14),
+ADD COLUMN "key" VARCHAR(32),
+ADD COLUMN "remark" VARCHAR,
+ADD COLUMN "disambiguation" VARCHAR,
+ADD COLUMN "monolithic_lilypond" TEXT,
+ADD COLUMN "monolithic_bars" INT,
+ADD COLUMN "monolithic_or_default_structure" VARCHAR(32),
+ADD COLUMN "created_at" TIMESTAMP,
+ADD COLUMN "modified_at" TIMESTAMP;
+
+-- @m034_2026_05_split_version_json_into_fields__add_version_arrangers_table
+CREATE TABLE "version_arrangers" (
+    "version_id" VARCHAR(14) NOT NULL,
+    "arranger_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_version_arrangers_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id"),
+    CONSTRAINT "fk_version_arrangers_arranger_id" FOREIGN KEY ("arranger_id") REFERENCES "person" ("id")
+);
+
+-- @m034_2026_05_split_version_json_into_fields__add_version_sources_table
+CREATE TABLE "version_sources" (
+    "version_id" VARCHAR(14) NOT NULL,
+    "source_id" VARCHAR(14) NOT NULL,
+    "structure" VARCHAR(32) NOT NULL,
+    "details" VARCHAR NOT NULL,
+    CONSTRAINT "fk_version_sources_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id"),
+    CONSTRAINT "fk_version_sources_source_id" FOREIGN KEY ("source_id") REFERENCES "source" ("id")
+);
+
+-- @m034_2026_05_split_version_json_into_fields__add_version_destructured_parts_table
+CREATE TABLE "version_destructured_parts" (
+    "version_id" VARCHAR(14) NOT NULL,
+    "part" VARCHAR(32) NOT NULL,
+    "melody" VARCHAR NOT NULL,
+    "chords" VARCHAR NOT NULL,
+    CONSTRAINT "fk_version_destructured_parts_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id")
+);
+
+-- @m034_2026_05_split_version_json_into_fields__add_version_destructured_transitions_table
+CREATE TABLE "version_destructured_transitions" (
+    "version_id" VARCHAR(14) NOT NULL,
+    "from_parts" VARCHAR(32) NOT NULL,
+    "to_parts" VARCHAR(32) NOT NULL,
+    "melody" VARCHAR NOT NULL,
+    "chords" VARCHAR NOT NULL,
+    CONSTRAINT "fk_version_destructured_transitions_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id")
+);
+
+-- @m034_2026_05_split_version_json_into_fields__get_all
+SELECT
+    "id",
+    "json"
+FROM "version";
+
+-- @m034_2026_05_split_version_json_into_fields__update_one
+UPDATE "version"
+SET
+    "tune_id" = @tune_id,
+    "key" = @key,
+    "remark" = @remark,
+    "disambiguation" = @disambiguation,
+    "monolithic_lilypond" = @monolithic_lilypond,
+    "monolithic_bars" = @monolithic_bars,
+    "monolithic_or_default_structure" = @monolithic_or_default_structure,
+    "created_at" = @created_at,
+    "modified_at" = @modified_at
+WHERE "id" = @id;
+
+-- @m034_2026_05_split_version_json_into_fields__add_one_arranger
+INSERT INTO "version_arrangers" (
+    "version_id",
+    "arranger_id"
+) VALUES (
+    @version_id,
+    @arranger_id
+);
+
+-- @m034_2026_05_split_version_json_into_fields__add_one_source
+INSERT INTO "version_sources" (
+    "version_id",
+    "source_id",
+    "structure",
+    "details"
+) VALUES (
+    @version_id,
+    @source_id,
+    @structure,
+    @details
+);
+
+-- @m034_2026_05_split_version_json_into_fields__add_one_destructured_part
+INSERT INTO "version_destructured_parts" (
+    "version_id",
+    "part",
+    "melody",
+    "chords"
+) VALUES (
+    @version_id,
+    @part,
+    @melody,
+    @chords
+);
+
+-- @m034_2026_05_split_version_json_into_fields__add_one_destructured_transition
+INSERT INTO "version_destructured_transitions" (
+    "version_id",
+    "from_parts",
+    "to_parts",
+    "melody",
+    "chords"
+) VALUES (
+    @version_id,
+    @from_parts,
+    @to_parts,
+    @melody,
+    @chords
+);
+
+-- @m034_2026_05_split_version_json_into_fields__cleanup_columns__for_sqlgg
+ALTER TABLE "version"
+CHANGE COLUMN "tune_id" "tune_id" VARCHAR(14) NOT NULL,
+CHANGE COLUMN "key" "key" VARCHAR(32) NOT NULL,
+CHANGE COLUMN "remark" "remark" VARCHAR NOT NULL,
+CHANGE COLUMN "disambiguation" "disambiguation" VARCHAR NOT NULL,
+CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
+CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
+ADD CONSTRAINT "fk_version_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id"),
+DROP COLUMN "json";

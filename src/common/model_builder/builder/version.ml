@@ -8,16 +8,6 @@ module Build (Getters : Getters.S) = struct
   let tune = Lwt.map Option.get % Getters.get_tune % tune
   let tune' = tune % Entry.value_public
 
-  let source_core_to_source : source_core -> source Lwt.t = fun {source; structure; details} ->
-    let%lwt source = Option.get <$> Getters.get_source source in
-    lwt {source; structure; details}
-
-  let sources = Lwt_list.map_p source_core_to_source % sources
-  let sources' = sources % Entry.value_public
-
-  let sources_grouped = Lwt_list.map_p (Lwt_list.map_p source_core_to_source) % sources_grouped
-  let sources_grouped' = sources_grouped % Entry.value_public
-
   let arrangers = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % arrangers
   let arrangers' = arrangers % Entry.value_public
 

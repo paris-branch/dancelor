@@ -9,12 +9,12 @@ module type S = sig
   module Content = Core.Version.Content
 
   type source = Core.Version.source = {
-    source: Core.Source.entry;
+    source: Core.Source.t Entry.id;
     structure: Structure.t;
     details: string;
   }
 
-  val source_source : source -> Core.Source.entry
+  val source_source : source -> Core.Source.t Entry.id
   val source_structure : source -> Structure.t
   val source_details : source -> string
 
@@ -24,12 +24,12 @@ module type S = sig
   type entry = t Entry.public
 
   val make :
-    tune: Core.Tune.entry ->
+    tune: Core.Tune.t Entry.id ->
     key: Music.Key.t ->
-    ?sources: source list ->
-    ?arrangers: Core.Person.entry list ->
-    ?remark: string ->
-    ?disambiguation: string ->
+    sources: source list ->
+    arrangers: Core.Person.t Entry.id list ->
+    remark: string ->
+    disambiguation: string ->
     content: Content.t ->
     unit ->
     t
@@ -40,11 +40,11 @@ module type S = sig
   val key : t -> Music.Key.t
   val key' : entry -> Music.Key.t
 
-  val sources : t -> source list Lwt.t
-  val sources' : entry -> source list Lwt.t
+  val sources : t -> source list
+  val sources' : entry -> source list
 
-  val sources_grouped : t -> source list list Lwt.t
-  val sources_grouped' : entry -> source list list Lwt.t
+  val sources_grouped : t -> source list list
+  val sources_grouped' : entry -> source list list
 
   val arrangers : t -> Core.Person.entry list Lwt.t
   val arrangers' : entry -> Core.Person.entry list Lwt.t

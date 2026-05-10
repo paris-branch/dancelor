@@ -132,6 +132,48 @@ CREATE TABLE "remember_me_tokens" (
 
 CREATE TABLE "version" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "json" JSON NOT NULL,
-    CONSTRAINT "fk_version_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+    "tune_id" VARCHAR(14) NOT NULL,
+    "key" VARCHAR(32) NOT NULL,
+    "remark" VARCHAR NOT NULL,
+    "disambiguation" VARCHAR NOT NULL,
+    "monolithic_lilypond" TEXT,
+    "monolithic_bars" INT,
+    "monolithic_or_default_structure" VARCHAR(32),
+    "created_at" TIMESTAMP NOT NULL,
+    "modified_at" TIMESTAMP NOT NULL,
+    CONSTRAINT "fk_version_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id"),
+    CONSTRAINT "fk_version_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id")
+);
+
+CREATE TABLE "version_arrangers" (
+    "version_id" VARCHAR(14) NOT NULL,
+    "arranger_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_version_arrangers_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id"),
+    CONSTRAINT "fk_version_arrangers_arranger_id" FOREIGN KEY ("arranger_id") REFERENCES "person" ("id")
+);
+
+CREATE TABLE "version_sources" (
+    "version_id" VARCHAR(14) NOT NULL,
+    "source_id" VARCHAR(14) NOT NULL,
+    "structure" VARCHAR(32) NOT NULL,
+    "details" VARCHAR NOT NULL,
+    CONSTRAINT "fk_version_sources_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id"),
+    CONSTRAINT "fk_version_sources_source_id" FOREIGN KEY ("source_id") REFERENCES "source" ("id")
+);
+
+CREATE TABLE "version_destructured_parts" (
+    "version_id" VARCHAR(14) NOT NULL,
+    "part" VARCHAR(32) NOT NULL,
+    "melody" VARCHAR NOT NULL,
+    "chords" VARCHAR NOT NULL,
+    CONSTRAINT "fk_version_destructured_parts_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id")
+);
+
+CREATE TABLE "version_destructured_transitions" (
+    "version_id" VARCHAR(14) NOT NULL,
+    "from_parts" VARCHAR(32) NOT NULL,
+    "to_parts" VARCHAR(32) NOT NULL,
+    "melody" VARCHAR NOT NULL,
+    "chords" VARCHAR NOT NULL,
+    CONSTRAINT "fk_version_destructured_transitions_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id")
 );

@@ -71,8 +71,8 @@ let confirmation_dialog ~this_version ~other_version =
       failwith "Version de-duplicator: these two versions do not share the same key.";
     (* FIXME: can do better? *)
     (* sources *)
-    let%lwt this_sources = Model.Version.sources' this_version in
-    let%lwt other_sources = Model.Version.sources' other_version in
+    let this_sources = Model.Version.sources' this_version in
+    let other_sources = Model.Version.sources' other_version in
     let other_sources = other_sources @ this_sources in
     (* FIXME: de-duplicate and detect the changes? *)
     (
@@ -81,15 +81,18 @@ let confirmation_dialog ~this_version ~other_version =
       | _ ->
         add_other_version_changes [
           txt "add the following sources:";
-          ul (
-            List.map
-              (fun Model.Version.{source; structure; _} ->
-                li [
-                  Formatters.Source.name' source;
-                  txtf " (%s)" (NEString.to_string @@ Version.Structure.to_string structure);
-                ]
-              )
-              this_sources
+          R.ul (
+            S.from_lwt [] @@
+              Lwt_list.map_p
+                (fun Model.Version.{source; structure; _} ->
+                  let%lwt source = Option.get <$> Model.Source.get source in
+                  lwt @@
+                    li [
+                      Formatters.Source.name' source;
+                      txtf " (%s)" (NEString.to_string @@ Version.Structure.to_string structure);
+                    ]
+                )
+                this_sources
           );
         ]
     );
@@ -144,10 +147,10 @@ let confirmation_dialog ~this_version ~other_version =
                 Endpoints.Api.(route @@ Version Update)
                 (Entry.id other_version) @@
                 Model.Version.make
-                  ~tune: other_tune
+                  ~tune: (Entry.id other_tune)
                   ~key: other_key
                   ~sources: other_sources
-                  ~arrangers: other_arrangers
+                  ~arrangers: (List.map Entry.id other_arrangers)
                   ~remark: other_remark
                   ~disambiguation: other_disambiguation
                   ~content: other_content

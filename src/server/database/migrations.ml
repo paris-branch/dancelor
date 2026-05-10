@@ -113,6 +113,53 @@ type m033_2026_05_split_tune_json_into_fields__tune = {
 }
 [@@deriving of_yojson]
 
+let m034_2026_05_split_version_json_into_fields__part_int_to_string p =
+  String.make 1 (Char.chr (p + 65))
+
+type m034_2026_05_split_version_json_into_fields__version_value_source = {
+  source: string;
+  structure: string;
+  details: string; [@default ""]
+}
+[@@deriving of_yojson]
+
+type m034_2026_05_split_version_json_into_fields__version_value_content_destructured_voices = {
+  melody: string;
+  chords: string;
+}
+[@@deriving of_yojson]
+
+type m034_2026_05_split_version_json_into_fields__version_value_content_destructured = {
+  parts: m034_2026_05_split_version_json_into_fields__version_value_content_destructured_voices list;
+  transitions: (string * string * m034_2026_05_split_version_json_into_fields__version_value_content_destructured_voices) list;
+  default_structure: string;
+}
+[@@deriving of_yojson]
+
+type m034_2026_05_split_version_json_into_fields__version_value_content =
+  | No_content
+  | Destructured of m034_2026_05_split_version_json_into_fields__version_value_content_destructured
+  | Monolithic of {lilypond: string; bars: int; structure: string}
+[@@deriving of_yojson]
+
+type m034_2026_05_split_version_json_into_fields__version_value = {
+  tune: string;
+  key: string;
+  sources: m034_2026_05_split_version_json_into_fields__version_value_source list; [@default []]
+  arrangers: string list; [@default []]
+  remark: string; [@default ""]
+  disambiguation: string; [@default ""]
+  content: m034_2026_05_split_version_json_into_fields__version_value_content;
+}
+[@@deriving of_yojson]
+
+type m034_2026_05_split_version_json_into_fields__version = {
+  value: m034_2026_05_split_version_json_into_fields__version_value;
+  meta: m026_2026_04_split_user_json_into_fields__user_meta;
+  access: string list;
+}
+[@@deriving of_yojson]
+
 type migration = {
   name: string;
   apply: (Connection.t -> unit Lwt.t);
@@ -481,6 +528,112 @@ let migrations : migration list = [
             ALTER COLUMN "remark" SET NOT NULL,
             ALTER COLUMN "created_at" SET NOT NULL,
             ALTER COLUMN "modified_at" SET NOT NULL,
+            DROP COLUMN "json";
+        |}
+    );
+    lwt_unit
+  );
+  make_custom "m034_2026_05_split_version_json_into_fields" (fun db ->
+    let%lwt _ = Migrations_sql.m034_2026_05_split_version_json_into_fields__add_columns db in
+    let%lwt _ = Migrations_sql.m034_2026_05_split_version_json_into_fields__add_version_arrangers_table db in
+    let%lwt _ = Migrations_sql.m034_2026_05_split_version_json_into_fields__add_version_sources_table db in
+    let%lwt _ = Migrations_sql.m034_2026_05_split_version_json_into_fields__add_version_destructured_parts_table db in
+    let%lwt _ = Migrations_sql.m034_2026_05_split_version_json_into_fields__add_version_destructured_transitions_table db in
+    let%lwt all = Migrations_sql.List.m034_2026_05_split_version_json_into_fields__get_all db (fun ~id ~json -> (id, json)) in
+    Lwt_list.iter_s
+      (fun (id, json) ->
+        let version =
+          match m034_2026_05_split_version_json_into_fields__version_of_yojson json with
+          | Ok version -> version
+          | Error msg ->
+            Log.err (fun m -> m "Could not unserialise: %s" msg);
+            assert false
+        in
+        let (monolithic_lilypond, monolithic_bars, monolithic_or_default_structure) =
+          match version.value.content with
+          | No_content -> (None, None, None)
+          | Destructured {default_structure; _} -> (None, None, Some default_structure)
+          | Monolithic {lilypond; bars; structure} -> (Some lilypond, Some (Int64.of_int bars), Some structure)
+        in
+        ignore
+        <$> Migrations_sql.m034_2026_05_split_version_json_into_fields__update_one
+            db
+            ~id
+            ~tune_id: (Some version.value.tune)
+            ~key: (Some version.value.key)
+            ~remark: (Some version.value.remark)
+            ~disambiguation: (Some version.value.disambiguation)
+            ~monolithic_lilypond
+            ~monolithic_bars
+            ~monolithic_or_default_structure
+            ~created_at: (Some version.meta.created_at)
+            ~modified_at: (Some version.meta.modified_at);%lwt
+        Lwt_list.iter_s
+          (fun arranger ->
+            ignore
+            <$> Migrations_sql.m034_2026_05_split_version_json_into_fields__add_one_arranger
+                db
+                ~version_id: id
+                ~arranger_id: arranger
+          )
+          version.value.arrangers;%lwt
+        Lwt_list.iter_s
+          (fun source ->
+            ignore
+            <$> Migrations_sql.m034_2026_05_split_version_json_into_fields__add_one_source
+                db
+                ~version_id: id
+                ~source_id: source.source
+                ~structure: source.structure
+                ~details: source.details
+          )
+          version.value.sources;%lwt
+        (
+          match version.value.content with
+          | No_content | Monolithic _ -> lwt_unit
+          | Destructured {parts; transitions; default_structure = _} ->
+            Lwt_list.iteri_s
+              (fun i part ->
+                ignore
+                <$> Migrations_sql.m034_2026_05_split_version_json_into_fields__add_one_destructured_part
+                    db
+                    ~version_id: id
+                    ~part: (m034_2026_05_split_version_json_into_fields__part_int_to_string i)
+                    ~melody: part.melody
+                    ~chords: part.chords
+              )
+              parts;%lwt
+            Lwt_list.iter_s
+              (fun (from_parts, to_parts, voices) ->
+                ignore
+                <$> Migrations_sql.m034_2026_05_split_version_json_into_fields__add_one_destructured_transition
+                    db
+                    ~version_id: id
+                    ~from_parts
+                    ~to_parts
+                    ~melody: voices.melody
+                    ~chords: voices.chords
+              )
+              transitions
+        )
+      )
+      all;%lwt
+    (* NOTE: As of May 2026, Sqlgg does not support `ALTER COLUMN` but only
+       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
+       SQL for Sqlgg to infer the right column types, but exec a
+       PostgreSQL-compatible one manually here. *)
+    ignore (
+      Connection.bypass_exec
+        db
+        {|
+          ALTER TABLE "version"
+            ALTER COLUMN "tune_id" SET NOT NULL,
+            ALTER COLUMN "key" SET NOT NULL,
+            ALTER COLUMN "remark" SET NOT NULL,
+            ALTER COLUMN "disambiguation" SET NOT NULL,
+            ALTER COLUMN "created_at" SET NOT NULL,
+            ALTER COLUMN "modified_at" SET NOT NULL,
+            ADD CONSTRAINT "fk_version_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id"),
             DROP COLUMN "json";
         |}
     );
