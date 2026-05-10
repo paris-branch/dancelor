@@ -89,6 +89,30 @@ type m032_2026_05_split_dance_json_into_fields__dance = {
 }
 [@@deriving of_yojson]
 
+type m033_2026_05_split_tune_json_into_fields__tune_value_composer = {
+  composer: string;
+  details: string; [@default ""]
+}
+[@@deriving of_yojson]
+
+type m033_2026_05_split_tune_json_into_fields__tune_value = {
+  names_: NEString.t NEList.t; [@key "names"]
+  kind: string;
+  composers: m033_2026_05_split_tune_json_into_fields__tune_value_composer list; [@default []]
+  dances: string list; [@default []]
+  remark: string; [@default ""]
+  scddb_id: int option; [@default None] [@key "scddb-id"]
+  date: string option; [@default None]
+}
+[@@deriving of_yojson]
+
+type m033_2026_05_split_tune_json_into_fields__tune = {
+  value: m033_2026_05_split_tune_json_into_fields__tune_value;
+  meta: m026_2026_04_split_user_json_into_fields__user_meta;
+  access: string list;
+}
+[@@deriving of_yojson]
+
 type migration = {
   name: string;
   apply: (Connection.t -> unit Lwt.t);
@@ -382,6 +406,83 @@ let migrations : migration list = [
               ALTER COLUMN "modified_at" SET NOT NULL,
               DROP COLUMN "json";
           |}
+    );
+    lwt_unit
+  );
+  make_custom "m033_2026_05_split_tune_json_into_fields" (fun db ->
+    let%lwt _ = Migrations_sql.m033_2026_05_split_tune_json_into_fields__add_columns db in
+    let%lwt _ = Migrations_sql.m033_2026_05_split_tune_json_into_fields__add_tune_extra_names_table db in
+    let%lwt _ = Migrations_sql.m033_2026_05_split_tune_json_into_fields__add_tune_composers_table db in
+    let%lwt _ = Migrations_sql.m033_2026_05_split_tune_json_into_fields__add_recommended_tunes_table db in
+    let%lwt all = Migrations_sql.List.m033_2026_05_split_tune_json_into_fields__get_all db (fun ~id ~json -> (id, json)) in
+    Lwt_list.iter_s
+      (fun (id, json) ->
+        let tune =
+          match m033_2026_05_split_tune_json_into_fields__tune_of_yojson json with
+          | Ok tune -> tune
+          | Error msg ->
+            Log.err (fun m -> m "Could not unserialise: %s" msg);
+            assert false
+        in
+        (* FIXME *)
+        ignore
+        <$> Migrations_sql.m033_2026_05_split_tune_json_into_fields__update_one
+            db
+            ~id
+            ~name: (some @@ NEString.to_string @@ NEList.hd tune.value.names_)
+            ~kind: (Some tune.value.kind)
+            ~remark: (Some tune.value.remark)
+            ~scddb_id: (Option.map Int64.of_int tune.value.scddb_id)
+            ~date: tune.value.date
+            ~created_at: (Some tune.meta.created_at)
+            ~modified_at: (Some tune.meta.modified_at);%lwt
+        Lwt_list.iter_s
+          (fun extra_name ->
+            ignore
+            <$> Migrations_sql.m033_2026_05_split_tune_json_into_fields__add_one_extra_name
+                db
+                ~tune_id: id
+                ~extra_name
+          )
+          (List.map NEString.to_string @@ NEList.tl tune.value.names_);%lwt
+        Lwt_list.iteri_s
+          (fun index {composer; details} ->
+            ignore
+            <$> Migrations_sql.m033_2026_05_split_tune_json_into_fields__add_one_composer
+                db
+                ~tune_id: id
+                ~index: (Int64.of_int index)
+                ~composer_id: composer
+                ~details: details
+          )
+          tune.value.composers;%lwt
+        Lwt_list.iter_s
+          (fun dance_id ->
+            ignore
+            <$> Migrations_sql.m033_2026_05_split_tune_json_into_fields__add_one_recommended_tune
+                db
+                ~tune_id: id
+                ~dance_id
+          )
+          tune.value.dances
+      )
+      all;%lwt
+    (* NOTE: As of May 2026, Sqlgg does not support `ALTER COLUMN` but only
+       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
+       SQL for Sqlgg to infer the right column types, but exec a
+       PostgreSQL-compatible one manually here. *)
+    ignore (
+      Connection.bypass_exec
+        db
+        {|
+          ALTER TABLE "tune"
+            ALTER COLUMN "name" SET NOT NULL,
+            ALTER COLUMN "kind" SET NOT NULL,
+            ALTER COLUMN "remark" SET NOT NULL,
+            ALTER COLUMN "created_at" SET NOT NULL,
+            ALTER COLUMN "modified_at" SET NOT NULL,
+            DROP COLUMN "json";
+        |}
     );
     lwt_unit
   );

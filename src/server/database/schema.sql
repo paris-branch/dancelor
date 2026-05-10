@@ -75,8 +75,36 @@ CREATE TABLE "source_editors" (
 
 CREATE TABLE "tune" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "json" JSON NOT NULL,
+    "name" VARCHAR(256) NOT NULL,
+    "kind" VARCHAR(32) NOT NULL,
+    "remark" VARCHAR(256) NOT NULL,
+    "scddb_id" INT,
+    "date" VARCHAR(32),
+    "created_at" TIMESTAMP NOT NULL,
+    "modified_at" TIMESTAMP NOT NULL,
     CONSTRAINT "fk_tune_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+);
+
+CREATE TABLE "tune_extra_names" (
+    "tune_id" VARCHAR(14) NOT NULL,
+    "extra_name" VARCHAR(256) NOT NULL,
+    CONSTRAINT "fk_tune_extra_names_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id")
+);
+
+CREATE TABLE "tune_composers" (
+    "tune_id" VARCHAR(14) NOT NULL,
+    "index" INT NOT NULL,
+    "composer_id" VARCHAR(14) NOT NULL,
+    "details" VARCHAR(256) NOT NULL,
+    CONSTRAINT "fk_tune_composers_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id"),
+    CONSTRAINT "fk_tune_composers_composer_id" FOREIGN KEY ("composer_id") REFERENCES "person" ("id")
+);
+
+CREATE TABLE "recommended_tunes" (
+    "dance_id" VARCHAR(14) NOT NULL,
+    "tune_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_recommended_tunes_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id"),
+    CONSTRAINT "fk_recommended_tunes_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id")
 );
 
 CREATE TABLE "user" (

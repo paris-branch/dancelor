@@ -126,6 +126,16 @@ CREATE TABLE "dancelor"."person" (
 
 
 --
+-- Name: recommended_tunes; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."recommended_tunes" (
+    "dance_id" character varying(14) NOT NULL,
+    "tune_id" character varying(14) NOT NULL
+);
+
+
+--
 -- Name: remember_me_tokens; Type: TABLE; Schema: dancelor; Owner: -
 --
 
@@ -180,7 +190,35 @@ CREATE TABLE "dancelor"."source_editors" (
 
 CREATE TABLE "dancelor"."tune" (
     "id" character varying(14) NOT NULL,
-    "json" json NOT NULL
+    "name" character varying(256) NOT NULL,
+    "kind" character varying(32) NOT NULL,
+    "remark" character varying(256) NOT NULL,
+    "scddb_id" integer,
+    "date" character varying(32),
+    "created_at" timestamp without time zone NOT NULL,
+    "modified_at" timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: tune_composers; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."tune_composers" (
+    "tune_id" character varying(14) NOT NULL,
+    "index" integer NOT NULL,
+    "composer_id" character varying(14) NOT NULL,
+    "details" character varying(256) NOT NULL
+);
+
+
+--
+-- Name: tune_extra_names; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."tune_extra_names" (
+    "tune_id" character varying(14) NOT NULL,
+    "extra_name" character varying(256) NOT NULL
 );
 
 
@@ -225,6 +263,7 @@ INSERT INTO "dancelor"."book" ("id", "json") VALUES ('0fi3-1iot-6tbq', '{"value"
 
 INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('l02q-i1j0-qpoi', 'The Architect', '8 x 32 R', 0, NULL, '', NULL, '2023-12-21 18:11:33', '2023-12-21 18:11:33');
 INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('cy5n-qvpl-k0yl', 'Test dance', '8 x 32 R', 2, 1234, 'sdlfkj', '2188', '2026-05-09 14:11:26', '2026-05-09 14:11:26');
+INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('0xf7-xwz9-1fhj', 'Test dance A439', '16 x 32 S', 2, 123199, '', '3088', '2026-05-10 11:36:21.52889', '2026-05-10 11:36:21.52889');
 
 
 --
@@ -235,6 +274,8 @@ INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALU
 INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALUES ('cy5n-qvpl-k0yl', 0, 'uwoe-u6ij-ikgp');
 INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALUES ('cy5n-qvpl-k0yl', 1, '9fdg-glrm-0zoi');
 INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALUES ('cy5n-qvpl-k0yl', 2, '8h62-3eis-xfem');
+INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALUES ('0xf7-xwz9-1fhj', 0, 'uwoe-u6ij-ikgp');
+INSERT INTO "dancelor"."dance_devisers" ("dance_id", "index", "deviser_id") VALUES ('0xf7-xwz9-1fhj', 1, '9fdg-glrm-0zoi');
 
 
 --
@@ -263,6 +304,10 @@ INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('wrwk-cz9g-g3
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xzzb-wasm-babe', 'Version');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('9fdg-glrm-0zoi', 'Person');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('cy5n-qvpl-k0yl', 'Dance');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('0xf7-xwz9-1fhj', 'Dance');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('rifw-ul36-3uq5', 'Tune');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xsbz-vqy7-xj3s', 'Version');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('2wrv-25yu-yc07', 'Source');
 
 
 --
@@ -301,6 +346,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m029_2026_04
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m030_2026_05_split_person_json_into_fields', '2026-05-05 15:34:03.454472+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m031_2026_05_split_source_json_into_fields', '2026-05-07 20:33:37.340054+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m032_2026_05_split_dance_json_into_fields', '2026-05-09 13:16:31.282711+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m033_2026_05_split_tune_json_into_fields', '2026-05-10 11:48:14.488321+00');
 
 
 --
@@ -314,9 +360,18 @@ INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_p
 
 
 --
+-- Data for Name: recommended_tunes; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."recommended_tunes" ("dance_id", "tune_id") VALUES ('l02q-i1j0-qpoi', 'qdod-ad7l-8gr2');
+INSERT INTO "dancelor"."recommended_tunes" ("dance_id", "tune_id") VALUES ('0xf7-xwz9-1fhj', 'rifw-ul36-3uq5');
+
+
+--
 -- Data for Name: remember_me_tokens; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
+INSERT INTO "dancelor"."remember_me_tokens" ("user_id", "key", "hash", "max_date") VALUES ('lt3h-edgt-ac97', '33733a85f3dd0c049d7c00bb498c1cfc', '$argon2id$v=19$m=65536,t=2,p=1$LZJ1jidMtFWhex5/c37KNw$kTcM92VAz9mjp9RKIt1xVRf/tdTmQs8vhhqnUlKCYOg', '2088-11-06 11:36:51');
 
 
 --
@@ -332,6 +387,7 @@ INSERT INTO "dancelor"."set" ("id", "json") VALUES ('wrwk-cz9g-g3wi', '{"value":
 --
 
 INSERT INTO "dancelor"."source" ("id", "cover", "name", "short_name", "scddb_id", "description", "date", "created_at", "modified_at") VALUES ('2f8s-90v8-33do', NULL, 'The Tam Lin Source', 'Tam', NULL, 'this is a description', '2012-03', '2026-05-05 20:27:49', '2026-05-05 20:27:49');
+INSERT INTO "dancelor"."source" ("id", "cover", "name", "short_name", "scddb_id", "description", "date", "created_at", "modified_at") VALUES ('2wrv-25yu-yc07', NULL, 'Sourceyyyyyyyy', 'Sourcey', NULL, 'sdk', NULL, '2026-05-10 11:47:17.753285', '2026-05-10 11:47:17.753285');
 
 
 --
@@ -340,13 +396,29 @@ INSERT INTO "dancelor"."source" ("id", "cover", "name", "short_name", "scddb_id"
 
 INSERT INTO "dancelor"."source_editors" ("source_id", "person_id") VALUES ('2f8s-90v8-33do', '4plf-srss-ihav');
 INSERT INTO "dancelor"."source_editors" ("source_id", "person_id") VALUES ('2f8s-90v8-33do', '8h62-3eis-xfem');
+INSERT INTO "dancelor"."source_editors" ("source_id", "person_id") VALUES ('2wrv-25yu-yc07', '9fdg-glrm-0zoi');
 
 
 --
 -- Data for Name: tune; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."tune" ("id", "json") VALUES ('qdod-ad7l-8gr2', '{"value":{"names":["Tam Lin"],"kind":"R","composers":[{"composer":"4plf-srss-ihav","details":""}],"dances":["l02q-i1j0-qpoi"]},"meta":{"created-at":"2018-12-07T01:18:53+01:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
+INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('qdod-ad7l-8gr2', 'Tam Lin', 'R', '', NULL, NULL, '2018-12-07 01:18:53', '2023-06-25 15:51:15');
+INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('rifw-ul36-3uq5', 'A439', 'strathspey', '', 2398472, NULL, '2026-05-10 12:36:29', '2026-05-10 12:36:29');
+
+
+--
+-- Data for Name: tune_composers; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."tune_composers" ("tune_id", "index", "composer_id", "details") VALUES ('qdod-ad7l-8gr2', 0, '4plf-srss-ihav', '');
+INSERT INTO "dancelor"."tune_composers" ("tune_id", "index", "composer_id", "details") VALUES ('rifw-ul36-3uq5', 0, 'uwoe-u6ij-ikgp', '');
+
+
+--
+-- Data for Name: tune_extra_names; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
 
 
 --
@@ -361,6 +433,7 @@ INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_tok
 --
 
 INSERT INTO "dancelor"."version" ("id", "json") VALUES ('xzzb-wasm-babe', '{"value":{"tune":"qdod-ad7l-8gr2","key":"Dm","disambiguation":"Niols''s Version","arrangers":["uwoe-u6ij-ikgp"],"sources":[{"source":"2f8s-90v8-33do","structure":"AABB"}],"content":["Monolithic",{"bars":32,"structure":"AABB","lilypond":"\\relative c'' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    \\repeat volta 2 {\n      \\partial 8 r8 |\n      a4 d8 a f'' a, d a |\n      bes4 d8 bes f'' bes, d bes |\n      c4 e8 c g'' c, e g |\n      f8 e d c d c a g |\n      \\break\n\n      a4 d8 a f'' a, d a |\n      bes4 d8 bes f'' bes, d bes |\n      c4 e8 c g'' c, e g |\n      f8 e d c d4.\n    } \\break\n\n    \\repeat volta 2 {\n      a''8 |\n      d8 a a a f a d, a'' |\n      d8 a a a f a d, a'' |\n      c8 g g g c g e'' g, |\n      c8 g g g c[ r c cis] |\n      \\break\n\n      d8 a a a f a d, a'' |\n      d8 a a a f[ a] d, r |\n      bes8 a bes c d c d e |\n      f8 e d c a[ d] d\n    }\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      s8 |\n      d1:m | bes | c | d2:m a:m |\n      d1:m | bes | c | a2:m d4.:m\n\n      s8 |\n      d1:m | s | c | s |\n      d1:m | s | g:m | a2:m d4.:m\n    }\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      s8 |\n      s1 | \\parenthesize g:m | s | s |\n      s1 | \\parenthesize g:m | s | s2 s4.\n\n      s8 |\n      s1 | s | s | s |\n      \\parenthesize bes1 | s | s | s2 s4.\n    }\n  }\n>>\n"}]},"meta":{"created-at":"2023-04-04T18:45:27+00:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
+INSERT INTO "dancelor"."version" ("id", "json") VALUES ('xsbz-vqy7-xj3s', '{"value":{"tune":"rifw-ul36-3uq5","key":"Dm","sources":[{"source":"2wrv-25yu-yc07","structure":"AAAA"}],"content":["No_content"]},"meta":{"created-at":"2026-05-10T11:47:35","modified-at":"2026-05-10T11:47:35"},"access":["Public"]}');
 
 
 --
@@ -500,6 +573,22 @@ ALTER TABLE ONLY "dancelor"."person"
 
 
 --
+-- Name: recommended_tunes fk_recommended_tunes_dance_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."recommended_tunes"
+    ADD CONSTRAINT "fk_recommended_tunes_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dancelor"."dance"("id");
+
+
+--
+-- Name: recommended_tunes fk_recommended_tunes_tune_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."recommended_tunes"
+    ADD CONSTRAINT "fk_recommended_tunes_tune_id" FOREIGN KEY ("tune_id") REFERENCES "dancelor"."tune"("id");
+
+
+--
 -- Name: set fk_set_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
 --
 
@@ -529,6 +618,30 @@ ALTER TABLE ONLY "dancelor"."source_editors"
 
 ALTER TABLE ONLY "dancelor"."source"
     ADD CONSTRAINT "fk_source_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: tune_composers fk_tune_composers_composer_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."tune_composers"
+    ADD CONSTRAINT "fk_tune_composers_composer_id" FOREIGN KEY ("composer_id") REFERENCES "dancelor"."person"("id");
+
+
+--
+-- Name: tune_composers fk_tune_composers_tune_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."tune_composers"
+    ADD CONSTRAINT "fk_tune_composers_tune_id" FOREIGN KEY ("tune_id") REFERENCES "dancelor"."tune"("id");
+
+
+--
+-- Name: tune_extra_names fk_tune_extra_names_tune_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."tune_extra_names"
+    ADD CONSTRAINT "fk_tune_extra_names_tune_id" FOREIGN KEY ("tune_id") REFERENCES "dancelor"."tune"("id");
 
 
 --
@@ -576,3 +689,4 @@ ALTER TABLE ONLY "dancelor"."version"
 --
 
 \unrestrict ybiQOqa6jiLe8LvxFznU4q8n34iwf9VXgUBS2e7j5NMdWOEHU3ms2YSbcIZ871W
+

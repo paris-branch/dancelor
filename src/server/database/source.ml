@@ -35,19 +35,20 @@ let row_to_source
 let source_to_row ~create_or_update ~delete_all_editors ~add_one_editor id source =
   (* FIXME: transaction, maybe [Connection.with_transaction] *)
   let id = Entry.Id.to_string id in
+  ignore
+  <$> create_or_update
+      ~id
+      ~name: (NEString.to_string @@ Model_builder.Core.Source.name source)
+      ~short_name: (Option.map NEString.to_string @@ Model_builder.Core.Source.short_name source)
+      ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Source.scddb_id source)
+      ~description: (Model_builder.Core.Source.description source)
+      ~date: (Option.map PartialDate.to_string @@ Model_builder.Core.Source.date source);%lwt
   ignore <$> delete_all_editors ~source_id: id;%lwt
   Lwt_list.iter_s
     (fun person_id ->
       ignore <$> add_one_editor ~source_id: id ~person_id: (Entry.Id.to_string person_id)
     )
-    (Model_builder.Core.Source.editors source);%lwt
-  create_or_update
-    ~id
-    ~name: (NEString.to_string @@ Model_builder.Core.Source.name source)
-    ~short_name: (Option.map NEString.to_string @@ Model_builder.Core.Source.short_name source)
-    ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Source.scddb_id source)
-    ~description: (Model_builder.Core.Source.description source)
-    ~date: (Option.map PartialDate.to_string @@ Model_builder.Core.Source.date source)
+    (Model_builder.Core.Source.editors source)
 
 let get id : Model_builder.Core.Source.entry option Lwt.t =
   let id = Entry.Id.to_string id in
@@ -69,27 +70,22 @@ let get_all () =
 let create source =
   Connection.with_ @@ fun db ->
   let%lwt id = Globally_unique_id.make db Source in
-  let%lwt _ =
-    source_to_row
-      ~create_or_update: (Source_sql.create db)
-      ~delete_all_editors: (fun ~source_id: _ -> lwt_unit)
-      ~add_one_editor: (Source_sql.add_one_editor db)
-      id
-      source
-  in
+  source_to_row
+    ~create_or_update: (Source_sql.create db)
+    ~delete_all_editors: (fun ~source_id: _ -> lwt_unit)
+    ~add_one_editor: (Source_sql.add_one_editor db)
+    id
+    source;%lwt
   lwt id
 
 let update id source =
   Connection.with_ @@ fun db ->
-  let%lwt _ =
-    source_to_row
-      ~create_or_update: (fun ~id -> Source_sql.update db ~id)
-      ~delete_all_editors: (Source_sql.delete_all_editors db)
-      ~add_one_editor: (Source_sql.add_one_editor db)
-      id
-      source
-  in
-  lwt_unit
+  source_to_row
+    ~create_or_update: (fun ~id -> Source_sql.update db ~id)
+    ~delete_all_editors: (Source_sql.delete_all_editors db)
+    ~add_one_editor: (Source_sql.add_one_editor db)
+    id
+    source
 
 let delete id =
   Connection.with_ @@ fun db ->

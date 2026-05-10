@@ -107,8 +107,9 @@ let editor =
   nil
 
 let assemble (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))))))) =
-  let composers = List.map (fun (composer, details) -> Model.Tune.{composer; details}) composers in
-  Model.Tune.make ~names ~kind ~composers ?date ~dances ~remark ?scddb_id ()
+  let composers = List.map (fun (composer, details) -> {Model.Tune.composer = Entry.id composer; details}) composers in
+  let dances = List.map Entry.id dances in
+  Model.Tune.make ~names ~kind ~composers ~date ~dances ~remark ~scddb_id ()
 
 let submit mode tune =
   match mode with
@@ -120,10 +121,16 @@ let unsubmit = lwt % Entry.value
 let disassemble tune =
   let names = Model.Tune.names tune in
   let kind = Model.Tune.kind tune in
-  let%lwt composers = Model.Tune.composers tune in
-  let composers = List.map (fun Model.Tune.{composer; details} -> (composer, details)) composers in
+  let%lwt composers =
+    Lwt_list.map_p
+      (fun Model.Tune.{composer; details} ->
+        let%lwt composer = Option.get <$> Model.Person.get composer in
+        lwt (composer, details)
+      )
+      (Model.Tune.composers tune)
+  in
   let date = Model.Tune.date tune in
-  let%lwt dances = Model.Tune.dances tune in
+  let%lwt dances = Lwt_list.map_p (Option.get <%> Model.Dance.get) (Model.Tune.dances tune) in
   let remark = Model.Tune.remark tune in
   let scddb_id = Model.Tune.scddb_id tune in
   lwt (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ())))))))
