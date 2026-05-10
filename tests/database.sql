@@ -317,6 +317,7 @@ INSERT INTO "dancelor"."person" ("id", "name", "scddb_id", "composed_tunes_are_p
 -- Data for Name: remember_me_tokens; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
+INSERT INTO "dancelor"."remember_me_tokens" ("user_id", "key", "hash", "max_date") VALUES ('lt3h-edgt-ac97', '33733a85f3dd0c049d7c00bb498c1cfc', '$argon2id$v=19$m=65536,t=2,p=1$LZJ1jidMtFWhex5/c37KNw$kTcM92VAz9mjp9RKIt1xVRf/tdTmQs8vhhqnUlKCYOg', '2088-11-06 11:36:51');
 
 
 --
