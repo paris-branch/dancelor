@@ -190,9 +190,9 @@ CREATE TABLE "dancelor"."source_editors" (
 
 CREATE TABLE "dancelor"."tune" (
     "id" character varying(14) NOT NULL,
-    "name" character varying(256) NOT NULL,
+    "name" character varying NOT NULL,
     "kind" character varying(32) NOT NULL,
-    "remark" character varying(256) NOT NULL,
+    "remark" character varying NOT NULL,
     "scddb_id" integer,
     "date" character varying(32),
     "created_at" timestamp without time zone NOT NULL,
@@ -208,7 +208,7 @@ CREATE TABLE "dancelor"."tune_composers" (
     "tune_id" character varying(14) NOT NULL,
     "index" integer NOT NULL,
     "composer_id" character varying(14) NOT NULL,
-    "details" character varying(256) NOT NULL
+    "details" character varying NOT NULL
 );
 
 
@@ -218,7 +218,7 @@ CREATE TABLE "dancelor"."tune_composers" (
 
 CREATE TABLE "dancelor"."tune_extra_names" (
     "tune_id" character varying(14) NOT NULL,
-    "extra_name" character varying(256) NOT NULL
+    "extra_name" character varying NOT NULL
 );
 
 

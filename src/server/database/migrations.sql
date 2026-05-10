@@ -429,9 +429,9 @@ DROP COLUMN "json";
 
 -- @m033_2026_05_split_tune_json_into_fields__add_columns
 ALTER TABLE "tune"
-ADD COLUMN "name" VARCHAR(256),
+ADD COLUMN "name" VARCHAR,
 ADD COLUMN "kind" VARCHAR(32),
-ADD COLUMN "remark" VARCHAR(256),
+ADD COLUMN "remark" VARCHAR,
 ADD COLUMN "scddb_id" INT,
 ADD COLUMN "date" VARCHAR(32),
 ADD COLUMN "created_at" TIMESTAMP,
@@ -440,7 +440,7 @@ ADD COLUMN "modified_at" TIMESTAMP;
 -- @m033_2026_05_split_tune_json_into_fields__add_tune_extra_names_table
 CREATE TABLE "tune_extra_names" (
     "tune_id" VARCHAR(14) NOT NULL,
-    "extra_name" VARCHAR(256) NOT NULL,
+    "extra_name" VARCHAR NOT NULL,
     CONSTRAINT "fk_tune_extra_names_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id")
 );
 
@@ -449,7 +449,7 @@ CREATE TABLE "tune_composers" (
     "tune_id" VARCHAR(14) NOT NULL,
     "index" INT NOT NULL,
     "composer_id" VARCHAR(14) NOT NULL,
-    "details" VARCHAR(256) NOT NULL,
+    "details" VARCHAR NOT NULL,
     CONSTRAINT "fk_tune_composers_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id"),
     CONSTRAINT "fk_tune_composers_composer_id" FOREIGN KEY ("composer_id") REFERENCES "person" ("id")
 );
@@ -513,9 +513,9 @@ INSERT INTO "recommended_tunes" (
 
 -- @m033_2026_05_split_tune_json_into_fields__cleanup_columns__for_sqlgg
 ALTER TABLE "tune"
-CHANGE COLUMN "name" "name" VARCHAR(256) NOT NULL,
+CHANGE COLUMN "name" "name" VARCHAR NOT NULL,
 CHANGE COLUMN "kind" "kind" VARCHAR(32) NOT NULL,
-CHANGE COLUMN "remark" "remark" VARCHAR(256) NOT NULL,
+CHANGE COLUMN "remark" "remark" VARCHAR NOT NULL,
 CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
 CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
 DROP COLUMN "json";
