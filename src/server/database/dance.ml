@@ -57,6 +57,16 @@ let row_to_dance
 let dance_to_row ~create_or_update db id dance =
   (* FIXME: transaction, maybe [Connection.with_transaction] *)
   let id = Entry.Id.to_string id in
+  ignore
+  <$> create_or_update
+      db
+      ~id
+      ~name: (NEString.to_string @@ NEList.hd @@ Model_builder.Core.Dance.names dance)
+      ~kind: (Kind_dance.to_string @@ Model_builder.Core.Dance.kind dance)
+      ~two_chords: (Int64.of_int @@ two_chords_to_enum @@ two_chords_of_common @@ Model_builder.Core.Dance.two_chords dance)
+      ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Dance.scddb_id dance)
+      ~disambiguation: (Model_builder.Core.Dance.disambiguation dance)
+      ~date: (Option.map PartialDate.to_string @@ Model_builder.Core.Dance.date dance);%lwt
   ignore <$> Dance_sql.delete_all_extra_names db ~dance_id: id;%lwt
   Lwt_list.iter_s
     (fun extra_name ->
@@ -73,16 +83,7 @@ let dance_to_row ~create_or_update db id dance =
           ~index: (Int64.of_int index)
           ~deviser_id: (Entry.Id.to_string deviser_id)
     )
-    (Model_builder.Core.Dance.devisers dance);%lwt
-  create_or_update
-    db
-    ~id
-    ~name: (NEString.to_string @@ NEList.hd @@ Model_builder.Core.Dance.names dance)
-    ~kind: (Kind_dance.to_string @@ Model_builder.Core.Dance.kind dance)
-    ~two_chords: (Int64.of_int @@ two_chords_to_enum @@ two_chords_of_common @@ Model_builder.Core.Dance.two_chords dance)
-    ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Dance.scddb_id dance)
-    ~disambiguation: (Model_builder.Core.Dance.disambiguation dance)
-    ~date: (Option.map PartialDate.to_string @@ Model_builder.Core.Dance.date dance)
+    (Model_builder.Core.Dance.devisers dance)
 
 let get id : Model_builder.Core.Dance.entry option Lwt.t =
   let id = Entry.Id.to_string id in
@@ -117,12 +118,12 @@ let get_all () =
 let create dance =
   Connection.with_ @@ fun db ->
   let%lwt id = Globally_unique_id.make db Dance in
-  ignore <$> dance_to_row ~create_or_update: Dance_sql.create db id dance;%lwt
+  dance_to_row ~create_or_update: Dance_sql.create db id dance;%lwt
   lwt id
 
 let update id dance =
   Connection.with_ @@ fun db ->
-  ignore <$> dance_to_row ~create_or_update: (fun db ~id -> Dance_sql.update db ~id) db id dance
+  dance_to_row ~create_or_update: (fun db ~id -> Dance_sql.update db ~id) db id dance
 
 let delete id =
   Connection.with_ @@ fun db ->
