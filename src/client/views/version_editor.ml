@@ -276,7 +276,9 @@ let editor =
   nil
 
 let assemble (tune, (key, (arrangers, (remark, (sources, (disambiguation, (content, ()))))))) =
-  let sources = List.map (fun (source, (structure, details)) -> Model.Version.{source; structure; details}) sources in
+  let tune = Entry.id tune in
+  let arrangers = List.map Entry.id arrangers in
+  let sources = List.map (fun (source, (structure, details)) -> Model.Version.{source = Entry.id source; structure; details}) sources in
   Model.Version.make ~tune ~key ~arrangers ~remark ~sources ~disambiguation ~content ()
 
 let preview version =
@@ -314,8 +316,14 @@ let disassemble version =
   let key = Model.Version.key version in
   let%lwt arrangers = Model.Version.arrangers version in
   let remark = Model.Version.remark version in
-  let%lwt sources = Model.Version.sources version in
-  let sources = List.map (fun Model.Version.{source; structure; details} -> (source, (structure, details))) sources in
+  let%lwt sources =
+    Lwt_list.map_p
+      (fun Model.Version.{source; structure; details} ->
+        let%lwt source = Option.get <$> Model.Source.get source in
+        lwt (source, (structure, details))
+      )
+      (Model.Version.sources version)
+  in
   let disambiguation = Model.Version.disambiguation version in
   let content = Model.Version.content version in
   lwt (tune, (key, (arrangers, (remark, (sources, (disambiguation, (content, ())))))))

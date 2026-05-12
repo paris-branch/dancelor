@@ -246,7 +246,62 @@ CREATE TABLE "dancelor"."user" (
 
 CREATE TABLE "dancelor"."version" (
     "id" character varying(14) NOT NULL,
-    "json" json NOT NULL
+    "tune_id" character varying(14) NOT NULL,
+    "key" character varying(32) NOT NULL,
+    "remark" character varying NOT NULL,
+    "disambiguation" character varying NOT NULL,
+    "monolithic_lilypond" "text",
+    "monolithic_bars" integer,
+    "monolithic_or_default_structure" character varying(32),
+    "created_at" timestamp without time zone NOT NULL,
+    "modified_at" timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: version_arrangers; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."version_arrangers" (
+    "version_id" character varying(14) NOT NULL,
+    "arranger_id" character varying(14) NOT NULL
+);
+
+
+--
+-- Name: version_destructured_parts; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."version_destructured_parts" (
+    "version_id" character varying(14) NOT NULL,
+    "part" character varying(32) NOT NULL,
+    "melody" character varying NOT NULL,
+    "chords" character varying NOT NULL
+);
+
+
+--
+-- Name: version_destructured_transitions; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."version_destructured_transitions" (
+    "version_id" character varying(14) NOT NULL,
+    "from_parts" character varying(32) NOT NULL,
+    "to_parts" character varying(32) NOT NULL,
+    "melody" character varying NOT NULL,
+    "chords" character varying NOT NULL
+);
+
+
+--
+-- Name: version_sources; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."version_sources" (
+    "version_id" character varying(14) NOT NULL,
+    "source_id" character varying(14) NOT NULL,
+    "structure" character varying(32) NOT NULL,
+    "details" character varying NOT NULL
 );
 
 
@@ -308,6 +363,9 @@ INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('0xf7-xwz9-1f
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('rifw-ul36-3uq5', 'Tune');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xsbz-vqy7-xj3s', 'Version');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('2wrv-25yu-yc07', 'Source');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('jyot-ypt9-caxu', 'Version');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('or5b-64lk-hlj5', 'Version');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('gm7o-khcu-8faz', 'Tune');
 
 
 --
@@ -347,6 +405,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m030_2026_05
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m031_2026_05_split_source_json_into_fields', '2026-05-07 20:33:37.340054+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m032_2026_05_split_dance_json_into_fields', '2026-05-09 13:16:31.282711+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m033_2026_05_split_tune_json_into_fields', '2026-05-10 11:48:14.488321+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m034_2026_05_split_version_json_into_fields', '2026-05-12 12:10:45.842954+00');
 
 
 --
@@ -372,6 +431,7 @@ INSERT INTO "dancelor"."recommended_tunes" ("dance_id", "tune_id") VALUES ('0xf7
 --
 
 INSERT INTO "dancelor"."remember_me_tokens" ("user_id", "key", "hash", "max_date") VALUES ('lt3h-edgt-ac97', '33733a85f3dd0c049d7c00bb498c1cfc', '$argon2id$v=19$m=65536,t=2,p=1$LZJ1jidMtFWhex5/c37KNw$kTcM92VAz9mjp9RKIt1xVRf/tdTmQs8vhhqnUlKCYOg', '2088-11-06 11:36:51');
+INSERT INTO "dancelor"."remember_me_tokens" ("user_id", "key", "hash", "max_date") VALUES ('lt3h-edgt-ac97', '73de50d67abb397f4bbf96f2698c6e1d', '$argon2id$v=19$m=65536,t=2,p=1$sL5VHwewFdNUUHwgw+FJYg$OFSNCjlQn+33iAyo3q2hdmSFsF4X1beuDPq2eWv3SkY', '2026-11-08 10:09:09');
 
 
 --
@@ -405,6 +465,7 @@ INSERT INTO "dancelor"."source_editors" ("source_id", "person_id") VALUES ('2wrv
 
 INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('qdod-ad7l-8gr2', 'Tam Lin', 'R', '', NULL, NULL, '2018-12-07 01:18:53', '2023-06-25 15:51:15');
 INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('rifw-ul36-3uq5', 'A439', 'strathspey', '', 2398472, NULL, '2026-05-10 12:36:29', '2026-05-10 12:36:29');
+INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('gm7o-khcu-8faz', 'The Glasgow Reel', 'Reel', '', NULL, NULL, '2026-05-12 12:07:47.893383', '2026-05-12 12:07:47.893383');
 
 
 --
@@ -432,8 +493,142 @@ INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_tok
 -- Data for Name: version; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."version" ("id", "json") VALUES ('xzzb-wasm-babe', '{"value":{"tune":"qdod-ad7l-8gr2","key":"Dm","disambiguation":"Niols''s Version","arrangers":["uwoe-u6ij-ikgp"],"sources":[{"source":"2f8s-90v8-33do","structure":"AABB"}],"content":["Monolithic",{"bars":32,"structure":"AABB","lilypond":"\\relative c'' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    \\repeat volta 2 {\n      \\partial 8 r8 |\n      a4 d8 a f'' a, d a |\n      bes4 d8 bes f'' bes, d bes |\n      c4 e8 c g'' c, e g |\n      f8 e d c d c a g |\n      \\break\n\n      a4 d8 a f'' a, d a |\n      bes4 d8 bes f'' bes, d bes |\n      c4 e8 c g'' c, e g |\n      f8 e d c d4.\n    } \\break\n\n    \\repeat volta 2 {\n      a''8 |\n      d8 a a a f a d, a'' |\n      d8 a a a f a d, a'' |\n      c8 g g g c g e'' g, |\n      c8 g g g c[ r c cis] |\n      \\break\n\n      d8 a a a f a d, a'' |\n      d8 a a a f[ a] d, r |\n      bes8 a bes c d c d e |\n      f8 e d c a[ d] d\n    }\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      s8 |\n      d1:m | bes | c | d2:m a:m |\n      d1:m | bes | c | a2:m d4.:m\n\n      s8 |\n      d1:m | s | c | s |\n      d1:m | s | g:m | a2:m d4.:m\n    }\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      s8 |\n      s1 | \\parenthesize g:m | s | s |\n      s1 | \\parenthesize g:m | s | s2 s4.\n\n      s8 |\n      s1 | s | s | s |\n      \\parenthesize bes1 | s | s | s2 s4.\n    }\n  }\n>>\n"}]},"meta":{"created-at":"2023-04-04T18:45:27+00:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
-INSERT INTO "dancelor"."version" ("id", "json") VALUES ('xsbz-vqy7-xj3s', '{"value":{"tune":"rifw-ul36-3uq5","key":"Dm","sources":[{"source":"2wrv-25yu-yc07","structure":"AAAA"}],"content":["No_content"]},"meta":{"created-at":"2026-05-10T11:47:35","modified-at":"2026-05-10T11:47:35"},"access":["Public"]}');
+INSERT INTO "dancelor"."version" ("id", "tune_id", "key", "remark", "disambiguation", "monolithic_lilypond", "monolithic_bars", "monolithic_or_default_structure", "created_at", "modified_at") VALUES ('xzzb-wasm-babe', 'qdod-ad7l-8gr2', 'Dm', '', 'Niols''s Version', '\relative c'' <<
+  {
+    \clef treble
+    \key d \minor
+    \time 4/4
+
+    \repeat volta 2 {
+      \partial 8 r8 |
+      a4 d8 a f'' a, d a |
+      bes4 d8 bes f'' bes, d bes |
+      c4 e8 c g'' c, e g |
+      f8 e d c d c a g |
+      \break
+
+      a4 d8 a f'' a, d a |
+      bes4 d8 bes f'' bes, d bes |
+      c4 e8 c g'' c, e g |
+      f8 e d c d4.
+    } \break
+
+    \repeat volta 2 {
+      a''8 |
+      d8 a a a f a d, a'' |
+      d8 a a a f a d, a'' |
+      c8 g g g c g e'' g, |
+      c8 g g g c[ r c cis] |
+      \break
+
+      d8 a a a f a d, a'' |
+      d8 a a a f[ a] d, r |
+      bes8 a bes c d c d e |
+      f8 e d c a[ d] d
+    }
+  }
+
+  \new ChordNames {
+    \chordmode {
+      s8 |
+      d1:m | bes | c | d2:m a:m |
+      d1:m | bes | c | a2:m d4.:m
+
+      s8 |
+      d1:m | s | c | s |
+      d1:m | s | g:m | a2:m d4.:m
+    }
+  }
+
+  \new ChordNames {
+    \chordmode {
+      s8 |
+      s1 | \parenthesize g:m | s | s |
+      s1 | \parenthesize g:m | s | s2 s4.
+
+      s8 |
+      s1 | s | s | s |
+      \parenthesize bes1 | s | s | s2 s4.
+    }
+  }
+>>
+', 32, 'AABB', '2023-04-04 19:45:27', '2023-06-25 15:51:15');
+INSERT INTO "dancelor"."version" ("id", "tune_id", "key", "remark", "disambiguation", "monolithic_lilypond", "monolithic_bars", "monolithic_or_default_structure", "created_at", "modified_at") VALUES ('xsbz-vqy7-xj3s', 'rifw-ul36-3uq5', 'Dm', '', '', NULL, NULL, NULL, '2026-05-10 12:47:35', '2026-05-10 12:47:35');
+INSERT INTO "dancelor"."version" ("id", "tune_id", "key", "remark", "disambiguation", "monolithic_lilypond", "monolithic_bars", "monolithic_or_default_structure", "created_at", "modified_at") VALUES ('jyot-ypt9-caxu', 'rifw-ul36-3uq5', 'Dm', '', 'destructured', NULL, NULL, 'ABAB', '2026-05-12 11:11:02', '2026-05-12 11:11:02');
+INSERT INTO "dancelor"."version" ("id", "tune_id", "key", "remark", "disambiguation", "monolithic_lilypond", "monolithic_bars", "monolithic_or_default_structure", "created_at", "modified_at") VALUES ('or5b-64lk-hlj5', 'gm7o-khcu-8faz', 'Dm', '', 'destructured w/ transitions', NULL, NULL, 'AABBAB', '2026-05-12 13:07:50', '2026-05-12 12:12:16.491412');
+
+
+--
+-- Data for Name: version_arrangers; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."version_arrangers" ("version_id", "arranger_id") VALUES ('xzzb-wasm-babe', 'uwoe-u6ij-ikgp');
+INSERT INTO "dancelor"."version_arrangers" ("version_id", "arranger_id") VALUES ('jyot-ypt9-caxu', 'uwoe-u6ij-ikgp');
+
+
+--
+-- Data for Name: version_destructured_parts; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."version_destructured_parts" ("version_id", "part", "melody", "chords") VALUES ('jyot-ypt9-caxu', 'A', '\repeat volta 2 {
+  a16 a8. g a16 b4 c8. b16 |
+  a4 f8. e16 d4 d8. e16 |
+  f4 f8. g16 e8 c4 e8 |
+} \alternative { {
+  d4 a'' d2 |
+} {
+  d,4 a'' d,
+} }', 'd2:m g | d1:m | f2 c | d1:m | d2.:m');
+INSERT INTO "dancelor"."version_destructured_parts" ("version_id", "part", "melody", "chords") VALUES ('jyot-ypt9-caxu', 'B', '\partial 4 a4 |
+a16 d8. d c16 d8. e16 f8. a,16 |
+a16 d8. d c16 d8. c16 a4 |
+a16 d8. d c16 d8. e16 f8. g16 |
+a16 a8. f8. c16 a''4. a,8 |
+\break
+
+a16 d8. d c16 d8. e16 f8. a,16 |
+a16 d8. d c16 d8. c16 a4 |
+a16 d8. d c16 d8. e16 f8. g16 |
+e16 c8. g''8. e16 d2 |', 's4 | d1:m | d2:m a:m | d1:m | f |
+d1:m | d2:m a:m | d1:m | c2 d:m |');
+INSERT INTO "dancelor"."version_destructured_parts" ("version_id", "part", "melody", "chords") VALUES ('or5b-64lk-hlj5', 'A', 'a,4 d8 a f'' a, d a |
+bes4 d8 bes f'' bes, d bes |
+c4 e8 c g'' c, e g |
+f8 e d c d c a g |
+\break
+
+a4 d8 a f'' a, d a |
+bes4 d8 bes f'' bes, d bes |
+c4 e8 c g'' c, e g |', 'd1:m | bes | c | d2:m a:m |
+d1:m | bes | c |');
+INSERT INTO "dancelor"."version_destructured_parts" ("version_id", "part", "melody", "chords") VALUES ('or5b-64lk-hlj5', 'B', 'd''8 a a a f a d, a'' |
+d8 a a a f a d, a'' |
+c8 g g g c g e'' g, |
+c8 g g g c[ r c cis] |
+\break
+
+d8 a a a f a d, a'' |
+d8 a a a f[ a] d, r |
+bes8 a bes c d c d e |
+f8 e d c a[ d] d4 |', 'd1:m | s | c | s |
+d1:m | s | g:m | a2:m d:m |');
+
+
+--
+-- Data for Name: version_destructured_transitions; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."version_destructured_transitions" ("version_id", "from_parts", "to_parts", "melody", "chords") VALUES ('or5b-64lk-hlj5', 'A', 'A', 'f8 e d c d2 |', 'a2:m d:m |');
+INSERT INTO "dancelor"."version_destructured_transitions" ("version_id", "from_parts", "to_parts", "melody", "chords") VALUES ('or5b-64lk-hlj5', 'A', 'B', 'f8 e d c d4 a'' |', 'a2:m d4:m a:7 |');
+INSERT INTO "dancelor"."version_destructured_transitions" ("version_id", "from_parts", "to_parts", "melody", "chords") VALUES ('or5b-64lk-hlj5', 'start', 'A, B', '\partial 2 \tuplet 3/2 {e''4 d cis\fermata} |', 'a2:7 |');
+
+
+--
+-- Data for Name: version_sources; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."version_sources" ("version_id", "source_id", "structure", "details") VALUES ('xzzb-wasm-babe', '2f8s-90v8-33do', 'AABB', '');
+INSERT INTO "dancelor"."version_sources" ("version_id", "source_id", "structure", "details") VALUES ('xsbz-vqy7-xj3s', '2wrv-25yu-yc07', 'AAAA', '');
 
 
 --
@@ -677,11 +872,67 @@ ALTER TABLE ONLY "dancelor"."user"
 
 
 --
+-- Name: version_arrangers fk_version_arrangers_arranger_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."version_arrangers"
+    ADD CONSTRAINT "fk_version_arrangers_arranger_id" FOREIGN KEY ("arranger_id") REFERENCES "dancelor"."person"("id");
+
+
+--
+-- Name: version_arrangers fk_version_arrangers_version_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."version_arrangers"
+    ADD CONSTRAINT "fk_version_arrangers_version_id" FOREIGN KEY ("version_id") REFERENCES "dancelor"."version"("id");
+
+
+--
+-- Name: version_destructured_parts fk_version_destructured_parts_version_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."version_destructured_parts"
+    ADD CONSTRAINT "fk_version_destructured_parts_version_id" FOREIGN KEY ("version_id") REFERENCES "dancelor"."version"("id");
+
+
+--
+-- Name: version_destructured_transitions fk_version_destructured_transitions_version_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."version_destructured_transitions"
+    ADD CONSTRAINT "fk_version_destructured_transitions_version_id" FOREIGN KEY ("version_id") REFERENCES "dancelor"."version"("id");
+
+
+--
 -- Name: version fk_version_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
 --
 
 ALTER TABLE ONLY "dancelor"."version"
     ADD CONSTRAINT "fk_version_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: version_sources fk_version_sources_source_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."version_sources"
+    ADD CONSTRAINT "fk_version_sources_source_id" FOREIGN KEY ("source_id") REFERENCES "dancelor"."source"("id");
+
+
+--
+-- Name: version_sources fk_version_sources_version_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."version_sources"
+    ADD CONSTRAINT "fk_version_sources_version_id" FOREIGN KEY ("version_id") REFERENCES "dancelor"."version"("id");
+
+
+--
+-- Name: version fk_version_tune_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."version"
+    ADD CONSTRAINT "fk_version_tune_id" FOREIGN KEY ("tune_id") REFERENCES "dancelor"."tune"("id");
 
 
 --

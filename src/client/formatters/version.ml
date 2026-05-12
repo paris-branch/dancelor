@@ -18,7 +18,17 @@ let disambiguation' ?parentheses version =
 
 let disambiguation_and_sources_internal ?(parentheses = true) ?link version =
   let sources_block =
-    match%lwt Model.Version.sources_grouped version with
+    let%lwt sources_grouped =
+      Lwt_list.map_p
+        (
+          Lwt_list.map_p (fun Model.Version.{source; structure = _; details} ->
+            let%lwt source = Option.get <$> Model.Source.get source in
+            lwt (source, details)
+          )
+        )
+        (Model.Version.sources_grouped version)
+    in
+    match sources_grouped with
     | [] -> lwt_nil
     | source_groups ->
       lwt @@
@@ -33,7 +43,7 @@ let disambiguation_and_sources_internal ?(parentheses = true) ?link version =
               List.map
                 (fun source_group ->
                   [
-                    Source.name' ~short: true ?link (List.hd source_group).Model.Version.source;
+                    Source.name' ~short: true ?link (fst @@ List.hd source_group);
                     (
                       span @@
                       List.interspersei
@@ -44,7 +54,7 @@ let disambiguation_and_sources_internal ?(parentheses = true) ?link version =
                         )
                         (
                           List.filter_map
-                            (fun {Model.Version.details; _} -> if details <> "" then Some details else None)
+                            (fun (_, details) -> if details <> "" then Some details else None)
                             source_group
                         )
                     )

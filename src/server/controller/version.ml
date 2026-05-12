@@ -12,11 +12,13 @@ let get env id =
 
 let create env version =
   Permission.assert_can_create_public env;%lwt
-  Database.Version.create version
+  let%lwt id = Database.Version.create version in
+  Option.get <$> Database.Version.get id
 
 let update env id version =
   Permission.assert_can_update_public env =<< get env id;%lwt
-  Database.Version.update id version
+  Database.Version.update id version;%lwt
+  Option.get <$> Database.Version.get id
 
 let delete env id =
   Permission.assert_can_delete_public env =<< get env id;%lwt
@@ -42,7 +44,7 @@ let with_copyright_check env version f =
       let%lwt editors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Source.editors' source in
       lwt @@ List.exists Model.Person.published_tunes_are_public' editors
     in
-    Lwt_list.filter_s source_editors_agree =<< (List.map Model.Version.source_source <$> Model.Version.sources' version)
+    Lwt_list.filter_s source_editors_agree =<< (Lwt_list.map_p (Option.get <%> Model.Source.get % Model.Version.source_source) @@ Model.Version.sources' version)
   in
   (* let's see if we have a reason to agree to showing this version's content;
      if the composer (and arranger) agrees, that's it; otherwise, if there is a

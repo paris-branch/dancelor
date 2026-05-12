@@ -105,6 +105,6 @@ module Make (Model : Model_builder.S) = struct
       | Key key' ->
         lwt @@ Formula.interpret_bool (Model.Version.key version = key')
       | Sources sfilter ->
-        let%lwt sources = List.map (fun {Model.Version.source; _} -> source) <$> Model.Version.sources version in
+        let%lwt sources = Lwt_list.map_p (fun {Model.Version.source; _} -> Option.get <$> Model.Source.get source) (Model.Version.sources version) in
         Formula_list.accepts (Formula_entry.accepts_public accepts_source) sfilter sources
 end

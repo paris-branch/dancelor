@@ -5,24 +5,15 @@ module Structure = Structure
 module Voices = Voices
 module Content = Content
 
-type source_core = {
+type source = {
   source: Source.t Entry.Id.t;
   structure: Structure.t;
   details: string; [@default ""]
 }
 [@@deriving eq, ord, yojson, show {with_path = false}]
 
-let source_core_have_same_source s1 s2 =
+let source_have_same_source s1 s2 =
   Entry.Id.equal' s1.source s2.source
-
-type source = {
-  source: Source.entry;
-  structure: Structure.t;
-  details: string;
-}
-
-let source_to_source_core : source -> source_core = fun {source; structure; details} ->
-  {source = Entry.id source; structure; details}
 
 let source_source source = source.source
 let source_structure source = source.structure
@@ -33,7 +24,7 @@ let _key = "version"
 type t = {
   tune: Tune.t Entry.id;
   key: Music.Key.t;
-  sources: source_core list; [@default []]
+  sources: source list; [@default []]
   arrangers: Person.t Entry.id list; [@default []]
   remark: string; [@default ""]
   disambiguation: string; [@default ""]
@@ -47,18 +38,16 @@ type access = Entry.Access.public [@@deriving yojson]
 type entry = t Entry.public
 [@@deriving eq, ord, show, yojson]
 
-let make ~tune ~key ?sources ?arrangers ?remark ?disambiguation ~content () =
-  let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in
-  let tune = Entry.id tune in
-  let sources = Option.map (List.map source_to_source_core) sources in
-  let arrangers = Option.map (List.map Entry.id) arrangers in
-  make ~tune ~key ?sources ?arrangers ?remark ?disambiguation ~content ()
+let make ~tune ~key ~sources ~arrangers ~remark ~disambiguation ~content () =
+  let disambiguation = String.remove_duplicates ~char: ' ' disambiguation in
+  make ~tune ~key ~sources ~arrangers ~remark ~disambiguation ~content ()
 
 let tune' = tune % Entry.value_public
 let key' = key % Entry.value_public
 let remark' = remark % Entry.value_public
 let disambiguation' = disambiguation % Entry.value_public
 let content' = content % Entry.value_public
+let sources' = sources % Entry.value_public
 
 let set_content content version =
   {version with content}
@@ -67,4 +56,5 @@ let erase_lilypond_from_content version =
   {version with content = Content.erase_lilypond version.content}
 
 let sources_grouped v =
-  List.group ~by: source_core_have_same_source (sources v)
+  List.group ~by: source_have_same_source (sources v)
+let sources_grouped' = sources_grouped % Entry.value_public

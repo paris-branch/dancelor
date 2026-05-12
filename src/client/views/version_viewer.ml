@@ -297,26 +297,29 @@ let view context tune_id id =
           ~some: (fun version ->
             S.from_lwt [] @@
               let show_source_group source_group =
-                let source = (List.hd source_group).Model.Version.source in
-                span @@
-                [Formatters.Source.name' source] @
-                (
-                  List.concat @@
-                  List.interspersei
-                    (fun _ -> [txt ", "])
-                    ~last: (fun _ -> [txt " and "]) @@
-                  List.map
-                    (fun Model.Version.{details; structure; _} ->
-                      [
-                        (if details <> "" then txtf " %s" details else txt "");
-                        txtf " as %s" (NEString.to_string (Model.Version.Structure.to_string structure));
-                      ]
-                    )
-                    source_group
-                ) @
-                  [txt "."]
+                R.span @@
+                S.from_lwt [] @@
+                let%lwt source = Option.get <$> Model.Source.get (List.hd source_group).Model.Version.source in
+                lwt (
+                  [Formatters.Source.name' source] @
+                  (
+                    List.concat @@
+                    List.interspersei
+                      (fun _ -> [txt ", "])
+                      ~last: (fun _ -> [txt " and "]) @@
+                    List.map
+                      (fun Model.Version.{details; structure; _} ->
+                        [
+                          (if details <> "" then txtf " %s" details else txt "");
+                          txtf " as %s" (NEString.to_string (Model.Version.Structure.to_string structure));
+                        ]
+                      )
+                      source_group
+                  ) @
+                    [txt "."]
+                )
               in
-              match%lwt Model.Version.sources_grouped' version with
+              match Model.Version.sources_grouped' version with
               | [] -> lwt_nil
               | [source_group] -> lwt [section ~a: [a_class ["mt-2"]] [txt "This specific version appears in "; show_source_group source_group]]
               | source_groups ->

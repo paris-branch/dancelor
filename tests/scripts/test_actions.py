@@ -23,14 +23,11 @@ class TestActions():
     self.driver.get("http://localhost:8080/tune/qdod-ad7l-8gr2/xzzb-wasm-babe")
     self.driver.find_element(By.XPATH, "(//i[contains(@class, 'bi-three-dots-vertical')])[2]").click()
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Show LilyPond')]").click()
-    result = subprocess.run(
+    expected = subprocess.run(
       ["psql", "--username=dancelor", "--dbname=dancelor", "--tuples-only", "--no-align",
-       "--command", """SELECT "json" FROM "version" WHERE "id" = 'xzzb-wasm-babe'"""],
+       "--command", "SELECT monolithic_lilypond FROM version WHERE id = 'xzzb-wasm-babe';"],
       capture_output=True, text=True, check=True,
-    )
-    [kind, payload] = json.loads(result.stdout)["value"]["content"]
-    assert (kind == "Monolithic")
-    expected = payload["lilypond"]
+    ).stdout
     shown = self.driver.find_element(By.XPATH, "//pre[contains(text(), 'clef')]").get_attribute("innerHTML")
     assert(html.unescape(shown.strip()) == expected.strip())
     ## TODO: also check the “copy to clipboard” functionality, but the following

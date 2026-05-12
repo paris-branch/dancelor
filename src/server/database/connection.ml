@@ -52,4 +52,10 @@ let with_ (f : t -> 'a Lwt.t) : 'a Lwt.t =
   Lwt_pool.use pool f
 
 let bypass_exec (db : t) (query : string) =
-  db.Sqlgg_postgresql.conn#exec query
+  let result = db.Sqlgg_postgresql.conn#exec query in
+  (* NOTE: Using [bypass_exec] is always at least a warning. *)
+  match result#status with
+  | Empty_query | Command_ok | Tuples_ok | Copy_out | Copy_in | Copy_both | Single_tuple ->
+    Log.warn (fun m -> m "bypass_exec: %s" (Postgresql.result_status result#status))
+  | Bad_response | Nonfatal_error | Fatal_error ->
+    Log.err (fun m -> m "bypass_exec: %a" (Format.pp_multiline_sensible (Postgresql.result_status result#status)) result#error)
