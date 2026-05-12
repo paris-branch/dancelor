@@ -308,6 +308,9 @@ INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('0xf7-xwz9-1f
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('rifw-ul36-3uq5', 'Tune');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xsbz-vqy7-xj3s', 'Version');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('2wrv-25yu-yc07', 'Source');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('jyot-ypt9-caxu', 'Version');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('or5b-64lk-hlj5', 'Version');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('gm7o-khcu-8faz', 'Tune');
 
 
 --
@@ -372,6 +375,7 @@ INSERT INTO "dancelor"."recommended_tunes" ("dance_id", "tune_id") VALUES ('0xf7
 --
 
 INSERT INTO "dancelor"."remember_me_tokens" ("user_id", "key", "hash", "max_date") VALUES ('lt3h-edgt-ac97', '33733a85f3dd0c049d7c00bb498c1cfc', '$argon2id$v=19$m=65536,t=2,p=1$LZJ1jidMtFWhex5/c37KNw$kTcM92VAz9mjp9RKIt1xVRf/tdTmQs8vhhqnUlKCYOg', '2088-11-06 11:36:51');
+INSERT INTO "dancelor"."remember_me_tokens" ("user_id", "key", "hash", "max_date") VALUES ('lt3h-edgt-ac97', '73de50d67abb397f4bbf96f2698c6e1d', '$argon2id$v=19$m=65536,t=2,p=1$sL5VHwewFdNUUHwgw+FJYg$OFSNCjlQn+33iAyo3q2hdmSFsF4X1beuDPq2eWv3SkY', '2026-11-08 10:09:09');
 
 
 --
@@ -405,6 +409,7 @@ INSERT INTO "dancelor"."source_editors" ("source_id", "person_id") VALUES ('2wrv
 
 INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('qdod-ad7l-8gr2', 'Tam Lin', 'R', '', NULL, NULL, '2018-12-07 01:18:53', '2023-06-25 15:51:15');
 INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('rifw-ul36-3uq5', 'A439', 'strathspey', '', 2398472, NULL, '2026-05-10 12:36:29', '2026-05-10 12:36:29');
+INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('gm7o-khcu-8faz', 'The Glasgow Reel', 'Reel', '', NULL, NULL, '2026-05-12 12:07:47.893383', '2026-05-12 12:07:47.893383');
 
 
 --
@@ -434,6 +439,8 @@ INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_tok
 
 INSERT INTO "dancelor"."version" ("id", "json") VALUES ('xzzb-wasm-babe', '{"value":{"tune":"qdod-ad7l-8gr2","key":"Dm","disambiguation":"Niols''s Version","arrangers":["uwoe-u6ij-ikgp"],"sources":[{"source":"2f8s-90v8-33do","structure":"AABB"}],"content":["Monolithic",{"bars":32,"structure":"AABB","lilypond":"\\relative c'' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    \\repeat volta 2 {\n      \\partial 8 r8 |\n      a4 d8 a f'' a, d a |\n      bes4 d8 bes f'' bes, d bes |\n      c4 e8 c g'' c, e g |\n      f8 e d c d c a g |\n      \\break\n\n      a4 d8 a f'' a, d a |\n      bes4 d8 bes f'' bes, d bes |\n      c4 e8 c g'' c, e g |\n      f8 e d c d4.\n    } \\break\n\n    \\repeat volta 2 {\n      a''8 |\n      d8 a a a f a d, a'' |\n      d8 a a a f a d, a'' |\n      c8 g g g c g e'' g, |\n      c8 g g g c[ r c cis] |\n      \\break\n\n      d8 a a a f a d, a'' |\n      d8 a a a f[ a] d, r |\n      bes8 a bes c d c d e |\n      f8 e d c a[ d] d\n    }\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      s8 |\n      d1:m | bes | c | d2:m a:m |\n      d1:m | bes | c | a2:m d4.:m\n\n      s8 |\n      d1:m | s | c | s |\n      d1:m | s | g:m | a2:m d4.:m\n    }\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      s8 |\n      s1 | \\parenthesize g:m | s | s |\n      s1 | \\parenthesize g:m | s | s2 s4.\n\n      s8 |\n      s1 | s | s | s |\n      \\parenthesize bes1 | s | s | s2 s4.\n    }\n  }\n>>\n"}]},"meta":{"created-at":"2023-04-04T18:45:27+00:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":["Public"]}');
 INSERT INTO "dancelor"."version" ("id", "json") VALUES ('xsbz-vqy7-xj3s', '{"value":{"tune":"rifw-ul36-3uq5","key":"Dm","sources":[{"source":"2wrv-25yu-yc07","structure":"AAAA"}],"content":["No_content"]},"meta":{"created-at":"2026-05-10T11:47:35","modified-at":"2026-05-10T11:47:35"},"access":["Public"]}');
+INSERT INTO "dancelor"."version" ("id", "json") VALUES ('jyot-ypt9-caxu', '{"value":{"tune":"rifw-ul36-3uq5","key":"Dm","arrangers":["uwoe-u6ij-ikgp"],"disambiguation":"destructured","content":["Destructured",{"parts":[{"melody":"\\repeat volta 2 {\n  a16 a8. g a16 b4 c8. b16 |\n  a4 f8. e16 d4 d8. e16 |\n  f4 f8. g16 e8 c4 e8 |\n} \\alternative { {\n  d4 a'' d2 |\n} {\n  d,4 a'' d,\n} }","chords":"d2:m g | d1:m | f2 c | d1:m | d2.:m"},{"melody":"\\partial 4 a4 |\na16 d8. d c16 d8. e16 f8. a,16 |\na16 d8. d c16 d8. c16 a4 |\na16 d8. d c16 d8. e16 f8. g16 |\na16 a8. f8. c16 a''4. a,8 |\n\\break\n\na16 d8. d c16 d8. e16 f8. a,16 |\na16 d8. d c16 d8. c16 a4 |\na16 d8. d c16 d8. e16 f8. g16 |\ne16 c8. g''8. e16 d2 |","chords":"s4 | d1:m | d2:m a:m | d1:m | f |\nd1:m | d2:m a:m | d1:m | c2 d:m |"}],"transitions":[],"default_structure":"ABAB"}]},"meta":{"created-at":"2026-05-12T10:11:02","modified-at":"2026-05-12T10:11:02"},"access":["Public"]}');
+INSERT INTO "dancelor"."version" ("id", "json") VALUES ('or5b-64lk-hlj5', '{"value":{"tune":"gm7o-khcu-8faz","key":"Dm","disambiguation":"destructured w/ transitions","content":["Destructured",{"parts":[{"melody":"a,4 d8 a f'' a, d a |\nbes4 d8 bes f'' bes, d bes |\nc4 e8 c g'' c, e g |\nf8 e d c d c a g |\n\\break\n\na4 d8 a f'' a, d a |\nbes4 d8 bes f'' bes, d bes |\nc4 e8 c g'' c, e g |","chords":"d1:m | bes | c | d2:m a:m |\nd1:m | bes | c |"},{"melody":"d''8 a a a f a d, a'' |\nd8 a a a f a d, a'' |\nc8 g g g c g e'' g, |\nc8 g g g c[ r c cis] |\n\\break\n\nd8 a a a f a d, a'' |\nd8 a a a f[ a] d, r |\nbes8 a bes c d c d e |\nf8 e d c a[ d] d4 |","chords":"d1:m | s | c | s |\nd1:m | s | g:m | a2:m d:m |"}],"transitions":[["A","A",{"melody":"f8 e d c d2 |","chords":"a2:m d:m |"}],["A","B",{"melody":"f8 e d c d4 a'' |","chords":"a2:m d4:m a:7 |"}]],"default_structure":"AABBAB"}]},"meta":{"created-at":"2026-05-12T12:07:50","modified-at":"2026-05-12T12:07:50"},"access":["Public"]}');
 
 
 --
