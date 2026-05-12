@@ -239,4 +239,9 @@ let update id version =
 
 let delete id =
   Connection.with_ @@ fun db ->
-  ignore <$> Version_sql.delete db ~id: (Entry.Id.to_string id)
+  let version_id = Entry.Id.to_string id in
+  ignore <$> Version_sql.delete_all_arrangers db ~version_id;%lwt
+  ignore <$> Version_sql.delete_all_sources db ~version_id;%lwt
+  ignore <$> Version_sql.delete_all_destructured_parts db ~version_id;%lwt
+  ignore <$> Version_sql.delete_all_destructured_transitions db ~version_id;%lwt
+  ignore <$> Version_sql.delete db ~id: version_id

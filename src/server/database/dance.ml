@@ -127,4 +127,7 @@ let update id dance =
 
 let delete id =
   Connection.with_ @@ fun db ->
-  ignore <$> Dance_sql.delete db ~id: (Entry.Id.to_string id)
+  let dance_id = Entry.Id.to_string id in
+  ignore <$> Dance_sql.delete_all_extra_names db ~dance_id;%lwt
+  ignore <$> Dance_sql.delete_all_devisers db ~dance_id;%lwt
+  ignore <$> Dance_sql.delete db ~id: dance_id

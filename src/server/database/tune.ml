@@ -123,4 +123,8 @@ let update id tune =
 
 let delete id =
   Connection.with_ @@ fun db ->
-  ignore <$> Tune_sql.delete db ~id: (Entry.Id.to_string id)
+  let tune_id = Entry.Id.to_string id in
+  ignore <$> Tune_sql.delete_all_extra_names db ~tune_id;%lwt
+  ignore <$> Tune_sql.delete_all_composers db ~tune_id;%lwt
+  ignore <$> Tune_sql.delete_all_dances db ~tune_id;%lwt
+  ignore <$> Tune_sql.delete db ~id: tune_id
