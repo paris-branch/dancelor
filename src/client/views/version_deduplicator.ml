@@ -197,8 +197,9 @@ let confirmation_dialog ~this_version ~other_version =
     (fun set ->
       add_changes
         ~action: (fun () ->
-          let%lwt contents = Model.Set.contents' set in
+          let%lwt contents = Lwt_list.map_p (fun (version, params) -> let%lwt version = Option.get <$> Model.Version.get version in lwt (version, params)) (Model.Set.contents' set) in
           let contents = List.map replace_version_and_params contents in
+          let contents = List.map (Pair.map_fst Entry.id) contents in
           ignore
           <$> Madge_client.call_exn
               Endpoints.Api.(route @@ Set Update)

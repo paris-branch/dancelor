@@ -14,10 +14,47 @@ CREATE TABLE "person" (
     CONSTRAINT "fk_person_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
-CREATE TABLE "book" (
+CREATE TABLE "user" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "json" JSON NOT NULL,
-    CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+    "username" VARCHAR(256) NOT NULL UNIQUE,
+    "password" VARCHAR(256),
+    "password_reset_token_hash" VARCHAR(256),
+    "password_reset_token_max_date" TIMESTAMP,
+    "created_at" TIMESTAMP NOT NULL,
+    "modified_at" TIMESTAMP NOT NULL,
+    "role" SMALLINT NOT NULL,
+    "omniscience" BOOLEAN NOT NULL,
+    "person_id" VARCHAR(14) NULL,
+    CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id"),
+    CONSTRAINT "fk_user_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
+);
+
+CREATE TABLE "remember_me_tokens" (
+    "user_id" VARCHAR(14) NOT NULL,
+    "key" VARCHAR(256) NOT NULL,
+    "hash" VARCHAR(256) NOT NULL,
+    "max_date" TIMESTAMP NOT NULL,
+    CONSTRAINT "fk_user_id" FOREIGN KEY ("user_id") REFERENCES "user" ("id")
+);
+
+CREATE TABLE "source" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "cover" BYTEA DEFAULT NULL,
+    "name" VARCHAR(256) NOT NULL,
+    "short_name" VARCHAR(64),
+    "scddb_id" INT,
+    "description" TEXT,
+    "date" VARCHAR(32),
+    "created_at" TIMESTAMP NOT NULL,
+    "modified_at" TIMESTAMP NOT NULL,
+    CONSTRAINT "fk_source_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+);
+
+CREATE TABLE "source_editors" (
+    "source_id" VARCHAR(14) NOT NULL,
+    "person_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_source_editors_source_id" FOREIGN KEY ("source_id") REFERENCES "source" ("id"),
+    CONSTRAINT "fk_source_editors_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
 );
 
 CREATE TABLE "dance" (
@@ -45,32 +82,6 @@ CREATE TABLE "dance_extra_names" (
     "dance_id" VARCHAR(14) NOT NULL,
     "extra_name" VARCHAR(256) NOT NULL,
     CONSTRAINT "fk_dance_extra_names_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id")
-);
-
-CREATE TABLE "set" (
-    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "json" JSON NOT NULL,
-    CONSTRAINT "fk_set_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
-);
-
-CREATE TABLE "source" (
-    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "cover" BYTEA DEFAULT NULL,
-    "name" VARCHAR(256) NOT NULL,
-    "short_name" VARCHAR(64),
-    "scddb_id" INT,
-    "description" TEXT,
-    "date" VARCHAR(32),
-    "created_at" TIMESTAMP NOT NULL,
-    "modified_at" TIMESTAMP NOT NULL,
-    CONSTRAINT "fk_source_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
-);
-
-CREATE TABLE "source_editors" (
-    "source_id" VARCHAR(14) NOT NULL,
-    "person_id" VARCHAR(14) NOT NULL,
-    CONSTRAINT "fk_source_editors_source_id" FOREIGN KEY ("source_id") REFERENCES "source" ("id"),
-    CONSTRAINT "fk_source_editors_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
 );
 
 CREATE TABLE "tune" (
@@ -105,29 +116,6 @@ CREATE TABLE "recommended_tunes" (
     "tune_id" VARCHAR(14) NOT NULL,
     CONSTRAINT "fk_recommended_tunes_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id"),
     CONSTRAINT "fk_recommended_tunes_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id")
-);
-
-CREATE TABLE "user" (
-    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "username" VARCHAR(256) NOT NULL UNIQUE,
-    "password" VARCHAR(256),
-    "password_reset_token_hash" VARCHAR(256),
-    "password_reset_token_max_date" TIMESTAMP,
-    "created_at" TIMESTAMP NOT NULL,
-    "modified_at" TIMESTAMP NOT NULL,
-    "role" SMALLINT NOT NULL,
-    "omniscience" BOOLEAN NOT NULL,
-    "person_id" VARCHAR(14) NULL,
-    CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id"),
-    CONSTRAINT "fk_user_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
-);
-
-CREATE TABLE "remember_me_tokens" (
-    "user_id" VARCHAR(14) NOT NULL,
-    "key" VARCHAR(256) NOT NULL,
-    "hash" VARCHAR(256) NOT NULL,
-    "max_date" TIMESTAMP NOT NULL,
-    CONSTRAINT "fk_user_id" FOREIGN KEY ("user_id") REFERENCES "user" ("id")
 );
 
 CREATE TABLE "version" (
@@ -176,4 +164,66 @@ CREATE TABLE "version_destructured_transitions" (
     "melody" VARCHAR NOT NULL,
     "chords" VARCHAR NOT NULL,
     CONSTRAINT "fk_version_destructured_transitions_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id")
+);
+
+CREATE TABLE "set" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "name" VARCHAR NOT NULL,
+    "kind" VARCHAR NOT NULL,
+    "order" VARCHAR NOT NULL,
+    "instructions" VARCHAR NOT NULL,
+    "remark" VARCHAR NOT NULL,
+    "created_at" TIMESTAMP NOT NULL,
+    "modified_at" TIMESTAMP NOT NULL,
+    "visibility" INT NOT NULL,
+    CONSTRAINT "fk_set_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+);
+
+CREATE TABLE "set_conceptors" (
+    "set_id" VARCHAR(14) NOT NULL,
+    "conceptor_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_set_conceptors_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
+    CONSTRAINT "fk_set_conceptors_conceptor_id" FOREIGN KEY ("conceptor_id") REFERENCES "person" ("id")
+);
+
+CREATE TABLE "set_dances" (
+    "set_id" VARCHAR(14) NOT NULL,
+    "dance_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_set_dances_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
+    CONSTRAINT "fk_set_dances_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id")
+);
+
+CREATE TABLE "set_content" (
+    "set_id" VARCHAR(14) NOT NULL,
+    "index" INT NOT NULL,
+    "version_id" VARCHAR(14) NOT NULL,
+    "version_parameter_transposition_semitones" INT,
+    "version_parameter_first_bar" INT,
+    "version_parameter_clef" VARCHAR,
+    "version_parameter_structure" VARCHAR,
+    "version_parameter_trivia" VARCHAR,
+    "version_parameter_display_name" VARCHAR,
+    "version_parameter_display_composer" VARCHAR,
+    CONSTRAINT "fk_set_content_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
+    CONSTRAINT "fk_set_content_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id")
+);
+
+CREATE TABLE "set_viewers" (
+    "set_id" VARCHAR(14) NOT NULL,
+    "viewer_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_set_viewers_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
+    CONSTRAINT "fk_set_viewers_viewer_id" FOREIGN KEY ("viewer_id") REFERENCES "user" ("id")
+);
+
+CREATE TABLE "set_owners" (
+    "set_id" VARCHAR(14) NOT NULL,
+    "owner_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_set_owners_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
+    CONSTRAINT "fk_set_owners_owner_id" FOREIGN KEY ("owner_id") REFERENCES "user" ("id")
+);
+
+CREATE TABLE "book" (
+    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
+    "json" JSON NOT NULL,
+    CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );

@@ -170,10 +170,15 @@ let editor user =
   ) ^::
   nil
 
-let assemble (name, (kind, (conceptors, (contents, (order, (owners, (visibility, ()))))))) = (
-  Model.Set.make ~name ~kind ~conceptors ~contents ~order (),
-  Entry.Access.Private.make ~owners: (NEList.map Entry.id owners) ~visibility: (visibility'_to_visibility visibility) ()
-)
+let assemble (name, (kind, (conceptors, (contents, (order, (owners, (visibility, ()))))))) =
+  let conceptors = List.map Entry.id conceptors in
+  let contents = List.map (Pair.map_fst Entry.id) contents in
+  (* FIXME: This erases the existing instructions, dances, and remarks, but
+     probably we have no sets those? Check and get rid of the columns. *)
+  (
+    Model.Set.make ~name ~kind ~conceptors ~contents ~order ~instructions: "" ~dances: [] ~remark: "" (),
+    Entry.Access.Private.make ~owners: (NEList.map Entry.id owners) ~visibility: (visibility'_to_visibility visibility) ()
+  )
 
 let submit mode (set, access) =
   match mode with
@@ -186,8 +191,8 @@ let unsubmit entry =
 let disassemble (set, access) =
   let name = Model.Set.name set in
   let kind = Model.Set.kind set in
-  let%lwt conceptors = Model.Set.conceptors set in
-  let%lwt contents = Model.Set.contents set in
+  let%lwt conceptors = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Set.conceptors set) in
+  let%lwt contents = Lwt_list.map_p (fun (version, params) -> let%lwt version = Option.get <$> Model.Version.get version in lwt (version, params)) (Model.Set.contents set) in
   let order = Model.Set.order set in
   let%lwt owners = NEList.of_list_exn <$> Lwt_list.map_p (fun user -> Option.get <$> Model.User.get user) (NEList.to_list @@ Entry.Access.Private.owners access) in
   let%lwt visibility = visibility_to_visibility' @@ Entry.Access.Private.visibility access in

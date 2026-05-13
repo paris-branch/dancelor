@@ -65,10 +65,10 @@ module Make (Model : Model_builder.S) = struct
       | Core.Set.Name sfilter ->
         Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Set.name set
       | Conceptors pfilter ->
-        let%lwt conceptors = Model.Set.conceptors set in
+        let%lwt conceptors = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Set.conceptors set) in
         Formula_list.accepts accepts_person' pfilter conceptors
       | Versions vfilter ->
-        let%lwt versions = List.map fst <$> Model.Set.contents set in
+        let%lwt versions = Lwt_list.map_p (Option.get <%> Model.Version.get % fst) (Model.Set.contents set) in
         Formula_list.accepts (Formula_entry.accepts_public accepts_version) vfilter versions
       | Kind kfilter ->
         Kind.Dance.Filter.accepts kfilter @@ Model.Set.kind set

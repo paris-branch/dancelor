@@ -656,3 +656,154 @@ CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
 CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
 ADD CONSTRAINT "fk_version_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id"),
 DROP COLUMN "json";
+
+-- @m035_2026_05_split_set_json_into_fields__add_columns
+ALTER TABLE "set"
+ADD COLUMN "name" VARCHAR,
+ADD COLUMN "kind" VARCHAR,
+ADD COLUMN "order" VARCHAR,
+ADD COLUMN "instructions" VARCHAR,
+ADD COLUMN "remark" VARCHAR,
+ADD COLUMN "created_at" TIMESTAMP,
+ADD COLUMN "modified_at" TIMESTAMP,
+ADD COLUMN "visibility" INT;
+
+-- @m035_2026_05_split_set_json_into_fields__add_conceptors_table
+CREATE TABLE "set_conceptors" (
+    "set_id" VARCHAR(14) NOT NULL,
+    "conceptor_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_set_conceptors_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
+    CONSTRAINT "fk_set_conceptors_conceptor_id" FOREIGN KEY ("conceptor_id") REFERENCES "person" ("id")
+);
+
+-- @m035_2026_05_split_set_json_into_fields__add_dances_table
+CREATE TABLE "set_dances" (
+    "set_id" VARCHAR(14) NOT NULL,
+    "dance_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_set_dances_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
+    CONSTRAINT "fk_set_dances_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id")
+);
+
+-- @m035_2026_05_split_set_json_into_fields__add_content_table
+CREATE TABLE "set_content" (
+    "set_id" VARCHAR(14) NOT NULL,
+    "index" INT NOT NULL,
+    "version_id" VARCHAR(14) NOT NULL,
+    "version_parameter_transposition_semitones" INT,
+    "version_parameter_first_bar" INT,
+    "version_parameter_clef" VARCHAR,
+    "version_parameter_structure" VARCHAR,
+    "version_parameter_trivia" VARCHAR,
+    "version_parameter_display_name" VARCHAR,
+    "version_parameter_display_composer" VARCHAR,
+    CONSTRAINT "fk_set_content_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
+    CONSTRAINT "fk_set_content_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id")
+);
+
+-- @m035_2026_05_split_set_json_into_fields__add_viewers_table
+CREATE TABLE "set_viewers" (
+    "set_id" VARCHAR(14) NOT NULL,
+    "viewer_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_set_viewers_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
+    CONSTRAINT "fk_set_viewers_viewer_id" FOREIGN KEY ("viewer_id") REFERENCES "user" ("id")
+);
+
+-- @m035_2026_05_split_set_json_into_fields__add_owners_table
+CREATE TABLE "set_owners" (
+    "set_id" VARCHAR(14) NOT NULL,
+    "owner_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_set_owners_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
+    CONSTRAINT "fk_set_owners_owner_id" FOREIGN KEY ("owner_id") REFERENCES "user" ("id")
+);
+
+-- @m035_2026_05_split_set_json_into_fields__get_all
+SELECT
+    "id",
+    "json"
+FROM "set";
+
+-- @m035_2026_05_split_set_json_into_fields__update_one
+UPDATE "set"
+SET
+    "name" = @name,
+    "kind" = @kind,
+    "order" = @order,
+    "instructions" = @instructions,
+    "remark" = @remark,
+    "created_at" = @created_at,
+    "modified_at" = @modified_at,
+    "visibility" = @visibility
+WHERE "id" = @id;
+
+-- @m035_2026_05_split_set_json_into_fields__add_one_conceptor
+INSERT INTO "set_conceptors" (
+    "set_id",
+    "conceptor_id"
+) VALUES (
+    @set_id,
+    @conceptor_id
+);
+
+-- @m035_2026_05_split_set_json_into_fields__add_one_dance
+INSERT INTO "set_dances" (
+    "set_id",
+    "dance_id"
+) VALUES (
+    @set_id,
+    @dance_id
+);
+
+-- @m035_2026_05_split_set_json_into_fields__add_one_content_item
+INSERT INTO "set_content" (
+    "set_id",
+    "index",
+    "version_id",
+    "version_parameter_transposition_semitones",
+    "version_parameter_first_bar",
+    "version_parameter_clef",
+    "version_parameter_structure",
+    "version_parameter_trivia",
+    "version_parameter_display_name",
+    "version_parameter_display_composer"
+) VALUES (
+    @set_id,
+    @index,
+    @version_id,
+    @version_parameter_transposition_semitones,
+    @version_parameter_first_bar,
+    @version_parameter_clef,
+    @version_parameter_structure,
+    @version_parameter_trivia,
+    @version_parameter_display_name,
+    @version_parameter_display_composer
+);
+
+-- @m035_2026_05_split_set_json_into_fields__add_one_viewer
+INSERT INTO "set_viewers" (
+    "set_id",
+    "viewer_id"
+) VALUES (
+    @set_id,
+    @viewer_id
+);
+
+-- @m035_2026_05_split_set_json_into_fields__add_one_owner
+INSERT INTO "set_owners" (
+    "set_id",
+    "owner_id"
+) VALUES (
+    @set_id,
+    @owner_id
+);
+
+-- @m035_2026_05_split_set_json_into_fields__cleanup_columns__for_sqlgg
+ALTER TABLE "set"
+CHANGE COLUMN "name" "name" VARCHAR NOT NULL,
+CHANGE COLUMN "kind" "kind" VARCHAR NOT NULL,
+CHANGE COLUMN "order" "order" VARCHAR NOT NULL,
+CHANGE COLUMN "instructions" "instructions" VARCHAR NOT NULL,
+CHANGE COLUMN "remark" "remark" VARCHAR NOT NULL,
+CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
+CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
+CHANGE COLUMN "visibility" "visibility" INT NOT NULL,
+DROP COLUMN "json";

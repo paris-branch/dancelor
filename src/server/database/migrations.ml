@@ -160,6 +160,48 @@ type m034_2026_05_split_version_json_into_fields__version = {
 }
 [@@deriving of_yojson]
 
+type m035_2026_05_split_set_json_into_fields__version_parameters = {
+  transposition: int option; [@default None]
+  first_bar: int option; [@default None] [@key "first-bar"]
+  clef: string option; [@default None]
+  structure: string option; [@default None]
+  trivia: string option; [@default None]
+  display_name: string option; [@default None] [@key "display-name"]
+  display_composer: string option [@default None] [@key "display-composer"]
+}
+[@@deriving of_yojson]
+
+type m035_2026_05_split_set_json_into_fields__set_value = {
+  name: string;
+  conceptors: string list; [@default []]
+  kind: string;
+  contents: (string * m035_2026_05_split_set_json_into_fields__version_parameters) list; [@key "versions-and-parameters"] [@default []]
+  order: string;
+  instructions: string; [@default ""]
+  dances: string list; [@default []]
+  remark: string; [@default ""]
+}
+[@@deriving of_yojson]
+
+type m035_2026_05_split_set_json_into_fields__access_private_visibility =
+  | Owners_only
+  | Everyone
+  | Select_viewers of string list
+[@@deriving of_yojson]
+
+type m035_2026_05_split_set_json_into_fields__access_private = {
+  owners: string list;
+  visibility: m035_2026_05_split_set_json_into_fields__access_private_visibility; [@default Owners_only]
+}
+[@@deriving of_yojson]
+
+type m035_2026_05_split_set_json_into_fields__set = {
+  value: m035_2026_05_split_set_json_into_fields__set_value;
+  meta: m026_2026_04_split_user_json_into_fields__user_meta;
+  access: m035_2026_05_split_set_json_into_fields__access_private;
+}
+[@@deriving of_yojson]
+
 type migration = {
   name: string;
   apply: (Connection.t -> unit Lwt.t);
@@ -634,6 +676,118 @@ let migrations : migration list = [
             ALTER COLUMN "created_at" SET NOT NULL,
             ALTER COLUMN "modified_at" SET NOT NULL,
             ADD CONSTRAINT "fk_version_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id"),
+            DROP COLUMN "json";
+        |}
+    );
+    lwt_unit
+  );
+  make_custom "m035_2026_05_split_set_json_into_fields" (fun db ->
+    let%lwt _ = Migrations_sql.m035_2026_05_split_set_json_into_fields__add_columns db in
+    let%lwt _ = Migrations_sql.m035_2026_05_split_set_json_into_fields__add_conceptors_table db in
+    let%lwt _ = Migrations_sql.m035_2026_05_split_set_json_into_fields__add_dances_table db in
+    let%lwt _ = Migrations_sql.m035_2026_05_split_set_json_into_fields__add_content_table db in
+    let%lwt _ = Migrations_sql.m035_2026_05_split_set_json_into_fields__add_viewers_table db in
+    let%lwt _ = Migrations_sql.m035_2026_05_split_set_json_into_fields__add_owners_table db in
+    let%lwt all = Migrations_sql.List.m035_2026_05_split_set_json_into_fields__get_all db (fun ~id ~json -> (id, json)) in
+    Lwt_list.iter_s
+      (fun (id, json) ->
+        let set =
+          match m035_2026_05_split_set_json_into_fields__set_of_yojson json with
+          | Ok set -> set
+          | Error msg ->
+            Log.err (fun m -> m "Could not unserialise: %s" msg);
+            assert false
+        in
+        let (visibility, viewers) =
+          match set.access.visibility with
+          | Owners_only -> (0, [])
+          | Everyone -> (1, [])
+          | Select_viewers viewers -> (2, viewers)
+        in
+        ignore
+        <$> Migrations_sql.m035_2026_05_split_set_json_into_fields__update_one
+            db
+            ~id
+            ~name: (Some set.value.name)
+            ~kind: (Some set.value.kind)
+            ~order: (Some set.value.order)
+            ~instructions: (Some set.value.instructions)
+            ~remark: (Some set.value.remark)
+            ~created_at: (Some set.meta.created_at)
+            ~modified_at: (Some set.meta.modified_at)
+            ~visibility: (some @@ Int64.of_int visibility);%lwt
+        Lwt_list.iter_s
+          (fun conceptor ->
+            ignore
+            <$> Migrations_sql.m035_2026_05_split_set_json_into_fields__add_one_conceptor
+                db
+                ~set_id: id
+                ~conceptor_id: conceptor
+          )
+          set.value.conceptors;%lwt
+        Lwt_list.iter_s
+          (fun dance ->
+            ignore
+            <$> Migrations_sql.m035_2026_05_split_set_json_into_fields__add_one_dance
+                db
+                ~set_id: id
+                ~dance_id: dance
+          )
+          set.value.dances;%lwt
+        Lwt_list.iteri_s
+          (fun index (version, params) ->
+            ignore
+            <$> Migrations_sql.m035_2026_05_split_set_json_into_fields__add_one_content_item
+                db
+                ~set_id: id
+                ~index: (Int64.of_int index)
+                ~version_id: version
+                ~version_parameter_transposition_semitones: (Option.map Int64.of_int params.transposition)
+                ~version_parameter_first_bar: (Option.map Int64.of_int params.first_bar)
+                ~version_parameter_clef: params.clef
+                ~version_parameter_structure: params.structure
+                ~version_parameter_trivia: params.trivia
+                ~version_parameter_display_name: params.display_name
+                ~version_parameter_display_composer: params.display_composer
+          )
+          set.value.contents;%lwt
+        Lwt_list.iter_s
+          (fun viewer ->
+            ignore
+            <$> Migrations_sql.m035_2026_05_split_set_json_into_fields__add_one_viewer
+                db
+                ~set_id: id
+                ~viewer_id: viewer
+          )
+          viewers;%lwt
+        Lwt_list.iter_s
+          (fun owner ->
+            ignore
+            <$> Migrations_sql.m035_2026_05_split_set_json_into_fields__add_one_owner
+                db
+                ~set_id: id
+                ~owner_id: owner
+          )
+          set.access.owners
+      )
+      all;%lwt
+    (* NOTE: As of May 2026, Sqlgg does not support `ALTER COLUMN` but only
+       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
+       SQL for Sqlgg to infer the right column types, but exec a
+       PostgreSQL-compatible one manually here. *)
+    ignore (
+      Connection.bypass_exec
+        db
+        {|
+          ALTER TABLE "set"
+            ALTER COLUMN "name" SET NOT NULL,
+            ALTER COLUMN "kind" SET NOT NULL,
+            ALTER COLUMN "order" SET NOT NULL,
+            ALTER COLUMN "instructions" SET NOT NULL,
+            ALTER COLUMN "remark" SET NOT NULL,
+            ALTER COLUMN "created_at" SET NOT NULL,
+            ALTER COLUMN "modified_at" SET NOT NULL,
+            ALTER COLUMN "visibility" SET NOT NULL,
             DROP COLUMN "json";
         |}
     );

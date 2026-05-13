@@ -12,6 +12,7 @@ module type S = sig
     ?clef: Music.Clef.t ->
     ?structure: Core.Version.Structure.t ->
     ?first_bar: int ->
+    ?trivia: string ->
     ?display_name: NEString.t ->
     ?display_composer: NEString.t ->
     unit ->

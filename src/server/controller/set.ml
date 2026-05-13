@@ -10,12 +10,14 @@ let get env id =
 
 let create env set access =
   Permission.assert_can_create_private env;%lwt
-  Database.Set.create set access
+  let%lwt id = Database.Set.create set access in
+  Option.get <$> Database.Set.get id
 
 let update env id set access =
   let%lwt entry = get env id in
   Permission.assert_can_update_private env entry;%lwt
-  Database.Set.update id set access
+  Database.Set.update id set access;%lwt
+  Option.get <$> Database.Set.get id
 
 let delete env id =
   Permission.assert_can_delete_private env =<< get env id;%lwt
@@ -48,7 +50,7 @@ let build_pdf env id set_params rendering_params =
       NEString.to_string @@
         Option.value (Model.Set_parameters.display_name set_params) ~default: (Model.Set.name' set)
     in
-    let%lwt authors = Model_to_renderer.format_persons_list <$> Model.Set.conceptors' set in
+    let%lwt authors = Model_to_renderer.format_persons_list <$> Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Set.conceptors' set) in
     let subjects =
       match Kind.Dance.to_simple @@ Model.Set.kind' set with
       | None -> ["Medley"]

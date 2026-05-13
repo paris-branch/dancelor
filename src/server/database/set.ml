@@ -6,37 +6,228 @@ module Set_sql = Set_sql.Sqlgg(Sqlgg_postgresql)
 type t = Model_builder.Core.Set.t
 type entry = Model_builder.Core.Set.entry
 
-let of_json id json =
-  Result.get_ok @@ Entry.of_yojson_no_id id Model_builder.Core.Set.of_yojson Model_builder.Core.Set.access_of_yojson json
+let row_to_set
+    ~id
+    ~name
+    ~kind
+    ~order
+    ~instructions
+    ~remark
+    ~created_at
+    ~modified_at
+    ~visibility
+    ~conceptors
+    ~content
+    ~dances
+    ~owners
+    ~viewers
+  =
+  let visibility : Entry.Access.Private.visibility =
+    match (visibility, viewers) with
+    | (0L, []) -> Owners_only
+    | (1L, []) -> Everyone
+    | (2L, _) ->
+      (
+        match viewers with
+        | [] -> assert false
+        | _ -> Select_viewers (NEList.of_list_exn viewers)
+      )
+    | _ -> assert false
+  in
+  Entry.make
+    ~id: (Entry.Id.of_string_exn id)
+    ~meta: (Entry.Meta.make ~created_at ~modified_at ())
+    ~access: (Entry.Access.Private.make ~owners ~visibility ())
+    (
+      Model_builder.Core.Set.make
+        ~name: (NEString.of_string_exn name)
+        ~conceptors
+        ~kind: (Kind_dance.of_string kind)
+        ~contents: content
+        ~order: (Model_builder.Core.Set_order.of_string order)
+        ~instructions
+        ~dances
+        ~remark
+        ()
+    )
+
+let set_to_row ~create_or_update db id set access =
+  let (visibility, viewers) =
+    match Entry.Access.Private.visibility access with
+    | Owners_only -> (0L, [])
+    | Everyone -> (1L, [])
+    | Select_viewers viewers -> (2L, NEList.to_list viewers)
+  in
+  (* FIXME: transaction, maybe [Connection.with_transaction] *)
+  let id = Entry.Id.to_string id in
+  ignore
+  <$> create_or_update
+      db
+      ~id
+      ~name: (NEString.to_string @@ Model_builder.Core.Set.name set)
+      ~kind: (Kind_dance.to_string @@ Model_builder.Core.Set.kind set)
+      ~order: (Model_builder.Core.Set_order.to_string @@ Model_builder.Core.Set.order set)
+      ~instructions: (Model_builder.Core.Set.instructions set)
+      ~remark: (Model_builder.Core.Set.remark set)
+      ~visibility;%lwt
+  ignore <$> Set_sql.delete_all_conceptors db ~set_id: id;%lwt
+  Lwt_list.iter_s
+    (fun conceptor ->
+      ignore
+      <$> Set_sql.add_one_conceptor
+          db
+          ~set_id: id
+          ~conceptor_id: (Entry.Id.to_string conceptor)
+    )
+    (Model_builder.Core.Set.conceptors set);%lwt
+  ignore <$> Set_sql.delete_all_dances db ~set_id: id;%lwt
+  Lwt_list.iter_s
+    (fun dance ->
+      ignore
+      <$> Set_sql.add_one_dance
+          db
+          ~set_id: id
+          ~dance_id: (Entry.Id.to_string dance)
+    )
+    (Model_builder.Core.Set.dances set);%lwt
+  ignore <$> Set_sql.delete_all_content db ~set_id: id;%lwt
+  Lwt_list.iteri_s
+    (fun index (version, params) ->
+      ignore
+      <$> Set_sql.add_one_content_item
+          db
+          ~set_id: id
+          ~index: (Int64.of_int index)
+          ~version_id: (Entry.Id.to_string version)
+          ~version_parameter_transposition_semitones: (Option.map (Int64.of_int % Transposition.to_semitones) @@ Model_builder.Core.Version_parameters.transposition params)
+          ~version_parameter_first_bar: (Option.map Int64.of_int @@ Model_builder.Core.Version_parameters.first_bar params)
+          ~version_parameter_clef: (Option.map Music.Clef.to_string @@ Model_builder.Core.Version_parameters.clef params)
+          ~version_parameter_structure: (Option.map (NEString.to_string % Model_builder.Core.Version.Structure.to_string) @@ Model_builder.Core.Version_parameters.structure params)
+          ~version_parameter_trivia: (Model_builder.Core.Version_parameters.trivia params)
+          ~version_parameter_display_name: (Option.map NEString.to_string @@ Model_builder.Core.Version_parameters.display_name params)
+          ~version_parameter_display_composer: (Option.map NEString.to_string @@ Model_builder.Core.Version_parameters.display_composer params)
+    )
+    (Model_builder.Core.Set.contents set);%lwt
+  ignore <$> Set_sql.delete_all_viewers db ~set_id: id;%lwt
+  Lwt_list.iter_s
+    (fun viewer ->
+      ignore
+      <$> Set_sql.add_one_viewer
+          db
+          ~set_id: id
+          ~viewer_id: (Entry.Id.to_string viewer)
+    )
+    viewers;%lwt
+  ignore <$> Set_sql.delete_all_owners db ~set_id: id;%lwt
+  Lwt_list.iter_s
+    (fun owner ->
+      ignore
+      <$> Set_sql.add_one_owner
+          db
+          ~set_id: id
+          ~owner_id: (Entry.Id.to_string owner)
+    )
+    (NEList.to_list @@ Entry.Access.Private.owners access)
 
 let get id : Model_builder.Core.Set.entry option Lwt.t =
+  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
-  Option.map (of_json id) <$> Set_sql.get db ~id: (Entry.Id.to_string id)
+  let%lwt conceptors = Set_sql.List.get_conceptors db ~set_id: id (fun ~conceptor_id -> Entry.Id.of_string_exn conceptor_id) in
+  let%lwt dances = Set_sql.List.get_dances db ~set_id: id (fun ~dance_id -> Entry.Id.of_string_exn dance_id) in
+  let%lwt owners = NEList.of_list_exn <$> Set_sql.List.get_owners db ~set_id: id (fun ~owner_id -> Entry.Id.of_string_exn owner_id) in
+  let%lwt viewers = Set_sql.List.get_viewers db ~set_id: id (fun ~viewer_id -> Entry.Id.of_string_exn viewer_id) in
+  let%lwt content =
+    Set_sql.List.get_content db ~set_id: id (fun
+        ~version_id
+        ~version_parameter_transposition_semitones
+        ~version_parameter_first_bar
+        ~version_parameter_clef
+        ~version_parameter_structure
+        ~version_parameter_trivia
+        ~version_parameter_display_name
+        ~version_parameter_display_composer
+      ->
+      (
+        Entry.Id.of_string_exn version_id,
+        Model_builder.Core.Version_parameters.make
+          ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) version_parameter_transposition_semitones)
+          ?first_bar: (Option.map Int64.to_int version_parameter_first_bar)
+          ?clef: (Option.map Music.Clef.of_string version_parameter_clef)
+          ?structure: (Option.map (Option.get % Model_builder.Core.Version.Structure.of_string % NEString.of_string_exn) version_parameter_structure)
+          ?trivia: version_parameter_trivia
+          ?display_name: (Option.map NEString.of_string_exn version_parameter_display_name)
+          ?display_composer: (Option.map NEString.of_string_exn version_parameter_display_composer)
+          ()
+      )
+    )
+  in
+  Set_sql.Single.get db ~id (row_to_set ~id ~conceptors ~dances ~viewers ~owners ~content)
 
 let get_all () =
   Connection.with_ @@ fun db ->
-  Set_sql.List.get_all db (fun ~id ~json -> of_json (Entry.Id.of_string_exn id) json)
+  let conceptors = Hashtbl.create 8 in
+  let dances = Hashtbl.create 8 in
+  let owners = Hashtbl.create 8 in
+  let viewers = Hashtbl.create 8 in
+  let content = Hashtbl.create 8 in
+  Set_sql.Fold.get_all_conceptors db (fun ~set_id ~conceptor_id () -> Hashtbl.add conceptors set_id @@ Entry.Id.of_string_exn conceptor_id) ();%lwt
+  Set_sql.Fold.get_all_dances db (fun ~set_id ~dance_id () -> Hashtbl.add dances set_id @@ Entry.Id.of_string_exn dance_id) ();%lwt
+  Set_sql.Fold.get_all_owners db (fun ~set_id ~owner_id () -> Hashtbl.add owners set_id @@ Entry.Id.of_string_exn owner_id) ();%lwt
+  Set_sql.Fold.get_all_viewers db (fun ~set_id ~viewer_id () -> Hashtbl.add viewers set_id @@ Entry.Id.of_string_exn viewer_id) ();%lwt
+  Set_sql.Fold.get_all_content
+    db
+    (fun
+        ~set_id
+        ~version_id
+        ~version_parameter_transposition_semitones
+        ~version_parameter_first_bar
+        ~version_parameter_clef
+        ~version_parameter_structure
+        ~version_parameter_trivia
+        ~version_parameter_display_name
+        ~version_parameter_display_composer
+        ()
+      ->
+      Hashtbl.add content set_id @@ (
+        Entry.Id.of_string_exn version_id,
+        Model_builder.Core.Version_parameters.make
+          ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) version_parameter_transposition_semitones)
+          ?first_bar: (Option.map Int64.to_int version_parameter_first_bar)
+          ?clef: (Option.map Music.Clef.of_string version_parameter_clef)
+          ?structure: (Option.map (Option.get % Model_builder.Core.Version.Structure.of_string % NEString.of_string_exn) version_parameter_structure)
+          ?trivia: version_parameter_trivia
+          ?display_name: (Option.map NEString.of_string_exn version_parameter_display_name)
+          ?display_composer: (Option.map NEString.of_string_exn version_parameter_display_composer)
+          ()
+      )
+    )
+    ();%lwt
+  Set_sql.List.get_all db (fun ~id ->
+    row_to_set
+      ~id
+      ~conceptors: (List.rev @@ Hashtbl.find_all conceptors id)
+      ~dances: (List.rev @@ Hashtbl.find_all dances id)
+      ~viewers: (List.rev @@ Hashtbl.find_all viewers id)
+      ~owners: (NEList.of_list_exn @@ List.rev @@ Hashtbl.find_all owners id)
+      ~content: (List.rev @@ Hashtbl.find_all content id)
+  )
 
 let create set access =
   Connection.with_ @@ fun db ->
   let%lwt id = Globally_unique_id.make db Set in
-  let set = Entry.make ~id ~access set in
-  let json = Entry.to_yojson_no_id Model_builder.Core.Set.to_yojson Model_builder.Core.Set.access_to_yojson set in
-  let%lwt _ = Set_sql.update db ~id: (Entry.Id.to_string id) ~json in
-  lwt set
+  set_to_row ~create_or_update: Set_sql.create db id set access;%lwt
+  lwt id
 
 let update id set access =
-  let set = Entry.make ~id ~access set in
-  let json = Entry.to_yojson_no_id Model_builder.Core.Set.to_yojson Model_builder.Core.Set.access_to_yojson set in
-  let%lwt _ =
-    Connection.with_ @@ fun db ->
-    Set_sql.update db ~id: (Entry.Id.to_string id) ~json
-  in
-  lwt set
+  Connection.with_ @@ fun db ->
+  set_to_row ~create_or_update: (fun db ~id -> Set_sql.update db ~id) db id set access
 
 let delete id =
-  let%lwt _ =
-    Connection.with_ @@ fun db ->
-    Set_sql.delete db ~id: (Entry.Id.to_string id)
-  in
-  lwt_unit
+  Connection.with_ @@ fun db ->
+  let set_id = Entry.Id.to_string id in
+  ignore <$> Set_sql.delete_all_conceptors db ~set_id;%lwt
+  ignore <$> Set_sql.delete_all_content db ~set_id;%lwt
+  ignore <$> Set_sql.delete_all_dances db ~set_id;%lwt
+  ignore <$> Set_sql.delete_all_owners db ~set_id;%lwt
+  ignore <$> Set_sql.delete_all_viewers db ~set_id;%lwt
+  ignore <$> Set_sql.delete db ~id: set_id

@@ -110,7 +110,7 @@ let set_to_renderer_set set set_params =
       Option.value ~default: (Model.Set.name set) (Model.Set_parameters.display_name set_params)
   in
   let%lwt conceptor =
-    let%lwt conceptors = Model.Set.conceptors set in
+    let%lwt conceptors = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Set.conceptors set) in
     lwt @@
       match Model.Set_parameters.display_conceptor set_params, conceptors with
       | None, [] -> ""
@@ -129,10 +129,11 @@ let set_to_renderer_set set set_params =
   let%lwt contents =
     Lwt_list.map_s
       (fun (version, version_params) ->
+        let%lwt version = Option.get <$> Model.Version.get version in
         let version_params = Model.Version_parameters.compose every_version_params version_params in
         version_to_renderer_tune' version ~version_params
       )
-    =<< Model.Set.contents set
+      (Model.Set.contents set)
   in
   lwt Renderer.{slug; name; conceptor; kind; contents}
 
@@ -169,6 +170,11 @@ let dance_to_renderer_set set_params =
         ~name: (NEString.of_string_exn "should not be seen")
         ~kind: (Version (0, Reel))
         ~order: []
+        ~conceptors: []
+        ~contents: []
+        ~instructions: ""
+        ~dances: []
+        ~remark: ""
         ()
     )
     set_params

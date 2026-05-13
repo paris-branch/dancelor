@@ -129,8 +129,7 @@ module Build (Getters : Getters.S) = struct
       (* register tunes in sets *)
       Lwt_list.iter_s
         (fun set ->
-          let%lwt contents = Built_set.contents' set in
-          let versions = List.map fst contents in
+          let%lwt versions = Lwt_list.map_p (Option.get <%> Getters.get_version % fst) (Built_set.contents' set) in
           Lwt_list.iter_s
             (fun v ->
               let%lwt tune = Option.get <$> Getters.get_tune @@ Core.Version.tune' v in
