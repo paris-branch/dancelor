@@ -8,9 +8,11 @@ let switch_signal_option = function
 
 let works set =
   with_span_placeholder @@
-    match%lwt Model.Set.dances set with
+    match Model.Set.dances set with
     | [] -> lwt_nil
-    | dances -> lwt [txt (spf "Works for %s" @@ String.concat ", " @@ List.map (NEString.to_string % Model.Dance.one_name') dances)]
+    | dances ->
+      let%lwt dances = Lwt_list.map_p (Option.get <%> Model.Dance.get) dances in
+      lwt [txt (spf "Works for %s" @@ String.concat ", " @@ List.map (NEString.to_string % Model.Dance.one_name') dances)]
 
 let works' = works % Entry.value
 
@@ -44,8 +46,8 @@ let name' ?(link = true) ?params ?context set =
 
 let tunes ?link set =
   with_span_placeholder @@
-    let%lwt contents = Model.Set.contents set in
-    List.map (List.singleton % Version.name' ?link % fst) contents
+    let%lwt versions = Lwt_list.map_p (Option.get <%> Model.Version.get % fst) (Model.Set.contents set) in
+    List.map (List.singleton % Version.name' ?link) versions
     |> List.interspersei (fun _ -> [txt " - "])
     |> List.flatten
     |> List.cons (txt "Tunes: ")
@@ -58,7 +60,7 @@ let tunes' ?link set = tunes ?link @@ Entry.value set
 let conceptors ?link ?short ?params tune =
   span (
     [with_span_placeholder
-      (List.singleton <$> (Person.names' ?links: link ?short <$> Model.Set.conceptors tune))] @
+      (List.singleton <$> (Person.names' ?links: link ?short <$> Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Set.conceptors tune)))] @
       display_conceptor ?params ()
   )
 

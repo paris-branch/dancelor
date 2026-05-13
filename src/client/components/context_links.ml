@@ -20,7 +20,9 @@ let get_neighbours any = function
     lwt_some List.{total; previous; index; next; element = any}
   | Endpoints.Page.In_set (set, index) ->
     let%olwt set = Set.get set in
-    let%olwt context = Set.find_context' index set in
+    let%olwt context = lwt @@ Set.find_context' index set in
+    let%olwt element = Model.Version.get context.element in
+    let context = List.map_context (const element) context in
     assert (any = Any.Version context.element);
     lwt_some @@ List.map_context Any.version context
   | Endpoints.Page.In_book (book, index) ->

@@ -56,6 +56,19 @@ let bypass_exec (db : t) (query : string) =
   (* NOTE: Using [bypass_exec] is always at least a warning. *)
   match result#status with
   | Empty_query | Command_ok | Tuples_ok | Copy_out | Copy_in | Copy_both | Single_tuple ->
-    Log.warn (fun m -> m "bypass_exec: %s" (Postgresql.result_status result#status))
+    Log.warn (fun m ->
+      m
+        "bypass_exec: %s@\n%a"
+        (Postgresql.result_status result#status)
+        (Format.pp_multiline_sensible "while executing")
+        query
+    )
   | Bad_response | Nonfatal_error | Fatal_error ->
-    Log.err (fun m -> m "bypass_exec: %a" (Format.pp_multiline_sensible (Postgresql.result_status result#status)) result#error)
+    Log.err (fun m ->
+      m
+        "bypass_exec: %a@\n%a"
+        (Format.pp_multiline_sensible (Postgresql.result_status result#status))
+        result#error
+        (Format.pp_multiline_sensible "while executing")
+        query
+    )

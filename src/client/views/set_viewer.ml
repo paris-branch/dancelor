@@ -25,9 +25,11 @@ let view context id =
         ];
       (
         with_span_placeholder @@
-          match%lwt Set.conceptors' set with
+          match Set.conceptors' set with
           | [] -> lwt_nil
-          | devisers -> lwt [txt "Set by "; Formatters.Person.names' ~links: true devisers]
+          | conceptors ->
+            let%lwt conceptors = Lwt_list.map_p (Option.get <%> Model.Person.get) conceptors in
+            lwt [txt "Set by "; Formatters.Person.names' ~links: true conceptors]
       );
     ]
     ~share: (Set set)
@@ -93,9 +95,9 @@ let view context id =
                   div_placeholder ~min: 10 ~max: 20 ();
                 ];
             ] @@
-            let%lwt contents = Set.contents' set in
             Lwt_list.mapi_p
               (fun index (version, params) ->
+                let%lwt version = Option.get <$> Model.Version.get version in
                 let context = Endpoints.Page.in_set id index in
                 lwt @@
                   div
@@ -118,7 +120,7 @@ let view context id =
                       Components.Version_snippets.make ~show_audio: false ~params version;
                     ]
               )
-              contents
+              (Set.contents' set)
         );
       quick_explorer_links'
         (lwt set)

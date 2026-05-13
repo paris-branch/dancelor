@@ -21,8 +21,8 @@ type t = {
    [@yojson.default]. Current version of [@@deriving yojson] (3.5.3) does not,
    however, seem to recognise this option anymore. In the meantime, we use
    [@default] and we add a dirty fix for [@@deriving make]: *)
-let make ?transposition ?clef ?structure ?first_bar ?display_name ?display_composer () =
-  make ~transposition ~clef ~structure ~first_bar ~display_name ~display_composer ()
+let make ?transposition ?clef ?structure ?first_bar ?trivia ?display_name ?display_composer () =
+  make ~transposition ~clef ~structure ~first_bar ~trivia ~display_name ~display_composer ()
 
 (** {2 Defaults}
 
