@@ -44,7 +44,7 @@ let build_pdf env id book_params rendering_params =
   get env id >>= fun book ->
   let%lwt pdf_metadata =
     let title = NEString.to_string @@ Model.Book.title' book in
-    let%lwt authors = Model_to_renderer.format_persons_list <$> Model.Book.authors' book in
+    let%lwt authors = Model_to_renderer.format_persons_list <$> Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Book.authors' book) in
     lwt Renderer.{title; authors; subjects = []}
   in
   let%lwt book = Model_to_renderer.book_to_renderer_book' book book_params in

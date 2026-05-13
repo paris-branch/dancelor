@@ -5,10 +5,16 @@ open Utils
 open Model
 
 let book_page_to_any = function
-  | Book.Part _ -> None
-  | Book.Dance (dance, _) -> Some (Any.Dance dance) (* FIXME: a “page” viewer *)
-  | Book.Set (set, _) -> Some (Any.Set set)
-  | Book.Versions versions_and_params -> Some (Any.version @@ fst @@ NEList.hd versions_and_params) (* FIXME: others? fixed by a page viewer *)
+  | Book.Part _ -> lwt_none
+  | Book.Dance (dance, _) ->
+    let%lwt dance = Option.get <$> Model.Dance.get dance in
+    lwt_some (Any.Dance dance) (* FIXME: a “page” viewer *)
+  | Book.Set (set, _) ->
+    let%lwt set = Option.get <$> Model.Set.get set in
+    lwt_some (Any.Set set)
+  | Book.Versions versions_and_params ->
+    let%lwt version = (Option.get <%> Model.Version.get) (fst @@ NEList.hd versions_and_params) in
+    lwt_some (Any.Version version) (* FIXME: others? fixed by a page viewer *)
 
 (** Given an element and a context, find the total number of elements, the
     previous element, the index of the given element and the next element. *)
@@ -27,8 +33,7 @@ let get_neighbours any = function
     lwt_some @@ List.map_context Any.version context
   | Endpoints.Page.In_book (book, index) ->
     let%olwt book = Book.get book in
-    let%lwt contents = Book.contents' book in
-    let viewable_content = List.filter_map book_page_to_any contents in
+    let%lwt viewable_content = Monadise_lwt.monadise_1_1 List.filter_map book_page_to_any (Book.contents' book) in
     lwt @@ List.findi_context (fun i _ -> i = index) viewable_content
 
 let neighbour_context ~left = function

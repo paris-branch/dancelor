@@ -135,7 +135,7 @@ let view context tune_id id =
                 ~source_type: "version"
                 ~source_format: Formatters.Version.name'
                 version
-                (Model.Book.versions @@ NEList.singleton (version, Model.Version_parameters.none))
+                (Model.Book.versions @@ NEList.singleton (Entry.id version, Model.Version_parameters.none))
             )
       );
       (

@@ -8,7 +8,6 @@ module Make (Model : Model_builder.S) = struct
       | Core.Book.Title sfilter ->
         Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Book.title book
       | Versions vfilter ->
-        let%lwt content = Model.Book.contents book in
         let versions =
           List.concat_map
             (function
@@ -16,19 +15,20 @@ module Make (Model : Model_builder.S) = struct
                 NEList.(to_list % map fst) versions_and_params
               | _ -> []
             )
-            content
+            (Model.Book.contents book)
         in
+        let%lwt versions = Lwt_list.map_p (Option.get <%> Model.Version.get) versions in
         Formula_list.accepts (Formula_entry.accepts_public accepts_version) vfilter versions
       | Sets sfilter ->
-        let%lwt content = Model.Book.contents book in
-        let%lwt sets =
-          Lwt_list.filter_map_s
+        let sets =
+          List.filter_map
             (function
-              | Model.Book.Set (s, _) | Model.Book.Dance (_, Dance_set (s, _)) -> lwt_some s
-              | _ -> lwt_none
+              | Model.Book.Set (s, _) | Model.Book.Dance (_, Dance_set (s, _)) -> Some s
+              | _ -> None
             )
-            content
+            (Model.Book.contents book)
         in
+        let%lwt sets = Lwt_list.map_p (Option.get <%> Model.Set.get) sets in
         Formula_list.accepts (Formula_entry.accepts_private Model.User.get accepts_set) sfilter sets
       | Versions_deep vfilter ->
         (* recursive call to check the compound formula *)
@@ -38,7 +38,7 @@ module Make (Model : Model_builder.S) = struct
             Book.sets' (Formula_list.exists' (Formula_entry.value' (Set.versions' vfilter)));
             ]
       | Editors pfilter ->
-        let%lwt editors = Model.Book.authors book in
+        let%lwt editors = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Book.authors book) in
         Formula_list.accepts accepts_person' pfilter editors
 
   and accepts_dance filter dance =

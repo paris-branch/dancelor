@@ -25,6 +25,37 @@ let visibility_to_visibility' : Entry.Access.Private.visibility -> visibility' L
     let%lwt users = Monadise_lwt.monadise_1_1 NEList.map (Option.get <%> Model.User.get) users in
     lwt (Select_viewers users)
 
+let model_content_to_content =
+  Lwt_list.map_p @@ function
+    | Model.Book.Part title ->
+      lwt @@ `Part title
+    | Dance (dance, Dance_only) ->
+      let%lwt dance = Option.get <$> Model.Dance.get dance in
+      lwt @@ `Dance (dance, `Dance_only)
+    | Dance (dance, Dance_versions versions_and_params) ->
+      let%lwt dance = Option.get <$> Model.Dance.get dance in
+      let%lwt versions_and_params = Monadise_lwt.monadise_1_1 NEList.map (Monadise_lwt.monadise_1_1 Pair.map_fst (Option.get <%> Model.Version.get)) versions_and_params in
+      lwt @@ `Dance (dance, `Dance_versions versions_and_params)
+    | Dance (dance, Dance_set (set, params)) ->
+      let%lwt dance = Option.get <$> Model.Dance.get dance in
+      let%lwt set = Option.get <$> Model.Set.get set in
+      lwt @@ `Dance (dance, `Dance_set (set, params))
+    | Versions versions_and_params ->
+      let%lwt versions_and_params = Monadise_lwt.monadise_1_1 NEList.map (Monadise_lwt.monadise_1_1 Pair.map_fst (Option.get <%> Model.Version.get)) versions_and_params in
+      lwt @@ `Versions versions_and_params
+    | Set (set, params) ->
+      let%lwt set = Option.get <$> Model.Set.get set in
+      lwt @@ `Set (set, params)
+
+let content_to_model_content =
+  List.map @@ function
+    | `Part title -> Model.Book.Part title
+    | `Dance (dance, `Dance_only) -> Model.Book.Dance (Entry.id dance, Dance_only)
+    | `Dance (dance, `Dance_versions versions_and_params) -> Model.Book.Dance (Entry.id dance, Dance_versions (NEList.map (Pair.map_fst Entry.id) versions_and_params))
+    | `Dance (dance, `Dance_set (set, params)) -> Model.Book.Dance (Entry.id dance, Dance_set (Entry.id set, params))
+    | `Versions versions_and_params -> Model.Book.Versions (NEList.map (Pair.map_fst Entry.id) versions_and_params)
+    | `Set (set, params) -> Model.Book.Set (Entry.id set, params)
+
 let versions_and_parameters ?(label = "Versions") () =
   Star.prepare_non_empty
     ~label: "Versions"
@@ -75,6 +106,18 @@ let set_and_parameters ?(label = "Set") () =
     )
     Set_parameters_editor.e
 
+(* ~cast: (function *)
+(*   | Zero() -> Model.Book.Dance_only *)
+(*   | Succ Zero versions_and_params -> Model.Book.Dance_versions versions_and_params *)
+(*   | Succ Succ Zero (set, params) -> Model.Book.Dance_set (set, params) *)
+(*   | _ -> assert false (\* types guarantee this is not reachable *\) *)
+(* ) *)
+(* ~uncast: (function *)
+(*   | Model.Book.Dance_only -> Zero () *)
+(*   | Model.Book.Dance_versions versions_and_params -> one versions_and_params *)
+(*   | Model.Book.Dance_set (set, params) -> two (set, params) *)
+(* ) *)
+
 let dance_and_dance_page =
   let open Plus.Bundle in
   Cpair.prepare
@@ -98,15 +141,15 @@ let dance_and_dance_page =
       Plus.prepare
         ~label: "Dance page"
         ~cast: (function
-          | Zero() -> Model.Book.Dance_only
-          | Succ Zero versions_and_params -> Model.Book.Dance_versions versions_and_params
-          | Succ Succ Zero (set, params) -> Model.Book.Dance_set (set, params)
+          | Zero() -> `Dance_only
+          | Succ Zero versions_and_params -> `Dance_versions versions_and_params
+          | Succ Succ Zero (set, params) -> `Dance_set (set, params)
           | _ -> assert false (* types guarantee this is not reachable *)
         )
         ~uncast: (function
-          | Model.Book.Dance_only -> Zero ()
-          | Model.Book.Dance_versions versions_and_params -> one versions_and_params
-          | Model.Book.Dance_set (set, params) -> two (set, params)
+          | `Dance_only -> Zero ()
+          | `Dance_versions versions_and_params -> one versions_and_params
+          | `Dance_set (set, params) -> two (set, params)
         )
         ~selected_when_empty: 0
         (
@@ -162,17 +205,17 @@ let editor user =
       Plus.prepare
         ~label: "Page"
         ~cast: (function
-          | Zero title -> Model.Book.Part title
-          | Succ Zero (dance, dance_page) -> Model.Book.Dance (dance, dance_page)
-          | Succ Succ Zero versions_and_params -> Model.Book.Versions versions_and_params
-          | Succ Succ Succ Zero (set, params) -> Model.Book.Set (set, params)
+          | Zero title -> `Part title
+          | Succ Zero (dance, dance_page) -> `Dance (dance, dance_page)
+          | Succ Succ Zero versions_and_params -> `Versions versions_and_params
+          | Succ Succ Succ Zero (set, params) -> `Set (set, params)
           | _ -> assert false (* types guarantee this is not reachable *)
         )
         ~uncast: (function
-          | Model.Book.Part title -> Zero title
-          | Model.Book.Dance (dance, dance_page) -> one (dance, dance_page)
-          | Model.Book.Versions versions_and_params -> two versions_and_params
-          | Model.Book.Set (set, params) -> three (set, params)
+          | `Part title -> Zero title
+          | `Dance (dance, dance_page) -> one (dance, dance_page)
+          | `Versions versions_and_params -> two versions_and_params
+          | `Set (set, params) -> three (set, params)
         )
         (
           let open Plus.Bundle in
@@ -297,10 +340,14 @@ let editor user =
   ) ^::
   nil
 
-let assemble (title, (authors, (date, (contents, (remark, (sources, (scddb_id, (owners, (visibility, ()))))))))) = (
-  Model.Book.make ~title ~authors ?date ~contents ~remark ~sources ?scddb_id (),
-  Entry.Access.Private.make ~owners: (NEList.map Entry.id owners) ~visibility: (visibility'_to_visibility visibility) ()
-)
+let assemble (title, (authors, (date, (contents, (remark, (sources, (scddb_id, (owners, (visibility, ()))))))))) =
+  let authors = List.map Entry.id authors in
+  let sources = List.map Entry.id sources in
+  let contents = content_to_model_content contents in
+  (
+    Model.Book.make ~title ~authors ~date ~contents ~remark ~sources ~scddb_id (),
+    Entry.Access.Private.make ~owners: (NEList.map Entry.id owners) ~visibility: (visibility'_to_visibility visibility) ()
+  )
 
 let submit mode (book, access) =
   match mode with
@@ -312,11 +359,11 @@ let unsubmit entry =
 
 let disassemble (book, access) =
   let title = Model.Book.title book in
-  let%lwt authors = Model.Book.authors book in
+  let%lwt authors = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Book.authors book) in
   let date = Model.Book.date book in
-  let%lwt contents = Model.Book.contents book in
+  let%lwt contents = model_content_to_content @@ Model.Book.contents book in
   let remark = Model.Book.remark book in
-  let%lwt sources = Model.Book.sources book in
+  let%lwt sources = Lwt_list.map_p (Option.get <%> Model.Source.get) (Model.Book.sources book) in
   let scddb_id = Model.Book.scddb_id book in
   let%lwt owners = NEList.of_list_exn <$> Lwt_list.map_p (fun user -> Option.get <$> Model.User.get user) (NEList.to_list @@ Entry.Access.Private.owners access) in
   let%lwt visibility = visibility_to_visibility' @@ Entry.Access.Private.visibility access in

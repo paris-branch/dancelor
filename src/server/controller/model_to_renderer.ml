@@ -138,7 +138,8 @@ let set_to_renderer_set set set_params =
   lwt Renderer.{slug; name; conceptor; kind; contents}
 
 let set_to_renderer_set' set set_params =
-  set_to_renderer_set (Entry.value set) set_params
+  let%lwt set = Entry.value % Option.get <$> Model.Set.get set in
+  set_to_renderer_set set set_params
 
 let versions_to_renderer_set versions_and_params set_params =
   let%lwt name =
@@ -161,7 +162,8 @@ let versions_to_renderer_set versions_and_params set_params =
   lwt Renderer.{slug; name; conceptor; kind; contents}
 
 let versions_to_renderer_set' versions_and_params set_params =
-  versions_to_renderer_set (NEList.map (Pair.map_fst Entry.value) versions_and_params) set_params
+  let%lwt versions_and_params = Monadise_lwt.monadise_1_1 NEList.map (Monadise_lwt.monadise_1_1 Pair.map_fst (Entry.value % Option.get <%> Model.Version.get)) versions_and_params in
+  versions_to_renderer_set versions_and_params set_params
 
 let dance_to_renderer_set set_params =
   set_to_renderer_set
@@ -186,6 +188,7 @@ let page_to_renderer_page page book_params =
     lwt @@ Renderer.part @@ part_to_renderer_part title
   | Model.Book.Dance (dance, dance_page) ->
     (
+      let%lwt dance = Option.get <$> Model.Dance.get dance in
       let%lwt dance_params =
         let display_name = Model.Dance.one_name' dance in
         let%lwt display_conceptor =
@@ -228,11 +231,8 @@ let page_to_renderer_page page book_params =
 let book_to_renderer_book book book_params =
   let slug = NesSlug.to_string @@ Model.Book.slug book in
   let title = NEString.to_string @@ Model.Book.title book in
-  let%lwt editor = format_persons <$> Model.Book.authors book in
-  let%lwt contents =
-    Lwt_list.map_s (fun page -> page_to_renderer_page page book_params)
-    =<< Model.Book.contents book
-  in
+  let%lwt editor = format_persons <$> Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Book.authors book) in
+  let%lwt contents = Lwt_list.map_s (fun page -> page_to_renderer_page page book_params) (Model.Book.contents book) in
   let simple = Option.value ~default: false @@ Model.Book_parameters.simple book_params in
   lwt Renderer.{slug; title; editor; contents; simple}
 
