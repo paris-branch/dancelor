@@ -976,6 +976,8 @@ let migrations : migration list = [
     );
     lwt_unit
   );
+  make_ddl "m037_2026_05_alter_table_set_drop_column_instructions" Migrations_sql.m037_2026_05_alter_table_set_drop_column_instructions;
+  make_ddl "m038_2026_05_drop_table_set_dances" Migrations_sql.m038_2026_05_drop_table_set_dances;
 ]
 
 exception Migration_failed of string * exn

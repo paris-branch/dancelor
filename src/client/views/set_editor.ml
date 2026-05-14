@@ -173,10 +173,9 @@ let editor user =
 let assemble (name, (kind, (conceptors, (contents, (order, (owners, (visibility, ()))))))) =
   let conceptors = List.map Entry.id conceptors in
   let contents = List.map (Pair.map_fst Entry.id) contents in
-  (* FIXME: This erases the existing instructions, dances, and remarks, but
-     probably we have no sets those? Check and get rid of the columns. *)
+  (* FIXME: This erases the existing remarks. *)
   (
-    Model.Set.make ~name ~kind ~conceptors ~contents ~order ~instructions: "" ~dances: [] ~remark: "" (),
+    Model.Set.make ~name ~kind ~conceptors ~contents ~order ~remark: "" (),
     Entry.Access.Private.make ~owners: (NEList.map Entry.id owners) ~visibility: (visibility'_to_visibility visibility) ()
   )
 

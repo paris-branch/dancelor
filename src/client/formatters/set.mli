@@ -1,11 +1,6 @@
 open Dancelor_common
 open Html
 
-val works' :
-  Model.Set.entry ->
-  [> Html_types.span] elt
-(** Variant of {!works} taking an {!Entry.t}. *)
-
 val name :
   Model.Set.t ->
   [> Html_types.span] elt

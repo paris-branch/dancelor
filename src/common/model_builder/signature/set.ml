@@ -14,8 +14,6 @@ module type S = sig
     kind: Kind.Dance.t ->
     contents: (Core.Version.t Entry.id * Core.Version_parameters.t) list ->
     order: Core.Set_order.t ->
-    instructions: string ->
-    dances: Core.Dance.t Entry.id list ->
     remark: string ->
     unit ->
     t
@@ -34,12 +32,6 @@ module type S = sig
 
   val order : t -> Core.Set_order.t
   val order' : entry -> Core.Set_order.t
-
-  val instructions : t -> string
-  val instructions' : entry -> string
-
-  val dances : t -> Core.Dance.t Entry.id list
-  val dances' : entry -> Core.Dance.t Entry.id list
 
   val remark : t -> string
   val remark' : entry -> string

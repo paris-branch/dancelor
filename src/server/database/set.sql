@@ -3,7 +3,6 @@ SELECT
     "name",
     "kind",
     "order",
-    "instructions",
     "remark",
     "created_at",
     "modified_at",
@@ -17,7 +16,6 @@ SELECT
     "name",
     "kind",
     "order",
-    "instructions",
     "remark",
     "created_at",
     "modified_at",
@@ -30,7 +28,6 @@ INSERT INTO "set" (
     "name",
     "kind",
     "order",
-    "instructions",
     "remark",
     "created_at",
     "modified_at",
@@ -40,7 +37,6 @@ INSERT INTO "set" (
     @name,
     @kind,
     @order,
-    @instructions,
     @remark,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP,
@@ -53,7 +49,6 @@ SET
     "name" = @name,
     "kind" = @kind,
     "order" = @order,
-    "instructions" = @instructions,
     "remark" = @remark,
     "modified_at" = CURRENT_TIMESTAMP,
     "visibility" = @visibility
@@ -85,30 +80,6 @@ INSERT INTO "set_conceptors" (
 ) VALUES (
     @set_id,
     @conceptor_id
-);
-
--- @get_dances
-SELECT "dance_id"
-FROM "set_dances"
-WHERE "set_id" = @set_id;
-
--- @get_all_dances
-SELECT
-    "set_id",
-    "dance_id"
-FROM "set_dances";
-
--- @delete_all_dances
-DELETE FROM "set_dances"
-WHERE "set_id" = @set_id;
-
--- @add_one_dance
-INSERT INTO "set_dances" (
-    "set_id",
-    "dance_id"
-) VALUES (
-    @set_id,
-    @dance_id
 );
 
 -- @get_viewers
