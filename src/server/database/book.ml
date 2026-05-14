@@ -6,37 +6,282 @@ module Book_sql = Book_sql.Sqlgg(Sqlgg_postgresql)
 type t = Model_builder.Core.Book.t
 type entry = Model_builder.Core.Book.entry
 
-let of_json id json =
-  Result.get_ok @@ Entry.of_yojson_no_id id Model_builder.Core.Book.of_yojson Model_builder.Core.Book.access_of_yojson json
+let row_to_book
+    ~id
+    ~title
+    ~date
+    ~remark
+    ~scddb_id
+    ~created_at
+    ~modified_at
+    ~visibility
+    ~authors
+    ~sources
+    ~content
+    ~owners
+    ~viewers
+  =
+  let visibility : Entry.Access.Private.visibility =
+    match (visibility, viewers) with
+    | (0L, []) -> Owners_only
+    | (1L, []) -> Everyone
+    | (2L, _) ->
+      (
+        match viewers with
+        | [] -> assert false
+        | _ -> Select_viewers (NEList.of_list_exn viewers)
+      )
+    | _ -> assert false
+  in
+  Entry.make
+    ~id: (Entry.Id.of_string_exn id)
+    ~meta: (Entry.Meta.make ~created_at ~modified_at ())
+    ~access: (Entry.Access.Private.make ~owners: (NEList.of_list_exn owners) ~visibility ())
+    (
+      Model_builder.Core.Book.make
+        ~title: (NEString.of_string_exn title)
+        ~date: (Option.map (Option.get % PartialDate.from_string) date)
+        ~remark
+        ~scddb_id: (Option.map Int64.to_int scddb_id)
+        ~authors
+        ~sources
+        ~contents: content
+        ()
+    )
+
+let book_to_row ~create_or_update db id book access =
+  let (visibility, viewers) =
+    match Entry.Access.Private.visibility access with
+    | Owners_only -> (0L, [])
+    | Everyone -> (1L, [])
+    | Select_viewers viewers -> (2L, NEList.to_list viewers)
+  in
+  (* FIXME: transaction, maybe [Connection.with_transaction] *)
+  let id = Entry.Id.to_string id in
+  ignore
+  <$> create_or_update
+      db
+      ~id
+      ~title: (NEString.to_string @@ Model_builder.Core.Book.title book)
+      ~date: (Option.map PartialDate.to_string @@ Model_builder.Core.Book.date book)
+      ~remark: (Model_builder.Core.Book.remark book)
+      ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Book.scddb_id book)
+      ~visibility;%lwt
+  ignore <$> Book_sql.delete_all_authors db ~book_id: id;%lwt
+  Lwt_list.iter_s
+    (fun author ->
+      ignore
+      <$> Book_sql.add_one_author
+          db
+          ~book_id: id
+          ~author_id: (Entry.Id.to_string author)
+    )
+    (Model_builder.Core.Book.authors book);%lwt
+  ignore <$> Book_sql.delete_all_sources db ~book_id: id;%lwt
+  Lwt_list.iter_s
+    (fun source ->
+      ignore
+      <$> Book_sql.add_one_source
+          db
+          ~book_id: id
+          ~source_id: (Entry.Id.to_string source)
+    )
+    (Model_builder.Core.Book.sources book);%lwt
+  ignore <$> Book_sql.delete_all_content db ~book_id: id;%lwt
+  ignore <$> Book_sql.delete_all_content_versions db ~book_id: id;%lwt
+  Lwt_list.iteri_s
+    (fun content_index page ->
+      let (page_type, part_title, dance_id, set_id, set_params, versions_and_params) =
+        match (page : Model_builder.Core.Book.page) with
+        | Part title -> (0L, Some title, None, None, Model_builder.Core.Set_parameters.none, [])
+        | Dance (dance, Dance_only) -> (1L, None, Some dance, None, Model_builder.Core.Set_parameters.none, [])
+        | Dance (dance, Dance_versions versions_and_params) -> (2L, None, Some dance, None, Model_builder.Core.Set_parameters.none, NEList.to_list versions_and_params)
+        | Dance (dance, Dance_set (set, set_params)) -> (3L, None, Some dance, Some set, set_params, [])
+        | Versions versions_and_params -> (4L, None, None, None, Model_builder.Core.Set_parameters.none, NEList.to_list versions_and_params)
+        | Set (set, set_params) -> (5L, None, None, Some set, set_params, [])
+      in
+      let set_version_params = Model_builder.Core.Set_parameters.every_version set_params in
+      ignore
+      <$> Book_sql.add_one_content_item
+          db
+          ~book_id: id
+          ~index: (Int64.of_int content_index)
+          ~page_type
+          ~part_title: (Option.map NEString.to_string part_title)
+          ~dance_id: (Option.map Entry.Id.to_string dance_id)
+          ~set_id: (Option.map Entry.Id.to_string set_id)
+          ~set_parameter_display_name: (Option.map NEString.to_string @@ Model_builder.Core.Set_parameters.display_name set_params)
+          ~set_parameter_display_conceptor: (Option.map NEString.to_string @@ Model_builder.Core.Set_parameters.display_conceptor set_params)
+          ~set_parameter_display_kind: (Option.map NEString.to_string @@ Model_builder.Core.Set_parameters.display_kind set_params)
+          ~set_parameter_version_parameter_transposition_semitones: (Option.map (Int64.of_int % Transposition.to_semitones) @@ Model_builder.Core.Version_parameters.transposition set_version_params)
+          ~set_parameter_version_parameter_first_bar: (Option.map Int64.of_int @@ Model_builder.Core.Version_parameters.first_bar set_version_params)
+          ~set_parameter_version_parameter_clef: (Option.map Music.Clef.to_string @@ Model_builder.Core.Version_parameters.clef set_version_params)
+          ~set_parameter_version_parameter_structure: (Option.map (NEString.to_string % Model_builder.Core.Version.Structure.to_string) @@ Model_builder.Core.Version_parameters.structure set_version_params)
+          ~set_parameter_version_parameter_trivia: (Model_builder.Core.Version_parameters.trivia set_version_params)
+          ~set_parameter_version_parameter_display_name: (Option.map NEString.to_string @@ Model_builder.Core.Version_parameters.display_name set_version_params)
+          ~set_parameter_version_parameter_display_composer: (Option.map NEString.to_string @@ Model_builder.Core.Version_parameters.display_composer set_version_params);%lwt
+      Lwt_list.iteri_s
+        (fun index (version, params) ->
+          ignore
+          <$> Book_sql.add_one_content_version
+              db
+              ~book_id: id
+              ~content_index: (Int64.of_int content_index)
+              ~index: (Int64.of_int index)
+              ~version_id: (Entry.Id.to_string version)
+              ~version_parameter_transposition_semitones: (Option.map (Int64.of_int % Transposition.to_semitones) @@ Model_builder.Core.Version_parameters.transposition params)
+              ~version_parameter_first_bar: (Option.map Int64.of_int @@ Model_builder.Core.Version_parameters.first_bar params)
+              ~version_parameter_clef: (Option.map Music.Clef.to_string @@ Model_builder.Core.Version_parameters.clef params)
+              ~version_parameter_structure: (Option.map (NEString.to_string % Model_builder.Core.Version.Structure.to_string) @@ Model_builder.Core.Version_parameters.structure params)
+              ~version_parameter_trivia: (Model_builder.Core.Version_parameters.trivia params)
+              ~version_parameter_display_name: (Option.map NEString.to_string @@ Model_builder.Core.Version_parameters.display_name params)
+              ~version_parameter_display_composer: (Option.map NEString.to_string @@ Model_builder.Core.Version_parameters.display_composer params)
+        )
+        versions_and_params
+    )
+    (Model_builder.Core.Book.contents book);%lwt
+  ignore <$> Book_sql.delete_all_viewers db ~book_id: id;%lwt
+  Lwt_list.iter_s
+    (fun viewer ->
+      ignore
+      <$> Book_sql.add_one_viewer
+          db
+          ~book_id: id
+          ~viewer_id: (Entry.Id.to_string viewer)
+    )
+    viewers;%lwt
+  ignore <$> Book_sql.delete_all_owners db ~book_id: id;%lwt
+  Lwt_list.iter_s
+    (fun owner ->
+      ignore
+      <$> Book_sql.add_one_owner
+          db
+          ~book_id: id
+          ~owner_id: (Entry.Id.to_string owner)
+    )
+    (NEList.to_list @@ Entry.Access.Private.owners access)
+
+let row_to_content_version ~k = fun
+    ~version_id
+    ~version_parameter_transposition_semitones
+    ~version_parameter_first_bar
+    ~version_parameter_clef
+    ~version_parameter_structure
+    ~version_parameter_trivia
+    ~version_parameter_display_name
+    ~version_parameter_display_composer
+  ->
+  k
+    (
+      Entry.Id.of_string_exn version_id,
+      Model_builder.Core.Version_parameters.make
+        ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) version_parameter_transposition_semitones)
+        ?first_bar: (Option.map Int64.to_int version_parameter_first_bar)
+        ?clef: (Option.map Music.Clef.of_string version_parameter_clef)
+        ?structure: (Option.map (Option.get % Model_builder.Core.Version.Structure.of_string % NEString.of_string_exn) version_parameter_structure)
+        ?trivia: version_parameter_trivia
+        ?display_name: (Option.map NEString.of_string_exn version_parameter_display_name)
+        ?display_composer: (Option.map NEString.of_string_exn version_parameter_display_composer)
+        ()
+    )
+
+let row_to_content_item ~versions_and_params ~k = fun
+    ~page_type
+    ~part_title
+    ~dance_id
+    ~set_id
+    ~set_parameter_display_name
+    ~set_parameter_display_conceptor
+    ~set_parameter_display_kind
+    ~set_parameter_version_parameter_transposition_semitones
+    ~set_parameter_version_parameter_first_bar
+    ~set_parameter_version_parameter_clef
+    ~set_parameter_version_parameter_structure
+    ~set_parameter_version_parameter_trivia
+    ~set_parameter_version_parameter_display_name
+    ~set_parameter_version_parameter_display_composer
+  ->
+  let set_params =
+    Model_builder.Core.Set_parameters.make
+      ?display_name: (Option.map NEString.of_string_exn set_parameter_display_name)
+      ?display_conceptor: (Option.map NEString.of_string_exn set_parameter_display_conceptor)
+      ?display_kind: (Option.map NEString.of_string_exn set_parameter_display_kind)
+      ~every_version: (
+        Model_builder.Core.Version_parameters.make
+          ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) set_parameter_version_parameter_transposition_semitones)
+          ?first_bar: (Option.map Int64.to_int set_parameter_version_parameter_first_bar)
+          ?clef: (Option.map Music.Clef.of_string set_parameter_version_parameter_clef)
+          ?structure: (Option.map (Option.get % Model_builder.Core.Version.Structure.of_string % NEString.of_string_exn) set_parameter_version_parameter_structure)
+          ?trivia: set_parameter_version_parameter_trivia
+          ?display_name: (Option.map NEString.of_string_exn set_parameter_version_parameter_display_name)
+          ?display_composer: (Option.map NEString.of_string_exn set_parameter_version_parameter_display_composer)
+          ()
+      )
+      ()
+  in
+  k @@
+    match page_type with
+    | 0L -> Model_builder.Core.Book.Part (NEString.of_string_exn @@ Option.get part_title)
+    | 1L -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_only)
+    | 2L -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_versions (NEList.of_list_exn versions_and_params))
+    | 3L -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_set (Entry.Id.of_string_exn (Option.get set_id), set_params))
+    | 4L -> Versions (NEList.of_list_exn versions_and_params)
+    | 5L -> Set (Entry.Id.of_string_exn (Option.get set_id), set_params)
+    | _ -> assert false
 
 let get id : Model_builder.Core.Book.entry option Lwt.t =
+  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
-  Option.map (of_json id) <$> Book_sql.get db ~id: (Entry.Id.to_string id)
+  let%lwt authors = Book_sql.List.get_authors db ~book_id: id (fun ~author_id -> Entry.Id.of_string_exn author_id) in
+  let%lwt sources = Book_sql.List.get_sources db ~book_id: id (fun ~source_id -> Entry.Id.of_string_exn source_id) in
+  let%lwt owners = Book_sql.List.get_owners db ~book_id: id (fun ~owner_id -> Entry.Id.of_string_exn owner_id) in
+  let%lwt viewers = Book_sql.List.get_viewers db ~book_id: id (fun ~viewer_id -> Entry.Id.of_string_exn viewer_id) in
+  let content_versions = Hashtbl.create 8 in
+  Book_sql.Fold.get_content_versions db ~book_id: id (fun ~content_index -> row_to_content_version ~k: (fun v () -> Hashtbl.add content_versions content_index v)) ();%lwt
+  let%lwt content = Book_sql.List.get_content db ~book_id: id (fun ~index -> row_to_content_item ~versions_and_params: (List.rev @@ Hashtbl.find_all content_versions index) ~k: Fun.id) in
+  Book_sql.Single.get db ~id (row_to_book ~id ~authors ~sources ~viewers ~owners ~content)
 
 let get_all () =
   Connection.with_ @@ fun db ->
-  Book_sql.List.get_all db (fun ~id ~json -> of_json (Entry.Id.of_string_exn id) json)
+  let authors = Hashtbl.create 8 in
+  let sources = Hashtbl.create 8 in
+  let owners = Hashtbl.create 8 in
+  let viewers = Hashtbl.create 8 in
+  let content = Hashtbl.create 8 in
+  let content_versions = Hashtbl.create 8 in
+  Book_sql.Fold.get_all_authors db (fun ~book_id ~author_id () -> Hashtbl.add authors book_id @@ Entry.Id.of_string_exn author_id) ();%lwt
+  Book_sql.Fold.get_all_sources db (fun ~book_id ~source_id () -> Hashtbl.add sources book_id @@ Entry.Id.of_string_exn source_id) ();%lwt
+  Book_sql.Fold.get_all_owners db (fun ~book_id ~owner_id () -> Hashtbl.add owners book_id @@ Entry.Id.of_string_exn owner_id) ();%lwt
+  Book_sql.Fold.get_all_viewers db (fun ~book_id ~viewer_id () -> Hashtbl.add viewers book_id @@ Entry.Id.of_string_exn viewer_id) ();%lwt
+  Book_sql.Fold.get_all_content_versions db (fun ~book_id ~content_index -> row_to_content_version ~k: (fun v () -> Hashtbl.add content_versions (book_id, content_index) v)) ();%lwt
+  Book_sql.Fold.get_all_content db (fun ~book_id ~index -> row_to_content_item ~versions_and_params: (List.rev @@ Hashtbl.find_all content_versions (book_id, index)) ~k: (fun v () -> Hashtbl.add content book_id v)) ();%lwt
+  Book_sql.List.get_all db (fun ~id ->
+    row_to_book
+      ~id
+      ~authors: (List.rev @@ Hashtbl.find_all authors id)
+      ~sources: (List.rev @@ Hashtbl.find_all sources id)
+      ~viewers: (List.rev @@ Hashtbl.find_all viewers id)
+      ~owners: (List.rev @@ Hashtbl.find_all owners id)
+      ~content: (List.rev @@ Hashtbl.find_all content id)
+  )
 
 let create book access =
   Connection.with_ @@ fun db ->
   let%lwt id = Globally_unique_id.make db Book in
-  let book = Entry.make ~id ~access book in
-  let json = Entry.to_yojson_no_id Model_builder.Core.Book.to_yojson Model_builder.Core.Book.access_to_yojson book in
-  let%lwt _ = Book_sql.update db ~id: (Entry.Id.to_string id) ~json in
-  lwt book
+  book_to_row ~create_or_update: Book_sql.create db id book access;%lwt
+  lwt id
 
 let update id book access =
-  let book = Entry.make ~id ~access book in
-  let json = Entry.to_yojson_no_id Model_builder.Core.Book.to_yojson Model_builder.Core.Book.access_to_yojson book in
-  let%lwt _ =
-    Connection.with_ @@ fun db ->
-    Book_sql.update db ~id: (Entry.Id.to_string id) ~json
-  in
-  lwt book
+  Connection.with_ @@ fun db ->
+  book_to_row ~create_or_update: (fun db ~id -> Book_sql.update db ~id) db id book access
 
 let delete id =
-  let%lwt _ =
-    Connection.with_ @@ fun db ->
-    Book_sql.delete db ~id: (Entry.Id.to_string id)
-  in
-  lwt_unit
+  Connection.with_ @@ fun db ->
+  let book_id = Entry.Id.to_string id in
+  ignore <$> Book_sql.delete_all_authors db ~book_id;%lwt
+  ignore <$> Book_sql.delete_all_content_versions db ~book_id;%lwt
+  ignore <$> Book_sql.delete_all_content db ~book_id;%lwt
+  ignore <$> Book_sql.delete_all_sources db ~book_id;%lwt
+  ignore <$> Book_sql.delete_all_owners db ~book_id;%lwt
+  ignore <$> Book_sql.delete_all_viewers db ~book_id;%lwt
+  ignore <$> Book_sql.delete db ~id: book_id

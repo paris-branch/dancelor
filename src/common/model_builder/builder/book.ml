@@ -5,52 +5,6 @@ module Build (Getters : Getters.S) = struct
 
   let get = Getters.get_book
 
-  let authors = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % authors
-  let authors' = authors % Entry.value_private_
-
-  let sources = Lwt_list.map_p (Lwt.map Option.get % Getters.get_source) % sources
-  let sources' = sources % Entry.value_private_
-
-  let contents book =
-    Lwt_list.map_p
-      (function
-        | Core.Book.Page.Part title -> lwt (Part title)
-        | Core.Book.Page.Dance (dance, page_dance) ->
-          let%lwt dance = Option.get <$> Getters.get_dance dance in
-          let%lwt page_dance =
-            match page_dance with
-            | Core.Book.Page.Dance_only -> lwt Dance_only
-            | Core.Book.Page.Dance_versions versions_and_params ->
-              let%lwt versions_and_params = NEList.map_lwt_p (Pair.map_fst_lwt (Option.get <%> Getters.get_version)) versions_and_params in
-              lwt @@ Dance_versions versions_and_params
-            | Core.Book.Page.Dance_set (set, parameters) ->
-              let%lwt set = Option.get <$> Getters.get_set set in
-              lwt @@ Dance_set (set, parameters)
-          in
-          lwt (Dance (dance, page_dance))
-        | Core.Book.Page.Versions versions_and_params ->
-          let%lwt versions_and_params = NEList.map_lwt_p (Pair.map_fst_lwt (Option.get <%> Getters.get_version)) versions_and_params in
-          lwt (Versions versions_and_params)
-        | Core.Book.Page.Set (set, parameters) ->
-          let%lwt set = Option.get <$> Getters.get_set set in
-          lwt (Set (set, parameters))
-      )
-      (contents book)
-
-  let contents' = contents % Entry.value_private_
-
-  let versions_from_contents book =
-    let%lwt contents = contents book in
-    lwt @@
-      List.concat_map
-        (function
-          | Versions versions_and_params -> NEList.(to_list % map fst) versions_and_params
-          | _ -> []
-        )
-        contents
-
-  let versions_from_contents' = versions_from_contents % Entry.value_private_
-
   module Built_set = Set.Build(Getters)
 
   module Warnings = struct
@@ -59,38 +13,32 @@ module Build (Getters : Getters.S) = struct
        generating a list of the associated warning corresponding to the given
        book. The {!all} function then gathers all these warnings in a common list. *)
 
-    let empty book =
-      let%lwt contents = contents' book in
-      if contents = [] then
-        lwt [Empty]
-      else
-        lwt_nil
+    let empty book = if contents' book = [] then [Empty] else []
 
     let sets_from_contents' book =
-      let%lwt contents = contents' book in
-      Lwt_list.filter_map_p
+      List.filter_map
         (function
           | Part _
           | Dance (_, Dance_only)
           | Dance (_, Dance_versions _)
           | Versions _ ->
-            lwt_none
+            None
           | Dance (_, Dance_set (set, _))
           | Set (set, _) ->
-            lwt_some set
+            Some set
         )
-        contents
+        (contents' book)
 
     let duplicate_set book =
-      Lwt.flip_map (sets_from_contents' book) @@ fun sets ->
-      match List.sort Entry.compare' sets with
+      let sets = sets_from_contents' book in
+      match List.sort Entry.Id.compare' sets with
       | [] -> []
       | first_set :: other_sets ->
         let (_, warnings) =
           List.fold_left
             (fun (previous_set, warnings) current_set ->
               let warnings =
-                if Entry.equal' current_set previous_set then
+                if Entry.Id.equal' current_set previous_set then
                     ((Duplicate_set current_set) :: warnings)
                 else
                   warnings
@@ -103,37 +51,30 @@ module Build (Getters : Getters.S) = struct
         warnings
 
     let unique_sets_from_contents' =
-      Lwt.map (List.sort_uniq Entry.compare') % sets_from_contents'
+      List.sort_uniq Entry.Id.compare' % sets_from_contents'
 
     let duplicate_tune book =
-      let%lwt sets = unique_sets_from_contents' book in
-      let%lwt standalone_versions = versions_from_contents' book in
+      let sets = unique_sets_from_contents' book in
+      let standalone_versions = versions_from_contents' book in
       (* [tunes_to_sets] is a hashtable from tunes to sets they belong to.
          Standalone tunes are associated with None *)
       let tunes_to_sets = Hashtbl.create 8 in
-      (* Extend the list of sets associated to this tune. Creates it if it was not
-         yet in the hashtable *)
-      let register_tune_to_set tune set_opt =
-        match Hashtbl.find_opt tunes_to_sets tune with
-        | None -> Hashtbl.add tunes_to_sets tune [set_opt]
-        | Some set_opts -> Hashtbl.replace tunes_to_sets tune (set_opt :: set_opts)
-      in
       (* register standalone tunes *)
       Lwt_list.iter_s
         (fun v ->
-          let%lwt tune = Option.get <$> Getters.get_tune @@ Core.Version.tune' v in
-          register_tune_to_set tune None;
+          let%lwt tune = (Core.Version.tune' % Option.get) <$> Getters.get_version v in
+          Hashtbl.add tunes_to_sets tune None;
           lwt_unit
         )
         standalone_versions;%lwt
       (* register tunes in sets *)
       Lwt_list.iter_s
         (fun set ->
-          let%lwt versions = Lwt_list.map_p (Option.get <%> Getters.get_version % fst) (Built_set.contents' set) in
+          let%lwt versions = (List.map fst % Built_set.contents' % Option.get) <$> Getters.get_set set in
           Lwt_list.iter_s
             (fun v ->
-              let%lwt tune = Option.get <$> Getters.get_tune @@ Core.Version.tune' v in
-              register_tune_to_set tune (Some set);
+              let%lwt tune = (Core.Version.tune' % Option.get) <$> Getters.get_version v in
+              Hashtbl.add tunes_to_sets tune (Some set);
               lwt_unit
             )
             versions
@@ -141,11 +82,11 @@ module Build (Getters : Getters.S) = struct
         sets;%lwt
       (* crawl all registered tunes and see if they appear several times. if that is
          the case, add a warning accordingly *)
-      Hashtbl.to_seq tunes_to_sets
+      Hashtbl.to_seq_keys tunes_to_sets
       |> List.of_seq
       |> List.fold_left
-          (fun warnings (tune, set_opts) ->
-            let set_opts = List.sort_count (Option.compare Entry.compare') set_opts in
+          (fun warnings tune ->
+            let set_opts = List.sort_count (Option.compare Entry.Id.compare') (Hashtbl.find_all tunes_to_sets tune) in
             if List.length set_opts > 1 then
                 ((Duplicate_tune (tune, set_opts)) :: warnings)
             else
@@ -155,17 +96,18 @@ module Build (Getters : Getters.S) = struct
       |> lwt
 
     let set_dance_kind_mismatch book =
-      let%lwt contents = contents' book in
       Lwt_list.filter_map_s
         (function
           | Dance (dance, Dance_set (set, _)) ->
+            let%lwt dance = Option.get <$> Getters.get_dance dance in
+            let%lwt set = Option.get <$> Getters.get_set set in
             if Core.Dance.kind' dance <> Core.Set.kind' set then
-              lwt_some (Set_dance_kind_mismatch (set, dance))
+              lwt_some (Set_dance_kind_mismatch (Entry.id set, Entry.id dance))
             else
               lwt_none
           | _ -> lwt_none
         )
-        contents
+        (contents' book)
 
     let all book =
       Lwt_list.fold_left_s
@@ -175,34 +117,12 @@ module Build (Getters : Getters.S) = struct
         )
         []
         [
-          empty book;
-          duplicate_set book;
+          (lwt @@ empty book);
+          (lwt @@ duplicate_set book);
           duplicate_tune book;
           set_dance_kind_mismatch book;
         ]
   end
 
   let warnings book = Warnings.all book
-
-  let page_core_to_page = function
-    | Core.Book.Page.Part title -> lwt (Part title)
-    | Core.Book.Page.Dance (dance, page_dance) ->
-      let%lwt dance = Option.get <$> Getters.get_dance dance in
-      let%lwt page_dance =
-        match page_dance with
-        | Core.Book.Page.Dance_only -> lwt Dance_only
-        | Core.Book.Page.Dance_versions versions_and_params ->
-          let%lwt versions_and_params = NEList.map_lwt_p (Pair.map_fst_lwt (Option.get <%> Getters.get_version)) versions_and_params in
-          lwt @@ Dance_versions versions_and_params
-        | Core.Book.Page.Dance_set (set, params) ->
-          let%lwt set = Option.get <$> Getters.get_set set in
-          lwt @@ Dance_set (set, params)
-      in
-      lwt @@ Dance (dance, page_dance)
-    | Core.Book.Page.Versions versions_and_params ->
-      let%lwt versions_and_params = NEList.map_lwt_p (Pair.map_fst_lwt (Option.get <%> Getters.get_version)) versions_and_params in
-      lwt @@ Versions versions_and_params
-    | Core.Book.Page.Set (set, params) ->
-      let%lwt set = Option.get <$> Getters.get_set set in
-      lwt @@ Set (set, params)
 end

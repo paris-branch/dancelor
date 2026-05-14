@@ -13,7 +13,7 @@ type m026_2026_04_split_user_json_into_fields__user_value = {
 }
 [@@deriving of_yojson]
 
-type m026_2026_04_split_user_json_into_fields__user_meta = {
+type m026_m036_2026_04_05_split_jsons_into_fields__meta = {
   created_at: Datetime.t; [@key "created-at"]
   modified_at: Datetime.t; [@key "modified-at"]
 }
@@ -21,7 +21,7 @@ type m026_2026_04_split_user_json_into_fields__user_meta = {
 
 type m026_2026_04_split_user_json_into_fields__user = {
   value: m026_2026_04_split_user_json_into_fields__user_value;
-  meta: m026_2026_04_split_user_json_into_fields__user_meta;
+  meta: m026_m036_2026_04_05_split_jsons_into_fields__meta;
   access: string list;
 }
 [@@deriving of_yojson]
@@ -43,7 +43,7 @@ type m030_2026_05_split_person_json_into_fields__person_value = {
 
 type m030_2026_05_split_person_json_into_fields__person = {
   value: m030_2026_05_split_person_json_into_fields__person_value;
-  meta: m026_2026_04_split_user_json_into_fields__user_meta;
+  meta: m026_m036_2026_04_05_split_jsons_into_fields__meta;
   access: string list;
 }
 [@@deriving of_yojson]
@@ -60,7 +60,7 @@ type m031_2026_05_split_source_json_into_fields__source_value = {
 
 type m031_2026_05_split_source_json_into_fields__source = {
   value: m031_2026_05_split_source_json_into_fields__source_value;
-  meta: m026_2026_04_split_user_json_into_fields__user_meta;
+  meta: m026_m036_2026_04_05_split_jsons_into_fields__meta;
   access: string list;
 }
 [@@deriving of_yojson]
@@ -84,7 +84,7 @@ type m032_2026_05_split_dance_json_into_fields__dance_value = {
 
 type m032_2026_05_split_dance_json_into_fields__dance = {
   value: m032_2026_05_split_dance_json_into_fields__dance_value;
-  meta: m026_2026_04_split_user_json_into_fields__user_meta;
+  meta: m026_m036_2026_04_05_split_jsons_into_fields__meta;
   access: string list;
 }
 [@@deriving of_yojson]
@@ -108,7 +108,7 @@ type m033_2026_05_split_tune_json_into_fields__tune_value = {
 
 type m033_2026_05_split_tune_json_into_fields__tune = {
   value: m033_2026_05_split_tune_json_into_fields__tune_value;
-  meta: m026_2026_04_split_user_json_into_fields__user_meta;
+  meta: m026_m036_2026_04_05_split_jsons_into_fields__meta;
   access: string list;
 }
 [@@deriving of_yojson]
@@ -155,12 +155,12 @@ type m034_2026_05_split_version_json_into_fields__version_value = {
 
 type m034_2026_05_split_version_json_into_fields__version = {
   value: m034_2026_05_split_version_json_into_fields__version_value;
-  meta: m026_2026_04_split_user_json_into_fields__user_meta;
+  meta: m026_m036_2026_04_05_split_jsons_into_fields__meta;
   access: string list;
 }
 [@@deriving of_yojson]
 
-type m035_2026_05_split_set_json_into_fields__version_parameters = {
+type m035_m036_2026_05_split_jsons_into_fields__version_parameters = {
   transposition: int option; [@default None]
   first_bar: int option; [@default None] [@key "first-bar"]
   clef: string option; [@default None]
@@ -175,7 +175,7 @@ type m035_2026_05_split_set_json_into_fields__set_value = {
   name: string;
   conceptors: string list; [@default []]
   kind: string;
-  contents: (string * m035_2026_05_split_set_json_into_fields__version_parameters) list; [@key "versions-and-parameters"] [@default []]
+  contents: (string * m035_m036_2026_05_split_jsons_into_fields__version_parameters) list; [@key "versions-and-parameters"] [@default []]
   order: string;
   instructions: string; [@default ""]
   dances: string list; [@default []]
@@ -189,7 +189,7 @@ type m035_2026_05_split_set_json_into_fields__access_private_visibility =
   | Select_viewers of string list
 [@@deriving of_yojson]
 
-type m035_2026_05_split_set_json_into_fields__access_private = {
+type m035_m036_2026_05_split_jsons_into_fields__access_private = {
   owners: string list;
   visibility: m035_2026_05_split_set_json_into_fields__access_private_visibility; [@default Owners_only]
 }
@@ -197,8 +197,47 @@ type m035_2026_05_split_set_json_into_fields__access_private = {
 
 type m035_2026_05_split_set_json_into_fields__set = {
   value: m035_2026_05_split_set_json_into_fields__set_value;
-  meta: m026_2026_04_split_user_json_into_fields__user_meta;
-  access: m035_2026_05_split_set_json_into_fields__access_private;
+  meta: m026_m036_2026_04_05_split_jsons_into_fields__meta;
+  access: m035_m036_2026_05_split_jsons_into_fields__access_private;
+}
+[@@deriving of_yojson]
+
+type m036_2026_05_split_book_json_into_fields__set_parameters = {
+  display_name: string option; [@default None] [@key "display-name"]
+  display_conceptor: string option; [@default None] [@key "display-conceptor"]
+  display_kind: string option; [@default None] [@key "display-kind"]
+  every_version: m035_m036_2026_05_split_jsons_into_fields__version_parameters; [@default (Result.get_ok (m035_m036_2026_05_split_jsons_into_fields__version_parameters_of_yojson (`Assoc [])))] [@key "every-version"]
+}
+[@@deriving of_yojson]
+
+type m036_2026_05_split_book_json_into_fields__book_value_page_dance =
+  | Dance_only
+  | Dance_versions of (string * m035_m036_2026_05_split_jsons_into_fields__version_parameters) list
+  | Dance_set of string * m036_2026_05_split_book_json_into_fields__set_parameters
+[@@deriving of_yojson]
+
+type m036_2026_05_split_book_json_into_fields__book_value_page =
+  | Part of string
+  | Dance of string * m036_2026_05_split_book_json_into_fields__book_value_page_dance
+  | Versions of (string * m035_m036_2026_05_split_jsons_into_fields__version_parameters) list
+  | Set of string * m036_2026_05_split_book_json_into_fields__set_parameters
+[@@deriving of_yojson]
+
+type m036_2026_05_split_book_json_into_fields__book_value = {
+  title: string;
+  authors: string list; [@default []]
+  date: string option; [@default None]
+  contents: m036_2026_05_split_book_json_into_fields__book_value_page list;
+  remark: string; [@default ""]
+  sources: string list; [@default []]
+  scddb_id: int option; [@default None] [@key "scddb-id"]
+}
+[@@deriving of_yojson]
+
+type m036_2026_05_split_book_json_into_fields__book = {
+  value: m036_2026_05_split_book_json_into_fields__book_value;
+  meta: m026_m036_2026_04_05_split_jsons_into_fields__meta;
+  access: m035_m036_2026_05_split_jsons_into_fields__access_private;
 }
 [@@deriving of_yojson]
 
@@ -789,6 +828,150 @@ let migrations : migration list = [
             ALTER COLUMN "modified_at" SET NOT NULL,
             ALTER COLUMN "visibility" SET NOT NULL,
             DROP COLUMN "json";
+        |}
+    );
+    lwt_unit
+  );
+  make_custom "m036_2026_05_split_book_json_into_fields" (fun db ->
+    let%lwt _ = Migrations_sql.m036_2026_05_split_book_json_into_fields__add_columns db in
+    let%lwt _ = Migrations_sql.m036_2026_05_split_book_json_into_fields__add_authors_table db in
+    let%lwt _ = Migrations_sql.m036_2026_05_split_book_json_into_fields__add_sources_table db in
+    let%lwt _ = Migrations_sql.m036_2026_05_split_book_json_into_fields__add_content_table db in
+    let%lwt _ = Migrations_sql.m036_2026_05_split_book_json_into_fields__add_content_versions_table db in
+    let%lwt _ = Migrations_sql.m036_2026_05_split_book_json_into_fields__add_viewers_table db in
+    let%lwt _ = Migrations_sql.m036_2026_05_split_book_json_into_fields__add_owners_table db in
+    let%lwt all = Migrations_sql.List.m036_2026_05_split_book_json_into_fields__get_all db (fun ~id ~json -> (id, json)) in
+    Lwt_list.iter_s
+      (fun (id, json) ->
+        let book =
+          match m036_2026_05_split_book_json_into_fields__book_of_yojson json with
+          | Ok book -> book
+          | Error msg ->
+            Log.err (fun m -> m "Could not unserialise: %s" msg);
+            assert false
+        in
+        let (visibility, viewers) =
+          match book.access.visibility with
+          | Owners_only -> (0, [])
+          | Everyone -> (1, [])
+          | Select_viewers viewers -> (2, viewers)
+        in
+        ignore
+        <$> Migrations_sql.m036_2026_05_split_book_json_into_fields__update_one
+            db
+            ~id
+            ~title: (Some book.value.title)
+            ~date: book.value.date
+            ~remark: (Some book.value.remark)
+            ~scddb_id: (Option.map Int64.of_int book.value.scddb_id)
+            ~created_at: (Some book.meta.created_at)
+            ~modified_at: (Some book.meta.modified_at)
+            ~visibility: (some @@ Int64.of_int visibility);%lwt
+        Lwt_list.iter_s
+          (fun author ->
+            ignore
+            <$> Migrations_sql.m036_2026_05_split_book_json_into_fields__add_one_author
+                db
+                ~book_id: id
+                ~author_id: author
+          )
+          book.value.authors;%lwt
+        Lwt_list.iter_s
+          (fun source ->
+            ignore
+            <$> Migrations_sql.m036_2026_05_split_book_json_into_fields__add_one_source
+                db
+                ~book_id: id
+                ~source_id: source
+          )
+          book.value.sources;%lwt
+        let set_params_none = Result.get_ok @@ m036_2026_05_split_book_json_into_fields__set_parameters_of_yojson @@ `Assoc [] in
+        Lwt_list.iteri_s
+          (fun content_index page ->
+            let (page_type, part_title, dance_id, set_id, set_params, versions_and_params) =
+              match page with
+              | Part title -> (0L, Some title, None, None, set_params_none, [])
+              | Dance (dance, Dance_only) -> (1L, None, Some dance, None, set_params_none, [])
+              | Dance (dance, Dance_versions versions_and_params) -> (2L, None, Some dance, None, set_params_none, versions_and_params)
+              | Dance (dance, Dance_set (set, set_params)) -> (3L, None, Some dance, Some set, set_params, [])
+              | Versions versions_and_params -> (4L, None, None, None, set_params_none, versions_and_params)
+              | Set (set, set_params) -> (5L, None, None, Some set, set_params, [])
+            in
+            let%lwt _ =
+              Migrations_sql.m036_2026_05_split_book_json_into_fields__add_one_content_item
+                db
+                ~book_id: id
+                ~index: (Int64.of_int content_index)
+                ~page_type
+                ~part_title
+                ~dance_id
+                ~set_id
+                ~set_parameter_display_name: set_params.display_name
+                ~set_parameter_display_conceptor: set_params.display_conceptor
+                ~set_parameter_display_kind: set_params.display_kind
+                ~set_parameter_version_parameter_transposition_semitones: (Option.map Int64.of_int set_params.every_version.transposition)
+                ~set_parameter_version_parameter_first_bar: (Option.map Int64.of_int set_params.every_version.first_bar)
+                ~set_parameter_version_parameter_clef: set_params.every_version.clef
+                ~set_parameter_version_parameter_structure: set_params.every_version.structure
+                ~set_parameter_version_parameter_trivia: set_params.every_version.trivia
+                ~set_parameter_version_parameter_display_name: set_params.every_version.display_name
+                ~set_parameter_version_parameter_display_composer: set_params.every_version.display_composer
+            in
+            Lwt_list.iteri_s
+              (fun index (version, version_params) ->
+                ignore
+                <$> Migrations_sql.m036_2026_05_split_book_json_into_fields__add_one_content_version
+                    db
+                    ~book_id: id
+                    ~content_index: (Int64.of_int content_index)
+                    ~index: (Int64.of_int index)
+                    ~version_id: version
+                    ~version_parameter_transposition_semitones: (Option.map Int64.of_int version_params.transposition)
+                    ~version_parameter_first_bar: (Option.map Int64.of_int version_params.first_bar)
+                    ~version_parameter_clef: version_params.clef
+                    ~version_parameter_structure: version_params.structure
+                    ~version_parameter_trivia: version_params.trivia
+                    ~version_parameter_display_name: version_params.display_name
+                    ~version_parameter_display_composer: version_params.display_composer
+              )
+              versions_and_params
+          )
+          book.value.contents;%lwt
+        Lwt_list.iter_s
+          (fun viewer ->
+            ignore
+            <$> Migrations_sql.m036_2026_05_split_book_json_into_fields__add_one_viewer
+                db
+                ~book_id: id
+                ~viewer_id: viewer
+          )
+          viewers;%lwt
+        Lwt_list.iter_s
+          (fun owner ->
+            ignore
+            <$> Migrations_sql.m036_2026_05_split_book_json_into_fields__add_one_owner
+                db
+                ~book_id: id
+                ~owner_id: owner
+          )
+          book.access.owners
+      )
+      all;%lwt
+    (* NOTE: As of May 2026, Sqlgg does not support `ALTER COLUMN` but only
+       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
+       SQL for Sqlgg to infer the right column types, but exec a
+       PostgreSQL-compatible one manually here. *)
+    ignore (
+      Connection.bypass_exec
+        db
+        {|
+            ALTER TABLE "book"
+              ALTER COLUMN "title" SET NOT NULL,
+              ALTER COLUMN "remark" SET NOT NULL,
+              ALTER COLUMN "created_at" SET NOT NULL,
+              ALTER COLUMN "modified_at" SET NOT NULL,
+              ALTER COLUMN "visibility" SET NOT NULL,
+              DROP COLUMN "json";
         |}
     );
     lwt_unit

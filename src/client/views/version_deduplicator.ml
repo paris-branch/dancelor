@@ -169,9 +169,9 @@ let confirmation_dialog ~this_version ~other_version =
 
   (* how to update a version and its params from a set or a book *)
   let replace_version_and_params (a_version, a_version_params) =
-    if Entry.equal' a_version this_version then
+    if Entry.Id.equal' a_version (Entry.id this_version) then
       (
-        other_version,
+        Entry.id other_version,
         Model.Version_parameters.compose
           (
             (* if [this_version] is monolithic, then it comes
@@ -197,9 +197,7 @@ let confirmation_dialog ~this_version ~other_version =
     (fun set ->
       add_changes
         ~action: (fun () ->
-          let%lwt contents = Lwt_list.map_p (fun (version, params) -> let%lwt version = Option.get <$> Model.Version.get version in lwt (version, params)) (Model.Set.contents' set) in
-          let contents = List.map replace_version_and_params contents in
-          let contents = List.map (Pair.map_fst Entry.id) contents in
+          let contents = List.map replace_version_and_params (Model.Set.contents' set) in
           ignore
           <$> Madge_client.call_exn
               Endpoints.Api.(route @@ Set Update)
@@ -221,7 +219,6 @@ let confirmation_dialog ~this_version ~other_version =
     (fun book ->
       add_changes
         ~action: (fun () ->
-          let%lwt contents = Model.Book.contents' book in
           let contents =
             List.map
               (function
@@ -231,7 +228,7 @@ let confirmation_dialog ~this_version ~other_version =
                   Model.Book.Versions (NEList.map replace_version_and_params versions_and_params)
                 | page -> page
               )
-              contents
+              (Model.Book.contents' book)
           in
           ignore
           <$> Madge_client.call_exn

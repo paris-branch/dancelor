@@ -59,13 +59,8 @@ let get id : Model_builder.Core.Source.entry option Lwt.t =
 let get_all () =
   Connection.with_ @@ fun db ->
   let editors = Hashtbl.create 8 in
-  Source_sql.Fold.get_all_editors
-    db
-    (fun ~source_id ~person_id () ->
-      Hashtbl.add editors source_id (Entry.Id.of_string_exn person_id)
-    )
-    ();%lwt
-  Source_sql.List.get_all db (fun ~id -> row_to_source ~id ~editors: (Hashtbl.find_all editors id))
+  Source_sql.Fold.get_all_editors db (fun ~source_id ~person_id () -> Hashtbl.add editors source_id (Entry.Id.of_string_exn person_id)) ();%lwt
+  Source_sql.List.get_all db (fun ~id -> row_to_source ~id ~editors: (List.rev @@ Hashtbl.find_all editors id))
 
 let create source =
   Connection.with_ @@ fun db ->

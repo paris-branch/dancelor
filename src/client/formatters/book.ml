@@ -29,9 +29,11 @@ let title' ?(link = true) ?context book = title_gen @@ Right (book, link, contex
 
 let editors book =
   with_span_placeholder @@
-    match%lwt Model.Book.authors book with
+    match Model.Book.authors book with
     | [] -> lwt_nil
-    | editors -> lwt [Person.names' ~links: true editors]
+    | editors ->
+      let%lwt editors = Lwt_list.map_p (Option.get <%> Model.Person.get) editors in
+      lwt [Person.names' ~links: true editors]
 
 let editors' book = editors @@ Entry.value book
 
@@ -43,9 +45,11 @@ let date_and_editors book =
       | Some date -> [txt (spf "Published %s" (NesPartialDate.to_pretty_string ~at: true date))]
     in
     let%lwt editors =
-      match%lwt Model.Book.authors book with
+      match Model.Book.authors book with
       | [] -> lwt_nil
-      | editors -> lwt [txt "by "; Person.names' ~links: true editors]
+      | editors ->
+        let%lwt editors = Lwt_list.map_p (Option.get <%> Model.Person.get) editors in
+        lwt [txt "by "; Person.names' ~links: true editors]
     in
     lwt (date @ [txt " "] @ editors)
   )

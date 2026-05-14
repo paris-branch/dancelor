@@ -11,15 +11,15 @@ module type S = sig
 
   type page_dance = Core.Book.page_dance =
     | Dance_only
-    | Dance_versions of (Core.Version.entry * Core.Version_parameters.t) NEList.t
-    | Dance_set of Core.Set.entry * Core.Set_parameters.t
+    | Dance_versions of (Core.Version.t Entry.id * Core.Version_parameters.t) NEList.t
+    | Dance_set of Core.Set.t Entry.id * Core.Set_parameters.t
   [@@deriving variants]
 
   type page = Core.Book.page =
     | Part of NEString.t
-    | Dance of Core.Dance.entry * page_dance
-    | Versions of (Core.Version.entry * Core.Version_parameters.t) NEList.t
-    | Set of Core.Set.entry * Core.Set_parameters.t
+    | Dance of Core.Dance.t Entry.id * page_dance
+    | Versions of (Core.Version.t Entry.id * Core.Version_parameters.t) NEList.t
+    | Set of Core.Set.t Entry.id * Core.Set_parameters.t
   [@@deriving variants]
   (** The type of one page in a book. A page either consists of a version (eg.
       in a book of tunes), or a set (eg. in a dance program). *)
@@ -35,12 +35,12 @@ module type S = sig
 
   val make :
     title: NEString.t ->
-    ?authors: Core.Person.entry list ->
-    ?date: PartialDate.t ->
-    ?contents: page list ->
-    ?remark: string ->
-    ?sources: Core.Source.entry list ->
-    ?scddb_id: int ->
+    authors: Core.Person.t Entry.id list ->
+    date: PartialDate.t option ->
+    contents: page list ->
+    remark: string ->
+    sources: Core.Source.t Entry.id list ->
+    scddb_id: int option ->
     unit ->
     t
 
@@ -49,20 +49,20 @@ module type S = sig
   val title : t -> NEString.t
   val title' : entry -> NEString.t
 
-  val authors : t -> Core.Person.entry list Lwt.t
-  val authors' : entry -> Core.Person.entry list Lwt.t
+  val authors : t -> Core.Person.t Entry.id list
+  val authors' : entry -> Core.Person.t Entry.id list
 
   val date : t -> PartialDate.t option
   val date' : entry -> PartialDate.t option
 
-  val contents : t -> page list Lwt.t
-  val contents' : entry -> page list Lwt.t
+  val contents : t -> page list
+  val contents' : entry -> page list
 
   val remark : t -> string
   val remark' : entry -> string
 
-  val sources : t -> Core.Source.entry list Lwt.t
-  val sources' : entry -> Core.Source.entry list Lwt.t
+  val sources : t -> Core.Source.t Entry.id list
+  val sources' : entry -> Core.Source.t Entry.id list
 
   val scddb_id : t -> int option
   val scddb_id' : entry -> int option
@@ -85,18 +85,15 @@ module type S = sig
 
   type warning = Core.Book.warning =
     | Empty
-    | Duplicate_set of Core.Set.entry
-    | Duplicate_tune of Core.Tune.entry * (Core.Set.entry option * int) list
-    | Set_dance_kind_mismatch of Core.Set.entry * Core.Dance.entry
+    | Duplicate_set of Core.Set.t Entry.id
+    | Duplicate_tune of Core.Tune.t Entry.id * (Core.Set.t Entry.id option * int) list
+    | Set_dance_kind_mismatch of Core.Set.t Entry.id * Core.Dance.t Entry.id
   (* FIXME: a more specific type for (Set.t option * int) list. Maybe
      “occurrences”? And maybe with a record so that this “int” has a name? *)
 
   type warnings = warning list
 
   val warnings : entry -> warnings Lwt.t
-
-  val page_core_to_page : Core.Book.Page.t -> page Lwt.t
-  (** Exposed for use in the book controller. *)
 
   (** {2 Magic getter} *)
 

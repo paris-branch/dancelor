@@ -224,6 +224,78 @@ CREATE TABLE "set_owners" (
 
 CREATE TABLE "book" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "json" JSON NOT NULL,
+    "title" VARCHAR NOT NULL,
+    "date" VARCHAR,
+    "remark" VARCHAR NOT NULL,
+    "scddb_id" INT,
+    "created_at" TIMESTAMP NOT NULL,
+    "modified_at" TIMESTAMP NOT NULL,
+    "visibility" INT NOT NULL,
     CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+);
+
+CREATE TABLE "book_authors" (
+    "book_id" VARCHAR(14) NOT NULL,
+    "author_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_book_authors_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
+    CONSTRAINT "fk_book_authors_author_id" FOREIGN KEY ("author_id") REFERENCES "person" ("id")
+);
+
+CREATE TABLE "book_sources" (
+    "book_id" VARCHAR(14) NOT NULL,
+    "source_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_book_sources_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
+    CONSTRAINT "fk_book_sources_source_id" FOREIGN KEY ("source_id") REFERENCES "source" ("id")
+);
+
+CREATE TABLE "book_content" (
+    "book_id" VARCHAR(14) NOT NULL,
+    "index" INT NOT NULL,
+    "page_type" INT NOT NULL,
+    "part_title" VARCHAR,
+    "dance_id" VARCHAR(14),
+    "set_id" VARCHAR(14), -- standalone or within dance
+    "set_parameter_display_name" VARCHAR,
+    "set_parameter_display_conceptor" VARCHAR,
+    "set_parameter_display_kind" VARCHAR,
+    "set_parameter_version_parameter_transposition_semitones" INT,
+    "set_parameter_version_parameter_first_bar" INT,
+    "set_parameter_version_parameter_clef" VARCHAR,
+    "set_parameter_version_parameter_structure" VARCHAR,
+    "set_parameter_version_parameter_trivia" VARCHAR,
+    "set_parameter_version_parameter_display_name" VARCHAR,
+    "set_parameter_version_parameter_display_composer" VARCHAR,
+    CONSTRAINT "fk_book_content_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
+    CONSTRAINT "fk_book_content_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id"),
+    CONSTRAINT "fk_book_content_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id")
+);
+
+CREATE TABLE "book_content_versions" ( -- standalone or within dance
+    "book_id" VARCHAR(14) NOT NULL,
+    "content_index" INT NOT NULL,
+    "index" INT NOT NULL,
+    "version_id" VARCHAR(14) NOT NULL,
+    "version_parameter_transposition_semitones" INT,
+    "version_parameter_first_bar" INT,
+    "version_parameter_clef" VARCHAR,
+    "version_parameter_structure" VARCHAR,
+    "version_parameter_trivia" VARCHAR,
+    "version_parameter_display_name" VARCHAR,
+    "version_parameter_display_composer" VARCHAR,
+    CONSTRAINT "fk_book_content_versions_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
+    CONSTRAINT "fk_book_content_versions_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id")
+);
+
+CREATE TABLE "book_viewers" (
+    "book_id" VARCHAR(14) NOT NULL,
+    "viewer_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_book_viewers_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
+    CONSTRAINT "fk_book_viewers_viewer_id" FOREIGN KEY ("viewer_id") REFERENCES "user" ("id")
+);
+
+CREATE TABLE "book_owners" (
+    "book_id" VARCHAR(14) NOT NULL,
+    "owner_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_book_owners_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
+    CONSTRAINT "fk_book_owners_owner_id" FOREIGN KEY ("owner_id") REFERENCES "user" ("id")
 );

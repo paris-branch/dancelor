@@ -1,3 +1,7 @@
+(* FIXME: Selectors should only expose ids and not entries, that sounds much
+   easier to manipulate; then it's just a matter of grabbing the entry so as to
+   show it nicely, but the selector doesn't really need to know all this. *)
+
 open Js_of_ocaml
 open Nes
 open Dancelor_common

@@ -71,4 +71,5 @@ let bypass_exec (db : t) (query : string) =
         result#error
         (Format.pp_multiline_sensible "while executing")
         query
-    )
+    );
+    failwith "bypass_exec"

@@ -155,7 +155,7 @@ let build_pdf env id version_params rendering_params =
   in
   let set_params = Model.Set_parameters.make ?display_name: (Model.Version_parameters.display_name version_params) () in
   let version_params = Model.Version_parameters.set_display_name (NEString.of_string_exn " ") version_params in
-  let%lwt set = Model_to_renderer.versions_to_renderer_set' (NEList.singleton (version, version_params)) set_params in
+  let%lwt set = Model_to_renderer.versions_to_renderer_set' (NEList.singleton (Entry.id version, version_params)) set_params in
   let%lwt book_pdf_arg = Model_to_renderer.renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata in
   uncurry Job.register_job <$> Renderer.make_book_pdf book_pdf_arg
 
