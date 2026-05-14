@@ -374,7 +374,7 @@ CREATE TABLE "dancelor"."version_sources" (
 -- Data for Name: book; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."book" ("id", "json") VALUES ('0fi3-1iot-6tbq', '{"value":{"title":"The Tam Lin Book","contents":[["Versions",[["xzzb-wasm-babe",{}]]],["Set","ului-yd9x-o35w",{}]]},"meta":{"created-at":"2020-12-03T11:55:36+01:00","modified-at":"2023-06-25T16:51:15+02:00"},"access":{"owners":["lt3h-edgt-ac97"],"visibility":["Everyone"]}}');
+INSERT INTO "dancelor"."book" ("id", "json") VALUES ('0fi3-1iot-6tbq', '{"value":{"title":"The Tam Lin Book","authors":["9fdg-glrm-0zoi"],"contents":[["Versions",[["xzzb-wasm-babe",{}]]],["Set","ului-yd9x-o35w",{}],["Part","Dance-based stuff"],["Dance","cy5n-qvpl-k0yl",["Dance_only"]],["Dance","0xf7-xwz9-1fhj",["Dance_versions",[["xsbz-vqy7-xj3s",{}],["jyot-ypt9-caxu",{"transposition":-2,"first-bar":865,"structure":"AAAAAAAAA","display-name":"and again","display-composer":"still Niols"}]]]],["Dance","l02q-i1j0-qpoi",["Dance_set","ului-yd9x-o35w",{}]]],"remark":"this is a remark","sources":["2wrv-25yu-yc07","2f8s-90v8-33do"],"scddb-id":298374872},"meta":{"created-at":"2026-05-14T13:40:42","modified-at":"2026-05-14T13:40:42"},"access":{"owners":["lt3h-edgt-ac97"],"visibility":["Everyone"]}}');
 
 
 --
