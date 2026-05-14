@@ -552,7 +552,6 @@ let migrations : migration list = [
             Log.err (fun m -> m "Could not unserialise: %s" msg);
             assert false
         in
-        (* FIXME *)
         ignore
         <$> Migrations_sql.m033_2026_05_split_tune_json_into_fields__update_one
             db
