@@ -48,7 +48,96 @@ CREATE TYPE "dancelor"."globally_unique_id_type" AS ENUM (
 
 CREATE TABLE "dancelor"."book" (
     "id" character varying(14) NOT NULL,
-    "json" json NOT NULL
+    "title" character varying NOT NULL,
+    "date" character varying,
+    "remark" character varying NOT NULL,
+    "scddb_id" integer,
+    "created_at" timestamp without time zone NOT NULL,
+    "modified_at" timestamp without time zone NOT NULL,
+    "visibility" integer NOT NULL
+);
+
+
+--
+-- Name: book_authors; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."book_authors" (
+    "book_id" character varying(14) NOT NULL,
+    "author_id" character varying(14) NOT NULL
+);
+
+
+--
+-- Name: book_content; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."book_content" (
+    "book_id" character varying(14) NOT NULL,
+    "index" integer NOT NULL,
+    "page_type" integer NOT NULL,
+    "part_title" character varying,
+    "dance_id" character varying(14),
+    "set_id" character varying(14),
+    "set_parameter_display_name" character varying,
+    "set_parameter_display_conceptor" character varying,
+    "set_parameter_display_kind" character varying,
+    "set_parameter_version_parameter_transposition_semitones" integer,
+    "set_parameter_version_parameter_first_bar" integer,
+    "set_parameter_version_parameter_clef" character varying,
+    "set_parameter_version_parameter_structure" character varying,
+    "set_parameter_version_parameter_trivia" character varying,
+    "set_parameter_version_parameter_display_name" character varying,
+    "set_parameter_version_parameter_display_composer" character varying
+);
+
+
+--
+-- Name: book_content_versions; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."book_content_versions" (
+    "book_id" character varying(14) NOT NULL,
+    "content_index" integer NOT NULL,
+    "index" integer NOT NULL,
+    "version_id" character varying(14) NOT NULL,
+    "version_parameter_transposition_semitones" integer,
+    "version_parameter_first_bar" integer,
+    "version_parameter_clef" character varying,
+    "version_parameter_structure" character varying,
+    "version_parameter_trivia" character varying,
+    "version_parameter_display_name" character varying,
+    "version_parameter_display_composer" character varying
+);
+
+
+--
+-- Name: book_owners; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."book_owners" (
+    "book_id" character varying(14) NOT NULL,
+    "owner_id" character varying(14) NOT NULL
+);
+
+
+--
+-- Name: book_sources; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."book_sources" (
+    "book_id" character varying(14) NOT NULL,
+    "source_id" character varying(14) NOT NULL
+);
+
+
+--
+-- Name: book_viewers; Type: TABLE; Schema: dancelor; Owner: -
+--
+
+CREATE TABLE "dancelor"."book_viewers" (
+    "book_id" character varying(14) NOT NULL,
+    "viewer_id" character varying(14) NOT NULL
 );
 
 
@@ -374,7 +463,56 @@ CREATE TABLE "dancelor"."version_sources" (
 -- Data for Name: book; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."book" ("id", "json") VALUES ('0fi3-1iot-6tbq', '{"value":{"title":"The Tam Lin Book","authors":["9fdg-glrm-0zoi"],"contents":[["Versions",[["xzzb-wasm-babe",{}]]],["Set","ului-yd9x-o35w",{}],["Part","Dance-based stuff"],["Dance","cy5n-qvpl-k0yl",["Dance_only"]],["Dance","0xf7-xwz9-1fhj",["Dance_versions",[["xsbz-vqy7-xj3s",{}],["jyot-ypt9-caxu",{"transposition":-2,"first-bar":865,"structure":"AAAAAAAAA","display-name":"and again","display-composer":"still Niols"}]]]],["Dance","l02q-i1j0-qpoi",["Dance_set","ului-yd9x-o35w",{}]]],"remark":"this is a remark","sources":["2wrv-25yu-yc07","2f8s-90v8-33do"],"scddb-id":298374872},"meta":{"created-at":"2026-05-14T13:40:42","modified-at":"2026-05-14T13:40:42"},"access":{"owners":["lt3h-edgt-ac97"],"visibility":["Everyone"]}}');
+INSERT INTO "dancelor"."book" ("id", "title", "date", "remark", "scddb_id", "created_at", "modified_at", "visibility") VALUES ('0fi3-1iot-6tbq', 'The Tam Lin Book', NULL, 'this is a remark', 298374872, '2026-05-14 14:40:42', '2026-05-14 14:40:42', 1);
+
+
+--
+-- Data for Name: book_authors; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."book_authors" ("book_id", "author_id") VALUES ('0fi3-1iot-6tbq', '9fdg-glrm-0zoi');
+
+
+--
+-- Data for Name: book_content; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."book_content" ("book_id", "index", "page_type", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 0, 4, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "dancelor"."book_content" ("book_id", "index", "page_type", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 1, 5, NULL, NULL, 'ului-yd9x-o35w', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "dancelor"."book_content" ("book_id", "index", "page_type", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 2, 0, 'Dance-based stuff', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "dancelor"."book_content" ("book_id", "index", "page_type", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 3, 1, NULL, 'cy5n-qvpl-k0yl', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "dancelor"."book_content" ("book_id", "index", "page_type", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 4, 2, NULL, '0xf7-xwz9-1fhj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "dancelor"."book_content" ("book_id", "index", "page_type", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 5, 3, NULL, 'l02q-i1j0-qpoi', 'ului-yd9x-o35w', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
+
+--
+-- Data for Name: book_content_versions; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."book_content_versions" ("book_id", "content_index", "index", "version_id", "version_parameter_transposition_semitones", "version_parameter_first_bar", "version_parameter_clef", "version_parameter_structure", "version_parameter_trivia", "version_parameter_display_name", "version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 0, 0, 'xzzb-wasm-babe', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "dancelor"."book_content_versions" ("book_id", "content_index", "index", "version_id", "version_parameter_transposition_semitones", "version_parameter_first_bar", "version_parameter_clef", "version_parameter_structure", "version_parameter_trivia", "version_parameter_display_name", "version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 4, 0, 'xsbz-vqy7-xj3s', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "dancelor"."book_content_versions" ("book_id", "content_index", "index", "version_id", "version_parameter_transposition_semitones", "version_parameter_first_bar", "version_parameter_clef", "version_parameter_structure", "version_parameter_trivia", "version_parameter_display_name", "version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 4, 1, 'jyot-ypt9-caxu', -2, 865, NULL, 'AAAAAAAAA', NULL, 'and again', 'still Niols');
+
+
+--
+-- Data for Name: book_owners; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."book_owners" ("book_id", "owner_id") VALUES ('0fi3-1iot-6tbq', 'lt3h-edgt-ac97');
+
+
+--
+-- Data for Name: book_sources; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
+INSERT INTO "dancelor"."book_sources" ("book_id", "source_id") VALUES ('0fi3-1iot-6tbq', '2wrv-25yu-yc07');
+INSERT INTO "dancelor"."book_sources" ("book_id", "source_id") VALUES ('0fi3-1iot-6tbq', '2f8s-90v8-33do');
+
+
+--
+-- Data for Name: book_viewers; Type: TABLE DATA; Schema: dancelor; Owner: -
+--
+
 
 
 --
@@ -472,6 +610,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m032_2026_05
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m033_2026_05_split_tune_json_into_fields', '2026-05-10 11:48:14.488321+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m034_2026_05_split_version_json_into_fields', '2026-05-12 12:10:45.842954+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m035_2026_05_split_set_json_into_fields', '2026-05-13 10:07:34.890439+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m036_2026_05_split_book_json_into_fields', '2026-05-14 13:50:33.071361+00');
 
 
 --
@@ -823,11 +962,115 @@ ALTER TABLE ONLY "dancelor"."user"
 
 
 --
+-- Name: book_authors fk_book_authors_author_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_authors"
+    ADD CONSTRAINT "fk_book_authors_author_id" FOREIGN KEY ("author_id") REFERENCES "dancelor"."person"("id");
+
+
+--
+-- Name: book_authors fk_book_authors_book_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_authors"
+    ADD CONSTRAINT "fk_book_authors_book_id" FOREIGN KEY ("book_id") REFERENCES "dancelor"."book"("id");
+
+
+--
+-- Name: book_content fk_book_content_book_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_content"
+    ADD CONSTRAINT "fk_book_content_book_id" FOREIGN KEY ("book_id") REFERENCES "dancelor"."book"("id");
+
+
+--
+-- Name: book_content fk_book_content_dance_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_content"
+    ADD CONSTRAINT "fk_book_content_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dancelor"."dance"("id");
+
+
+--
+-- Name: book_content fk_book_content_set_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_content"
+    ADD CONSTRAINT "fk_book_content_set_id" FOREIGN KEY ("set_id") REFERENCES "dancelor"."set"("id");
+
+
+--
+-- Name: book_content_versions fk_book_content_versions_book_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_content_versions"
+    ADD CONSTRAINT "fk_book_content_versions_book_id" FOREIGN KEY ("book_id") REFERENCES "dancelor"."book"("id");
+
+
+--
+-- Name: book_content_versions fk_book_content_versions_version_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_content_versions"
+    ADD CONSTRAINT "fk_book_content_versions_version_id" FOREIGN KEY ("version_id") REFERENCES "dancelor"."version"("id");
+
+
+--
 -- Name: book fk_book_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
 --
 
 ALTER TABLE ONLY "dancelor"."book"
     ADD CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: book_owners fk_book_owners_book_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_owners"
+    ADD CONSTRAINT "fk_book_owners_book_id" FOREIGN KEY ("book_id") REFERENCES "dancelor"."book"("id");
+
+
+--
+-- Name: book_owners fk_book_owners_owner_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_owners"
+    ADD CONSTRAINT "fk_book_owners_owner_id" FOREIGN KEY ("owner_id") REFERENCES "dancelor"."user"("id");
+
+
+--
+-- Name: book_sources fk_book_sources_book_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_sources"
+    ADD CONSTRAINT "fk_book_sources_book_id" FOREIGN KEY ("book_id") REFERENCES "dancelor"."book"("id");
+
+
+--
+-- Name: book_sources fk_book_sources_source_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_sources"
+    ADD CONSTRAINT "fk_book_sources_source_id" FOREIGN KEY ("source_id") REFERENCES "dancelor"."source"("id");
+
+
+--
+-- Name: book_viewers fk_book_viewers_book_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_viewers"
+    ADD CONSTRAINT "fk_book_viewers_book_id" FOREIGN KEY ("book_id") REFERENCES "dancelor"."book"("id");
+
+
+--
+-- Name: book_viewers fk_book_viewers_viewer_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_viewers"
+    ADD CONSTRAINT "fk_book_viewers_viewer_id" FOREIGN KEY ("viewer_id") REFERENCES "dancelor"."user"("id");
 
 
 --

@@ -807,3 +807,212 @@ CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
 CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
 CHANGE COLUMN "visibility" "visibility" INT NOT NULL,
 DROP COLUMN "json";
+
+-- @m036_2026_05_split_book_json_into_fields__add_columns
+ALTER TABLE "book"
+ADD COLUMN "title" VARCHAR,
+ADD COLUMN "date" VARCHAR,
+ADD COLUMN "remark" VARCHAR,
+ADD COLUMN "scddb_id" INT,
+ADD COLUMN "created_at" TIMESTAMP,
+ADD COLUMN "modified_at" TIMESTAMP,
+ADD COLUMN "visibility" INT;
+
+-- @m036_2026_05_split_book_json_into_fields__add_authors_table
+CREATE TABLE "book_authors" (
+    "book_id" VARCHAR(14) NOT NULL,
+    "author_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_book_authors_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
+    CONSTRAINT "fk_book_authors_author_id" FOREIGN KEY ("author_id") REFERENCES "person" ("id")
+);
+
+-- @m036_2026_05_split_book_json_into_fields__add_sources_table
+CREATE TABLE "book_sources" (
+    "book_id" VARCHAR(14) NOT NULL,
+    "source_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_book_sources_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
+    CONSTRAINT "fk_book_sources_source_id" FOREIGN KEY ("source_id") REFERENCES "source" ("id")
+);
+
+-- @m036_2026_05_split_book_json_into_fields__add_content_table
+CREATE TABLE "book_content" (
+    "book_id" VARCHAR(14) NOT NULL,
+    "index" INT NOT NULL,
+    "page_type" INT NOT NULL,
+    "part_title" VARCHAR,
+    "dance_id" VARCHAR(14),
+    "set_id" VARCHAR(14), -- standalone or within dance
+    "set_parameter_display_name" VARCHAR,
+    "set_parameter_display_conceptor" VARCHAR,
+    "set_parameter_display_kind" VARCHAR,
+    "set_parameter_version_parameter_transposition_semitones" INT,
+    "set_parameter_version_parameter_first_bar" INT,
+    "set_parameter_version_parameter_clef" VARCHAR,
+    "set_parameter_version_parameter_structure" VARCHAR,
+    "set_parameter_version_parameter_trivia" VARCHAR,
+    "set_parameter_version_parameter_display_name" VARCHAR,
+    "set_parameter_version_parameter_display_composer" VARCHAR,
+    CONSTRAINT "fk_book_content_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
+    CONSTRAINT "fk_book_content_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id"),
+    CONSTRAINT "fk_book_content_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id")
+);
+
+-- @m036_2026_05_split_book_json_into_fields__add_content_versions_table
+CREATE TABLE "book_content_versions" (
+    "book_id" VARCHAR(14) NOT NULL,
+    "content_index" INT NOT NULL,
+    "index" INT NOT NULL,
+    "version_id" VARCHAR(14) NOT NULL,
+    "version_parameter_transposition_semitones" INT,
+    "version_parameter_first_bar" INT,
+    "version_parameter_clef" VARCHAR,
+    "version_parameter_structure" VARCHAR,
+    "version_parameter_trivia" VARCHAR,
+    "version_parameter_display_name" VARCHAR,
+    "version_parameter_display_composer" VARCHAR,
+    CONSTRAINT "fk_book_content_versions_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
+    CONSTRAINT "fk_book_content_versions_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id")
+);
+
+-- @m036_2026_05_split_book_json_into_fields__add_viewers_table
+CREATE TABLE "book_viewers" (
+    "book_id" VARCHAR(14) NOT NULL,
+    "viewer_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_book_viewers_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
+    CONSTRAINT "fk_book_viewers_viewer_id" FOREIGN KEY ("viewer_id") REFERENCES "user" ("id")
+);
+
+-- @m036_2026_05_split_book_json_into_fields__add_owners_table
+CREATE TABLE "book_owners" (
+    "book_id" VARCHAR(14) NOT NULL,
+    "owner_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_book_owners_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
+    CONSTRAINT "fk_book_owners_owner_id" FOREIGN KEY ("owner_id") REFERENCES "user" ("id")
+);
+
+-- @m036_2026_05_split_book_json_into_fields__get_all
+SELECT
+    "id",
+    "json"
+FROM "book";
+
+-- @m036_2026_05_split_book_json_into_fields__update_one
+UPDATE "book"
+SET
+    "title" = @title,
+    "date" = @date,
+    "remark" = @remark,
+    "scddb_id" = @scddb_id,
+    "created_at" = @created_at,
+    "modified_at" = @modified_at,
+    "visibility" = @visibility
+WHERE "id" = @id;
+
+-- @m036_2026_05_split_book_json_into_fields__add_one_author
+INSERT INTO "book_authors" (
+    "book_id",
+    "author_id"
+) VALUES (
+    @book_id,
+    @author_id
+);
+
+-- @m036_2026_05_split_book_json_into_fields__add_one_source
+INSERT INTO "book_sources" (
+    "book_id",
+    "source_id"
+) VALUES (
+    @book_id,
+    @source_id
+);
+
+-- @m036_2026_05_split_book_json_into_fields__add_one_content_item
+INSERT INTO "book_content" (
+    "book_id",
+    "index",
+    "page_type",
+    "part_title",
+    "dance_id",
+    "set_id",
+    "set_parameter_display_name",
+    "set_parameter_display_conceptor",
+    "set_parameter_display_kind",
+    "set_parameter_version_parameter_transposition_semitones",
+    "set_parameter_version_parameter_first_bar",
+    "set_parameter_version_parameter_clef",
+    "set_parameter_version_parameter_structure",
+    "set_parameter_version_parameter_trivia",
+    "set_parameter_version_parameter_display_name",
+    "set_parameter_version_parameter_display_composer"
+) VALUES (
+    @book_id,
+    @index,
+    @page_type,
+    @part_title,
+    @dance_id,
+    @set_id,
+    @set_parameter_display_name,
+    @set_parameter_display_conceptor,
+    @set_parameter_display_kind,
+    @set_parameter_version_parameter_transposition_semitones,
+    @set_parameter_version_parameter_first_bar,
+    @set_parameter_version_parameter_clef,
+    @set_parameter_version_parameter_structure,
+    @set_parameter_version_parameter_trivia,
+    @set_parameter_version_parameter_display_name,
+    @set_parameter_version_parameter_display_composer
+);
+
+-- @m036_2026_05_split_book_json_into_fields__add_one_content_version
+INSERT INTO "book_content_versions" (
+    "book_id",
+    "content_index",
+    "index",
+    "version_id",
+    "version_parameter_transposition_semitones",
+    "version_parameter_first_bar",
+    "version_parameter_clef",
+    "version_parameter_structure",
+    "version_parameter_trivia",
+    "version_parameter_display_name",
+    "version_parameter_display_composer"
+) VALUES (
+    @book_id,
+    @content_index,
+    @index,
+    @version_id,
+    @version_parameter_transposition_semitones,
+    @version_parameter_first_bar,
+    @version_parameter_clef,
+    @version_parameter_structure,
+    @version_parameter_trivia,
+    @version_parameter_display_name,
+    @version_parameter_display_composer
+);
+
+-- @m036_2026_05_split_book_json_into_fields__add_one_viewer
+INSERT INTO "book_viewers" (
+    "book_id",
+    "viewer_id"
+) VALUES (
+    @book_id,
+    @viewer_id
+);
+
+-- @m036_2026_05_split_book_json_into_fields__add_one_owner
+INSERT INTO "book_owners" (
+    "book_id",
+    "owner_id"
+) VALUES (
+    @book_id,
+    @owner_id
+);
+
+-- @m036_2026_05_split_book_json_into_fields__cleanup_columns__for_sqlgg
+ALTER TABLE "book"
+CHANGE COLUMN "title" "title" VARCHAR NOT NULL,
+CHANGE COLUMN "remark" "remark" VARCHAR NOT NULL,
+CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
+CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
+CHANGE COLUMN "visibility" "visibility" INT NOT NULL,
+DROP COLUMN "json";

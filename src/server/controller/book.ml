@@ -10,11 +10,13 @@ let get env id =
 
 let create env book access =
   Permission.assert_can_create_private env;%lwt
-  Database.Book.create book access
+  let%lwt id = Database.Book.create book access in
+  Option.get <$> Database.Book.get id
 
 let update env id book access =
   Permission.assert_can_update_private env =<< get env id;%lwt
-  Database.Book.update id book access
+  Database.Book.update id book access;%lwt
+  Option.get <$> Database.Book.get id
 
 let delete env id =
   Permission.assert_can_delete_private env =<< get env id;%lwt
