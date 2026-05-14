@@ -272,9 +272,9 @@ let load_sleep_raise ?(delay = 1.) page_promise =
   load page_promise;%lwt
   Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt
   if !current_content = previous_content then
-    Lwt.fail Replacement_failed
+    raise Replacement_failed
   else
-    Lwt.fail Replacement_successful
+    raise Replacement_successful
 
 let madge_call_or_404 endpoint arg f =
   try%lwt

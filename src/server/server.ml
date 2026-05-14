@@ -151,6 +151,7 @@ let callback _ request body =
       wait_for_server
 
   let () = Random.self_init ()
+  let () = Printexc.record_backtrace true
 
   let main : unit Lwt.t =
     catchall
