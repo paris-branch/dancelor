@@ -7,7 +7,6 @@ module Log = (val Logs.src_log @@ Logs.Src.create "server.static": Logs.LOG)
 let base_url = Uri.of_string "https://dancelor.org"
 
 let serve_index path =
-  Log.debug (fun m -> m "Serving main file.");
   (* NOTE: We use the boot time of Dancelor to invalidate caching of `client.js`.
      This means that clients will have to re-download every time Dancelor starts,
      but that isn't so often, and most of the time it is because of a change where
@@ -55,7 +54,6 @@ let serve_index path =
 let static_pages = List.map Uri.of_string ["/"; "/explore"]
 
 let serve_sitemap env =
-  Log.info (fun m -> m "Generating and serving sitemap.xml");
   let%lwt (_, anys) = Controller.Any.search env Slice.everything Formula.true_ in
   let urls = static_pages @ List.map Endpoints.Page.href_any_full anys in
   let urls = List.map (fun url -> Uri.with_path base_url (Uri.path url)) urls in
@@ -81,7 +79,6 @@ let serve_sitemap env =
   Cohttp_lwt_unix.Server.respond_string ~headers ~status: `OK ~body: sitemap ()
 
 let serve_robots_txt () =
-  Log.info (fun m -> m "Serving robots.txt");
   let robots_txt = spf "Sitemap: %s/sitemap.xml\nUser-agent: *\nAllow: /\n" (Uri.to_string base_url) in
   let headers =
     Cohttp.Header.of_list [
@@ -92,6 +89,7 @@ let serve_robots_txt () =
   Cohttp_lwt_unix.Server.respond_string ~headers ~status: `OK ~body: robots_txt ()
 
 let serve env path =
+  Log.debug (fun m -> m "Looking to serve %S" path);
   let full_path = Filename.concat (Config.get ()).share path in
   if Sys.file_exists full_path && not (Sys.is_directory full_path) then
     (
@@ -101,8 +99,17 @@ let serve env path =
       Cohttp_lwt_unix.Server.respond_file ~headers ~fname: full_path ()
     )
   else if path = "/sitemap.xml" then
-    serve_sitemap env
+    (
+      Log.debug (fun m -> m "Generating and serving sitemap.xml");
+      serve_sitemap env
+    )
   else if path = "/robots.txt" then
-    serve_robots_txt ()
+    (
+      Log.debug (fun m -> m "Serving robots.txt");
+      serve_robots_txt ()
+    )
   else
-    serve_index path
+    (
+      Log.debug (fun m -> m "Serving main file.");
+      serve_index path
+    )

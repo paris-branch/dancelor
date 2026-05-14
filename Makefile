@@ -3,7 +3,7 @@
 build:
 	dune build @install @runtest
 
-run: postgres-start
+run: postgres-start build
 	dune exec dancelor -- assets/config.dev.json
 
 entr: postgres-start
