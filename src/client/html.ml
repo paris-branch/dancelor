@@ -19,7 +19,7 @@ module S = struct
        make sure the failure happens asynchronously. *)
     match Lwt.state promise with
     | Return x -> const x
-    | Fail exn -> Lwt.async (fun () -> Lwt.fail exn); const placeholder
+    | Fail exn -> Lwt.async (fun () -> Lwt.fail exn); const placeholder (* REVIEW: replace by [raise]? it captures a backtrace but we need to make sure Lwt wraps it *)
     | Sleep ->
       (* No equality: trigger a change when we call [send_result] even if it is the
          same element. This ensures we can put what we want in the signal, such as

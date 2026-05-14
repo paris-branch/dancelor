@@ -78,7 +78,7 @@ let async_exec {conn; fd} ?params sql =
     if conn#is_busy then poll ()
     else
       match conn#get_result with
-      | None -> Lwt.fail (Oops "async_exec: no result")
+      | None -> raise (Oops "async_exec: no result")
       | Some r ->
         (* Drain any remaining results *)
         ignore (conn#get_result);
@@ -290,7 +290,7 @@ let select_one_maybe conn sql f callback =
 let select_one conn sql f callback =
   select_one_maybe conn sql f callback >>= function
     | Some x -> Lwt.return x
-    | None -> Lwt.fail (Oops "select_one: no rows returned")
+    | None -> raise (Oops "select_one: no rows returned")
 
 let execute conn sql f =
   f {sql; connection = conn} >>= fun r ->
