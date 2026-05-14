@@ -37,7 +37,7 @@ let row_to_set
   Entry.make
     ~id: (Entry.Id.of_string_exn id)
     ~meta: (Entry.Meta.make ~created_at ~modified_at ())
-    ~access: (Entry.Access.Private.make ~owners ~visibility ())
+    ~access: (Entry.Access.Private.make ~owners: (NEList.of_list_exn owners) ~visibility ())
     (
       Model_builder.Core.Set.make
         ~name: (NEString.of_string_exn name)
@@ -134,7 +134,7 @@ let get id : Model_builder.Core.Set.entry option Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt conceptors = Set_sql.List.get_conceptors db ~set_id: id (fun ~conceptor_id -> Entry.Id.of_string_exn conceptor_id) in
   let%lwt dances = Set_sql.List.get_dances db ~set_id: id (fun ~dance_id -> Entry.Id.of_string_exn dance_id) in
-  let%lwt owners = NEList.of_list_exn <$> Set_sql.List.get_owners db ~set_id: id (fun ~owner_id -> Entry.Id.of_string_exn owner_id) in
+  let%lwt owners = Set_sql.List.get_owners db ~set_id: id (fun ~owner_id -> Entry.Id.of_string_exn owner_id) in
   let%lwt viewers = Set_sql.List.get_viewers db ~set_id: id (fun ~viewer_id -> Entry.Id.of_string_exn viewer_id) in
   let%lwt content =
     Set_sql.List.get_content db ~set_id: id (fun
@@ -208,7 +208,7 @@ let get_all () =
       ~conceptors: (List.rev @@ Hashtbl.find_all conceptors id)
       ~dances: (List.rev @@ Hashtbl.find_all dances id)
       ~viewers: (List.rev @@ Hashtbl.find_all viewers id)
-      ~owners: (NEList.of_list_exn @@ List.rev @@ Hashtbl.find_all owners id)
+      ~owners: (List.rev @@ Hashtbl.find_all owners id)
       ~content: (List.rev @@ Hashtbl.find_all content id)
   )
 
