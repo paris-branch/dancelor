@@ -29,16 +29,27 @@ module Build (Getters : Getters) : S = struct
     include Core.User
     let get = Getters.get_user
   end
-
-  module Person = Builder.Person.Build(Getters)
-  module Source = Builder.Source.Build(Getters)
-  module Dance = Builder.Dance.Build(Getters)
-  module Tune = Builder.Tune.Build(Getters)
+  module Person = struct
+    include Core.Person
+    let get = Getters.get_person
+  end
+  module Source = struct
+    include Core.Source
+    let get = Getters.get_source
+  end
+  module Dance = struct
+    include Core.Dance
+    let get = Getters.get_dance
+  end
+  module Tune = struct
+    include Core.Tune
+    let get = Getters.get_tune
+  end
   module Version = Builder.Version.Build(Getters)
-  module Version_parameters = Builder.Version_parameters.Build(Getters)
+  module Version_parameters = Core.Version_parameters
   module Set = Builder.Set.Build(Getters)
   module Set_order = Core.Set_order
-  module Set_parameters = Builder.Set_parameters.Build(Getters)
+  module Set_parameters = Core.Set_parameters
   module Book = Builder.Book.Build(Getters)
   module Book_parameters = Core.Book_parameters
   module Any = Builder.Any.Build(Getters)
