@@ -6,16 +6,6 @@ let switch_signal_option = function
   | None -> S.Option.none
   | Some signal -> S.Option.some signal
 
-let works set =
-  with_span_placeholder @@
-    match Model.Set.dances set with
-    | [] -> lwt_nil
-    | dances ->
-      let%lwt dances = Lwt_list.map_p (Option.get <%> Model.Dance.get) dances in
-      lwt [txt (spf "Works for %s" @@ String.concat ", " @@ List.map (NEString.to_string % Model.Dance.one_name') dances)]
-
-let works' = works % Entry.value
-
 let display_name ?(params = Model.Set_parameters.none) () =
   match Model.Set_parameters.display_name params with
   | None -> []

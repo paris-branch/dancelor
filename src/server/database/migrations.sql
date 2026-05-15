@@ -1016,3 +1016,10 @@ CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
 CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
 CHANGE COLUMN "visibility" "visibility" INT NOT NULL,
 DROP COLUMN "json";
+
+-- @m037_2026_05_alter_table_set_drop_column_instructions
+ALTER TABLE "set"
+DROP COLUMN "instructions";
+
+-- @m038_2026_05_drop_table_set_dances
+DROP TABLE "set_dances";

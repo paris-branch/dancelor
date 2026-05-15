@@ -16,7 +16,6 @@ let view context id =
     ]
     ~title: (lwt @@ NEString.to_string @@ Set.name' set)
     ~subtitles: [
-      Formatters.Set.works' set;
       span
         [
           txt ((Kind.Dance.to_pretty_string % Set.kind') set);
@@ -69,15 +68,6 @@ let view context id =
       );
     ]
     [
-      p
-        [
-          txt
-            (
-              match Set.instructions' set with
-              | "" -> ""
-              | instructions -> "Instructions: " ^ instructions
-            )
-        ];
       R.div
         (
           S.from_lwt

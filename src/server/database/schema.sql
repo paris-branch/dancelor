@@ -171,7 +171,6 @@ CREATE TABLE "set" (
     "name" VARCHAR NOT NULL,
     "kind" VARCHAR NOT NULL,
     "order" VARCHAR NOT NULL,
-    "instructions" VARCHAR NOT NULL,
     "remark" VARCHAR NOT NULL,
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
@@ -184,13 +183,6 @@ CREATE TABLE "set_conceptors" (
     "conceptor_id" VARCHAR(14) NOT NULL,
     CONSTRAINT "fk_set_conceptors_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
     CONSTRAINT "fk_set_conceptors_conceptor_id" FOREIGN KEY ("conceptor_id") REFERENCES "person" ("id")
-);
-
-CREATE TABLE "set_dances" (
-    "set_id" VARCHAR(14) NOT NULL,
-    "dance_id" VARCHAR(14) NOT NULL,
-    CONSTRAINT "fk_set_dances_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
-    CONSTRAINT "fk_set_dances_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id")
 );
 
 CREATE TABLE "set_content" (

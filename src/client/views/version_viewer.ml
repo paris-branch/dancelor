@@ -56,7 +56,7 @@ let add_to_set_dialog version user =
     ~target_history: History.get_sets
     ~target_add_source_to_content: (fun set ->
       let contents = Model.Set.contents set in
-      lwt @@ Model.Set.set_contents (contents @ [(Entry.id version, Model.Version_parameters.none)]) set
+      Model.Set.set_contents (contents @ [(Entry.id version, Model.Version_parameters.none)]) set
     )
 
 let madge_call_or_404_on_option route maybe_id =

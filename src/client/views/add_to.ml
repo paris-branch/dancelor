@@ -25,7 +25,7 @@ let dialog
       ?context
       target
       ~onclick: (fun () ->
-        let%lwt target_value = target_add_source_to_content (Entry.value target) in
+        let target_value = target_add_source_to_content (Entry.value target) in
         ignore <$> target_update (Entry.id target) target_value (Entry.access target);%lwt
         Toast.open_
           ~title: (spf "Added to %s" target_type)
@@ -90,9 +90,8 @@ let dialog_to_book ~source_type ~source_format user source source_page =
     ~target_update: (Madge_client.call_exn Endpoints.Api.(route @@ Book Update))
     ~target_history: History.get_books
     ~target_add_source_to_content: (fun book ->
-      (* FIXME: I don't think this argument needs Lwt anymore? *)
       let contents = Model.Book.contents book in
-      lwt @@ Model.Book.set_contents (contents @ [source_page]) book
+      Model.Book.set_contents (contents @ [source_page]) book
     )
 
 let button ~target_type create_dialog =

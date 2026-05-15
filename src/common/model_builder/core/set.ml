@@ -8,8 +8,6 @@ type t = {
   kind: Kind.Dance.t;
   contents: (Version.t Entry.id * Version_parameters.t) list; [@key "versions-and-parameters"] [@default []]
   order: Set_order.t;
-  instructions: string; [@default ""]
-  dances: Dance.t Entry.id list; [@default []]
   remark: string; [@default ""]
 }
 [@@deriving eq, ord, yojson, make, show {with_path = false}, fields]
@@ -18,17 +16,15 @@ type access = Entry.Access.Private.t [@@deriving yojson]
 type entry = t Entry.private_
 [@@deriving eq, ord, show, yojson]
 
-let make ~name ~conceptors ~kind ~contents ~order ~instructions ~dances ~remark () =
+let make ~name ~conceptors ~kind ~contents ~order ~remark () =
   let name = NEString.map_exn (String.remove_duplicates ~char: ' ') name in
-  make ~name ~conceptors ~kind ~contents ~order ~instructions ~dances ~remark ()
+  make ~name ~conceptors ~kind ~contents ~order ~remark ()
 
 let name' = name % Entry.value_private_
 let kind' = kind % Entry.value_private_
 let order' = order % Entry.value_private_
-let instructions' = instructions % Entry.value_private_
 let remark' = remark % Entry.value_private_
 let conceptors' = conceptors % Entry.value_private_
-let dances' = dances % Entry.value_private_
 let contents' = contents % Entry.value_private_
 
 let slug = NesSlug.of_string % NEString.to_string % name

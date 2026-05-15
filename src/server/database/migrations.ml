@@ -552,7 +552,6 @@ let migrations : migration list = [
             Log.err (fun m -> m "Could not unserialise: %s" msg);
             assert false
         in
-        (* FIXME *)
         ignore
         <$> Migrations_sql.m033_2026_05_split_tune_json_into_fields__update_one
             db
@@ -976,6 +975,8 @@ let migrations : migration list = [
     );
     lwt_unit
   );
+  make_ddl "m037_2026_05_alter_table_set_drop_column_instructions" Migrations_sql.m037_2026_05_alter_table_set_drop_column_instructions;
+  make_ddl "m038_2026_05_drop_table_set_dances" Migrations_sql.m038_2026_05_drop_table_set_dances;
 ]
 
 exception Migration_failed of string * exn
