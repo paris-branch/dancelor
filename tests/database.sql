@@ -245,7 +245,6 @@ CREATE TABLE "dancelor"."set" (
     "name" character varying NOT NULL,
     "kind" character varying NOT NULL,
     "order" character varying NOT NULL,
-    "instructions" character varying NOT NULL,
     "remark" character varying NOT NULL,
     "created_at" timestamp without time zone NOT NULL,
     "modified_at" timestamp without time zone NOT NULL,
@@ -278,16 +277,6 @@ CREATE TABLE "dancelor"."set_content" (
     "version_parameter_trivia" character varying,
     "version_parameter_display_name" character varying,
     "version_parameter_display_composer" character varying
-);
-
-
---
--- Name: set_dances; Type: TABLE; Schema: dancelor; Owner: -
---
-
-CREATE TABLE "dancelor"."set_dances" (
-    "set_id" character varying(14) NOT NULL,
-    "dance_id" character varying(14) NOT NULL
 );
 
 
@@ -611,6 +600,8 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m033_2026_05
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m034_2026_05_split_version_json_into_fields', '2026-05-12 12:10:45.842954+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m035_2026_05_split_set_json_into_fields', '2026-05-13 10:07:34.890439+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m036_2026_05_split_book_json_into_fields', '2026-05-14 13:50:33.071361+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m037_2026_05_alter_table_set_drop_column_instructions', '2026-05-15 10:13:17.152372+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m038_2026_05_drop_table_set_dances', '2026-05-15 10:13:17.158524+00');
 
 
 --
@@ -643,8 +634,8 @@ INSERT INTO "dancelor"."remember_me_tokens" ("user_id", "key", "hash", "max_date
 -- Data for Name: set; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "instructions", "remark", "created_at", "modified_at", "visibility") VALUES ('ului-yd9x-o35w', 'Tam Lin Thrice', '3x32R', '1,2,3', '', '', '2023-05-02 12:16:55', '2023-06-25 15:51:15', 1);
-INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "instructions", "remark", "created_at", "modified_at", "visibility") VALUES ('wrwk-cz9g-g3wi', 'A Private Set', '3x32R', '1', '', '', '2023-05-02 12:16:55', '2023-06-25 15:51:15', 0);
+INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "remark", "created_at", "modified_at", "visibility") VALUES ('ului-yd9x-o35w', 'Tam Lin Thrice', '3x32R', '1,2,3', '', '2023-05-02 12:16:55', '2023-06-25 15:51:15', 1);
+INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "remark", "created_at", "modified_at", "visibility") VALUES ('wrwk-cz9g-g3wi', 'A Private Set', '3x32R', '1', '', '2023-05-02 12:16:55', '2023-06-25 15:51:15', 0);
 
 
 --
@@ -662,12 +653,6 @@ INSERT INTO "dancelor"."set_conceptors" ("set_id", "conceptor_id") VALUES ('wrwk
 INSERT INTO "dancelor"."set_content" ("set_id", "index", "version_id", "version_parameter_transposition_semitones", "version_parameter_first_bar", "version_parameter_clef", "version_parameter_structure", "version_parameter_trivia", "version_parameter_display_name", "version_parameter_display_composer") VALUES ('ului-yd9x-o35w', 0, 'xzzb-wasm-babe', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO "dancelor"."set_content" ("set_id", "index", "version_id", "version_parameter_transposition_semitones", "version_parameter_first_bar", "version_parameter_clef", "version_parameter_structure", "version_parameter_trivia", "version_parameter_display_name", "version_parameter_display_composer") VALUES ('ului-yd9x-o35w', 1, 'xzzb-wasm-babe', 2, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO "dancelor"."set_content" ("set_id", "index", "version_id", "version_parameter_transposition_semitones", "version_parameter_first_bar", "version_parameter_clef", "version_parameter_structure", "version_parameter_trivia", "version_parameter_display_name", "version_parameter_display_composer") VALUES ('ului-yd9x-o35w', 2, 'xzzb-wasm-babe', 7, NULL, NULL, NULL, NULL, NULL, NULL);
-
-
---
--- Data for Name: set_dances; Type: TABLE DATA; Schema: dancelor; Owner: -
---
-
 
 
 --
@@ -1159,22 +1144,6 @@ ALTER TABLE ONLY "dancelor"."set_content"
 
 ALTER TABLE ONLY "dancelor"."set_content"
     ADD CONSTRAINT "fk_set_content_version_id" FOREIGN KEY ("version_id") REFERENCES "dancelor"."version"("id");
-
-
---
--- Name: set_dances fk_set_dances_dance_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
---
-
-ALTER TABLE ONLY "dancelor"."set_dances"
-    ADD CONSTRAINT "fk_set_dances_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dancelor"."dance"("id");
-
-
---
--- Name: set_dances fk_set_dances_set_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
---
-
-ALTER TABLE ONLY "dancelor"."set_dances"
-    ADD CONSTRAINT "fk_set_dances_set_id" FOREIGN KEY ("set_id") REFERENCES "dancelor"."set"("id");
 
 
 --
