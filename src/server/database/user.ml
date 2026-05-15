@@ -108,7 +108,6 @@ let remove_all_remember_me_tokens user_id =
 
 let remove_one_remember_me_token user_id key =
   Connection.with_ @@ fun db ->
-  (* FIXME: an index covering (user_id, key) *)
   ignore
   <$> User_sql.remove_one_remember_me_token
       db
@@ -136,14 +135,11 @@ let set_password id password =
 
 let find_remember_me_token user_id key =
   Connection.with_ @@ fun db ->
-  match%lwt User_sql.List.find_remember_me_token
+  User_sql.Single.find_remember_me_token
     db
     ~user_id: (Entry.Id.to_string user_id)
     ~key: (Remember_me_key.project key)
-    (fun ~hash ~max_date -> (Remember_me_token_hashed.inject @@ HashedSecret.unsafe_of_string hash, max_date)) with
-  | [] -> lwt_none
-  | [x] -> lwt_some x
-  | _ -> assert false
+    (fun ~hash ~max_date -> (Remember_me_token_hashed.inject @@ HashedSecret.unsafe_of_string hash, max_date))
 
 let add_remember_me_token user_id key hash max_date =
   Connection.with_ @@ fun db ->
