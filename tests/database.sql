@@ -48,7 +48,7 @@ CREATE TYPE "dancelor"."globally_unique_id_type" AS ENUM (
 
 CREATE TABLE "dancelor"."book" (
     "id" character varying(14) NOT NULL,
-    "title" character varying NOT NULL,
+    "name" character varying NOT NULL,
     "date" character varying,
     "remark" character varying NOT NULL,
     "scddb_id" integer,
@@ -452,7 +452,7 @@ CREATE TABLE "dancelor"."version_sources" (
 -- Data for Name: book; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."book" ("id", "title", "date", "remark", "scddb_id", "created_at", "modified_at", "visibility") VALUES ('0fi3-1iot-6tbq', 'The Tam Lin Book', NULL, 'this is a remark', 298374872, '2026-05-14 14:40:42', '2026-05-14 14:40:42', 1);
+INSERT INTO "dancelor"."book" ("id", "name", "date", "remark", "scddb_id", "created_at", "modified_at", "visibility") VALUES ('0fi3-1iot-6tbq', 'The Tam Lin Book', NULL, 'this is a remark', 298374872, '2026-05-14 14:40:42', '2026-05-14 14:40:42', 1);
 
 
 --
@@ -602,6 +602,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m035_2026_05
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m036_2026_05_split_book_json_into_fields', '2026-05-14 13:50:33.071361+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m037_2026_05_alter_table_set_drop_column_instructions', '2026-05-15 10:13:17.152372+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m038_2026_05_drop_table_set_dances', '2026-05-15 10:13:17.158524+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m039_2026_05_alter_table_book_rename_column_title_to_name', '2026-05-15 10:14:36.281405+00');
 
 
 --

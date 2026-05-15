@@ -81,7 +81,7 @@ let dialog_to_book ~source_type ~source_format user source source_page =
     ~source_format
     ~target_type: "book"
     ~target_icon: Icon.(Model Book)
-    ~target_format: Formatters.Book.title'
+    ~target_format: Formatters.Book.name'
     ~target_href: Endpoints.Page.href_book
     ~target_converter: (Formula_entry.converter_private Filter.Book.converter)
     ~target_filter_owners': Formula_entry.(access' % owners')

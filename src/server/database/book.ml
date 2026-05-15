@@ -8,7 +8,7 @@ type entry = Model_builder.Core.Book.entry
 
 let row_to_book
     ~id
-    ~title
+    ~name
     ~date
     ~remark
     ~scddb_id
@@ -39,7 +39,7 @@ let row_to_book
     ~access: (Entry.Access.Private.make ~owners: (NEList.of_list_exn owners) ~visibility ())
     (
       Model_builder.Core.Book.make
-        ~title: (NEString.of_string_exn title)
+        ~name: (NEString.of_string_exn name)
         ~date: (Option.map (Option.get % PartialDate.from_string) date)
         ~remark
         ~scddb_id: (Option.map Int64.to_int scddb_id)
@@ -62,7 +62,7 @@ let book_to_row ~create_or_update db id book access =
   <$> create_or_update
       db
       ~id
-      ~title: (NEString.to_string @@ Model_builder.Core.Book.title book)
+      ~name: (NEString.to_string @@ Model_builder.Core.Book.name book)
       ~date: (Option.map PartialDate.to_string @@ Model_builder.Core.Book.date book)
       ~remark: (Model_builder.Core.Book.remark book)
       ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Book.scddb_id book)

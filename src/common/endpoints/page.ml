@@ -168,8 +168,8 @@ module Make_describe (Model : Model_builder.S) = struct
         )
       | Book ->
         (fun _ id ->
-          let%lwt title = NEString.to_string % Model.Book.title' % Option.get <$> Model.Book.get id in
-          lwt_some ("book", title)
+          let%lwt name = NEString.to_string % Model.Book.name' % Option.get <$> Model.Book.get id in
+          lwt_some ("book", name)
         )
       | Dance ->
         (fun _ id ->

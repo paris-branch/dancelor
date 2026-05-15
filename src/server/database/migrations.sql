@@ -1023,3 +1023,7 @@ DROP COLUMN "instructions";
 
 -- @m038_2026_05_drop_table_set_dances
 DROP TABLE "set_dances";
+
+-- @m039_2026_05_alter_table_book_rename_column_title_to_name
+ALTER TABLE "book"
+RENAME COLUMN "title" TO "name";

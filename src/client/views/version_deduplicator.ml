@@ -239,7 +239,7 @@ let confirmation_dialog ~this_version ~other_version =
         )
         [
           txt "replace the version in book ";
-          Formatters.Book.title' book;
+          Formatters.Book.name' book;
           txt "."
         ]
     )

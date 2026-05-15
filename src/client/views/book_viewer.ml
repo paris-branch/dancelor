@@ -148,7 +148,7 @@ let view context id =
         ~this_page: (Endpoints.Page.href_book id)
         (lwt @@ Any.book book);
     ]
-    ~title: (lwt @@ NEString.to_string @@ Book.title' book)
+    ~title: (lwt @@ NEString.to_string @@ Book.name' book)
     ~subtitles: [Formatters.Book.date_and_editors' book]
     ~share: (Book book)
     ~actions: [

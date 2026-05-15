@@ -72,8 +72,8 @@ let
         description = "A slug for the book; it is used to make logs clearer.";
         type = types.str;
       };
-      title = mkOption {
-        description = "The title of the book.";
+      name = mkOption {
+        description = "The name of the book.";
         type = types.str;
       };
       editor = mkOption {
@@ -154,7 +154,7 @@ let
         pdfcreator={Dancelor},
       ]{hyperref}
       \begin{document}
-      \title{${escapeLatexString book.title}}
+      \title{${escapeLatexString book.name}}
       \author{${escapeLatexString book.editor}}
       \specificity{${escapeLatexString specificity}}
       ${optionalString (!book.simple) "\\maketitle\n"}

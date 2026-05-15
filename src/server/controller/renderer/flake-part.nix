@@ -33,7 +33,7 @@ let
   testBookPdfArg = {
     book = {
       slug = "test-slug";
-      title = "Test Title";
+      name = "Test Name";
       editor = "Test Editor";
       contents = [ ];
       simple = false;

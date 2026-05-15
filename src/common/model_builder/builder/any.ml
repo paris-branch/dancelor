@@ -19,7 +19,7 @@ module Build (Getters : Getters.S) = struct
     | Source p -> lwt @@ Core.Source.name' p
     | Person p -> lwt @@ Core.Person.name' p
     | Dance d -> lwt @@ Core.Dance.one_name' d
-    | Book b -> lwt @@ Core.Book.title' b
+    | Book b -> lwt @@ Core.Book.name' b
     | Set s -> lwt @@ Core.Set.name' s
     | Tune t -> lwt @@ Core.Tune.one_name' t
     | Version v -> (Core.Tune.one_name' % Option.get) <$> Getters.get_tune @@ Core.Version.tune @@ Entry.value v

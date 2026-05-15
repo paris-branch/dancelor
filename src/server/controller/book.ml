@@ -38,14 +38,14 @@ include Search.Build(struct
 
   let tiebreakers =
     Lwt_list.[decreasing (lwt % Model.Book.date') (Option.compare PartialDate.compare);
-    increasing (lwt % NEString.to_string % Model.Book.title') String.Sensible.compare;
+    increasing (lwt % NEString.to_string % Model.Book.name') String.Sensible.compare;
     ]
 end)
 
 let build_pdf env id book_params rendering_params =
   get env id >>= fun book ->
   let%lwt pdf_metadata =
-    let title = NEString.to_string @@ Model.Book.title' book in
+    let title = NEString.to_string @@ Model.Book.name' book in
     let%lwt authors = Model_to_renderer.format_persons_list <$> Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Book.authors' book) in
     lwt Renderer.{title; authors; subjects = []}
   in

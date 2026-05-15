@@ -1,7 +1,7 @@
 open Dancelor_common
 open Html
 
-val title' :
+val name' :
   ?link: bool ->
   ?context: Endpoints.Page.context S.t ->
   Model.Book.entry ->

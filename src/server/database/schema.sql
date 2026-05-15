@@ -216,7 +216,7 @@ CREATE TABLE "set_owners" (
 
 CREATE TABLE "book" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "title" VARCHAR NOT NULL,
+    "name" VARCHAR NOT NULL,
     "date" VARCHAR,
     "remark" VARCHAR NOT NULL,
     "scddb_id" INT,

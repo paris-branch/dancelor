@@ -6,26 +6,26 @@ let switch_signal_option = function
   | None -> S.Option.none
   | Some signal -> S.Option.some signal
 
-let title_gen book_gen =
+let name_gen book_gen =
   span @@
     match book_gen with
     | Right (book, true, context) ->
-      let title = Model.Book.title' book in
+      let name = Model.Book.name' book in
       [
         a
           ~a: [
             R.a_href @@ S.map (fun context -> Endpoints.Page.href_book ?context @@ Entry.id book) (switch_signal_option context)
           ]
-          [txt @@ NEString.to_string title]
+          [txt @@ NEString.to_string name]
       ]
     | Right (book, _, _) ->
-      let title = Model.Book.title' book in
-        [txt @@ NEString.to_string title]
+      let name = Model.Book.name' book in
+        [txt @@ NEString.to_string name]
     | Left book ->
-      let title = Model.Book.title book in
-        [txt @@ NEString.to_string title]
+      let name = Model.Book.name book in
+        [txt @@ NEString.to_string name]
 
-let title' ?(link = true) ?context book = title_gen @@ Right (book, link, context)
+let name' ?(link = true) ?context book = name_gen @@ Right (book, link, context)
 
 let editors book =
   with_span_placeholder @@

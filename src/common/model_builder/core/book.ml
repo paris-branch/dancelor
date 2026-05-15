@@ -16,7 +16,7 @@ type page =
 let _key = "book"
 
 type t = {
-  title: NEString.t;
+  name: NEString.t;
   authors: Person.t Entry.Id.t list; [@default []]
   date: PartialDate.t option; [@default None]
   contents: page list;
@@ -30,11 +30,11 @@ type access = Entry.Access.Private.t [@@deriving yojson]
 type entry = t Entry.private_
 [@@deriving eq, ord, show, yojson]
 
-let make ~title ~authors ~date ~contents ~remark ~sources ~scddb_id () =
-  let title = NEString.map_exn (String.remove_duplicates ~char: ' ') title in
-  make ~title ~authors ~date ~contents ~remark ~sources ~scddb_id ()
+let make ~name ~authors ~date ~contents ~remark ~sources ~scddb_id () =
+  let name = NEString.map_exn (String.remove_duplicates ~char: ' ') name in
+  make ~name ~authors ~date ~contents ~remark ~sources ~scddb_id ()
 
-let title' = title % Entry.value_private_
+let name' = name % Entry.value_private_
 let date' = date % Entry.value_private_
 let remark' = remark % Entry.value_private_
 let scddb_id' = scddb_id % Entry.value_private_
@@ -42,7 +42,7 @@ let authors' = authors % Entry.value_private_
 let sources' = sources % Entry.value_private_
 let contents' = contents % Entry.value_private_
 
-let slug = NesSlug.of_string % NEString.to_string % title
+let slug = NesSlug.of_string % NEString.to_string % name
 let slug' = slug % Entry.value_private_
 
 let versions_from_contents book =

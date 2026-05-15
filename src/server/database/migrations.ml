@@ -977,6 +977,7 @@ let migrations : migration list = [
   );
   make_ddl "m037_2026_05_alter_table_set_drop_column_instructions" Migrations_sql.m037_2026_05_alter_table_set_drop_column_instructions;
   make_ddl "m038_2026_05_drop_table_set_dances" Migrations_sql.m038_2026_05_drop_table_set_dances;
+  make_ddl "m039_2026_05_alter_table_book_rename_column_title_to_name" Migrations_sql.m039_2026_05_alter_table_book_rename_column_title_to_name;
 ]
 
 exception Migration_failed of string * exn

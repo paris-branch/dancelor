@@ -5,8 +5,8 @@ module Make (Model : Model_builder.S) = struct
 
   let rec accepts_book filter book =
     Formula.interpret filter @@ function
-      | Core.Book.Title sfilter ->
-        Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Book.title book
+      | Core.Book.Name sfilter ->
+        Formula_string.accepts sfilter @@ NEString.to_string @@ Model.Book.name book
       | Versions vfilter ->
         let versions =
           List.concat_map
