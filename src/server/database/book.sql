@@ -1,6 +1,6 @@
 -- @get
 SELECT
-    "title",
+    "name",
     "date",
     "remark",
     "scddb_id",
@@ -13,7 +13,7 @@ WHERE "id" = @id;
 -- @get_all
 SELECT
     "id",
-    "title",
+    "name",
     "date",
     "remark",
     "scddb_id",
@@ -25,7 +25,7 @@ FROM "book";
 -- @create
 INSERT INTO "book" (
     "id",
-    "title",
+    "name",
     "date",
     "remark",
     "scddb_id",
@@ -34,7 +34,7 @@ INSERT INTO "book" (
     "visibility"
 ) VALUES (
     @id,
-    @title,
+    @name,
     @date,
     @remark,
     @scddb_id,
@@ -46,7 +46,7 @@ INSERT INTO "book" (
 -- @update
 UPDATE "book"
 SET
-    "title" = @title,
+    "name" = @name,
     "date" = @date,
     "remark" = @remark,
     "scddb_id" = @scddb_id,

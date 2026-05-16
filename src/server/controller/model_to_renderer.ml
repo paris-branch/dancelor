@@ -228,11 +228,11 @@ let page_to_renderer_page page book_params =
 
 let book_to_renderer_book book book_params =
   let slug = NesSlug.to_string @@ Model.Book.slug book in
-  let title = NEString.to_string @@ Model.Book.title book in
+  let name = NEString.to_string @@ Model.Book.name book in
   let%lwt editor = format_persons <$> Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Book.authors book) in
   let%lwt contents = Lwt_list.map_s (fun page -> page_to_renderer_page page book_params) (Model.Book.contents book) in
   let simple = Option.value ~default: false @@ Model.Book_parameters.simple book_params in
-  lwt Renderer.{slug; title; editor; contents; simple}
+  lwt Renderer.{slug; name; editor; contents; simple}
 
 let book_to_renderer_book' book book_params =
   book_to_renderer_book (Entry.value book) book_params
@@ -255,7 +255,7 @@ let renderer_book_to_renderer_book_pdf_arg (book : Renderer.book) rendering_para
 
 let renderer_set_to_renderer_book_pdf_arg (set : Renderer.set) rendering_params pdf_metadata =
   let slug = set.Renderer.slug in
-  let title = set.Renderer.name in
-  let book = {Renderer.slug; title; editor = ""; contents = [Renderer.Set set]; simple = true} in
+  let name = set.Renderer.name in
+  let book = {Renderer.slug; name; editor = ""; contents = [Renderer.Set set]; simple = true} in
   let (specificity, headers) = grab_renderer_book_pdf_args rendering_params in
   lwt Renderer.{book; specificity; headers; pdf_metadata}

@@ -48,7 +48,7 @@ CREATE TYPE "dancelor"."globally_unique_id_type" AS ENUM (
 
 CREATE TABLE "dancelor"."book" (
     "id" character varying(14) NOT NULL,
-    "title" character varying NOT NULL,
+    "name" character varying NOT NULL,
     "date" character varying,
     "remark" character varying NOT NULL,
     "scddb_id" integer,
@@ -245,7 +245,6 @@ CREATE TABLE "dancelor"."set" (
     "name" character varying NOT NULL,
     "kind" character varying NOT NULL,
     "order" character varying NOT NULL,
-    "instructions" character varying NOT NULL,
     "remark" character varying NOT NULL,
     "created_at" timestamp without time zone NOT NULL,
     "modified_at" timestamp without time zone NOT NULL,
@@ -278,16 +277,6 @@ CREATE TABLE "dancelor"."set_content" (
     "version_parameter_trivia" character varying,
     "version_parameter_display_name" character varying,
     "version_parameter_display_composer" character varying
-);
-
-
---
--- Name: set_dances; Type: TABLE; Schema: dancelor; Owner: -
---
-
-CREATE TABLE "dancelor"."set_dances" (
-    "set_id" character varying(14) NOT NULL,
-    "dance_id" character varying(14) NOT NULL
 );
 
 
@@ -463,7 +452,7 @@ CREATE TABLE "dancelor"."version_sources" (
 -- Data for Name: book; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."book" ("id", "title", "date", "remark", "scddb_id", "created_at", "modified_at", "visibility") VALUES ('0fi3-1iot-6tbq', 'The Tam Lin Book', NULL, 'this is a remark', 298374872, '2026-05-14 14:40:42', '2026-05-14 14:40:42', 1);
+INSERT INTO "dancelor"."book" ("id", "name", "date", "remark", "scddb_id", "created_at", "modified_at", "visibility") VALUES ('0fi3-1iot-6tbq', 'The Tam Lin Book', NULL, 'this is a remark', 298374872, '2026-05-14 14:40:42', '2026-05-14 14:40:42', 1);
 
 
 --
@@ -611,6 +600,28 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m033_2026_05
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m034_2026_05_split_version_json_into_fields', '2026-05-12 12:10:45.842954+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m035_2026_05_split_set_json_into_fields', '2026-05-13 10:07:34.890439+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m036_2026_05_split_book_json_into_fields', '2026-05-14 13:50:33.071361+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m037_2026_05_alter_table_set_drop_column_instructions', '2026-05-15 10:13:17.152372+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m038_2026_05_drop_table_set_dances', '2026-05-15 10:13:17.158524+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m039_2026_05_alter_table_book_rename_column_title_to_name', '2026-05-15 10:14:36.281405+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m040_2026_05_add_unique_constraint_remember_me_tokens_user_id_key', '2026-05-15 10:17:27.562229+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m041_2026_05_add_unique_constraint_source_editors_source_id_person_id', '2026-05-15 10:17:27.565783+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m042_2026_05_add_unique_constraints_dance_devisers', '2026-05-15 10:17:27.569663+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m043_2026_05_add_unique_constraints_tune_composers', '2026-05-15 10:17:27.573575+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m044_2026_05_add_unique_constraint_recommended_tunes_dance_id_tune_id', '2026-05-15 10:17:27.576845+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m045_2026_05_add_unique_constraint_version_arrangers_version_id_arranger_id', '2026-05-15 10:17:27.579686+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m046_2026_05_add_unique_constraint_version_sources_version_id_source_id', '2026-05-15 10:17:27.583315+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m047_2026_05_add_unique_constraint_version_destructured_parts_version_id_part', '2026-05-15 10:17:27.58632+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m048_2026_05_add_unique_constraint_version_destructured_transitions_version_id_from_parts_to_parts', '2026-05-15 10:17:27.589172+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m049_2026_05_add_unique_constraint_set_conceptors_set_id_conceptor_id', '2026-05-15 10:17:27.59207+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m050_2026_05_add_unique_constraint_set_content_set_id_index', '2026-05-15 10:17:27.595514+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m051_2026_05_add_unique_constraint_set_viewers_set_id_viewer_id', '2026-05-15 10:17:27.598204+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m052_2026_05_add_unique_constraint_set_owners_set_id_owner_id', '2026-05-15 10:17:27.601143+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m053_2026_05_add_unique_constraint_book_authors_book_id_author_id', '2026-05-15 10:17:27.604293+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m054_2026_05_add_unique_constraint_book_sources_book_id_source_id', '2026-05-15 10:17:27.607652+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m055_2026_05_add_unique_constraint_book_content_book_id_index', '2026-05-15 10:17:27.610639+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m056_2026_05_add_unique_constraint_book_content_versions_book_id_content_index_index', '2026-05-15 10:17:27.613647+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m057_2026_05_add_unique_constraint_book_viewers_book_id_viewer_id', '2026-05-15 10:17:27.616679+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m058_2026_05_add_unique_constraint_book_owners_book_id_owner_id', '2026-05-15 10:17:27.622578+00');
 
 
 --
@@ -643,8 +654,8 @@ INSERT INTO "dancelor"."remember_me_tokens" ("user_id", "key", "hash", "max_date
 -- Data for Name: set; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "instructions", "remark", "created_at", "modified_at", "visibility") VALUES ('ului-yd9x-o35w', 'Tam Lin Thrice', '3x32R', '1,2,3', '', '', '2023-05-02 12:16:55', '2023-06-25 15:51:15', 1);
-INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "instructions", "remark", "created_at", "modified_at", "visibility") VALUES ('wrwk-cz9g-g3wi', 'A Private Set', '3x32R', '1', '', '', '2023-05-02 12:16:55', '2023-06-25 15:51:15', 0);
+INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "remark", "created_at", "modified_at", "visibility") VALUES ('ului-yd9x-o35w', 'Tam Lin Thrice', '3x32R', '1,2,3', '', '2023-05-02 12:16:55', '2023-06-25 15:51:15', 1);
+INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "remark", "created_at", "modified_at", "visibility") VALUES ('wrwk-cz9g-g3wi', 'A Private Set', '3x32R', '1', '', '2023-05-02 12:16:55', '2023-06-25 15:51:15', 0);
 
 
 --
@@ -662,12 +673,6 @@ INSERT INTO "dancelor"."set_conceptors" ("set_id", "conceptor_id") VALUES ('wrwk
 INSERT INTO "dancelor"."set_content" ("set_id", "index", "version_id", "version_parameter_transposition_semitones", "version_parameter_first_bar", "version_parameter_clef", "version_parameter_structure", "version_parameter_trivia", "version_parameter_display_name", "version_parameter_display_composer") VALUES ('ului-yd9x-o35w', 0, 'xzzb-wasm-babe', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO "dancelor"."set_content" ("set_id", "index", "version_id", "version_parameter_transposition_semitones", "version_parameter_first_bar", "version_parameter_clef", "version_parameter_structure", "version_parameter_trivia", "version_parameter_display_name", "version_parameter_display_composer") VALUES ('ului-yd9x-o35w', 1, 'xzzb-wasm-babe', 2, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO "dancelor"."set_content" ("set_id", "index", "version_id", "version_parameter_transposition_semitones", "version_parameter_first_bar", "version_parameter_clef", "version_parameter_structure", "version_parameter_trivia", "version_parameter_display_name", "version_parameter_display_composer") VALUES ('ului-yd9x-o35w', 2, 'xzzb-wasm-babe', 7, NULL, NULL, NULL, NULL, NULL, NULL);
-
-
---
--- Data for Name: set_dances; Type: TABLE DATA; Schema: dancelor; Owner: -
---
-
 
 
 --
@@ -954,6 +959,174 @@ ALTER TABLE ONLY "dancelor"."version"
 
 
 --
+-- Name: book_authors uq_book_authors_book_id_author_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_authors"
+    ADD CONSTRAINT "uq_book_authors_book_id_author_id" UNIQUE ("book_id", "author_id");
+
+
+--
+-- Name: book_content uq_book_content_book_id_index; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_content"
+    ADD CONSTRAINT "uq_book_content_book_id_index" UNIQUE ("book_id", "index");
+
+
+--
+-- Name: book_content_versions uq_book_content_versions_book_id_content_index_index; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_content_versions"
+    ADD CONSTRAINT "uq_book_content_versions_book_id_content_index_index" UNIQUE ("book_id", "content_index", "index");
+
+
+--
+-- Name: book_owners uq_book_owners_book_id_owner_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_owners"
+    ADD CONSTRAINT "uq_book_owners_book_id_owner_id" UNIQUE ("book_id", "owner_id");
+
+
+--
+-- Name: book_sources uq_book_sources_book_id_source_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_sources"
+    ADD CONSTRAINT "uq_book_sources_book_id_source_id" UNIQUE ("book_id", "source_id");
+
+
+--
+-- Name: book_viewers uq_book_viewers_book_id_viewer_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."book_viewers"
+    ADD CONSTRAINT "uq_book_viewers_book_id_viewer_id" UNIQUE ("book_id", "viewer_id");
+
+
+--
+-- Name: dance_devisers uq_dance_devisers_dance_id_deviser_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."dance_devisers"
+    ADD CONSTRAINT "uq_dance_devisers_dance_id_deviser_id" UNIQUE ("dance_id", "deviser_id");
+
+
+--
+-- Name: dance_devisers uq_dance_devisers_dance_id_index_deviser_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."dance_devisers"
+    ADD CONSTRAINT "uq_dance_devisers_dance_id_index_deviser_id" UNIQUE ("dance_id", "index", "deviser_id");
+
+
+--
+-- Name: recommended_tunes uq_recommended_tunes_dance_id_tune_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."recommended_tunes"
+    ADD CONSTRAINT "uq_recommended_tunes_dance_id_tune_id" UNIQUE ("dance_id", "tune_id");
+
+
+--
+-- Name: remember_me_tokens uq_remember_me_tokens_user_id_key; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."remember_me_tokens"
+    ADD CONSTRAINT "uq_remember_me_tokens_user_id_key" UNIQUE ("user_id", "key");
+
+
+--
+-- Name: set_conceptors uq_set_conceptors_set_id_conceptor_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."set_conceptors"
+    ADD CONSTRAINT "uq_set_conceptors_set_id_conceptor_id" UNIQUE ("set_id", "conceptor_id");
+
+
+--
+-- Name: set_content uq_set_content_set_id_index; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."set_content"
+    ADD CONSTRAINT "uq_set_content_set_id_index" UNIQUE ("set_id", "index");
+
+
+--
+-- Name: set_owners uq_set_owners_set_id_owner_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."set_owners"
+    ADD CONSTRAINT "uq_set_owners_set_id_owner_id" UNIQUE ("set_id", "owner_id");
+
+
+--
+-- Name: set_viewers uq_set_viewers_set_id_viewer_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."set_viewers"
+    ADD CONSTRAINT "uq_set_viewers_set_id_viewer_id" UNIQUE ("set_id", "viewer_id");
+
+
+--
+-- Name: source_editors uq_source_editors_source_id_person_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."source_editors"
+    ADD CONSTRAINT "uq_source_editors_source_id_person_id" UNIQUE ("source_id", "person_id");
+
+
+--
+-- Name: tune_composers uq_tune_composers_tune_id_composer_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."tune_composers"
+    ADD CONSTRAINT "uq_tune_composers_tune_id_composer_id" UNIQUE ("tune_id", "composer_id");
+
+
+--
+-- Name: tune_composers uq_tune_composers_tune_id_index_composer_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."tune_composers"
+    ADD CONSTRAINT "uq_tune_composers_tune_id_index_composer_id" UNIQUE ("tune_id", "index", "composer_id");
+
+
+--
+-- Name: version_arrangers uq_version_arrangers_version_id_arranger_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."version_arrangers"
+    ADD CONSTRAINT "uq_version_arrangers_version_id_arranger_id" UNIQUE ("version_id", "arranger_id");
+
+
+--
+-- Name: version_destructured_parts uq_version_destructured_parts_version_id_part; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."version_destructured_parts"
+    ADD CONSTRAINT "uq_version_destructured_parts_version_id_part" UNIQUE ("version_id", "part");
+
+
+--
+-- Name: version_destructured_transitions uq_version_destructured_transitions_version_id_from_parts_to_pa; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."version_destructured_transitions"
+    ADD CONSTRAINT "uq_version_destructured_transitions_version_id_from_parts_to_pa" UNIQUE ("version_id", "from_parts", "to_parts");
+
+
+--
+-- Name: version_sources uq_version_sources_version_id_source_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+--
+
+ALTER TABLE ONLY "dancelor"."version_sources"
+    ADD CONSTRAINT "uq_version_sources_version_id_source_id" UNIQUE ("version_id", "source_id");
+
+
+--
 -- Name: user user_username_key; Type: CONSTRAINT; Schema: dancelor; Owner: -
 --
 
@@ -1159,22 +1332,6 @@ ALTER TABLE ONLY "dancelor"."set_content"
 
 ALTER TABLE ONLY "dancelor"."set_content"
     ADD CONSTRAINT "fk_set_content_version_id" FOREIGN KEY ("version_id") REFERENCES "dancelor"."version"("id");
-
-
---
--- Name: set_dances fk_set_dances_dance_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
---
-
-ALTER TABLE ONLY "dancelor"."set_dances"
-    ADD CONSTRAINT "fk_set_dances_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dancelor"."dance"("id");
-
-
---
--- Name: set_dances fk_set_dances_set_id; Type: FK CONSTRAINT; Schema: dancelor; Owner: -
---
-
-ALTER TABLE ONLY "dancelor"."set_dances"
-    ADD CONSTRAINT "fk_set_dances_set_id" FOREIGN KEY ("set_id") REFERENCES "dancelor"."set"("id");
 
 
 --

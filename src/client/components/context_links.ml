@@ -77,7 +77,7 @@ let make_and_render ?context ~this_page any_lwt =
                       let%lwt name = Set.name' % Option.get <$> Set.get id in
                       lwt [txt "set: "; parent_a [txt @@ NEString.to_string name]]
                     | In_book (id, _) ->
-                      let%lwt name = Book.title' % Option.get <$> Book.get id in
+                      let%lwt name = Book.name' % Option.get <$> Book.get id in
                       lwt [txt "book: "; parent_a [txt @@ NEString.to_string name]]
                   )
             );

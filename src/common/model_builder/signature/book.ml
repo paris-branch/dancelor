@@ -34,7 +34,7 @@ module type S = sig
   type entry = t Entry.private_
 
   val make :
-    title: NEString.t ->
+    name: NEString.t ->
     authors: Core.Person.t Entry.id list ->
     date: PartialDate.t option ->
     contents: page list ->
@@ -46,8 +46,8 @@ module type S = sig
 
   (** {2 Field Getters} *)
 
-  val title : t -> NEString.t
-  val title' : entry -> NEString.t
+  val name : t -> NEString.t
+  val name' : entry -> NEString.t
 
   val authors : t -> Core.Person.t Entry.id list
   val authors' : entry -> Core.Person.t Entry.id list

@@ -164,7 +164,7 @@ let editor user =
   let open Editor in
   Input.prepare_non_empty
     ~type_: Text
-    ~label: "Title"
+    ~label: "Name"
     ~placeholder: "eg. The Dusty Miller Book"
     () ^::
   Star.prepare
@@ -340,12 +340,12 @@ let editor user =
   ) ^::
   nil
 
-let assemble (title, (authors, (date, (contents, (remark, (sources, (scddb_id, (owners, (visibility, ()))))))))) =
+let assemble (name, (authors, (date, (contents, (remark, (sources, (scddb_id, (owners, (visibility, ()))))))))) =
   let authors = List.map Entry.id authors in
   let sources = List.map Entry.id sources in
   let contents = content_to_model_content contents in
   (
-    Model.Book.make ~title ~authors ~date ~contents ~remark ~sources ~scddb_id (),
+    Model.Book.make ~name ~authors ~date ~contents ~remark ~sources ~scddb_id (),
     Entry.Access.Private.make ~owners: (NEList.map Entry.id owners) ~visibility: (visibility'_to_visibility visibility) ()
   )
 
@@ -358,7 +358,7 @@ let unsubmit entry =
   lwt (Entry.value entry, Entry.access entry)
 
 let disassemble (book, access) =
-  let title = Model.Book.title book in
+  let name = Model.Book.name book in
   let%lwt authors = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Book.authors book) in
   let date = Model.Book.date book in
   let%lwt contents = model_content_to_content @@ Model.Book.contents book in
@@ -367,7 +367,7 @@ let disassemble (book, access) =
   let scddb_id = Model.Book.scddb_id book in
   let%lwt owners = NEList.of_list_exn <$> Lwt_list.map_p (fun user -> Option.get <$> Model.User.get user) (NEList.to_list @@ Entry.Access.Private.owners access) in
   let%lwt visibility = visibility_to_visibility' @@ Entry.Access.Private.visibility access in
-  lwt (title, (authors, (date, (contents, (remark, (sources, (scddb_id, (owners, (visibility, ())))))))))
+  lwt (name, (authors, (date, (contents, (remark, (sources, (scddb_id, (owners, (visibility, ())))))))))
 
 let create mode =
   let%lwt user = Option.map Entry.id <$> Environment.user in
@@ -378,7 +378,7 @@ let create mode =
     ~icon: (Model Book)
     (editor user)
     ~mode
-    ~format: Formatters.Book.title'
+    ~format: Formatters.Book.name'
     ~href: (Endpoints.Page.href_book % Entry.id)
     ~assemble
     ~submit

@@ -92,7 +92,7 @@ let make_book_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) bo
     ?onclick
     (
       prefix @
-      [L.td (Lwt.pause ();%lwt lwt [Formatters.Book.title' ~link: (onclick = None) ?context book]);
+      [L.td (Lwt.pause ();%lwt lwt [Formatters.Book.name' ~link: (onclick = None) ?context book]);
       L.td (Lwt.pause ();%lwt lwt [txt (Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) (Book.date' book))]);
       L.td (Lwt.pause ();%lwt lwt [Formatters.Book.editors' book]);
       ] @

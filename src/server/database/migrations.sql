@@ -1023,3 +1023,85 @@ DROP COLUMN "instructions";
 
 -- @m038_2026_05_drop_table_set_dances
 DROP TABLE "set_dances";
+
+-- @m039_2026_05_alter_table_book_rename_column_title_to_name
+ALTER TABLE "book"
+RENAME COLUMN "title" TO "name";
+
+-- @m040_2026_05_add_unique_constraint_remember_me_tokens_user_id_key
+ALTER TABLE "remember_me_tokens"
+ADD CONSTRAINT "uq_remember_me_tokens_user_id_key" UNIQUE ("user_id", "key");
+
+-- @m041_2026_05_add_unique_constraint_source_editors_source_id_person_id
+ALTER TABLE "source_editors"
+ADD CONSTRAINT "uq_source_editors_source_id_person_id" UNIQUE ("source_id", "person_id");
+
+-- @m042_2026_05_add_unique_constraints_dance_devisers
+ALTER TABLE "dance_devisers"
+ADD CONSTRAINT "uq_dance_devisers_dance_id_deviser_id" UNIQUE ("dance_id", "deviser_id"),
+ADD CONSTRAINT "uq_dance_devisers_dance_id_index_deviser_id" UNIQUE ("dance_id", "index", "deviser_id");
+
+-- @m043_2026_05_add_unique_constraints_tune_composers
+ALTER TABLE "tune_composers"
+ADD CONSTRAINT "uq_tune_composers_tune_id_composer_id" UNIQUE ("tune_id", "composer_id"),
+ADD CONSTRAINT "uq_tune_composers_tune_id_index_composer_id" UNIQUE ("tune_id", "index", "composer_id");
+
+-- @m044_2026_05_add_unique_constraint_recommended_tunes_dance_id_tune_id
+ALTER TABLE "recommended_tunes"
+ADD CONSTRAINT "uq_recommended_tunes_dance_id_tune_id" UNIQUE ("dance_id", "tune_id");
+
+-- @m045_2026_05_add_unique_constraint_version_arrangers_version_id_arranger_id
+ALTER TABLE "version_arrangers"
+ADD CONSTRAINT "uq_version_arrangers_version_id_arranger_id" UNIQUE ("version_id", "arranger_id");
+
+-- @m046_2026_05_add_unique_constraint_version_sources_version_id_source_id
+ALTER TABLE "version_sources"
+ADD CONSTRAINT "uq_version_sources_version_id_source_id" UNIQUE ("version_id", "source_id");
+
+-- @m047_2026_05_add_unique_constraint_version_destructured_parts_version_id_part
+ALTER TABLE "version_destructured_parts"
+ADD CONSTRAINT "uq_version_destructured_parts_version_id_part" UNIQUE ("version_id", "part");
+
+-- @m048_2026_05_add_unique_constraint_version_destructured_transitions_version_id_from_parts_to_parts
+ALTER TABLE "version_destructured_transitions"
+ADD CONSTRAINT "uq_version_destructured_transitions_version_id_from_parts_to_parts" UNIQUE ("version_id", "from_parts", "to_parts");
+
+-- @m049_2026_05_add_unique_constraint_set_conceptors_set_id_conceptor_id
+ALTER TABLE "set_conceptors"
+ADD CONSTRAINT "uq_set_conceptors_set_id_conceptor_id" UNIQUE ("set_id", "conceptor_id");
+
+-- @m050_2026_05_add_unique_constraint_set_content_set_id_index
+ALTER TABLE "set_content"
+ADD CONSTRAINT "uq_set_content_set_id_index" UNIQUE ("set_id", "index");
+
+-- @m051_2026_05_add_unique_constraint_set_viewers_set_id_viewer_id
+ALTER TABLE "set_viewers"
+ADD CONSTRAINT "uq_set_viewers_set_id_viewer_id" UNIQUE ("set_id", "viewer_id");
+
+-- @m052_2026_05_add_unique_constraint_set_owners_set_id_owner_id
+ALTER TABLE "set_owners"
+ADD CONSTRAINT "uq_set_owners_set_id_owner_id" UNIQUE ("set_id", "owner_id");
+
+-- @m053_2026_05_add_unique_constraint_book_authors_book_id_author_id
+ALTER TABLE "book_authors"
+ADD CONSTRAINT "uq_book_authors_book_id_author_id" UNIQUE ("book_id", "author_id");
+
+-- @m054_2026_05_add_unique_constraint_book_sources_book_id_source_id
+ALTER TABLE "book_sources"
+ADD CONSTRAINT "uq_book_sources_book_id_source_id" UNIQUE ("book_id", "source_id");
+
+-- @m055_2026_05_add_unique_constraint_book_content_book_id_index
+ALTER TABLE "book_content"
+ADD CONSTRAINT "uq_book_content_book_id_index" UNIQUE ("book_id", "index");
+
+-- @m056_2026_05_add_unique_constraint_book_content_versions_book_id_content_index_index
+ALTER TABLE "book_content_versions"
+ADD CONSTRAINT "uq_book_content_versions_book_id_content_index_index" UNIQUE ("book_id", "content_index", "index");
+
+-- @m057_2026_05_add_unique_constraint_book_viewers_book_id_viewer_id
+ALTER TABLE "book_viewers"
+ADD CONSTRAINT "uq_book_viewers_book_id_viewer_id" UNIQUE ("book_id", "viewer_id");
+
+-- @m058_2026_05_add_unique_constraint_book_owners_book_id_owner_id
+ALTER TABLE "book_owners"
+ADD CONSTRAINT "uq_book_owners_book_id_owner_id" UNIQUE ("book_id", "owner_id");

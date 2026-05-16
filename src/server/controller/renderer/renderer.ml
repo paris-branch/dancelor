@@ -49,7 +49,7 @@ let page_of_yojson = function
 
 type book = {
   slug: string;
-  title: string;
+  name: string;
   editor: string;
   contents: page list;
   simple: bool; (* FIXME: should that not go into {!book_pdf_arg} *)
