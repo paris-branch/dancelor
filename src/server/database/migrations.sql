@@ -1054,9 +1054,9 @@ ADD CONSTRAINT "uq_recommended_tunes_dance_id_tune_id" UNIQUE ("dance_id", "tune
 ALTER TABLE "version_arrangers"
 ADD CONSTRAINT "uq_version_arrangers_version_id_arranger_id" UNIQUE ("version_id", "arranger_id");
 
--- @m046_2026_05_add_unique_constraint_version_sources_version_id_source_id
+-- @m046_2026_05_add_unique_constraint_version_sources_version_id_source_id_structure
 ALTER TABLE "version_sources"
-ADD CONSTRAINT "uq_version_sources_version_id_source_id" UNIQUE ("version_id", "source_id");
+ADD CONSTRAINT "uq_version_sources_version_id_source_id_structure" UNIQUE ("version_id", "source_id", "structure");
 
 -- @m047_2026_05_add_unique_constraint_version_destructured_parts_version_id_part
 ALTER TABLE "version_destructured_parts"
