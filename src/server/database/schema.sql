@@ -155,7 +155,7 @@ CREATE TABLE "version_sources" (
     "details" VARCHAR NOT NULL,
     CONSTRAINT "fk_version_sources_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id"),
     CONSTRAINT "fk_version_sources_source_id" FOREIGN KEY ("source_id") REFERENCES "source" ("id"),
-    CONSTRAINT "uq_version_sources_version_id_source_id" UNIQUE ("version_id", "source_id")
+    CONSTRAINT "uq_version_sources_version_id_source_id_structure" UNIQUE ("version_id", "source_id" ,"structure")
 );
 
 CREATE TABLE "version_destructured_parts" (

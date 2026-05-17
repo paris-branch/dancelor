@@ -609,7 +609,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m042_2026_05
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m043_2026_05_add_unique_constraints_tune_composers', '2026-05-15 10:17:27.573575+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m044_2026_05_add_unique_constraint_recommended_tunes_dance_id_tune_id', '2026-05-15 10:17:27.576845+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m045_2026_05_add_unique_constraint_version_arrangers_version_id_arranger_id', '2026-05-15 10:17:27.579686+00');
-INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m046_2026_05_add_unique_constraint_version_sources_version_id_source_id', '2026-05-15 10:17:27.583315+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m046_2026_05_add_unique_constraint_version_sources_version_id_source_id_structure', '2026-05-15 10:17:27.583315+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m047_2026_05_add_unique_constraint_version_destructured_parts_version_id_part', '2026-05-15 10:17:27.58632+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m048_2026_05_add_unique_constraint_version_destructured_transitions_version_id_from_parts_to_parts', '2026-05-15 10:17:27.589172+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m049_2026_05_add_unique_constraint_set_conceptors_set_id_conceptor_id', '2026-05-15 10:17:27.59207+00');
@@ -1119,11 +1119,11 @@ ALTER TABLE ONLY "dancelor"."version_destructured_transitions"
 
 
 --
--- Name: version_sources uq_version_sources_version_id_source_id; Type: CONSTRAINT; Schema: dancelor; Owner: -
+-- Name: version_sources uq_version_sources_version_id_source_id_structure; Type: CONSTRAINT; Schema: dancelor; Owner: -
 --
 
 ALTER TABLE ONLY "dancelor"."version_sources"
-    ADD CONSTRAINT "uq_version_sources_version_id_source_id" UNIQUE ("version_id", "source_id");
+    ADD CONSTRAINT "uq_version_sources_version_id_source_id_structure" UNIQUE ("version_id", "source_id", "structure");
 
 
 --
