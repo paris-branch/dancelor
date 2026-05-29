@@ -14,7 +14,7 @@ type t = {
   devisers: Person.t Entry.Id.t list; [@default []]
   two_chords: two_chords; [@default Dont_know] [@key "two-chords"]
   scddb_id: int option; [@default None] [@key "scddb-id"]
-  disambiguation: string; [@default ""]
+  disambiguation: NEString.t option; [@default None]
   date: PartialDate.t option; [@default None] (** When the dance was devised. *)
 }
 [@@deriving eq, ord, make, show {with_path = false}, yojson, fields]
@@ -25,7 +25,7 @@ type entry = t Entry.public
 
 let make ~names ~kind ~devisers ~two_chords ~scddb_id ~disambiguation ~date () =
   let names = NEList.map (NEString.map_exn (String.remove_duplicates ~char: ' ')) names in
-  let disambiguation = String.remove_duplicates ~char: ' ' disambiguation in
+  let disambiguation = Option.map (NEString.map_exn (String.remove_duplicates ~char: ' ')) disambiguation in
   make ~names_: names ~kind ~devisers ~two_chords ~scddb_id ~disambiguation ~date ()
 
 let names = names_

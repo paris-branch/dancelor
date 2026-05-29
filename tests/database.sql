@@ -4,8 +4,8 @@
 
 \restrict ybiQOqa6jiLe8LvxFznU4q8n34iwf9VXgUBS2e7j5NMdWOEHU3ms2YSbcIZ871W
 
--- Dumped from database version 17.9
--- Dumped by pg_dump version 17.9
+-- Dumped from database version 17.10
+-- Dumped by pg_dump version 17.10
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -50,7 +50,7 @@ CREATE TABLE "dancelor"."book" (
     "id" character varying(14) NOT NULL,
     "name" character varying NOT NULL,
     "date" character varying,
-    "remark" character varying NOT NULL,
+    "remark" character varying,
     "scddb_id" integer,
     "created_at" timestamp without time zone NOT NULL,
     "modified_at" timestamp without time zone NOT NULL,
@@ -151,7 +151,7 @@ CREATE TABLE "dancelor"."dance" (
     "kind" character varying(32) NOT NULL,
     "two_chords" smallint NOT NULL,
     "scddb_id" integer,
-    "disambiguation" character varying(256) NOT NULL,
+    "disambiguation" character varying(256),
     "date" character varying(32),
     "created_at" timestamp without time zone NOT NULL,
     "modified_at" timestamp without time zone NOT NULL
@@ -245,7 +245,7 @@ CREATE TABLE "dancelor"."set" (
     "name" character varying NOT NULL,
     "kind" character varying NOT NULL,
     "order" character varying NOT NULL,
-    "remark" character varying NOT NULL,
+    "remark" character varying,
     "created_at" timestamp without time zone NOT NULL,
     "modified_at" timestamp without time zone NOT NULL,
     "visibility" integer NOT NULL
@@ -335,7 +335,7 @@ CREATE TABLE "dancelor"."tune" (
     "id" character varying(14) NOT NULL,
     "name" character varying NOT NULL,
     "kind" character varying(32) NOT NULL,
-    "remark" character varying NOT NULL,
+    "remark" character varying,
     "scddb_id" integer,
     "date" character varying(32),
     "created_at" timestamp without time zone NOT NULL,
@@ -351,7 +351,7 @@ CREATE TABLE "dancelor"."tune_composers" (
     "tune_id" character varying(14) NOT NULL,
     "index" integer NOT NULL,
     "composer_id" character varying(14) NOT NULL,
-    "details" character varying NOT NULL
+    "details" character varying
 );
 
 
@@ -391,8 +391,8 @@ CREATE TABLE "dancelor"."version" (
     "id" character varying(14) NOT NULL,
     "tune_id" character varying(14) NOT NULL,
     "key" character varying(32) NOT NULL,
-    "remark" character varying NOT NULL,
-    "disambiguation" character varying NOT NULL,
+    "remark" character varying,
+    "disambiguation" character varying,
     "monolithic_lilypond" "text",
     "monolithic_bars" integer,
     "monolithic_or_default_structure" character varying(32),
@@ -444,7 +444,7 @@ CREATE TABLE "dancelor"."version_sources" (
     "version_id" character varying(14) NOT NULL,
     "source_id" character varying(14) NOT NULL,
     "structure" character varying(32) NOT NULL,
-    "details" character varying NOT NULL
+    "details" character varying
 );
 
 
@@ -508,9 +508,9 @@ INSERT INTO "dancelor"."book_sources" ("book_id", "source_id") VALUES ('0fi3-1io
 -- Data for Name: dance; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('l02q-i1j0-qpoi', 'The Architect', '8 x 32 R', 0, NULL, '', NULL, '2023-12-21 18:11:33', '2023-12-21 18:11:33');
 INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('cy5n-qvpl-k0yl', 'Test dance', '8 x 32 R', 2, 1234, 'sdlfkj', '2188', '2026-05-09 14:11:26', '2026-05-09 14:11:26');
-INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('0xf7-xwz9-1fhj', 'Test dance A439', '16 x 32 S', 2, 123199, '', '3088', '2026-05-10 11:36:21.52889', '2026-05-10 11:36:21.52889');
+INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('l02q-i1j0-qpoi', 'The Architect', '8 x 32 R', 0, NULL, NULL, NULL, '2023-12-21 18:11:33', '2023-12-21 18:11:33');
+INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('0xf7-xwz9-1fhj', 'Test dance A439', '16 x 32 S', 2, 123199, NULL, '3088', '2026-05-10 11:36:21.52889', '2026-05-10 11:36:21.52889');
 
 
 --
@@ -622,6 +622,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m055_2026_05
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m056_2026_05_add_unique_constraint_book_content_versions_book_id_content_index_index', '2026-05-15 10:17:27.613647+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m057_2026_05_add_unique_constraint_book_viewers_book_id_viewer_id', '2026-05-15 10:17:27.616679+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m058_2026_05_add_unique_constraint_book_owners_book_id_owner_id', '2026-05-15 10:17:27.622578+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m059_2026_05_string_to_nestring_option', '2026-05-29 14:34:07.211399+00');
 
 
 --
@@ -654,8 +655,8 @@ INSERT INTO "dancelor"."remember_me_tokens" ("user_id", "key", "hash", "max_date
 -- Data for Name: set; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "remark", "created_at", "modified_at", "visibility") VALUES ('ului-yd9x-o35w', 'Tam Lin Thrice', '3x32R', '1,2,3', '', '2023-05-02 12:16:55', '2023-06-25 15:51:15', 1);
-INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "remark", "created_at", "modified_at", "visibility") VALUES ('wrwk-cz9g-g3wi', 'A Private Set', '3x32R', '1', '', '2023-05-02 12:16:55', '2023-06-25 15:51:15', 0);
+INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "remark", "created_at", "modified_at", "visibility") VALUES ('ului-yd9x-o35w', 'Tam Lin Thrice', '3x32R', '1,2,3', NULL, '2023-05-02 12:16:55', '2023-06-25 15:51:15', 1);
+INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "remark", "created_at", "modified_at", "visibility") VALUES ('wrwk-cz9g-g3wi', 'A Private Set', '3x32R', '1', NULL, '2023-05-02 12:16:55', '2023-06-25 15:51:15', 0);
 
 
 --
@@ -710,17 +711,17 @@ INSERT INTO "dancelor"."source_editors" ("source_id", "person_id") VALUES ('2wrv
 -- Data for Name: tune; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('qdod-ad7l-8gr2', 'Tam Lin', 'R', '', NULL, NULL, '2018-12-07 01:18:53', '2023-06-25 15:51:15');
-INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('rifw-ul36-3uq5', 'A439', 'strathspey', '', 2398472, NULL, '2026-05-10 12:36:29', '2026-05-10 12:36:29');
-INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('gm7o-khcu-8faz', 'The Glasgow Reel', 'Reel', '', NULL, NULL, '2026-05-12 12:07:47.893383', '2026-05-12 12:07:47.893383');
+INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('qdod-ad7l-8gr2', 'Tam Lin', 'R', NULL, NULL, NULL, '2018-12-07 01:18:53', '2023-06-25 15:51:15');
+INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('rifw-ul36-3uq5', 'A439', 'strathspey', NULL, 2398472, NULL, '2026-05-10 12:36:29', '2026-05-10 12:36:29');
+INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date", "created_at", "modified_at") VALUES ('gm7o-khcu-8faz', 'The Glasgow Reel', 'Reel', NULL, NULL, NULL, '2026-05-12 12:07:47.893383', '2026-05-12 12:07:47.893383');
 
 
 --
 -- Data for Name: tune_composers; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."tune_composers" ("tune_id", "index", "composer_id", "details") VALUES ('qdod-ad7l-8gr2', 0, '4plf-srss-ihav', '');
-INSERT INTO "dancelor"."tune_composers" ("tune_id", "index", "composer_id", "details") VALUES ('rifw-ul36-3uq5', 0, 'uwoe-u6ij-ikgp', '');
+INSERT INTO "dancelor"."tune_composers" ("tune_id", "index", "composer_id", "details") VALUES ('qdod-ad7l-8gr2', 0, '4plf-srss-ihav', NULL);
+INSERT INTO "dancelor"."tune_composers" ("tune_id", "index", "composer_id", "details") VALUES ('rifw-ul36-3uq5', 0, 'uwoe-u6ij-ikgp', NULL);
 
 
 --
@@ -740,7 +741,7 @@ INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_tok
 -- Data for Name: version; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."version" ("id", "tune_id", "key", "remark", "disambiguation", "monolithic_lilypond", "monolithic_bars", "monolithic_or_default_structure", "created_at", "modified_at") VALUES ('xzzb-wasm-babe', 'qdod-ad7l-8gr2', 'Dm', '', 'Niols''s Version', '\relative c'' <<
+INSERT INTO "dancelor"."version" ("id", "tune_id", "key", "remark", "disambiguation", "monolithic_lilypond", "monolithic_bars", "monolithic_or_default_structure", "created_at", "modified_at") VALUES ('xzzb-wasm-babe', 'qdod-ad7l-8gr2', 'Dm', NULL, 'Niols''s Version', '\relative c'' <<
   {
     \clef treble
     \key d \minor
@@ -800,9 +801,9 @@ INSERT INTO "dancelor"."version" ("id", "tune_id", "key", "remark", "disambiguat
   }
 >>
 ', 32, 'AABB', '2023-04-04 19:45:27', '2023-06-25 15:51:15');
-INSERT INTO "dancelor"."version" ("id", "tune_id", "key", "remark", "disambiguation", "monolithic_lilypond", "monolithic_bars", "monolithic_or_default_structure", "created_at", "modified_at") VALUES ('xsbz-vqy7-xj3s', 'rifw-ul36-3uq5', 'Dm', '', '', NULL, NULL, NULL, '2026-05-10 12:47:35', '2026-05-10 12:47:35');
-INSERT INTO "dancelor"."version" ("id", "tune_id", "key", "remark", "disambiguation", "monolithic_lilypond", "monolithic_bars", "monolithic_or_default_structure", "created_at", "modified_at") VALUES ('jyot-ypt9-caxu', 'rifw-ul36-3uq5', 'Dm', '', 'destructured', NULL, NULL, 'ABAB', '2026-05-12 11:11:02', '2026-05-12 11:11:02');
-INSERT INTO "dancelor"."version" ("id", "tune_id", "key", "remark", "disambiguation", "monolithic_lilypond", "monolithic_bars", "monolithic_or_default_structure", "created_at", "modified_at") VALUES ('or5b-64lk-hlj5', 'gm7o-khcu-8faz', 'Dm', '', 'destructured w/ transitions', NULL, NULL, 'AABBAB', '2026-05-12 13:07:50', '2026-05-12 12:12:16.491412');
+INSERT INTO "dancelor"."version" ("id", "tune_id", "key", "remark", "disambiguation", "monolithic_lilypond", "monolithic_bars", "monolithic_or_default_structure", "created_at", "modified_at") VALUES ('jyot-ypt9-caxu', 'rifw-ul36-3uq5', 'Dm', NULL, 'destructured', NULL, NULL, 'ABAB', '2026-05-12 11:11:02', '2026-05-12 11:11:02');
+INSERT INTO "dancelor"."version" ("id", "tune_id", "key", "remark", "disambiguation", "monolithic_lilypond", "monolithic_bars", "monolithic_or_default_structure", "created_at", "modified_at") VALUES ('or5b-64lk-hlj5', 'gm7o-khcu-8faz', 'Dm', NULL, 'destructured w/ transitions', NULL, NULL, 'AABBAB', '2026-05-12 13:07:50', '2026-05-12 12:12:16.491412');
+INSERT INTO "dancelor"."version" ("id", "tune_id", "key", "remark", "disambiguation", "monolithic_lilypond", "monolithic_bars", "monolithic_or_default_structure", "created_at", "modified_at") VALUES ('xsbz-vqy7-xj3s', 'rifw-ul36-3uq5', 'Dm', NULL, NULL, NULL, NULL, NULL, '2026-05-10 12:47:35', '2026-05-10 12:47:35');
 
 
 --
@@ -874,8 +875,8 @@ INSERT INTO "dancelor"."version_destructured_transitions" ("version_id", "from_p
 -- Data for Name: version_sources; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."version_sources" ("version_id", "source_id", "structure", "details") VALUES ('xzzb-wasm-babe', '2f8s-90v8-33do', 'AABB', '');
-INSERT INTO "dancelor"."version_sources" ("version_id", "source_id", "structure", "details") VALUES ('xsbz-vqy7-xj3s', '2wrv-25yu-yc07', 'AAAA', '');
+INSERT INTO "dancelor"."version_sources" ("version_id", "source_id", "structure", "details") VALUES ('xzzb-wasm-babe', '2f8s-90v8-33do', 'AABB', NULL);
+INSERT INTO "dancelor"."version_sources" ("version_id", "source_id", "structure", "details") VALUES ('xsbz-vqy7-xj3s', '2wrv-25yu-yc07', 'AAAA', NULL);
 
 
 --

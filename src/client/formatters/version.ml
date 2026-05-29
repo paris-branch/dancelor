@@ -9,9 +9,9 @@ let switch_signal_option = function
 let disambiguation ?(parentheses = true) version =
   span @@
     match Model.Version.disambiguation version with
-    | "" -> []
-    | disambiguation when parentheses -> [txt (spf " (%s)" disambiguation)]
-    | disambiguation -> [txt (spf " %s" disambiguation)]
+    | None -> []
+    | Some disambiguation when parentheses -> [txt @@ spf " (%s)" @@ NEString.to_string disambiguation]
+    | Some disambiguation -> [txt @@ spf " %s" @@ NEString.to_string disambiguation]
 
 let disambiguation' ?parentheses version =
   disambiguation ?parentheses (Entry.value version)
@@ -49,14 +49,9 @@ let disambiguation_and_sources_internal ?(parentheses = true) ?link version =
                       List.interspersei
                         (fun _ -> txt ", ")
                         ~last: (fun _ -> txt " and ") @@
-                      List.map
-                        (fun details -> txtf " %s" details
-                        )
-                        (
-                          List.filter_map
-                            (fun (_, details) -> if details <> "" then Some details else None)
-                            source_group
-                        )
+                      List.filter_map
+                        (fun (_, details) -> Option.map (txtf " %s" % NEString.to_string) details)
+                        source_group
                     )
                   ]
                 )

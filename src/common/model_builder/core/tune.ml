@@ -2,7 +2,7 @@ open Nes
 
 type composer = {
   composer: Person.t Entry.Id.t;
-  details: string; [@default ""]
+  details: NEString.t option; [@default None]
 }
 [@@deriving eq, ord, yojson, show {with_path = false}]
 
@@ -16,7 +16,7 @@ type t = {
   kind: Kind.Base.t;
   composers: composer list; [@default []]
   dances: Dance.t Entry.Id.t list; [@default []]
-  remark: string; [@default ""]
+  remark: NEString.t option; [@default None]
   scddb_id: int option; [@default None] [@key "scddb-id"]
   date: PartialDate.t option; [@default None] (** When the tune was composed. *)
 }

@@ -249,9 +249,14 @@ type migration = {
 let make_custom name apply =
   {name; apply}
 
-let make_ddl name ddl =
-  let apply = fun db -> ignore <$> ddl db in
+let make_ddls name ddls =
+  let apply = fun db ->
+    Lwt_list.iter_s (fun ddl -> ignore <$> ddl db) ddls
+  in
   make_custom name apply
+
+let make_ddl name ddl =
+  make_ddls name [ddl]
 
 let migrations : migration list = [
   make_ddl "m001_2026_04_add_book_table" Migrations_sql.m001_2026_04_add_book_table;
@@ -997,6 +1002,23 @@ let migrations : migration list = [
   make_ddl "m056_2026_05_add_unique_constraint_book_content_versions_book_id_content_index_index" Migrations_sql.m056_2026_05_add_unique_constraint_book_content_versions_book_id_content_index_index;
   make_ddl "m057_2026_05_add_unique_constraint_book_viewers_book_id_viewer_id" Migrations_sql.m057_2026_05_add_unique_constraint_book_viewers_book_id_viewer_id;
   make_ddl "m058_2026_05_add_unique_constraint_book_owners_book_id_owner_id" Migrations_sql.m058_2026_05_add_unique_constraint_book_owners_book_id_owner_id;
+  make_ddls "m059_2026_05_string_to_nestring_option" [
+    Migrations_sql.m059_2026_05_string_to_nestring_option__make_dance_disambiguations_nullable;
+    Migrations_sql.m059_2026_05_string_to_nestring_option__convert_dance_disambiguations;
+    Migrations_sql.m059_2026_05_string_to_nestring_option__make_tune_remarks_nullable;
+    Migrations_sql.m059_2026_05_string_to_nestring_option__convert_tune_remarks;
+    Migrations_sql.m059_2026_05_string_to_nestring_option__make_tune_composers_details_nullable;
+    Migrations_sql.m059_2026_05_string_to_nestring_option__convert_tune_composers_details;
+    Migrations_sql.m059_2026_05_string_to_nestring_option__make_version_remarks_disambiguations_nullable;
+    Migrations_sql.m059_2026_05_string_to_nestring_option__convert_version_remarks;
+    Migrations_sql.m059_2026_05_string_to_nestring_option__convert_version_disambiguations;
+    Migrations_sql.m059_2026_05_string_to_nestring_option__make_version_sources_details_nullable;
+    Migrations_sql.m059_2026_05_string_to_nestring_option__convert_version_sources_details;
+    Migrations_sql.m059_2026_05_string_to_nestring_option__make_set_remarks_nullable;
+    Migrations_sql.m059_2026_05_string_to_nestring_option__convert_set_remarks;
+    Migrations_sql.m059_2026_05_string_to_nestring_option__make_book_remarks_nullable;
+    Migrations_sql.m059_2026_05_string_to_nestring_option__convert_book_remarks;
+  ];
 ]
 
 exception Migration_failed of string * exn

@@ -245,7 +245,7 @@ let editor user =
         | true -> [flip_show_preview_button ~icon: (Action Show)]
         | false -> [flip_show_preview_button ~icon: (Action Hide)]
     ) ^::
-  Input.prepare
+  Input.prepare_option
     ~type_: Text
     ~label: "Remark"
     ~placeholder: "eg. Dusty Miller"

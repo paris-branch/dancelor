@@ -48,7 +48,7 @@ let row_to_dance
         ~kind: (Kind_dance.of_string kind)
         ~two_chords: (two_chords_to_common @@ Option.get @@ two_chords_of_enum @@ Int64.to_int two_chords)
         ~scddb_id: (Option.map Int64.to_int scddb_id)
-        ~disambiguation
+        ~disambiguation: (Option.map NEString.of_string_exn disambiguation)
         ~date: (Option.map (Option.get % PartialDate.from_string) date)
         ~devisers
         ()
@@ -65,7 +65,7 @@ let dance_to_row ~create_or_update db id dance =
       ~kind: (Kind_dance.to_string @@ Model_builder.Core.Dance.kind dance)
       ~two_chords: (Int64.of_int @@ two_chords_to_enum @@ two_chords_of_common @@ Model_builder.Core.Dance.two_chords dance)
       ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Dance.scddb_id dance)
-      ~disambiguation: (Model_builder.Core.Dance.disambiguation dance)
+      ~disambiguation: (Option.map NEString.to_string @@ Model_builder.Core.Dance.disambiguation dance)
       ~date: (Option.map PartialDate.to_string @@ Model_builder.Core.Dance.date dance);%lwt
   ignore <$> Dance_sql.delete_all_extra_names db ~dance_id: id;%lwt
   Lwt_list.iter_s

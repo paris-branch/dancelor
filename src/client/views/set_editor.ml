@@ -173,9 +173,10 @@ let editor user =
 let assemble (name, (kind, (conceptors, (contents, (order, (owners, (visibility, ()))))))) =
   let conceptors = List.map Entry.id conceptors in
   let contents = List.map (Pair.map_fst Entry.id) contents in
-  (* FIXME: This erases the existing remarks. *)
   (
-    Model.Set.make ~name ~kind ~conceptors ~contents ~order ~remark: "" (),
+    (* FIXME: This erases the existing remarks, or, most likely, tunes with
+       remarks will get a Non_convertible exception when we check for the roundtrip. *)
+    Model.Set.make ~name ~kind ~conceptors ~contents ~order ~remark: None (),
     Entry.Access.Private.make ~owners: (NEList.map Entry.id owners) ~visibility: (visibility'_to_visibility visibility) ()
   )
 

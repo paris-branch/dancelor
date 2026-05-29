@@ -224,7 +224,7 @@ let editor =
         ~unserialise: Model.Person.get
         ()
     ) ^::
-  Input.prepare
+  Input.prepare_option
     ~type_: Text
     ~label: "Remark"
     ~placeholder: "Any additional information that doesn't fit in the other fields."
@@ -255,7 +255,7 @@ let editor =
             ~label: "FIXME"
             (structure ~label: "Structure in that particular source" ())
             (
-              Input.prepare
+              Input.prepare_option
                 ~type_: Text
                 ~label: "FIXME"
                 ~placeholder: "eg. “for The Eightsome Reel” or “as a 2/4 reel”"
@@ -265,7 +265,7 @@ let editor =
             )
         )
     ) ^::
-  Input.prepare
+  Input.prepare_option
     ~type_: Text
     ~label: "Disambiguation"
     ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them."

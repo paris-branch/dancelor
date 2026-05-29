@@ -27,7 +27,7 @@ let row_to_tune
       Model_builder.Core.Tune.make
         ~names: (NEList.cons (NEString.of_string_exn name) extra_names)
         ~kind: (Kind_base.of_string kind)
-        ~remark
+        ~remark: (Option.map NEString.of_string_exn remark)
         ~scddb_id: (Option.map Int64.to_int scddb_id)
         ~date: (Option.map (Option.get % PartialDate.from_string) date)
         ~composers: (List.map (fun (composer, details) -> {Model_builder.Core.Tune.composer; details}) composers)
@@ -44,7 +44,7 @@ let tune_to_row ~create_or_update db id tune =
       ~id
       ~name: (NEString.to_string @@ NEList.hd @@ Model_builder.Core.Tune.names tune)
       ~kind: (Kind_base.to_long_string ~capitalised: true @@ Model_builder.Core.Tune.kind tune)
-      ~remark: (Model_builder.Core.Tune.remark tune)
+      ~remark: (Option.map NEString.to_string @@ Model_builder.Core.Tune.remark tune)
       ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Tune.scddb_id tune)
       ~date: (Option.map PartialDate.to_string @@ Model_builder.Core.Tune.date tune);%lwt
   ignore <$> Tune_sql.delete_all_extra_names db ~tune_id: id;%lwt
@@ -62,7 +62,7 @@ let tune_to_row ~create_or_update db id tune =
           ~tune_id: id
           ~index: (Int64.of_int index)
           ~composer_id: (Entry.Id.to_string composer)
-          ~details
+          ~details: (Option.map NEString.to_string details)
     )
     (Model_builder.Core.Tune.composers tune);%lwt
   ignore <$> Tune_sql.delete_all_dances db ~tune_id: id;%lwt
@@ -76,7 +76,7 @@ let get id : Model_builder.Core.Tune.entry option Lwt.t =
   let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   let%lwt extra_names = Tune_sql.List.get_extra_names db ~tune_id: id (fun ~extra_name -> NEString.of_string_exn extra_name) in
-  let%lwt composers = Tune_sql.List.get_composers db ~tune_id: id (fun ~composer_id ~details -> (Entry.Id.of_string_exn composer_id, details)) in
+  let%lwt composers = Tune_sql.List.get_composers db ~tune_id: id (fun ~composer_id ~details -> (Entry.Id.of_string_exn composer_id, Option.map NEString.of_string_exn details)) in
   let%lwt dances = Tune_sql.List.get_dances db ~tune_id: id (fun ~dance_id -> Entry.Id.of_string_exn dance_id) in
   Tune_sql.Single.get db ~id (row_to_tune ~id ~extra_names ~composers ~dances)
 
@@ -94,7 +94,7 @@ let get_all () =
   Tune_sql.Fold.get_all_composers
     db
     (fun ~tune_id ~composer_id ~details () ->
-      Hashtbl.add composers tune_id (Entry.Id.of_string_exn composer_id, details)
+      Hashtbl.add composers tune_id (Entry.Id.of_string_exn composer_id, Option.map NEString.of_string_exn details)
     )
     ();%lwt
   Tune_sql.Fold.get_all_dances

@@ -20,7 +20,7 @@ type t = {
   authors: Person.t Entry.Id.t list; [@default []]
   date: PartialDate.t option; [@default None]
   contents: page list;
-  remark: string; [@default ""]
+  remark: NEString.t option; [@default None]
   sources: Source.t Entry.Id.t list; [@default []]
   scddb_id: int option; [@default None] [@key "scddb-id"]
 }
