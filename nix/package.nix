@@ -180,10 +180,10 @@
         pname = "sqlgg";
         version = "dev";
         src = pkgs.fetchFromGitHub {
-          owner = "ygrek";
+          owner = "niols"; # FIXME: should be "ygrek" - using the fork until https://github.com/ygrek/sqlgg/pull/276 is merged
           repo = pname;
-          rev = "16813a2350a7dcd0f95ead007ac871f9420581fb";
-          sha256 = "sha256-ESoWJ2EukKw45Wa9lksQvYyvZGXZmyVQhpuFoC2fZkI=";
+          rev = "f13bbfa8ca90565d55979b51cb6a3d8d084f2787";
+          sha256 = "sha256-zUTcrPBgZ/0Ja/ZWhoFeeD2KSBiXScu/Dp1ziqOUWPg=";
         };
         nativeBuildInputs = with pkgs.ocamlPackages; [
           menhir

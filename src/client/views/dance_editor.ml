@@ -57,7 +57,7 @@ let editor =
         NEString.to_string
     )
     () ^::
-  Input.prepare
+  Input.prepare_option
     ~type_: Text
     ~label: "Disambiguation"
     ~placeholder: "If there are multiple dances with the same name, this field must be used to distinguish them."

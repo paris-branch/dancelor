@@ -174,7 +174,7 @@ let dance_to_renderer_set set_params =
         ~order: []
         ~conceptors: []
         ~contents: []
-        ~remark: ""
+        ~remark: None
         ()
     )
     set_params

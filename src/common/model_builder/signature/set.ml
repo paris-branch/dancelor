@@ -14,7 +14,7 @@ module type S = sig
     kind: Kind.Dance.t ->
     contents: (Core.Version.t Entry.id * Core.Version_parameters.t) list ->
     order: Core.Set_order.t ->
-    remark: string ->
+    remark: NEString.t option ->
     unit ->
     t
 
@@ -33,8 +33,8 @@ module type S = sig
   val order : t -> Core.Set_order.t
   val order' : entry -> Core.Set_order.t
 
-  val remark : t -> string
-  val remark' : entry -> string
+  val remark : t -> NEString.t option
+  val remark' : entry -> NEString.t option
 
   val slug : t -> NesSlug.t
   val slug' : entry -> NesSlug.t

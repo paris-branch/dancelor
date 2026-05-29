@@ -41,7 +41,7 @@ let row_to_book
       Model_builder.Core.Book.make
         ~name: (NEString.of_string_exn name)
         ~date: (Option.map (Option.get % PartialDate.from_string) date)
-        ~remark
+        ~remark: (Option.map NEString.of_string_exn remark)
         ~scddb_id: (Option.map Int64.to_int scddb_id)
         ~authors
         ~sources
@@ -64,7 +64,7 @@ let book_to_row ~create_or_update db id book access =
       ~id
       ~name: (NEString.to_string @@ Model_builder.Core.Book.name book)
       ~date: (Option.map PartialDate.to_string @@ Model_builder.Core.Book.date book)
-      ~remark: (Model_builder.Core.Book.remark book)
+      ~remark: (Option.map NEString.to_string @@ Model_builder.Core.Book.remark book)
       ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Book.scddb_id book)
       ~visibility;%lwt
   ignore <$> Book_sql.delete_all_authors db ~book_id: id;%lwt

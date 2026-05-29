@@ -48,11 +48,40 @@ let pool : t Lwt_pool.t =
     ~dispose: (fun {Sqlgg_postgresql.conn; _} -> conn#finish; Lwt.return_unit)
     (fun () -> open_ ())
 
-let with_ (f : t -> 'a Lwt.t) : 'a Lwt.t =
-  Lwt_pool.use pool f
+let result_status_is_ok result =
+  match result#status with
+  | Postgresql.Empty_query | Command_ok | Tuples_ok | Copy_out | Copy_in | Copy_both | Single_tuple -> true
+  | Bad_response | Nonfatal_error | Fatal_error -> false
+
+let bypass_exec ?(debug_log = true) (db : t) (query : string) =
+  let result = db.Sqlgg_postgresql.conn#exec query in
+  if debug_log then
+    Log.debug (fun m ->
+      m
+        "bypass_exec: %a@\n%a"
+        (Format.pp_multiline_sensible (Postgresql.result_status result#status))
+        result#error
+        (Format.pp_multiline_sensible "while executing")
+        query
+    );
+  result
+
+let with_transaction (db : t) (f : unit -> 'a Lwt.t) =
+  assert (result_status_is_ok @@ bypass_exec db "BEGIN");
+  try%lwt
+    let%lwt r = f () in
+    assert (result_status_is_ok @@ bypass_exec db "COMMIT");
+    lwt r
+  with
+    | exn -> assert (result_status_is_ok @@ bypass_exec db "ROLLBACK"); Lwt.reraise exn
+
+let with_ ?(transaction = true) (f : t -> 'a Lwt.t) : 'a Lwt.t =
+  Lwt_pool.use pool @@ fun db ->
+  if transaction then with_transaction db (fun () -> f db)
+  else f db
 
 let bypass_exec (db : t) (query : string) =
-  let result = db.Sqlgg_postgresql.conn#exec query in
+  let result = bypass_exec ~debug_log: false db query in
   (* NOTE: Using [bypass_exec] is always at least a warning. *)
   match result#status with
   | Empty_query | Command_ok | Tuples_ok | Copy_out | Copy_in | Copy_both | Single_tuple ->

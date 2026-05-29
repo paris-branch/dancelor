@@ -43,7 +43,7 @@ let row_to_set
         ~kind: (Kind_dance.of_string kind)
         ~contents: content
         ~order: (Model_builder.Core.Set_order.of_string order)
-        ~remark
+        ~remark: (Option.map NEString.of_string_exn remark)
         ()
     )
 
@@ -63,7 +63,7 @@ let set_to_row ~create_or_update db id set access =
       ~name: (NEString.to_string @@ Model_builder.Core.Set.name set)
       ~kind: (Kind_dance.to_string @@ Model_builder.Core.Set.kind set)
       ~order: (Model_builder.Core.Set_order.to_string @@ Model_builder.Core.Set.order set)
-      ~remark: (Model_builder.Core.Set.remark set)
+      ~remark: (Option.map NEString.to_string @@ Model_builder.Core.Set.remark set)
       ~visibility;%lwt
   ignore <$> Set_sql.delete_all_conceptors db ~set_id: id;%lwt
   Lwt_list.iter_s

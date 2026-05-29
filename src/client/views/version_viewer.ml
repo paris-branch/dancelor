@@ -310,7 +310,7 @@ let view context tune_id id =
                     List.map
                       (fun Model.Version.{details; structure; _} ->
                         [
-                          (if details <> "" then txtf " %s" details else txt "");
+                          Option.fold details ~none: (txt "") ~some: (txtf " %s" % NEString.to_string);
                           txtf " as %s" (NEString.to_string (Model.Version.Structure.to_string structure));
                         ]
                       )

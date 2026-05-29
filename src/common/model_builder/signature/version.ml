@@ -11,12 +11,12 @@ module type S = sig
   type source = Core.Version.source = {
     source: Core.Source.t Entry.id;
     structure: Structure.t;
-    details: string;
+    details: NEString.t option;
   }
 
   val source_source : source -> Core.Source.t Entry.id
   val source_structure : source -> Structure.t
-  val source_details : source -> string
+  val source_details : source -> NEString.t option
 
   type t = Core.Version.t
 
@@ -28,8 +28,8 @@ module type S = sig
     key: Music.Key.t ->
     sources: source list ->
     arrangers: Core.Person.t Entry.id list ->
-    remark: string ->
-    disambiguation: string ->
+    remark: NEString.t option ->
+    disambiguation: NEString.t option ->
     content: Content.t ->
     unit ->
     t
@@ -49,11 +49,11 @@ module type S = sig
   val arrangers : t -> Core.Person.entry list Lwt.t
   val arrangers' : entry -> Core.Person.entry list Lwt.t
 
-  val remark : t -> string
-  val remark' : entry -> string
+  val remark : t -> NEString.t option
+  val remark' : entry -> NEString.t option
 
-  val disambiguation : t -> string
-  val disambiguation' : entry -> string
+  val disambiguation : t -> NEString.t option
+  val disambiguation' : entry -> NEString.t option
 
   val content : t -> Content.t
   val content' : entry -> Content.t

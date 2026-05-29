@@ -56,7 +56,7 @@ let description tune =
             (fun (composer, details) ->
               (
                 composer,
-                if details = "" then [] else [txtf " (%s)" details]
+                Option.fold details ~none: [] ~some: (List.singleton % txtf " (%s)" % NEString.to_string)
               )
             )
             composers;

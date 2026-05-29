@@ -5,11 +5,11 @@ module type S = sig
 
   type composer = Core.Tune.composer = {
     composer: Core.Person.t Entry.id;
-    details: string;
+    details: NEString.t option;
   }
 
   val composer_composer : composer -> Core.Person.t Entry.id
-  val composer_details : composer -> string
+  val composer_details : composer -> NEString.t option
 
   type t = Core.Tune.t
 
@@ -21,7 +21,7 @@ module type S = sig
     kind: Kind.Base.t ->
     composers: composer list ->
     dances: Core.Dance.t Entry.id list ->
-    remark: string ->
+    remark: NEString.t option ->
     scddb_id: int option ->
     date: PartialDate.t option ->
     unit ->
@@ -49,8 +49,8 @@ module type S = sig
   val dances : t -> Core.Dance.t Entry.id list
   val dances' : entry -> Core.Dance.t Entry.id list
 
-  val remark : t -> string
-  val remark' : entry -> string
+  val remark : t -> NEString.t option
+  val remark' : entry -> NEString.t option
 
   val scddb_id : t -> int option
   val scddb_id' : entry -> int option

@@ -46,8 +46,8 @@ let row_to_version
       Model_builder.Core.Version.make
         ~tune: (Entry.Id.of_string_exn tune_id)
         ~key: (Music.Key.of_string key)
-        ~remark
-        ~disambiguation
+        ~remark: (Option.map NEString.of_string_exn remark)
+        ~disambiguation: (Option.map NEString.of_string_exn disambiguation)
         ~sources
         ~arrangers
         ~content
@@ -69,8 +69,8 @@ let version_to_row ~create_or_update db id version =
       ~id
       ~tune_id: (Entry.Id.to_string @@ Model_builder.Core.Version.tune version)
       ~key: (Music.Key.to_string @@ Model_builder.Core.Version.key version)
-      ~remark: (Model_builder.Core.Version.remark version)
-      ~disambiguation: (Model_builder.Core.Version.disambiguation version)
+      ~remark: (Option.map NEString.to_string @@ Model_builder.Core.Version.remark version)
+      ~disambiguation: (Option.map NEString.to_string @@ Model_builder.Core.Version.disambiguation version)
       ~monolithic_lilypond
       ~monolithic_bars
       ~monolithic_or_default_structure;%lwt
@@ -93,7 +93,7 @@ let version_to_row ~create_or_update db id version =
           ~version_id: id
           ~source_id: (Entry.Id.to_string source)
           ~structure: (NEString.to_string @@ Model_builder.Core.Version.Structure.to_string structure)
-          ~details
+          ~details: (Option.map NEString.to_string details)
     )
     (Model_builder.Core.Version.sources version);%lwt
   (
@@ -145,7 +145,7 @@ let get id : Model_builder.Core.Version.entry option Lwt.t =
       {
         Model_builder.Core.Version.source = Entry.Id.of_string_exn source_id;
         structure = Option.get (Model_builder.Core.Version.Structure.of_string (NEString.of_string_exn structure));
-        details;
+        details = Option.map NEString.of_string_exn details;
       }
     )
   in
@@ -192,7 +192,7 @@ let get_all () =
         {
           Model_builder.Core.Version.source = Entry.Id.of_string_exn source_id;
           structure = Option.get (Model_builder.Core.Version.Structure.of_string (NEString.of_string_exn structure));
-          details;
+          details = Option.map NEString.of_string_exn details;
         }
     )
     ();%lwt

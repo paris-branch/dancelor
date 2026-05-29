@@ -46,7 +46,7 @@ let editor =
             ()
         )
         (
-          Input.prepare
+          Input.prepare_option
             ~type_: Text
             ~label: "Details"
             ~placeholder: "eg. “chords only”"
@@ -84,7 +84,7 @@ let editor =
         ~create_dialog_content: Dance_editor.create
         ()
     ) ^::
-  Input.prepare
+  Input.prepare_option
     ~type_: Text
     ~label: "Remark"
     ~placeholder: "Any additional information that doesn't fit in the other fields."

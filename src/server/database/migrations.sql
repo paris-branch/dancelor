@@ -1105,3 +1105,75 @@ ADD CONSTRAINT "uq_book_viewers_book_id_viewer_id" UNIQUE ("book_id", "viewer_id
 -- @m058_2026_05_add_unique_constraint_book_owners_book_id_owner_id
 ALTER TABLE "book_owners"
 ADD CONSTRAINT "uq_book_owners_book_id_owner_id" UNIQUE ("book_id", "owner_id");
+
+
+
+
+-- @m059_2026_05_string_to_nestring_option__make_dance_disambiguations_nullable
+ALTER TABLE "dance"
+ALTER COLUMN "disambiguation" DROP NOT NULL;
+
+-- @m059_2026_05_string_to_nestring_option__convert_dance_disambiguations
+UPDATE "dance"
+SET "disambiguation" = NULL
+WHERE "disambiguation" = '';
+
+-- @m059_2026_05_string_to_nestring_option__make_tune_remarks_nullable
+ALTER TABLE "tune"
+ALTER COLUMN "remark" DROP NOT NULL;
+
+-- @m059_2026_05_string_to_nestring_option__convert_tune_remarks
+UPDATE "tune"
+SET "remark" = NULL
+WHERE "remark" = '';
+
+-- @m059_2026_05_string_to_nestring_option__make_tune_composers_details_nullable
+ALTER TABLE "tune_composers"
+ALTER COLUMN "details" DROP NOT NULL;
+
+-- @m059_2026_05_string_to_nestring_option__convert_tune_composers_details
+UPDATE "tune_composers"
+SET "details" = NULL
+WHERE "details" = '';
+
+-- @m059_2026_05_string_to_nestring_option__make_version_remarks_disambiguations_nullable
+ALTER TABLE "version"
+ALTER COLUMN "remark" DROP NOT NULL,
+ALTER COLUMN "disambiguation" DROP NOT NULL;
+
+-- @m059_2026_05_string_to_nestring_option__convert_version_remarks
+UPDATE "version"
+SET "remark" = NULL
+WHERE "remark" = '';
+
+-- @m059_2026_05_string_to_nestring_option__convert_version_disambiguations
+UPDATE "version"
+SET "disambiguation" = NULL
+WHERE "disambiguation" = '';
+
+-- @m059_2026_05_string_to_nestring_option__make_version_sources_details_nullable
+ALTER TABLE "version_sources"
+ALTER COLUMN "details" DROP NOT NULL;
+
+-- @m059_2026_05_string_to_nestring_option__convert_version_sources_details
+UPDATE "version_sources"
+SET "details" = NULL
+WHERE "details" = '';
+
+-- @m059_2026_05_string_to_nestring_option__make_set_remarks_nullable
+ALTER TABLE "set"
+ALTER COLUMN "remark" DROP NOT NULL;
+
+-- @m059_2026_05_string_to_nestring_option__convert_set_remarks
+UPDATE "set"
+SET "remark" = NULL
+WHERE "remark" = '';
+
+-- @m059_2026_05_string_to_nestring_option__make_book_remarks_nullable
+ALTER TABLE "book"
+ALTER COLUMN "remark" DROP NOT NULL;
+
+-- @m059_2026_05_string_to_nestring_option__convert_book_remarks
+UPDATE "book"
+SET "remark" = NULL
+WHERE "remark" = '';

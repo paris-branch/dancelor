@@ -8,7 +8,7 @@ type t = {
   kind: Kind.Dance.t;
   contents: (Version.t Entry.id * Version_parameters.t) list; [@key "versions-and-parameters"] [@default []]
   order: Set_order.t;
-  remark: string; [@default ""]
+  remark: NEString.t option; [@default None]
 }
 [@@deriving eq, ord, yojson, make, show {with_path = false}, fields]
 

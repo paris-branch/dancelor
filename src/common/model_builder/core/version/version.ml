@@ -8,7 +8,7 @@ module Content = Content
 type source = {
   source: Source.t Entry.Id.t;
   structure: Structure.t;
-  details: string; [@default ""]
+  details: NEString.t option; [@default None]
 }
 [@@deriving eq, ord, yojson, show {with_path = false}]
 
@@ -26,8 +26,8 @@ type t = {
   key: Music.Key.t;
   sources: source list; [@default []]
   arrangers: Person.t Entry.id list; [@default []]
-  remark: string; [@default ""]
-  disambiguation: string; [@default ""]
+  remark: NEString.t option; [@default None]
+  disambiguation: NEString.t option; [@default None]
   content: Content.t;
   (** In the client, we don't include the content, and it has to be retrieved by
       calling a specific endpoint; in the meantime, we fill it with [None]. *)
@@ -39,7 +39,7 @@ type entry = t Entry.public
 [@@deriving eq, ord, show, yojson]
 
 let make ~tune ~key ~sources ~arrangers ~remark ~disambiguation ~content () =
-  let disambiguation = String.remove_duplicates ~char: ' ' disambiguation in
+  let disambiguation = Option.map (NEString.map_exn (String.remove_duplicates ~char: ' ')) disambiguation in
   make ~tune ~key ~sources ~arrangers ~remark ~disambiguation ~content ()
 
 let tune' = tune % Entry.value_public

@@ -38,7 +38,7 @@ module type S = sig
     authors: Core.Person.t Entry.id list ->
     date: PartialDate.t option ->
     contents: page list ->
-    remark: string ->
+    remark: NEString.t option ->
     sources: Core.Source.t Entry.id list ->
     scddb_id: int option ->
     unit ->
@@ -58,8 +58,8 @@ module type S = sig
   val contents : t -> page list
   val contents' : entry -> page list
 
-  val remark : t -> string
-  val remark' : entry -> string
+  val remark : t -> NEString.t option
+  val remark' : entry -> NEString.t option
 
   val sources : t -> Core.Source.t Entry.id list
   val sources' : entry -> Core.Source.t Entry.id list

@@ -24,8 +24,8 @@ let name' ?(link = true) ?context person = name_gen @@ Right (person, link, cont
 let name_and_disambiguation_gen dance =
   let disambiguation_block =
     match Model.Dance.disambiguation @@ Either.fold ~left: Fun.id ~right: (Entry.value % (fun (d, _, _) -> d)) dance with
-    | "" -> []
-    | disambiguation -> [span ~a: [a_class ["opacity-50"]] [txt (spf " (%s)" disambiguation)]]
+    | None -> []
+    | Some disambiguation -> [span ~a: [a_class ["opacity-50"]] [txt @@ spf " (%s)" @@ NEString.to_string disambiguation]]
   in
   span (name_gen dance :: disambiguation_block)
 

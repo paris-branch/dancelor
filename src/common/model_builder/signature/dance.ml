@@ -19,7 +19,7 @@ module type S = sig
     devisers: Core.Person.t Entry.id list ->
     two_chords: two_chords ->
     scddb_id: int option ->
-    disambiguation: string ->
+    disambiguation: NEString.t option ->
     date: PartialDate.t option ->
     unit ->
     t
@@ -46,8 +46,8 @@ module type S = sig
   val scddb_id : t -> int option
   val scddb_id' : entry -> int option
 
-  val disambiguation : t -> string
-  val disambiguation' : entry -> string
+  val disambiguation : t -> NEString.t option
+  val disambiguation' : entry -> NEString.t option
 
   val date : t -> PartialDate.t option
   val date' : entry -> PartialDate.t option
