@@ -1001,7 +1001,8 @@ let migrations : migration list = [
 
 exception Migration_failed of string * exn
 
-let apply_migrations db =
+let apply_migrations () =
+  Connection.with_ ~transaction: false @@ fun db ->
   let rec skip_already_applied_migrations = function
     | [] -> lwt_nil
     | migration :: migrations ->
@@ -1026,6 +1027,7 @@ let apply_migrations db =
         Log.debug (fun m -> m "Applying migration %S" migration.name);
         (
           try%lwt
+            Connection.with_transaction db @@ fun () ->
             migration.apply db
           with
             | exn ->
@@ -1035,5 +1037,3 @@ let apply_migrations db =
         ignore <$> Migrations_sql.register_migration db ~name: migration.name
       )
       migrations
-
-let apply_migrations () = Connection.with_ apply_migrations
