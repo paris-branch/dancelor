@@ -166,27 +166,27 @@ let search' env filter =
   let%lwt cache_key = Environment.cache_key env in
   Cache.use ~cache ~key: (cache_key, filter) @@ fun () ->
   let (book_f, dance_f, person_f, set_f, source_f, tune_f, version_f) = Filter.Any.specialise filter in
-  let%lwt (count_persons, persons) = Person.search' env person_f in
-  let%lwt (count_dances, dances) = Dance.search' env dance_f in
-  let%lwt (count_sources, sources) = Source.search' env source_f in
-  let%lwt (count_books, books) = Book.search' env book_f in
-  let%lwt (count_sets, sets) = Set.search' env set_f in
-  let%lwt (count_tunes, tunes) = Tune.search' env tune_f in
-  let%lwt (count_versions, versions) = Version.search' env version_f in
-  let count = count_sources + count_persons + count_dances + count_books + count_sets + count_tunes + count_versions in
+  let%lwt persons_result = Person.search' env person_f in
+  let%lwt dances_result = Dance.search' env dance_f in
+  let%lwt sources_result = Source.search' env source_f in
+  let%lwt books_result = Book.search' env book_f in
+  let%lwt sets_result = Set.search' env set_f in
+  let%lwt tunes_result = Tune.search' env tune_f in
+  let%lwt versions_result = Version.search' env version_f in
+  let count = sources_result.total + persons_result.total + dances_result.total + books_result.total + sets_result.total + tunes_result.total + versions_result.total in
   let results =
     let stream_to_row to_row =
       Lwt_stream.map_s (Monadise_lwt.monadise_1_1 Pair.map_fst to_row)
     in
     lwt_stream_merge_sorted_l (fun (_, s1) (_, s2) -> Float.compare s2 s1) [
       (* NOTE: keep this list's order in sync with Model.Any.Type.compare *)
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.person) (stream_to_row person_to_row (Lwt_stream.of_list persons));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.dance) (stream_to_row dance_to_row (Lwt_stream.of_list dances));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.source) (stream_to_row source_to_row (Lwt_stream.of_list sources));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.tune) (stream_to_row tune_to_row (Lwt_stream.of_list tunes));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.version) (stream_to_row version_to_row (Lwt_stream.of_list versions));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.set) (stream_to_row (set_to_row env) (Lwt_stream.of_list sets));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.book) (stream_to_row (book_to_row env) (Lwt_stream.of_list books));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.person) (stream_to_row person_to_row (Lwt_stream.of_list persons_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.dance) (stream_to_row dance_to_row (Lwt_stream.of_list dances_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.source) (stream_to_row source_to_row (Lwt_stream.of_list sources_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.tune) (stream_to_row tune_to_row (Lwt_stream.of_list tunes_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.version) (stream_to_row version_to_row (Lwt_stream.of_list versions_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.set) (stream_to_row (set_to_row env) (Lwt_stream.of_list sets_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.book) (stream_to_row (book_to_row env) (Lwt_stream.of_list books_result.items));
     ]
   in
   let%lwt results = Lwt_stream.to_list results in

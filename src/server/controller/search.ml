@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 
 module type Searchable = sig
   type value
@@ -19,9 +20,9 @@ module type S = sig
   type value
   type filter
 
-  val search : Environment.t -> Slice.t -> filter -> value Model_new.search_result Lwt.t
+  val search : Environment.t -> Slice.t -> filter -> value search_result Lwt.t
 
-  val search' : Environment.t -> filter -> (int * (value * float) list) Lwt.t
+  val search' : Environment.t -> filter -> (value * float) search_result Lwt.t
   (** Variant of {!search} that exposes the whole sequence of values, sorted and
       with their scores, but before slicing. *)
 
@@ -36,14 +37,14 @@ module Build (M : Searchable) : S with type value = M.value and type filter = M.
   (* Hardcoded threshold for all of Dancelor. *)
   let threshold = 0.4
 
-  let cache : (Environment.cache_key * float * filter, (int * (value * float) list) Lwt.t) Cache.t = Cache.create ~lifetime: 600 ()
+  let cache : (Environment.cache_key * float * filter, (value * float) search_result Lwt.t) Cache.t = Cache.create ~lifetime: 600 ()
 
   let search' env filter =
     let filter = M.optimise_filter filter in
     let%lwt cache_key = Environment.cache_key env in
     Cache.use ~cache ~key: (cache_key, threshold, filter) @@ fun () ->
     if M.filter_is_empty filter then
-      lwt (0, [])
+      lwt {total = 0; items = []}
     else
       (* For each value, we compute its score and return the pair (value, score).
          We keep only the values whose score is above the given threshold. *)
@@ -54,10 +55,10 @@ module Build (M : Searchable) : S with type value = M.value and type filter = M.
       (* We sort by score, decreasing, falling back on the tiebreakers otherwise. *)
       let compare = Lwt_list.compare_multiple (Lwt_list.decreasing (lwt % snd) Float.compare :: List.map (fun compare -> fun x y -> compare (fst x) (fst y)) M.tiebreakers) in
       let%lwt values = Monadise_lwt.monadise_2_1 List.sort compare values in
-      lwt (List.length values, values)
+      lwt {total = List.length values; items = values}
 
   let search env slice filter =
-    let%lwt (total, items) = search' env filter in
+    let%lwt {total; items} = search' env filter in
     lwt {Model_new.total; items = Slice.list ~strict: false slice @@ List.map fst items}
 
   (* Pass through for better composition *)
