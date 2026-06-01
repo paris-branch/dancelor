@@ -22,8 +22,8 @@ let get_neighbours any = function
   | Endpoints.Page.In_search query ->
     (* TODO: Unify with [Explorer.search]. *)
     let%olwt filter = lwt @@ Result.to_option @@ Text_formula.string_to_formula Filter.Any.converter query in
-    let%olwt (total, previous, index, next) = Result.to_option <$> Madge_client.call Endpoints.Api.(route @@ Any Search_context) filter any in
-    lwt_some List.{total; previous; index; next; element = any}
+    let%olwt {total; previous_item; index; next_item} = Result.to_option <$> Madge_client.call Endpoints.Api.(route @@ Any Search_context) filter any in
+    lwt_some List.{total; previous = previous_item; index; next = next_item; element = any}
   | Endpoints.Page.In_set (set, index) ->
     let%olwt set = Set.get set in
     let%olwt context = lwt @@ Set.find_context' index set in

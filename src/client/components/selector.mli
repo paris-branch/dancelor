@@ -6,7 +6,7 @@ open Html
 
 val make :
   label: string ->
-  search: (Slice.t -> string -> (int * ('model, 'access) Entry.t list, string) Result.t Lwt.t) ->
+  search: (Slice.t -> string -> (('model, 'access) Entry.t Model_new.search_result, string) Result.t Lwt.t) ->
   unserialise: ('model Entry.id -> ('model, 'access) Entry.t option Lwt.t) ->
   make_descr: (('model, 'access) Entry.t -> string Lwt.t) ->
   make_result:
@@ -31,7 +31,7 @@ val make :
 
 val prepare :
   label: string ->
-  search: (Slice.t -> string -> (int * ('model, 'access) Entry.t list, string) Result.t Lwt.t) ->
+  search: (Slice.t -> string -> (('model, 'access) Entry.t Model_new.search_result, string) Result.t Lwt.t) ->
   unserialise: ('model Entry.Id.t -> ('model, 'access) Entry.t option Lwt.t) ->
   make_descr: (('model, 'access) Entry.t -> string Lwt.t) ->
   make_result:

@@ -69,7 +69,7 @@ let view context tune_id id =
   Main_page.madge_call_or_404 (Tune Get) tune_id @@ fun tune ->
   madge_call_or_404_on_option (Version Get) id @@ fun specific_version ->
   let%lwt versions_of_this_tune =
-    snd
+    Model_new.items
     <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
       Formula_entry.value' @@ Filter.Version.tune' @@ Formula_entry.is' tune
   in
@@ -348,7 +348,7 @@ let view context tune_id id =
           (
             S.from_lwt (Tables.placeholder ()) @@
               let%lwt versions =
-                snd
+                Model_new.items
                 <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
                   Formula_entry.value' @@ Filter.Version.tune' @@ Formula_entry.is' tune
               in

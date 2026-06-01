@@ -76,14 +76,15 @@ let search' env filter =
   lwt (count, results)
 
 let search env slice filter =
-  let%lwt (count, results) = search' env filter in
-  Pair.cons count <$> (Lwt_stream.to_list @@ slice_lwt_stream ~strict: false slice @@ Lwt_stream.map fst results)
+  let%lwt (total, items) = search' env filter in
+  let%lwt items = Lwt_stream.to_list @@ slice_lwt_stream ~strict: false slice @@ Lwt_stream.map fst items in
+  lwt {Model_new.total; items}
 
 let search_context env filter element =
-  let%lwt results = snd <$> search env Slice.everything filter in
+  let%lwt results = Model_new.items <$> search env Slice.everything filter in
   match List.find_context (Model.Any.equal element) results with
   | None -> Madge_server.shortcut_not_found "Could not find the given element in the search results."
-  | Some List.{total; previous; index; next; _} -> lwt (total, previous, index, next) (* TODO: Return the context directly. *)
+  | Some List.{total; previous; index; next; _} -> lwt {Model_new.index; total; previous_item = previous; next_item = next}
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Any.t -> a = fun env endpoint ->
   match endpoint with

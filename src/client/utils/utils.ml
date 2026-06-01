@@ -49,7 +49,7 @@ let quick_explorer_links links =
       List.map
         (fun (text, filter_lwt) ->
           let count_lwt =
-            fst
+            Model_new.total
             <$> (
                 Madge_client.call_exn Endpoints.Api.(route @@ Any Search) Slice.nothing
                 =<< filter_lwt

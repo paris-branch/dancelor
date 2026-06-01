@@ -1,6 +1,7 @@
 open Nes
 open Js_of_ocaml
 open Js_of_ocaml_lwt
+open Dancelor_common
 open Utils
 open Html
 
@@ -77,10 +78,10 @@ let make
           | None -> Searching
           | Some Error messages ->
             Errors messages
-          | Some Ok (_, []) ->
+          | Some Ok {Model_new.total = _; items = []} ->
             No_results
-          | Some Ok (total, results) ->
-            on_number_of_entries total; Results results
+          | Some Ok {total; items} ->
+            on_number_of_entries total; Results items
       )
   in
 

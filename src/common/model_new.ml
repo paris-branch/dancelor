@@ -293,3 +293,19 @@ module Any_row = struct
     | Set s -> Set s.id
     | Book b -> Book b.id
 end
+
+(** {2 Other} *)
+
+type 'a search_context_result = {
+  total: int;
+  previous_item: 'a option;
+  index: int;
+  next_item: 'a option;
+}
+[@@deriving yojson, fields]
+
+type 'a search_result = {
+  total: int;
+  items: 'a list;
+}
+[@@deriving yojson, fields]

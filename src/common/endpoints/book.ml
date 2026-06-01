@@ -1,12 +1,13 @@
 open Nes
 open Madge
+open Model_new
 open Model_builder.Core
 module Filter = Filter_builder.Core
 
 type (_, _, _) t =
 (* Actions without specific book *)
 | Create : ((Book.t -> Entry.Access.Private.t -> 'w), 'w, Book.entry) t
-| Search : ((Slice.t -> (Book.t, Filter.Book.t) Formula_entry.private_ -> 'w), 'w, (int * Book.entry list)) t
+| Search : ((Slice.t -> (Book.t, Filter.Book.t) Formula_entry.private_ -> 'w), 'w, Book.entry search_result) t
 (* Actions on a specific book *)
 | Get : ((Book.t Entry.Id.t -> 'w), 'w, Book.entry) t
 | Update : ((Book.t Entry.Id.t -> Book.t -> Entry.Access.Private.t -> 'w), 'w, Book.entry) t
@@ -20,7 +21,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   function
     (* Actions without specific book *)
     | Create -> body "book" (module Book) @@ body "access" (module Entry.Access.Private) @@ post (module Entry.JPrivate(Book))
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPrivate(Book)(Filter.Book)) @@ get (module JPair(JInt)(JList(Entry.JPrivate(Book))))
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPrivate(Book)(Filter.Book)) @@ get (module Utils.Search_result(Entry.JPrivate(Book)))
     (* Actions on a specific book *)
     | Get -> variable (module Entry.Id.S(Book)) @@ get (module Entry.JPrivate(Book))
     | Update -> variable (module Entry.Id.S(Book)) @@ body "book" (module Book) @@ body "access" (module Entry.Access.Private) @@ put (module Entry.JPrivate(Book))

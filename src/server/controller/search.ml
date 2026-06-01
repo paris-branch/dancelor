@@ -1,4 +1,5 @@
 open Nes
+open Dancelor_common
 
 module type Searchable = sig
   type value
@@ -18,7 +19,7 @@ module type S = sig
   type value
   type filter
 
-  val search : Environment.t -> Slice.t -> filter -> (int * value list) Lwt.t
+  val search : Environment.t -> Slice.t -> filter -> value Model_new.search_result Lwt.t
 
   val search' : Environment.t -> filter -> (int * (value * float) Seq.t) Lwt.t
   (** Variant of {!search} that exposes the whole sequence of values, sorted and
@@ -56,8 +57,8 @@ module Build (M : Searchable) : S with type value = M.value and type filter = M.
       lwt (List.length values, List.to_seq values)
 
   let search env slice filter =
-    let%lwt (count, results) = search' env filter in
-    lwt (count, List.of_seq @@ Slice.seq ~strict: false slice @@ Seq.map fst results)
+    let%lwt (total, items) = search' env filter in
+    lwt {Model_new.total; items = List.of_seq @@ Slice.seq ~strict: false slice @@ Seq.map fst items}
 
   (* Pass through for better composition *)
   let tiebreakers = M.tiebreakers
