@@ -48,7 +48,7 @@ let slice_lwt_stream = fun ?(strict = true) slice xs ->
   in
   Lwt_stream.from next
 
-let cache : (Environment.cache_key * Filter.Any.t, (int * (Model_new.Any_row.t * float) Lwt_stream.t) Lwt.t) Cache.t = Cache.create ~lifetime: 600 ()
+let cache : (Environment.cache_key * Filter.Any.t, (int * (Model_new.Any_row.t * float) list) Lwt.t) Cache.t = Cache.create ~lifetime: 600 ()
 
 (* FIXME: The following conversion functions are temporary. We will
    save some network by having them happen on the server, but they
@@ -180,20 +180,21 @@ let search' env filter =
     in
     lwt_stream_merge_sorted_l (fun (_, s1) (_, s2) -> Float.compare s2 s1) [
       (* NOTE: keep this list's order in sync with Model.Any.Type.compare *)
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.person) (stream_to_row person_to_row (Lwt_stream.of_seq persons));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.dance) (stream_to_row dance_to_row (Lwt_stream.of_seq dances));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.source) (stream_to_row source_to_row (Lwt_stream.of_seq sources));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.tune) (stream_to_row tune_to_row (Lwt_stream.of_seq tunes));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.version) (stream_to_row version_to_row (Lwt_stream.of_seq versions));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.set) (stream_to_row (set_to_row env) (Lwt_stream.of_seq sets));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.book) (stream_to_row (book_to_row env) (Lwt_stream.of_seq books));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.person) (stream_to_row person_to_row (Lwt_stream.of_list persons));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.dance) (stream_to_row dance_to_row (Lwt_stream.of_list dances));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.source) (stream_to_row source_to_row (Lwt_stream.of_list sources));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.tune) (stream_to_row tune_to_row (Lwt_stream.of_list tunes));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.version) (stream_to_row version_to_row (Lwt_stream.of_list versions));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.set) (stream_to_row (set_to_row env) (Lwt_stream.of_list sets));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.book) (stream_to_row (book_to_row env) (Lwt_stream.of_list books));
     ]
   in
+  let%lwt results = Lwt_stream.to_list results in
   lwt (count, results)
 
 let search env slice filter =
   let%lwt (total, items) = search' env filter in
-  let%lwt items = Lwt_stream.to_list @@ slice_lwt_stream ~strict: false slice @@ Lwt_stream.map fst items in
+  let items = Slice.list ~strict: false slice @@ List.map fst items in
   lwt {Model_new.total; items}
 
 let search_context env filter element =

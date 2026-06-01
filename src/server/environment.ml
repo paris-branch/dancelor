@@ -205,18 +205,9 @@ let sign_out env user =
 
 let boot_time = Datetime.now ()
 
-type cache_key_session = {
-  user: Database.User.entry option;
-  expires: Datetime.t;
-}
-[@@ocaml.warning "-69"]
-(* NOTE: We disable warning 69, “unused record field”, because the goal is to
-   generate these keys so that they can be hashed or tested for physical
-   equality; we will never use them directly. *)
-
 type cache_key = {
   session_id: string;
-  session: cache_key_session;
+  user: Database.User.entry option;
 }
 [@@ocaml.warning "-69"]
 (* NOTE: We disable warning 69, “unused record field”, because the goal is to
@@ -225,6 +216,6 @@ type cache_key = {
 
 let cache_key env =
   let {session_id; session; response_cookies = _} : t = env in
-  let {user; expires} : session = !session in
+  let {user; expires = _} : session = !session in
   let%lwt user = Option.fold user ~some: Database.User.get ~none: lwt_none in
-  lwt ({session_id; session = {user; expires}}: cache_key)
+  lwt ({session_id; user}: cache_key)
