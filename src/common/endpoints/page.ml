@@ -2,6 +2,7 @@
 
 open Nes
 open Model_builder
+open Model_new
 
 (** Context in which a page might exist. TODO: I wonder whether it'd be possible
     to simply use [page] here, having pages carry a “parent” [page option]. *)
@@ -114,6 +115,16 @@ let href_any_full ?context any =
   | Book book -> href_book ?context (Entry.id book)
   | Tune tune -> href_tune ?context (Entry.id tune)
   | User _ -> assert false (* FIXME: user visualisation page *)
+
+let href_any_full_new ?context (any : Any_id.t) =
+  match any with
+  | Version (tune, version) -> href_version ?context tune (Some version)
+  | Set set -> href_set ?context set
+  | Person person -> href_person ?context person
+  | Source source -> href_source ?context source
+  | Dance dance -> href_dance ?context dance
+  | Book book -> href_book ?context book
+  | Tune tune -> href_tune ?context tune
 
 (** Function that consumes all endpoints and returns nothing. It is meant to be
     used in the catch-all case of a pattern matching. *)

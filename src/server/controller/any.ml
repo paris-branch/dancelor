@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 
 let get env id =
   match%lwt Database.Any.get id with
@@ -47,7 +48,119 @@ let slice_lwt_stream = fun ?(strict = true) slice xs ->
   in
   Lwt_stream.from next
 
-let cache : (Environment.cache_key * Filter.Any.t, (int * (Model.Any.t * float) Lwt_stream.t) Lwt.t) Cache.t = Cache.create ~lifetime: 600 ()
+let cache : (Environment.cache_key * Filter.Any.t, (int * (Model_new.Any_row.t * float) Lwt_stream.t) Lwt.t) Cache.t = Cache.create ~lifetime: 600 ()
+
+(* FIXME: The following conversion functions are temporary. We will
+   save some network by having them happen on the server, but they
+   should be pushed into individual controllers in a first place, and
+   then even all the way to the respective databases. *)
+
+let person_to_name (person : Model.Person.entry) : Person_name.t Lwt.t =
+  lwt {
+    Person_name.id = Entry.id person;
+    name = NEString.to_string @@ Model.Person.name' person;
+  }
+
+let source_to_short_name (source : Model.Source.entry) : Source_short_name.t Lwt.t =
+  lwt {
+    Source_short_name.id = Entry.id source;
+    short_name =
+    NEString.to_string (
+      match Model.Source.short_name' source with
+      | None -> Model.Source.name' source
+      | Some name -> name
+    );
+  }
+
+let version_to_name (version : Model.Version.entry) : Tune_name.t Lwt.t =
+  let%lwt tune = Model.Version.tune' version in
+  lwt {
+    Tune_name.id = Entry.id tune;
+    name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
+  }
+
+let person_to_row (person : Model.Person.entry) : Person_row.t Lwt.t =
+  lwt {
+    Person_row.id = Entry.id person;
+    name = NEString.to_string @@ Model.Person.name' person;
+  }
+
+let dance_to_row (dance : Model.Dance.entry) : Dance_row.t Lwt.t =
+  let%lwt devisers = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Dance.devisers' dance in
+  let%lwt devisers = Lwt_list.map_s person_to_name devisers in
+  lwt {
+    Dance_row.id = Entry.id dance;
+    name = NEString.to_string @@ NEList.hd @@ Model.Dance.names' dance;
+    kind = Model.Dance.kind' dance;
+    devisers;
+    disambiguation = Option.map NEString.to_string @@ Model.Dance.disambiguation' dance;
+  }
+
+let source_to_row (source : Model.Source.entry) : Source_row.t Lwt.t =
+  let%lwt editors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Source.editors' source in
+  let%lwt editors = Lwt_list.map_s person_to_name editors in
+  lwt {
+    Source_row.id = Entry.id source;
+    name = NEString.to_string @@ Model.Source.name' source;
+    date = Model.Source.date' source;
+    editors;
+  }
+
+let book_to_row env (book : Model.Book.entry) : Book_row.t Lwt.t =
+  let%lwt user = Environment.user env in
+  let%lwt authors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Book.authors' book in
+  let%lwt authors = Lwt_list.map_s person_to_name authors in
+  lwt {
+    Book_row.id = Entry.id book;
+    name = NEString.to_string @@ Model.Book.name' book;
+    date = Model.Book.date' book;
+    authors: Person_name.t list;
+    permission = Option.get @@ Permission.With_reason.can_get_private user book;
+  }
+
+let set_to_row env (set : Model.Set.entry) : Set_row.t Lwt.t =
+  let%lwt user = Environment.user env in
+  let%lwt conceptors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Set.conceptors' set in
+  let%lwt conceptors = Lwt_list.map_s person_to_name conceptors in
+  let%lwt tunes = Lwt_list.map_s (Option.get <%> Model.Version.get % fst) @@ Model.Set.contents' set in
+  let%lwt tunes = Lwt_list.map_s version_to_name tunes in
+  lwt {
+    Set_row.id = Entry.id set;
+    name = NEString.to_string @@ Model.Set.name' set;
+    kind = Model.Set.kind' set;
+    conceptors;
+    tunes;
+    permission = Option.get @@ Permission.With_reason.can_get_private user set;
+  }
+
+let tune_to_row (tune : Model.Tune.entry) : Tune_row.t Lwt.t =
+  let%lwt composers = Lwt_list.map_s (Option.get <%> Model.Person.get % Model.Tune.composer_composer) @@ Model.Tune.composers' tune in
+  let%lwt composers = Lwt_list.map_s person_to_name composers in
+  lwt {
+    Tune_row.id = Entry.id tune;
+    name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
+    kind = Model.Tune.kind' tune;
+    composers;
+  }
+
+let version_to_row (version : Model.Version.entry) : Version_row.t Lwt.t =
+  let content_to_content = function
+    | Model.Version.Content.No_content -> Version_row.No_content
+    | Destructured _ -> Destructured
+    | Monolithic {bars; structure; _} -> Monolithic (bars, structure)
+  in
+  let%lwt tune = tune_to_row =<< Model.Version.tune' version in
+  let%lwt sources = Lwt_list.map_s (Option.get <%> Model.Source.get % Model.Version.source_source) @@ Model.Version.sources' version in
+  let%lwt sources = Lwt_list.map_s source_to_short_name sources in
+  let%lwt arrangers = Lwt_list.map_s person_to_name =<< Model.Version.arrangers' version in
+  lwt {
+    Version_row.id = Entry.id version;
+    tune;
+    sources;
+    disambiguation = Model.Version.disambiguation' version;
+    arrangers: Person_name.t list;
+    content = content_to_content @@ Model.Version.content' version;
+  }
 
 let search' env filter =
   let%lwt cache_key = Environment.cache_key env in
@@ -62,15 +175,18 @@ let search' env filter =
   let%lwt (count_versions, versions) = Version.search' env version_f in
   let count = count_sources + count_persons + count_dances + count_books + count_sets + count_tunes + count_versions in
   let results =
+    let stream_to_row to_row =
+      Lwt_stream.map_s (Monadise_lwt.monadise_1_1 Pair.map_fst to_row)
+    in
     lwt_stream_merge_sorted_l (fun (_, s1) (_, s2) -> Float.compare s2 s1) [
       (* NOTE: keep this list's order in sync with Model.Any.Type.compare *)
-      Lwt_stream.map (Pair.map_fst Model.Any.person) (Lwt_stream.of_seq persons);
-      Lwt_stream.map (Pair.map_fst Model.Any.dance) (Lwt_stream.of_seq dances);
-      Lwt_stream.map (Pair.map_fst Model.Any.source) (Lwt_stream.of_seq sources);
-      Lwt_stream.map (Pair.map_fst Model.Any.tune) (Lwt_stream.of_seq tunes);
-      Lwt_stream.map (Pair.map_fst Model.Any.version) (Lwt_stream.of_seq versions);
-      Lwt_stream.map (Pair.map_fst Model.Any.set) (Lwt_stream.of_seq sets);
-      Lwt_stream.map (Pair.map_fst Model.Any.book) (Lwt_stream.of_seq books);
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.person) (stream_to_row person_to_row (Lwt_stream.of_seq persons));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.dance) (stream_to_row dance_to_row (Lwt_stream.of_seq dances));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.source) (stream_to_row source_to_row (Lwt_stream.of_seq sources));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.tune) (stream_to_row tune_to_row (Lwt_stream.of_seq tunes));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.version) (stream_to_row version_to_row (Lwt_stream.of_seq versions));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.set) (stream_to_row (set_to_row env) (Lwt_stream.of_seq sets));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.book) (stream_to_row (book_to_row env) (Lwt_stream.of_seq books));
     ]
   in
   lwt (count, results)
@@ -81,8 +197,8 @@ let search env slice filter =
   lwt {Model_new.total; items}
 
 let search_context env filter element =
-  let%lwt results = Model_new.items <$> search env Slice.everything filter in
-  match List.find_context (Model.Any.equal element) results with
+  let%lwt results = items <$> search env Slice.everything filter in
+  match List.find_context (Any_id.equal element) (List.map Any_row.to_id results) with
   | None -> Madge_server.shortcut_not_found "Could not find the given element in the search results."
   | Some List.{total; previous; index; next; _} -> lwt {Model_new.index; total; previous_item = previous; next_item = next}
 

@@ -34,6 +34,9 @@ module type S = sig
     unit ->
     t
 
+  val tune_id : t -> Core.Tune.t Entry.id
+  val tune_id' : entry -> Core.Tune.t Entry.id
+
   val tune : t -> Core.Tune.entry Lwt.t
   val tune' : entry -> Core.Tune.entry Lwt.t
 

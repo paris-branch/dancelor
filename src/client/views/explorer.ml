@@ -30,7 +30,7 @@ let view query =
     [
       Search.render
         search
-        ~make_result: (fun ?context result -> Any_result.make_result ?context result)
+        ~make_result: (fun ?context result -> Any_result_new.make_result ?context result)
         ~attached_buttons: [
           Button.make
             ~label: "Filter"

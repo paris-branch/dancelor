@@ -6,7 +6,8 @@ module Log = (val Logs.src_log @@ Logs.Src.create "server.permission": Logs.LOG)
 (** {2 Common tests and assertions} *)
 
 include Permission_builder
-include Make(Model.User)
+module With_reason = Make(Model.User)
+include With_reason
 
 (** {3 Tests} *)
 

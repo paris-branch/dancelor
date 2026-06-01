@@ -3,6 +3,7 @@ open Dancelor_common
 open Html
 open Utils
 open Model
+open Model_new
 
 let book_page_to_any = function
   | Book.Part _ -> lwt_none
@@ -16,25 +17,39 @@ let book_page_to_any = function
     let%lwt version = (Option.get <%> Model.Version.get) (fst @@ NEList.hd versions_and_params) in
     lwt_some (Any.Version version) (* FIXME: others? fixed by a page viewer *)
 
+let old_any_to_any_id : Model.Any.t -> Any_id.t = function
+  | Person p -> Person (Entry.id p)
+  | Dance d -> Dance (Entry.id d)
+  | Source s -> Source (Entry.id s)
+  | Book b -> Book (Entry.id b)
+  | Set s -> Set (Entry.id s)
+  | Tune t -> Tune (Entry.id t)
+  | Version v -> Version (Model.Version.tune_id' v, Entry.id v)
+  | User _ -> assert false
+
 (** Given an element and a context, find the total number of elements, the
     previous element, the index of the given element and the next element. *)
 let get_neighbours any = function
   | Endpoints.Page.In_search query ->
     (* TODO: Unify with [Explorer.search]. *)
     let%olwt filter = lwt @@ Result.to_option @@ Text_formula.string_to_formula Filter.Any.converter query in
-    let%olwt {total; previous_item; index; next_item} = Result.to_option <$> Madge_client.call Endpoints.Api.(route @@ Any Search_context) filter any in
-    lwt_some List.{total; previous = previous_item; index; next = next_item; element = any}
+    let%olwt {total; previous_item; index; next_item} = Result.to_option <$> Madge_client.call Endpoints.Api.(route @@ Any Search_context) filter (old_any_to_any_id any) in
+    lwt_some (total, previous_item, index, next_item)
   | Endpoints.Page.In_set (set, index) ->
     let%olwt set = Set.get set in
     let%olwt context = lwt @@ Set.find_context' index set in
     let%olwt element = Model.Version.get context.element in
     let context = List.map_context (const element) context in
     assert (any = Any.Version context.element);
-    lwt_some @@ List.map_context Any.version context
+    let List.{total; previous; index; next; element = _} = List.map_context Any.version context in
+    lwt_some (total, Option.map old_any_to_any_id previous, index, Option.map old_any_to_any_id next)
   | Endpoints.Page.In_book (book, index) ->
     let%olwt book = Book.get book in
     let%lwt viewable_content = Monadise_lwt.monadise_1_1 List.filter_map book_page_to_any (Book.contents' book) in
-    lwt @@ List.findi_context (fun i _ -> i = index) viewable_content
+    match List.findi_context (fun i _ -> i = index) viewable_content with
+    | None -> lwt_none
+    | Some List.{total; previous; index; next; element = _} ->
+      lwt_some (total, Option.map old_any_to_any_id previous, index, Option.map old_any_to_any_id next)
 
 let neighbour_context ~left = function
   | Endpoints.Page.In_search query -> Endpoints.Page.In_search query
@@ -64,7 +79,7 @@ let make_and_render ?context ~this_page any_lwt =
                   (
                     Lwt.flip_map neighbours_lwt @@ function
                       | None -> txt "?? of ?? in "
-                      | Some List.{total; index; _} -> txtf "%d of %d in " (index + 1) total
+                      | Some (total, _, index, _) -> txtf "%d of %d in " (index + 1) total
                   )
                   (
                     let open Endpoints.Page in
@@ -118,21 +133,21 @@ let make_and_render ?context ~this_page any_lwt =
                 ) @@
               S.from_lwt None @@
               Lwt.flip_map neighbours_lwt @@
-              Option.map @@ fun List.{previous; next; _} ->
+              Option.map @@ fun (_, previous, _, next) ->
               [
                 Button.make_a
                   ~classes: ["btn-secondary"]
                   ~icon: (Action Move_left)
                   ~disabled: (S.const @@ Option.is_none previous)
                   ~tooltip: "Go to the previous element in the context."
-                  ~href: (S.const @@ Option.fold ~none: Uri.empty ~some: (Endpoints.Page.href_any_full ~context: (neighbour_context ~left: true context)) previous)
+                  ~href: (S.const @@ Option.fold ~none: Uri.empty ~some: (Endpoints.Page.href_any_full_new ~context: (neighbour_context ~left: true context)) previous)
                   ();
                 Button.make_a
                   ~classes: ["btn-secondary"]
                   ~icon: (Action Move_right)
                   ~disabled: (S.const @@ Option.is_none next)
                   ~tooltip: "Go to the next element in the context."
-                  ~href: (S.const @@ Option.fold ~none: Uri.empty ~some: (Endpoints.Page.href_any_full ~context: (neighbour_context ~left: false context)) next)
+                  ~href: (S.const @@ Option.fold ~none: Uri.empty ~some: (Endpoints.Page.href_any_full_new ~context: (neighbour_context ~left: false context)) next)
                   ();
               ]
             );

@@ -70,7 +70,7 @@ let create () =
             in
             let slice = Slice.make ~length () in
             let%lwt results = Model_new.items <$> Madge_client.call_exn Dancelor_common.Endpoints.Api.(route @@ Any Search) slice filter in
-            lwt [Utils.Tables.any results]
+            lwt [Utils.Tables_new.any results]
         );
       ];
       section [
