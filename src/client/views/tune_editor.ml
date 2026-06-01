@@ -42,6 +42,9 @@ let editor =
               let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
             )
+            ~id_to_yojson: Entry.Id.to_yojson'
+            ~id_of_yojson: Entry.Id.of_yojson'
+            ~serialise: Entry.id
             ~unserialise: Model.Person.get
             ()
         )
@@ -76,6 +79,9 @@ let editor =
           let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Dance.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
         )
+        ~id_to_yojson: Entry.Id.to_yojson'
+        ~id_of_yojson: Entry.Id.of_yojson'
+        ~serialise: Entry.id
         ~unserialise: Model.Dance.get
         ~make_descr: (lwt % NEString.to_string % Model.Dance.one_name')
         ~make_result: (Any_result.make_dance_result ?context: None)

@@ -6,24 +6,27 @@ open Html
 
 val make :
   label: string ->
-  search: (Slice.t -> string -> (('model, 'access) Entry.t Model_new.search_result, string) Result.t Lwt.t) ->
-  unserialise: ('model Entry.id -> ('model, 'access) Entry.t option Lwt.t) ->
-  make_descr: (('model, 'access) Entry.t -> string Lwt.t) ->
+  search: (Slice.t -> string -> ('model Model_new.search_result, string) Result.t Lwt.t) ->
+  id_to_yojson: ('id -> Yojson.Safe.t) ->
+  id_of_yojson: (Yojson.Safe.t -> ('id, string) result) ->
+  serialise: ('model -> 'id) ->
+  unserialise: ('id -> 'model option Lwt.t) ->
+  make_descr: ('model -> string Lwt.t) ->
   make_result:
   (?classes: string list ->
   ?onclick: (unit -> unit Lwt.t) ->
   ?prefix: Html_types.td Html.elt list ->
   ?suffix: Html_types.td Html.elt list ->
-  ('model, 'access) Entry.t ->
+  'model ->
   Html_types.tr Html.elt) ->
   ?make_more_results:
-  (('model, 'access) Entry.t ->
+  ('model ->
   Html_types.tr Html.elt list S.t) ->
-  ?results_when_no_search: ('model, 'access) Entry.t list Lwt.t ->
+  ?results_when_no_search: 'model list Lwt.t ->
   model_name: string ->
-  ?create_dialog_content: ((('model, 'access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) ->
-  'model Entry.id option ->
-  (('model, 'access) Entry.t, 'model Entry.id option) Component.t Lwt.t
+  ?create_dialog_content: (('model, 'any) Editor.mode -> Page.t Lwt.t) ->
+  'id option ->
+  ('model, 'id option) Component.t Lwt.t
 (** When [?create_dialog_content] is passed, an additional button allows to
     create a value of this type on the fly. *)
 
@@ -31,24 +34,27 @@ val make :
 
 val prepare :
   label: string ->
-  search: (Slice.t -> string -> (('model, 'access) Entry.t Model_new.search_result, string) Result.t Lwt.t) ->
-  unserialise: ('model Entry.Id.t -> ('model, 'access) Entry.t option Lwt.t) ->
-  make_descr: (('model, 'access) Entry.t -> string Lwt.t) ->
+  search: (Slice.t -> string -> ('model Model_new.search_result, string) Result.t Lwt.t) ->
+  id_to_yojson: ('id -> Yojson.Safe.t) ->
+  id_of_yojson: (Yojson.Safe.t -> ('id, string) result) ->
+  serialise: ('model -> 'id) ->
+  unserialise: ('id -> 'model option Lwt.t) ->
+  make_descr: ('model -> string Lwt.t) ->
   make_result:
   (?classes: string list ->
   ?onclick: (unit -> unit Lwt.t) ->
   ?prefix: Html_types.td Html.elt list ->
   ?suffix: Html_types.td Html.elt list ->
-  ('model, 'access) Entry.t ->
+  'model ->
   Html_types.tr Html.elt) ->
   ?make_more_results:
-  (('model, 'access) Entry.t ->
+  ('model ->
   Html_types.tr Html.elt list S.t) ->
-  ?results_when_no_search: ('model, 'access) Entry.t list Lwt.t ->
+  ?results_when_no_search: 'model list Lwt.t ->
   model_name: string ->
-  ?create_dialog_content: ((('model, 'access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) ->
+  ?create_dialog_content: (('model, 'any) Editor.mode -> Page.t Lwt.t) ->
   unit ->
-  (('model, 'access) Entry.t, 'model Entry.Id.t option) Component.s
+  ('model, 'id option) Component.s
 (** Variant of {!make} that only prepares the component. It must still be
     {!Component.initialise}d. This is used for composition with eg.
     {!ComponentList}. *)
