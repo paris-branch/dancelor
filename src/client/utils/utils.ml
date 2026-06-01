@@ -3,6 +3,7 @@ open Dancelor_common
 open Js_of_ocaml
 
 module Any_result = Any_result
+module Any_result_new = Any_result_new
 module Icon = Icon
 module Alert = Alert
 module Button = Button
@@ -11,6 +12,7 @@ module Action = Action
 module Documentation = Documentation
 module Markdown = Markdown
 module Tables = Tables
+module Tables_new = Tables_new
 
 let write_to_clipboard = Clipboard.write_to_clipboard
 
@@ -47,7 +49,7 @@ let quick_explorer_links links =
       List.map
         (fun (text, filter_lwt) ->
           let count_lwt =
-            fst
+            Model_new.total
             <$> (
                 Madge_client.call_exn Endpoints.Api.(route @@ Any Search) Slice.nothing
                 =<< filter_lwt

@@ -49,6 +49,9 @@ let disambiguation' = disambiguation % Entry.value_public
 let content' = content % Entry.value_public
 let sources' = sources % Entry.value_public
 
+let tune_id = tune
+let tune_id' = tune_id % Entry.value_public
+
 let set_content content version =
   {version with content}
 

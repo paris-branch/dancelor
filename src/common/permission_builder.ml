@@ -26,6 +26,7 @@ type can_get_private =
   | Owner (** you can see this entry because you are its owner *)
   | Viewer (** you can see this entry because its owner marked you as a viewer *)
   | Omniscient_administrator (** you can see this entry because you are an administrator with omniscience enabled *)
+[@@deriving yojson]
 
 (** Reasons why a user can create a private element. *)
 type can_create_private =

@@ -6,13 +6,12 @@ module Log = (val Logs.src_log @@ Logs.Src.create "server.permission": Logs.LOG)
 (** {2 Common tests and assertions} *)
 
 include Permission_builder
-include Make(Model.User)
+module With_reason = Make(Model.User)
+include With_reason
 
 (** {3 Tests} *)
 
-let can can = fun env ->
-  let%lwt user = Environment.user env in
-  lwt (can user <> None)
+let can can = fun env -> lwt (can (Environment.user env) <> None)
 
 let can_get_public env entry = can (flip can_get_public entry) env
 
@@ -110,9 +109,7 @@ let assert_can_delete_private env entry =
 
 (** {2 Ad-hoc tests and assertions} *)
 
-let is_connected env =
-  let%lwt user = Environment.user env in
-  lwt (user <> None)
+let is_connected env = lwt (Environment.user env <> None)
 
 let assert_is_connected env =
   if%lwt is_connected env then
@@ -127,13 +124,11 @@ let assert_is_connected env =
     )
 
 let can_administrate env =
-  let%lwt user = Environment.user env in
-  lwt @@ Option.fold user ~none: false ~some: Model.User.is_administrator'
+  lwt @@ Option.fold (Environment.user env) ~none: false ~some: Model.User.is_administrator'
 
 let assert_can_administrate env f =
-  let%lwt user = Environment.user env in
   Option.fold
-    user
+    (Environment.user env)
     ~none: (fun () ->
       Log.info (fun m -> m "Refusing admin access to %a." Environment.pp env);
       Madge_server.shortcut_forbidden "You do not have permission to administrate this instance."

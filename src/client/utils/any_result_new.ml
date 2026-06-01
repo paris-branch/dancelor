@@ -1,0 +1,237 @@
+open Nes
+open Dancelor_common
+open Model_new
+open Html
+
+let row ?(classes = []) ?onclick cells =
+  let open Html in
+  tr
+    ~a: (
+      List.filter_map id [
+        Some (a_class classes);
+        Option.map (fun _ -> a_style "cursor: pointer;") onclick;
+        Option.map (fun f -> a_onclick (fun _ -> Lwt.async f; true)) onclick;
+      ]
+    )
+    (cells)
+
+let inline_details content = span ~a: [a_class ["opacity-50"]] content
+let block_details content = p ~a: [a_class ["mb-0"; "opacity-50"; "lh-sm"]] [small content]
+
+let make_part_result ?classes ?onclick ?(prefix = []) ?(suffix = []) title =
+  row ?classes ?onclick (prefix @ [td ~a: [a_colspan 3] [txt @@ NEString.to_string title]] @ suffix)
+
+let make_source_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (source : Source_row.t) =
+  row
+    ?classes
+    ?onclick
+    (
+      prefix @
+      [td [Formatters_new.Source.name ~link: (onclick = None) ?context source];
+      td [txt @@ Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) source.date];
+      td (Formatters_new.Person.names ~links: (onclick = None) ~short: true source.editors);
+      ] @
+      suffix
+    )
+
+let make_person_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (person : Person_row.t) =
+  row
+    ?classes
+    ?onclick
+    (
+      prefix @
+      [td ~a: [a_colspan 3] [Formatters_new.Person.name ~link: (onclick = None) ?context person];
+      ] @
+      suffix
+    )
+
+let make_dance_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (dance : Dance_row.t) =
+  row
+    ?classes
+    ?onclick
+    (
+      prefix @
+      [td (Formatters_new.Dance.name_and_disambiguation ~link: (onclick = None) ?context dance);
+      td [txt @@ Kind.Dance.to_string dance.kind];
+      td (Formatters_new.Person.names ~links: (onclick = None) ~short: true dance.devisers);
+      ] @
+      suffix
+    )
+
+let make_book_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (book : Book_row.t) =
+  row
+    ?classes
+    ?onclick
+    (
+      prefix @
+      [td [Formatters_new.Book.name ~link: (onclick = None) ?context book];
+      td [txt @@ Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) book.date];
+      td (Formatters_new.Person.names ~links: (onclick = None) ~short: true book.authors);
+      ] @
+      suffix
+    )
+
+let format_set_tunes ?links (set : Set_row.t) =
+  set.tunes
+  |> List.map (Formatters_new.Tune.name ?link: links)
+  |> List.interspersei (fun _ -> txt " - ")
+  |> List.cons (txt "Tunes: ")
+
+let make_set_result ?classes ?onclick ?context ?params ?(prefix = []) ?(suffix = []) (set : Set_row.t) =
+  row
+    ?classes
+    ?onclick
+    (
+      prefix @
+      [td (
+        [Formatters_new.Set.name ~link: (onclick = None) ?context set] @
+        Option.fold
+          (Option.bind params Model_builder.Core.Set_parameters.display_name)
+          ~none: []
+          ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]]) @
+          [block_details (format_set_tunes ~links: (onclick = None) set)]
+      );
+      td [txt @@ Kind.Dance.to_string set.kind];
+      td (
+        Formatters_new.Person.names ~links: (onclick = None) ~short: true set.conceptors @
+          Option.fold
+            (Option.bind params Model_builder.Core.Set_parameters.display_conceptor)
+            ~none: []
+            ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]])
+      )] @
+      suffix
+    )
+
+let make_tune_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (tune : Tune_row.t) =
+  row
+    ?classes
+    ?onclick
+    (
+      prefix @
+      [td [Formatters_new.Tune.name_row ~link: (onclick = None) ?context tune];
+      td [txt @@ Kind.Base.to_long_string ~capitalised: true tune.kind];
+      td (Formatters_new.Person.names ~links: (onclick = None) ~short: true tune.composers);
+      ] @
+      suffix
+    )
+
+let format_version_name_disambiguation_and_sources ?links ?context (version : Version_row.t) =
+  let sources_block =
+    match version.sources with
+    | [] -> []
+    | _ ->
+      List.flatten [
+        [txt " (from "];
+        List.interspersei
+          (fun _ -> txt ", ")
+          ~last: (fun _ -> txt " and ")
+          (List.map (Formatters_new.Source.short_name ?link: links) version.sources);
+        [txt ")"];
+      ]
+  in
+  let disambiguation_block =
+    Option.fold
+      version.disambiguation
+      ~none: []
+      ~some: (fun disambiguation -> [txt " "; inline_details [txtf "(%s)" @@ NEString.to_string disambiguation]])
+  in
+  span [
+    Formatters_new.Version.name_row ?link: links ?context version;
+    inline_details sources_block;
+    inline_details disambiguation_block;
+  ]
+
+let format_version_kind_and_structure (version : Version_row.t) =
+  match version.content with
+  | No_content ->
+    txt "(no cont.)"
+  | Destructured ->
+    txt @@ "∗ " ^ Kind.Base.to_short_string version.tune.kind ^ " (destr.)"
+  | Monolithic (bars, structure) ->
+    txtf
+      "%s (%s)"
+      (Kind.Version.to_string (bars, version.tune.kind))
+      (NEString.to_string @@ Model.Version.Structure.to_string structure)
+
+let format_version_composer_and_arranger ?(short = false) ?links (version : Version_row.t) =
+  Formatters_new.Person.names ?links ~short version.tune.composers @
+    match version.arrangers with
+    | [] -> []
+    | _ ->
+      [
+        inline_details (
+          (match version.tune.composers with [] -> [] | _ -> [txt ", "]) @
+          [txt (if short then "arr. " else "arranged by ")] @
+          Formatters_new.Person.names ?links ~short version.arrangers
+        )
+      ]
+
+let make_version_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (version : Version_row.t) =
+  row
+    ?classes
+    ?onclick
+    (
+      prefix @
+      [td [format_version_name_disambiguation_and_sources ~links: (onclick = None) ?context version];
+      td [format_version_kind_and_structure version];
+      td (format_version_composer_and_arranger ~links: (onclick = None) ~short: true version);
+      ] @
+      suffix
+    )
+
+let any_to_icon_and_string any =
+  match (any : Any_row.t) with
+  | Source _ -> (Icon.Source, "Source")
+  | Person _ -> (Icon.Person, "Person")
+  | Dance _ -> (Icon.Dance, "Dance")
+  | Tune _ -> (Icon.Tune, "Tune")
+  | Version _ -> (Icon.Version, "Version")
+  | Set _ -> (Icon.Set, "Set")
+  | Book _ -> (Icon.Book, "Book")
+
+let make_result ?classes ?context (any : Any_row.t) =
+  let prefix =
+    let (icon, type_) = any_to_icon_and_string any in
+    [
+      td
+        ~a: [a_class ["text-nowrap"; "pe-none"]]
+        [
+          Icon.(html (Model icon));
+          span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt " "; txt type_];
+        ]
+    ]
+  in
+  let suffix = [
+    td [
+      let permission =
+        match any with
+        | Source _ -> None
+        | Person _ -> None
+        | Dance _ -> None
+        | Tune _ -> None
+        | Version _ -> None
+        | Set set -> Some set.permission
+        | Book book -> Some book.permission
+      in
+      match permission with
+      | None -> Icon.html Icon.(Access Everyone) ~tooltip: "You can see this entry because it is an always-public entry (eg. a person or a tune)" ~classes: ["opacity-25"]
+      | Some reason ->
+        let (icon, tooltip, classes) =
+          match reason with
+          | Everyone -> (Icon.(Access Everyone), "You can see this entry because it was made public by its owner.", ["opacity-50"])
+          | Viewer -> (Icon.(Access Viewer), "You can see this entry because its owner marked you as one of its viewers.", ["opacity-75"])
+          | Owner -> (Icon.(Access Owner), "You can see this entry because you are (one of) its owners.", [])
+          | Omniscient_administrator -> (Icon.(Access Omniscient_administrator), "You can see this entry because you are an administrator, with omniscience enabled. You would not be able to access it without that.", [])
+        in
+        Icon.html icon ~tooltip ~classes
+    ]
+  ]
+  in
+  match any with
+  | Source source -> make_source_result ?classes ?context ~prefix ~suffix source
+  | Person person -> make_person_result ?classes ?context ~prefix ~suffix person
+  | Dance dance -> make_dance_result ?classes ?context ~prefix ~suffix dance
+  | Book book -> make_book_result ?classes ?context ~prefix ~suffix book
+  | Set set -> make_set_result ?classes ?context ~prefix ~suffix set
+  | Tune tune -> make_tune_result ?classes ?context ~prefix ~suffix tune
+  | Version version -> make_version_result ?classes ?context ~prefix ~suffix version

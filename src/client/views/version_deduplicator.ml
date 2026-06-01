@@ -189,7 +189,7 @@ let confirmation_dialog ~this_version ~other_version =
 
   (* changes to sets *)
   let%lwt sets =
-    snd
+    Model_new.items
     <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) Slice.everything @@
       Formula_entry.value' @@ Filter.Set.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
   in
@@ -211,7 +211,7 @@ let confirmation_dialog ~this_version ~other_version =
 
   (* changes to books *)
   let%lwt books =
-    snd
+    Model_new.items
     <$> Madge_client.call_exn Endpoints.Api.(route @@ Book Search) Slice.everything @@
       Formula_entry.value' @@ Filter.Book.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
   in
@@ -309,7 +309,7 @@ let confirmation_dialog ~this_version ~other_version =
 
 let dialog ~tune ~version () =
   let%lwt other_versions =
-    snd
+    Model_new.items
     <$> Madge_client.call_exn
         Endpoints.Api.(route @@ Version Search)
         Slice.everything

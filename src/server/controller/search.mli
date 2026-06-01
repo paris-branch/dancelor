@@ -1,6 +1,8 @@
 (** {1 Search controller helpers} *)
 
 open Nes
+open Dancelor_common
+open Model_new
 
 module type Searchable = sig
   type value
@@ -20,9 +22,9 @@ module type S = sig
   type value
   type filter
 
-  val search : Environment.t -> Slice.t -> filter -> (int * value list) Lwt.t
+  val search : Environment.t -> Slice.t -> filter -> value search_result Lwt.t
 
-  val search' : Environment.t -> filter -> (int * (value * float) Seq.t) Lwt.t
+  val search' : Environment.t -> filter -> (value * float) search_result Lwt.t
   (** Variant of {!search} that exposes the whole sequence of values, sorted,
       with their scores, before slicing. *)
 

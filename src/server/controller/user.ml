@@ -10,11 +10,11 @@ let get env id =
     Permission.assert_can_get_public env user;%lwt
     lwt user
 
-let status = Environment.user
+let status = lwt % Environment.user
 
 let sign_in env username password remember_me =
   Log.info (fun m -> m "Attempt to sign in with username `%s`." (Username.to_string username));
-  match%lwt Environment.user env with
+  match Environment.user env with
   | Some _user ->
     Log.info (fun m -> m "Rejecting because already signed in.");
     lwt_none
@@ -39,7 +39,7 @@ let sign_in env username password remember_me =
         lwt_some user
 
 let sign_out env =
-  match%lwt Environment.user env with
+  match Environment.user env with
   | None -> lwt_unit
   | Some user -> Environment.sign_out env user
 

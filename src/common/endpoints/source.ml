@@ -1,12 +1,13 @@
 open Nes
 open Madge
+open Model_new
 open Model_builder.Core
 module Filter = Filter_builder.Core
 
 type (_, _, _) t =
 (* Actions without specific source *)
 | Create : ((Source.t -> 'w), 'w, Source.entry) t
-| Search : ((Slice.t -> (Source.t, Filter.Source.t) Formula_entry.public -> 'w), 'w, (int * Source.entry list)) t
+| Search : ((Slice.t -> (Source.t, Filter.Source.t) Formula_entry.public -> 'w), 'w, Source.entry search_result) t
 (* Actions on a specific source *)
 | Get : ((Source.t Entry.Id.t -> 'w), 'w, Source.entry) t
 | Update : ((Source.t Entry.Id.t -> Source.t -> 'w), 'w, Source.entry) t
@@ -20,7 +21,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   function
     (* Actions without specific source *)
     | Create -> body "source" (module Source) @@ post (module Entry.JPublic(Source))
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(Source)(Filter.Source)) @@ get (module JPair(JInt)(JList(Entry.JPublic(Source))))
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(Source)(Filter.Source)) @@ get (module Utils.Search_result(Entry.JPublic(Source)))
     (* Actions on a specific source *)
     | Get -> variable (module Entry.Id.S(Source)) @@ get (module Entry.JPublic(Source))
     | Update -> variable (module Entry.Id.S(Source)) @@ body "source" (module Source) @@ put (module Entry.JPublic(Source))
