@@ -41,8 +41,7 @@ module Build (M : Searchable) : S with type value = M.value and type filter = M.
 
   let search' env filter =
     let filter = M.optimise_filter filter in
-    let%lwt cache_key = Environment.cache_key env in
-    Cache.use ~cache ~key: (cache_key, threshold, filter) @@ fun () ->
+    Cache.use ~cache ~key: (Environment.cache_key env, threshold, filter) @@ fun () ->
     if M.filter_is_empty filter then
       lwt {total = 0; items = []}
     else

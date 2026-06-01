@@ -107,7 +107,7 @@ let source_to_row (source : Model.Source.entry) : Source_row.t Lwt.t =
   }
 
 let book_to_row env (book : Model.Book.entry) : Book_row.t Lwt.t =
-  let%lwt user = Environment.user env in
+  let user = Environment.user env in
   let%lwt authors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Book.authors' book in
   let%lwt authors = Lwt_list.map_s person_to_name authors in
   lwt {
@@ -119,7 +119,7 @@ let book_to_row env (book : Model.Book.entry) : Book_row.t Lwt.t =
   }
 
 let set_to_row env (set : Model.Set.entry) : Set_row.t Lwt.t =
-  let%lwt user = Environment.user env in
+  let user = Environment.user env in
   let%lwt conceptors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Set.conceptors' set in
   let%lwt conceptors = Lwt_list.map_s person_to_name conceptors in
   let%lwt tunes = Lwt_list.map_s (Option.get <%> Model.Version.get % fst) @@ Model.Set.contents' set in
@@ -163,8 +163,7 @@ let version_to_row (version : Model.Version.entry) : Version_row.t Lwt.t =
   }
 
 let search' env filter =
-  let%lwt cache_key = Environment.cache_key env in
-  Cache.use ~cache ~key: (cache_key, filter) @@ fun () ->
+  Cache.use ~cache ~key: (Environment.cache_key env, filter) @@ fun () ->
   let (book_f, dance_f, person_f, set_f, source_f, tune_f, version_f) = Filter.Any.specialise filter in
   let%lwt persons_result = Person.search' env person_f in
   let%lwt dances_result = Dance.search' env dance_f in

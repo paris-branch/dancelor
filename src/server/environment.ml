@@ -7,16 +7,20 @@ let session_max_age = 43200 (* 43200 seconds = 12 hours *)
 let remember_me_token_max_age = 15552000 (* 15552000 seconds = 6 * 30 days *)
 
 type session = {
-  user: Database.User.t Entry.id option;
+  user: Database.User.entry option;
   expires: Datetime.t;
 }
 [@@deriving fields]
 
 let make_new_session () =
-  {user = None; expires = Datetime.make_in_the_future (float_of_int session_max_age)}
+  lwt {user = None; expires = Datetime.make_in_the_future (float_of_int session_max_age)}
 
-let update_session_expiration session =
-  {session with expires = Datetime.make_in_the_future (float_of_int session_max_age)}
+(** Refresh the session by getting the user again from the database
+    and bumping the expiry date. *)
+let refresh_session session =
+  let%lwt user = Option.fold session.user ~none: lwt_none ~some: (Database.User.get % Entry.id) in
+  let expires = Datetime.make_in_the_future (float_of_int session_max_age) in
+  lwt {user; expires}
 
 type t = {
   session_id: string;
@@ -32,13 +36,13 @@ let pp fmt env =
     (
       match !(env.session).user with
       | None -> "<anynomous>"
-      | Some user -> Entry.Id.to_string user
+      | Some user -> Entry.id_as_string user
     )
     env.session_id
     Datetime.pp
     !(env.session).expires
 
-let user env = Option.fold (user (!(env.session))) ~some: Database.User.get ~none: lwt_none
+let user env = user !(env.session)
 
 let register_response_cookie env cookie =
   env.response_cookies := cookie :: !(env.response_cookies)
@@ -61,7 +65,6 @@ let delete_cookie ?path key headers =
 let sessions : (string, session) Hashtbl.t = Hashtbl.create 8
 
 let set_user env user =
-  let user = Entry.id user in
   env.session := {!(env.session) with user = Some user};
   Hashtbl.replace sessions env.session_id !(env.session)
 
@@ -123,13 +126,13 @@ let from_request request =
   Log.debug (fun m -> m "Got cookies: %a" (Format.pp_print_list ~pp_sep: (fun fmt () -> fpf fmt "@\n  - ") (fun fmt (k, v) -> fpf fmt "%s -> %s" k v)) cookies);
   let session_id = Option.value' (List.assoc_opt "session" cookies) ~default: uid in
   Log.debug (fun m -> m "Session id: %s" session_id);
-  let session =
-    ref @@
-      match Hashtbl.find_opt sessions session_id with
-      | None -> Log.debug (fun m -> m "No session: creating a new one."); make_new_session ()
-      | Some session when Datetime.in_the_past session.expires -> Log.debug (fun m -> m "Old session: creating a new one."); make_new_session ()
-      | Some session -> Log.debug (fun m -> m "Live session: updating."); update_session_expiration session
+  let%lwt session =
+    match Hashtbl.find_opt sessions session_id with
+    | None -> Log.debug (fun m -> m "No session: creating a new one."); make_new_session ()
+    | Some session when Datetime.in_the_past session.expires -> Log.debug (fun m -> m "Old session: creating a new one."); make_new_session ()
+    | Some session -> Log.debug (fun m -> m "Live session: updating."); refresh_session session
   in
+  let session = ref session in
   let response_cookies = ref [] in
   let env = {session_id; session; response_cookies} in
   (
@@ -140,6 +143,7 @@ let from_request request =
     | _ -> lwt_unit
   );%lwt
   Log.debug (fun m -> m "Environment.from_request done; user is: %a." pp env);
+  Hashtbl.replace sessions session_id !session;
   lwt env
 
 let update_reponse_headers response f =
@@ -214,8 +218,7 @@ type cache_key = {
    generate these keys so that they can be hashed or tested for physical
    equality; we will never use them directly. *)
 
-let cache_key env =
+let cache_key env : cache_key =
   let {session_id; session; response_cookies = _} : t = env in
   let {user; expires = _} : session = !session in
-  let%lwt user = Option.fold user ~some: Database.User.get ~none: lwt_none in
-  lwt ({session_id; user}: cache_key)
+    {session_id; user}
