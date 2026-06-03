@@ -30,14 +30,14 @@ let model_content_to_content =
     | Model.Book.Part title ->
       lwt @@ `Part title
     | Dance (dance, Dance_only) ->
-      let%lwt dance = Option.get <$> Model.Dance.get dance in
+      let%lwt dance = Madge_client.call_exn Endpoints.Api.(route @@ Dance Get_row) dance in
       lwt @@ `Dance (dance, `Dance_only)
     | Dance (dance, Dance_versions versions_and_params) ->
-      let%lwt dance = Option.get <$> Model.Dance.get dance in
+      let%lwt dance = Madge_client.call_exn Endpoints.Api.(route @@ Dance Get_row) dance in
       let%lwt versions_and_params = Monadise_lwt.monadise_1_1 NEList.map (Monadise_lwt.monadise_1_1 Pair.map_fst (Option.get <%> Model.Version.get)) versions_and_params in
       lwt @@ `Dance (dance, `Dance_versions versions_and_params)
     | Dance (dance, Dance_set (set, params)) ->
-      let%lwt dance = Option.get <$> Model.Dance.get dance in
+      let%lwt dance = Madge_client.call_exn Endpoints.Api.(route @@ Dance Get_row) dance in
       let%lwt set = Option.get <$> Model.Set.get set in
       lwt @@ `Dance (dance, `Dance_set (set, params))
     | Versions versions_and_params ->
@@ -50,9 +50,9 @@ let model_content_to_content =
 let content_to_model_content =
   List.map @@ function
     | `Part title -> Model.Book.Part title
-    | `Dance (dance, `Dance_only) -> Model.Book.Dance (Entry.id dance, Dance_only)
-    | `Dance (dance, `Dance_versions versions_and_params) -> Model.Book.Dance (Entry.id dance, Dance_versions (NEList.map (Pair.map_fst Entry.id) versions_and_params))
-    | `Dance (dance, `Dance_set (set, params)) -> Model.Book.Dance (Entry.id dance, Dance_set (Entry.id set, params))
+    | `Dance (dance, `Dance_only) -> Model.Book.Dance (Dance_row.id dance, Dance_only)
+    | `Dance (dance, `Dance_versions versions_and_params) -> Model.Book.Dance (Dance_row.id dance, Dance_versions (NEList.map (Pair.map_fst Entry.id) versions_and_params))
+    | `Dance (dance, `Dance_set (set, params)) -> Model.Book.Dance (Dance_row.id dance, Dance_set (Entry.id set, params))
     | `Versions versions_and_params -> Model.Book.Versions (NEList.map (Pair.map_fst Entry.id) versions_and_params)
     | `Set (set, params) -> Model.Book.Set (Entry.id set, params)
 
@@ -130,19 +130,19 @@ let dance_and_dance_page =
     ~label: "Dance"
     (
       Selector.prepare
-        ~make_descr: (lwt % NEString.to_string % Model.Dance.one_name')
-        ~make_result: (Any_result.make_dance_result ?context: None)
+        ~make_descr: (lwt % Dance_row.name)
+        ~make_result: (Any_result_new.make_dance_result ?context: None)
         ~label: "Dance"
         ~model_name: "dance"
-        ~create_dialog_content: Dance_editor.create
+        ~create_dialog_content: Dance_editor.create_row
         ~search: (fun slice input ->
           let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Dance.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
-        ~serialise: Entry.id
-        ~unserialise: Model.Dance.get
+        ~serialise: Dance_row.id
+        ~unserialise: (madge_call_or_option @@ Dance Get_row)
         ()
     )
     (

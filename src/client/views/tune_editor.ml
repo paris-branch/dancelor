@@ -82,13 +82,13 @@ let editor =
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
-        ~serialise: Entry.id
-        ~unserialise: Model.Dance.get
-        ~make_descr: (lwt % NEString.to_string % Model.Dance.one_name')
-        ~make_result: (Any_result.make_dance_result ?context: None)
+        ~serialise: Dance_row.id
+        ~unserialise: (madge_call_or_option @@ Dance Get_row)
+        ~make_descr: (lwt % Dance_row.name)
+        ~make_result: (Any_result_new.make_dance_result ?context: None)
         ~label: "Dance"
         ~model_name: "dance"
-        ~create_dialog_content: Dance_editor.create
+        ~create_dialog_content: Dance_editor.create_row
         ()
     ) ^::
   Input.prepare_option
@@ -115,7 +115,7 @@ let editor =
 
 let assemble (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))))))) =
   let composers = List.map (fun (composer, details) -> {Model.Tune.composer = Person_row.id composer; details}) composers in
-  let dances = List.map Entry.id dances in
+  let dances = List.map Dance_row.id dances in
   Model.Tune.make ~names ~kind ~composers ~date ~dances ~remark ~scddb_id ()
 
 let submit mode tune =
@@ -137,7 +137,7 @@ let disassemble tune =
       (Model.Tune.composers tune)
   in
   let date = Model.Tune.date tune in
-  let%lwt dances = Lwt_list.map_p (Option.get <%> Model.Dance.get) (Model.Tune.dances tune) in
+  let%lwt dances = Lwt_list.map_p (Madge_client.call_exn Endpoints.Api.(route @@ Dance Get_row)) (Model.Tune.dances tune) in
   let remark = Model.Tune.remark tune in
   let scddb_id = Model.Tune.scddb_id tune in
   lwt (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ())))))))

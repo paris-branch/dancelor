@@ -95,9 +95,14 @@ let assemble (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scd
   Model.Dance.make ~names ~kind ~devisers ~two_chords ~scddb_id ~disambiguation ~date ()
 
 let submit mode dance =
-  match mode with
-  | Editor.Edit prev_dance -> Madge_client.call_exn Endpoints.Api.(route @@ Dance Update) (Entry.id prev_dance) dance
-  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) dance
+  let%lwt id =
+    match mode with
+    | Editor.Edit prev_dance ->
+      Madge_client.call_exn Endpoints.Api.(route @@ Dance Update) (Entry.id prev_dance) dance;%lwt
+      lwt (Entry.id prev_dance)
+    | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) dance
+  in
+  Option.get <$> Model.Dance.get id
 
 let unsubmit = lwt % Entry.value
 
@@ -126,6 +131,36 @@ let create mode =
     ~unsubmit
     ~disassemble
     ~check_product: Model.Dance.equal
+
+let create_row (mode : (Dance_row.t, 'a) Editor.mode) =
+  let%lwt (mode : (Model.Dance.entry, 'a) Editor.mode) =
+    match mode with
+    | Create state -> lwt @@ Editor.Create state
+    | Create_with_local_storage -> lwt Editor.Create_with_local_storage
+    | Quick_create (init, callback) ->
+      lwt @@
+        Editor.Quick_create (
+          init,
+          (fun dance ->
+            let%lwt devisers = Lwt_list.map_p (Option.get <%> Model.Person.get) @@ Model.Dance.devisers' dance in
+            let devisers = List.map Person_editor.to_name devisers in
+            let dance = {
+              Dance_row.id = Entry.id dance;
+              name = NEString.to_string @@ NEList.hd @@ Model.Dance.names' dance;
+              kind = Model.Dance.kind' dance;
+              devisers;
+              disambiguation = Option.map NEString.to_string @@ Model.Dance.disambiguation' dance;
+            }
+            in
+            callback dance
+          )
+        )
+    | Edit result ->
+      let%lwt result = Option.get <$> Model.Dance.get (Dance_row.id result) in
+      lwt @@ Editor.Edit result
+    | Quick_edit state -> lwt @@ Editor.Quick_edit state
+  in
+  create mode
 
 let add () =
   create Create_with_local_storage

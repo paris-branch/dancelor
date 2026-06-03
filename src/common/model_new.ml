@@ -66,9 +66,18 @@ end
 
 (** {2 Dance} *)
 
+module Dance_id = struct
+  type t = Model_builder.Core.Dance.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
+
 module Dance_name = struct
   type t = {
-    id: Model_builder.Core.Dance.t Entry.id;
+    id: Dance_id.t;
     name: string;
   }
   [@@deriving yojson, fields]
@@ -76,7 +85,7 @@ end
 
 module Dance_row = struct
   type t = {
-    id: Model_builder.Core.Dance.t Entry.id;
+    id: Dance_id.t;
     name: string;
     kind: Kind_dance.t;
     devisers: Person_name.t list; [@default []]
@@ -87,7 +96,7 @@ end
 
 module Dance_view = struct
   type t = {
-    id: Model_builder.Core.Dance.t Entry.id;
+    id: Dance_id.t;
     name: string;
     extra_names: string list; [@default []]
     kind: Kind_dance.t;
@@ -284,7 +293,7 @@ end
 module Any_id = struct
   type t =
     | Person of Person_id.t
-    | Dance of Model_builder.Core.Dance.t Entry.id
+    | Dance of Dance_id.t
     | Source of Source_id.t
     | Tune of Model_builder.Core.Tune.t Entry.id
     | Version of (Model_builder.Core.Tune.t Entry.id * Model_builder.Core.Version.t Entry.id)

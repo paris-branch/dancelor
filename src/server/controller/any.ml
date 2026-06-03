@@ -62,17 +62,6 @@ let version_to_name (version : Model.Version.entry) : Tune_name.t Lwt.t =
     name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
   }
 
-let dance_to_row (dance : Model.Dance.entry) : Dance_row.t Lwt.t =
-  let%lwt devisers = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Dance.devisers' dance in
-  let devisers = List.map Person.to_name devisers in
-  lwt {
-    Dance_row.id = Entry.id dance;
-    name = NEString.to_string @@ NEList.hd @@ Model.Dance.names' dance;
-    kind = Model.Dance.kind' dance;
-    devisers;
-    disambiguation = Option.map NEString.to_string @@ Model.Dance.disambiguation' dance;
-  }
-
 let book_to_row env (book : Model.Book.entry) : Book_row.t Lwt.t =
   let user = Environment.user env in
   let%lwt authors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Book.authors' book in
@@ -150,7 +139,7 @@ let search' env filter =
     lwt_stream_merge_sorted_l (fun (_, s1) (_, s2) -> Float.compare s2 s1) [
       (* NOTE: keep this list's order in sync with Model.Any.Type.compare *)
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.person) (stream_to_row Person.to_row (Lwt_stream.of_list persons_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.dance) (stream_to_row_s dance_to_row (Lwt_stream.of_list dances_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.dance) (stream_to_row_s Dance.to_row (Lwt_stream.of_list dances_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.source) (stream_to_row_s Source.to_row (Lwt_stream.of_list sources_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.tune) (stream_to_row_s tune_to_row (Lwt_stream.of_list tunes_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.version) (stream_to_row_s version_to_row (Lwt_stream.of_list versions_result.items));
