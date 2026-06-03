@@ -64,6 +64,11 @@ let create mode =
     ~format: (Formatters.Person.name' ~link: true)
     ~href: (Endpoints.Page.href_person % Entry.id)
 
+let to_name (person : Model.Person.entry) : Person_name.t = {
+  Person_name.id = Entry.id person;
+  name = NEString.to_string @@ Model.Person.name' person;
+}
+
 let create_row (mode : (Person_row.t, 'a) Editor.mode) =
   let%lwt (mode : (Model.Person.entry, 'a) Editor.mode) =
     match mode with
@@ -88,14 +93,6 @@ let create_row (mode : (Person_row.t, 'a) Editor.mode) =
     | Quick_edit state -> lwt @@ Editor.Quick_edit state
   in
   create mode
-
-(* type ('result, 'state) mode = *)
-(*   | Create of 'state *)
-(*   | Create_with_local_storage *)
-(*   | Quick_create of string * ('result -> unit) *)
-(*   | Edit of 'result *)
-(*   | Quick_edit of 'state *)
-(* [@@deriving variants] *)
 
 let add () =
   create Create_with_local_storage

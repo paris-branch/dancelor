@@ -268,19 +268,19 @@ let editor user =
     ~label: "Sources"
     (
       Selector.prepare
-        ~make_descr: (lwt % NEString.to_string % Model.Source.name')
-        ~make_result: (Any_result.make_source_result ?context: None)
+        ~make_descr: (lwt % Source_row.name)
+        ~make_result: (Any_result_new.make_source_result ?context: None)
         ~label: "Source"
         ~model_name: "source"
-        ~create_dialog_content: Source_editor.create
+        ~create_dialog_content: Source_editor.create_row
         ~search: (fun slice input ->
           let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Source.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
-        ~serialise: Entry.id
-        ~unserialise: Model.Source.get
+        ~serialise: Source_row.id
+        ~unserialise: (madge_call_or_option @@ Source Get_row)
         ()
     ) ^::
   Input.prepare
@@ -363,7 +363,7 @@ let editor user =
 
 let assemble (name, (authors, (date, (contents, (remark, (sources, (scddb_id, (owners, (visibility, ()))))))))) =
   let authors = List.map Person_row.id authors in
-  let sources = List.map Entry.id sources in
+  let sources = List.map Source_row.id sources in
   let contents = content_to_model_content contents in
   (
     Model.Book.make ~name ~authors ~date ~contents ~remark ~sources ~scddb_id (),
@@ -384,7 +384,7 @@ let disassemble (book, access) =
   let date = Model.Book.date book in
   let%lwt contents = model_content_to_content @@ Model.Book.contents book in
   let remark = Model.Book.remark book in
-  let%lwt sources = Lwt_list.map_p (Option.get <%> Model.Source.get) (Model.Book.sources book) in
+  let%lwt sources = Lwt_list.map_p (Madge_client.call_exn Endpoints.Api.(route @@ Source Get_row)) (Model.Book.sources book) in
   let scddb_id = Model.Book.scddb_id book in
   let%lwt owners = NEList.of_list_exn <$> Lwt_list.map_p (fun user -> Option.get <$> Model.User.get user) (NEList.to_list @@ Entry.Access.Private.owners access) in
   let%lwt visibility = visibility_to_visibility' @@ Entry.Access.Private.visibility access in

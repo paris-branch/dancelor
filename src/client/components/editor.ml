@@ -50,7 +50,7 @@ let write_local_storage (type value)(type state) ~key (editor : (value, state) C
 type ('result, 'state) mode =
   | Create of 'state
   | Create_with_local_storage
-  | Quick_create of string * ('result -> unit)
+  | Quick_create of string * ('result -> unit Lwt.t)
   | Edit of 'result
   | Quick_edit of 'state
 [@@deriving variants]
@@ -163,11 +163,7 @@ let initialise (type result)(type value)(type product)(type state)
     Option.fold
       result
       ~none: lwt_unit
-      ~some: (fun result ->
-        after_save ();%lwt
-        f result;
-        lwt_unit
-      )
+      ~some: (fun result -> after_save ();%lwt f result)
   in
   let save_buttons ?after_save () =
     let button ?label f =
@@ -199,12 +195,12 @@ let initialise (type result)(type value)(type product)(type state)
     match mode with
     | Create _ | Create_with_local_storage ->
       [
-        button ~label: "Save and stay" show_toast;
-        button ~label: "Save and see" redirect;
+        button ~label: "Save and stay" (lwt % show_toast);
+        button ~label: "Save and see" (lwt % redirect);
       ]
     | Quick_create (_, on_save) -> [button on_save]
-    | Edit _ -> [button redirect]
-    | Quick_edit _ -> [button (fun _ -> ())]
+    | Edit _ -> [button (lwt % redirect)]
+    | Quick_edit _ -> [button (const lwt_unit)]
   in
 
   (* Make a page holding the editor and the appropriate buttons and actions. *)

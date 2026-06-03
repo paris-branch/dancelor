@@ -55,17 +55,6 @@ let cache : (Environment.cache_key * Filter.Any.t, (int * (Model_new.Any_row.t *
    should be pushed into individual controllers in a first place, and
    then even all the way to the respective databases. *)
 
-let source_to_short_name (source : Model.Source.entry) : Source_short_name.t Lwt.t =
-  lwt {
-    Source_short_name.id = Entry.id source;
-    short_name =
-    NEString.to_string (
-      match Model.Source.short_name' source with
-      | None -> Model.Source.name' source
-      | Some name -> name
-    );
-  }
-
 let version_to_name (version : Model.Version.entry) : Tune_name.t Lwt.t =
   let%lwt tune = Model.Version.tune' version in
   lwt {
@@ -82,16 +71,6 @@ let dance_to_row (dance : Model.Dance.entry) : Dance_row.t Lwt.t =
     kind = Model.Dance.kind' dance;
     devisers;
     disambiguation = Option.map NEString.to_string @@ Model.Dance.disambiguation' dance;
-  }
-
-let source_to_row (source : Model.Source.entry) : Source_row.t Lwt.t =
-  let%lwt editors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Source.editors' source in
-  let editors = List.map Person.to_name editors in
-  lwt {
-    Source_row.id = Entry.id source;
-    name = NEString.to_string @@ Model.Source.name' source;
-    date = Model.Source.date' source;
-    editors;
   }
 
 let book_to_row env (book : Model.Book.entry) : Book_row.t Lwt.t =
@@ -139,7 +118,7 @@ let version_to_row (version : Model.Version.entry) : Version_row.t Lwt.t =
   in
   let%lwt tune = tune_to_row =<< Model.Version.tune' version in
   let%lwt sources = Lwt_list.map_s (Option.get <%> Model.Source.get % Model.Version.source_source) @@ Model.Version.sources' version in
-  let%lwt sources = Lwt_list.map_s source_to_short_name sources in
+  let sources = List.map Source.to_short_name sources in
   let%lwt arrangers = Lwt_list.map_s (Person.to_name % Option.get <%> Model.Person.get) (Model.Version.arrangers' version) in
   lwt {
     Version_row.id = Entry.id version;
@@ -172,7 +151,7 @@ let search' env filter =
       (* NOTE: keep this list's order in sync with Model.Any.Type.compare *)
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.person) (stream_to_row Person.to_row (Lwt_stream.of_list persons_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.dance) (stream_to_row_s dance_to_row (Lwt_stream.of_list dances_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.source) (stream_to_row_s source_to_row (Lwt_stream.of_list sources_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.source) (stream_to_row_s Source.to_row (Lwt_stream.of_list sources_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.tune) (stream_to_row_s tune_to_row (Lwt_stream.of_list tunes_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.version) (stream_to_row_s version_to_row (Lwt_stream.of_list versions_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.set) (stream_to_row_s (set_to_row env) (Lwt_stream.of_list sets_result.items));

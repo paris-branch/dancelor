@@ -245,19 +245,19 @@ let editor =
         ~label: "Source"
         (
           Selector.prepare
-            ~make_descr: (lwt % NEString.to_string % Model.Source.name')
-            ~make_result: (Any_result.make_source_result ?context: None)
+            ~make_descr: (lwt % Source_row.name)
+            ~make_result: (Any_result_new.make_source_result ?context: None)
             ~label: "Source"
             ~model_name: "source"
-            ~create_dialog_content: Source_editor.create
+            ~create_dialog_content: Source_editor.create_row
             ~search: (fun slice input ->
               let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Source.converter) input in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
             )
             ~id_to_yojson: Entry.Id.to_yojson'
             ~id_of_yojson: Entry.Id.of_yojson'
-            ~serialise: Entry.id
-            ~unserialise: Model.Source.get
+            ~serialise: Source_row.id
+            ~unserialise: (madge_call_or_option @@ Source Get_row)
             ()
         )
         (
@@ -288,7 +288,7 @@ let editor =
 let assemble (tune, (key, (arrangers, (remark, (sources, (disambiguation, (content, ()))))))) =
   let tune = Entry.id tune in
   let arrangers = List.map Person_row.id arrangers in
-  let sources = List.map (fun (source, (structure, details)) -> Model.Version.{source = Entry.id source; structure; details}) sources in
+  let sources = List.map (fun (source, (structure, details)) -> Model.Version.{source = Source_row.id source; structure; details}) sources in
   Model.Version.make ~tune ~key ~arrangers ~remark ~sources ~disambiguation ~content ()
 
 let preview version =
@@ -329,7 +329,7 @@ let disassemble version =
   let%lwt sources =
     Lwt_list.map_p
       (fun Model.Version.{source; structure; details} ->
-        let%lwt source = Option.get <$> Model.Source.get source in
+        let%lwt source = Madge_client.call_exn Endpoints.Api.(route @@ Source Get_row) source in
         lwt (source, (structure, details))
       )
       (Model.Version.sources version)

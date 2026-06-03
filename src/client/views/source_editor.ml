@@ -80,9 +80,14 @@ let assemble (name, (short_name, (editors, (date, (scddb_id, (description, ())))
   Model.Source.make ~name ~short_name ~editors ~scddb_id ~description ~date ()
 
 let submit mode source =
-  match mode with
-  | Editor.Edit prev_source -> Madge_client.call_exn Endpoints.Api.(route @@ Source Update) (Entry.id prev_source) source
-  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Source Create) source
+  let%lwt id =
+    match mode with
+    | Editor.Edit prev_source ->
+      Madge_client.call_exn Endpoints.Api.(route @@ Source Update) (Entry.id prev_source) source;%lwt
+      lwt (Entry.id prev_source)
+    | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Source Create) source
+  in
+  Option.get <$> Model.Source.get id
 
 let unsubmit = lwt % Entry.value
 
@@ -110,6 +115,35 @@ let create mode =
     ~check_product: Model.Source.equal
     ~format: (Formatters.Source.name' ~link: true)
     ~href: (Endpoints.Page.href_source % Entry.id)
+
+let create_row (mode : (Source_row.t, 'a) Editor.mode) =
+  let%lwt (mode : (Model.Source.entry, 'a) Editor.mode) =
+    match mode with
+    | Create state -> lwt @@ Editor.Create state
+    | Create_with_local_storage -> lwt Editor.Create_with_local_storage
+    | Quick_create (init, callback) ->
+      lwt @@
+        Editor.Quick_create (
+          init,
+          (fun source ->
+            let%lwt editors = Lwt_list.map_p (Option.get <%> Model.Person.get) @@ Model.Source.editors' source in
+            let editors = List.map Person_editor.to_name editors in
+            let source = {
+              Source_row.id = Entry.id source;
+              name = NEString.to_string @@ Model.Source.name' source;
+              date = Model.Source.date' source;
+              editors;
+            }
+            in
+            callback source
+          )
+        )
+    | Edit result ->
+      let%lwt result = Option.get <$> Model.Source.get (Source_row.id result) in
+      lwt @@ Editor.Edit result
+    | Quick_edit state -> lwt @@ Editor.Quick_edit state
+  in
+  create mode
 
 let add () =
   create Create_with_local_storage

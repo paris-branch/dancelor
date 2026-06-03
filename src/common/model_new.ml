@@ -101,9 +101,18 @@ end
 
 (** {2 Source} *)
 
+module Source_id = struct
+  type t = Model_builder.Core.Source.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
+
 module Source_name = struct
   type t = {
-    id: Model_builder.Core.Source.t Entry.id;
+    id: Source_id.t;
     name: string;
   }
   [@@deriving yojson, fields]
@@ -111,7 +120,7 @@ end
 
 module Source_short_name = struct
   type t = {
-    id: Model_builder.Core.Source.t Entry.id;
+    id: Source_id.t;
     short_name: string;
   }
   [@@deriving yojson, fields]
@@ -119,7 +128,7 @@ end
 
 module Source_row = struct
   type t = {
-    id: Model_builder.Core.Source.t Entry.id;
+    id: Source_id.t;
     name: string;
     date: PartialDate.t option; [@default None]
     editors: Person_name.t list; [@default []]
@@ -129,9 +138,9 @@ end
 
 module Source_view = struct
   type t = {
-    id: Model_builder.Core.Source.t Entry.id;
+    id: Source_id.t;
     name: string;
-    short_name: string;
+    short_name: string option; [@default None]
     editors: Person_name.t list; [@default []]
     scddb_id: int option; [@default None]
     description: string option; [@default None]
@@ -196,7 +205,7 @@ end
 
 module Version_view = struct
   type source = {
-    id: Model_builder.Core.Source.t Entry.id;
+    id: Source_id.t;
     name: string;
     structure: Model_builder.Core.Version.Structure.t;
     details: NEString.t option; [@default None]
@@ -276,7 +285,7 @@ module Any_id = struct
   type t =
     | Person of Person_id.t
     | Dance of Model_builder.Core.Dance.t Entry.id
-    | Source of Model_builder.Core.Source.t Entry.id
+    | Source of Source_id.t
     | Tune of Model_builder.Core.Tune.t Entry.id
     | Version of (Model_builder.Core.Tune.t Entry.id * Model_builder.Core.Version.t Entry.id)
     | Set of Model_builder.Core.Set.t Entry.id

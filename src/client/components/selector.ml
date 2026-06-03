@@ -123,7 +123,7 @@ let prepare_gen (type id)(type model)(type model_validated)
                       create_dialog_content (
                         Editor.Quick_create (
                           S.value (Search.Quick.text quick_search),
-                          sub_dialog_return
+                          lwt % sub_dialog_return
                         )
                       )
                   )
