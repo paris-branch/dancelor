@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 open Components
 open Html
 open Utils
@@ -46,20 +47,20 @@ let editor user =
     ~label: "Conceptors"
     (
       Selector.prepare
-        ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: (Any_result.make_person_result ?context: None)
-        ~results_when_no_search: (Option.to_list <$> Environment.person)
+        ~make_descr: (lwt % Person_row.name)
+        ~make_result: (Any_result_new.make_person_result ?context: None)
+        ~results_when_no_search: (Option.to_list <$> Environment.person_row)
         ~label: "Conceptor"
         ~model_name: "person"
-        ~create_dialog_content: Person_editor.create
+        ~create_dialog_content: Person_editor.create_row
         ~search: (fun slice input ->
           let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
-        ~serialise: Entry.id
-        ~unserialise: Model.Person.get
+        ~serialise: Person_row.id
+        ~unserialise: (madge_call_or_option @@ Person Get_row)
         ()
     ) ^::
   Star.prepare
@@ -183,7 +184,7 @@ let editor user =
   nil
 
 let assemble (name, (kind, (conceptors, (contents, (order, (owners, (visibility, ()))))))) =
-  let conceptors = List.map Entry.id conceptors in
+  let conceptors = List.map Person_row.id conceptors in
   let contents = List.map (Pair.map_fst Entry.id) contents in
   (
     (* FIXME: This erases the existing remarks, or, most likely, tunes with
@@ -203,7 +204,7 @@ let unsubmit entry =
 let disassemble (set, access) =
   let name = Model.Set.name set in
   let kind = Model.Set.kind set in
-  let%lwt conceptors = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Set.conceptors set) in
+  let%lwt conceptors = Lwt_list.map_p (Madge_client.call_exn Endpoints.Api.(route @@ Person Get_row)) (Model.Set.conceptors set) in
   let%lwt contents = Lwt_list.map_p (fun (version, params) -> let%lwt version = Option.get <$> Model.Version.get version in lwt (version, params)) (Model.Set.contents set) in
   let order = Model.Set.order set in
   let%lwt owners = NEList.of_list_exn <$> Lwt_list.map_p (fun user -> Option.get <$> Model.User.get user) (NEList.to_list @@ Entry.Access.Private.owners access) in

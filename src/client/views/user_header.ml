@@ -210,15 +210,15 @@ let header_item =
                   );
                   [R.li (
                     S.from_lwt [] @@
-                      match%lwt Environment.person with
+                      match%lwt Environment.person_id with
                       | None -> lwt_nil
-                      | Some person ->
+                      | Some person_id ->
                         lwt [
                           Button.make_a
                             ~label: "My person"
                             ~icon: (Model Person)
                             ~dropdown: true
-                            ~href: (S.const (Endpoints.Page.(href Person None) (Entry.id person)))
+                            ~href: (S.const (Endpoints.Page.(href Person None) person_id))
                             ()
                         ]
                   );

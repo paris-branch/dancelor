@@ -17,16 +17,6 @@ let book_page_to_any = function
     let%lwt version = (Option.get <%> Model.Version.get) (fst @@ NEList.hd versions_and_params) in
     lwt_some (Any.Version version) (* FIXME: others? fixed by a page viewer *)
 
-let old_any_to_any_id : Model.Any.t -> Any_id.t = function
-  | Person p -> Person (Entry.id p)
-  | Dance d -> Dance (Entry.id d)
-  | Source s -> Source (Entry.id s)
-  | Book b -> Book (Entry.id b)
-  | Set s -> Set (Entry.id s)
-  | Tune t -> Tune (Entry.id t)
-  | Version v -> Version (Model.Version.tune_id' v, Entry.id v)
-  | User _ -> assert false
-
 (** Given an element and a context, find the total number of elements, the
     previous element, the index of the given element and the next element. *)
 let get_neighbours any = function
@@ -165,3 +155,6 @@ let make_and_render ?context ~this_page any_lwt =
             ]
         ]
     )
+
+let make_and_render_new ?context ~this_page (any_id : Any_id.t) =
+  make_and_render ?context ~this_page (any_id_to_old_any any_id)

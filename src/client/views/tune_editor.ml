@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 
 open Components
 open Html
@@ -32,20 +33,20 @@ let editor =
         ~label: "Composer"
         (
           Selector.prepare
-            ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-            ~make_result: (Any_result.make_person_result ?context: None)
-            ~results_when_no_search: (Option.to_list <$> Environment.person)
+            ~make_descr: (lwt % Person_row.name)
+            ~make_result: (Any_result_new.make_person_result ?context: None)
+            ~results_when_no_search: (Option.to_list <$> Environment.person_row)
             ~label: "Composer"
             ~model_name: "person"
-            ~create_dialog_content: Person_editor.create
+            ~create_dialog_content: Person_editor.create_row
             ~search: (fun slice input ->
               let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
             )
             ~id_to_yojson: Entry.Id.to_yojson'
             ~id_of_yojson: Entry.Id.of_yojson'
-            ~serialise: Entry.id
-            ~unserialise: Model.Person.get
+            ~serialise: Person_row.id
+            ~unserialise: (madge_call_or_option @@ Person Get_row)
             ()
         )
         (
@@ -113,7 +114,7 @@ let editor =
   nil
 
 let assemble (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))))))) =
-  let composers = List.map (fun (composer, details) -> {Model.Tune.composer = Entry.id composer; details}) composers in
+  let composers = List.map (fun (composer, details) -> {Model.Tune.composer = Person_row.id composer; details}) composers in
   let dances = List.map Entry.id dances in
   Model.Tune.make ~names ~kind ~composers ~date ~dances ~remark ~scddb_id ()
 
@@ -130,7 +131,7 @@ let disassemble tune =
   let%lwt composers =
     Lwt_list.map_p
       (fun Model.Tune.{composer; details} ->
-        let%lwt composer = Option.get <$> Model.Person.get composer in
+        let%lwt composer = Madge_client.call_exn Endpoints.Api.(route @@ Person Get_row) composer in
         lwt (composer, details)
       )
       (Model.Tune.composers tune)

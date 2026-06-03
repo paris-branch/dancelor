@@ -32,7 +32,7 @@ let with_copyright_check env version f =
   let%lwt connected = Permission.is_connected env in
   let%lwt composer_agrees =
     let%lwt composers = Lwt_list.map_p (Option.get <%> Model.Person.get % Model.Tune.composer_composer) (Model.Tune.composers' tune) in
-    let%lwt arrangers = Model.Version.arrangers' version in
+    let%lwt arrangers = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Version.arrangers' version) in
     lwt (
       composers <> [] (* there must be at least one composer to agree *)
       && List.for_all Model.Person.composed_tunes_are_public' composers

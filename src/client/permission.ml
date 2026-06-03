@@ -15,8 +15,10 @@ let can_get_public entry = can (flip can_get_public entry) ()
 let can_create_public = can can_create_public
 
 let can_update_public entry = can (flip can_update_public entry) ()
+let can_update_public_new entry = can (flip can_update_public_new entry) ()
 
 let can_delete_public entry = can (flip can_delete_public entry) ()
+let can_delete_public_new entry = can (flip can_delete_public_new entry) ()
 
 let can_get_private entry = can (flip can_get_private entry) ()
 

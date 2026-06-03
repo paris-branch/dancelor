@@ -55,12 +55,6 @@ let cache : (Environment.cache_key * Filter.Any.t, (int * (Model_new.Any_row.t *
    should be pushed into individual controllers in a first place, and
    then even all the way to the respective databases. *)
 
-let person_to_name (person : Model.Person.entry) : Person_name.t Lwt.t =
-  lwt {
-    Person_name.id = Entry.id person;
-    name = NEString.to_string @@ Model.Person.name' person;
-  }
-
 let source_to_short_name (source : Model.Source.entry) : Source_short_name.t Lwt.t =
   lwt {
     Source_short_name.id = Entry.id source;
@@ -79,15 +73,9 @@ let version_to_name (version : Model.Version.entry) : Tune_name.t Lwt.t =
     name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
   }
 
-let person_to_row (person : Model.Person.entry) : Person_row.t Lwt.t =
-  lwt {
-    Person_row.id = Entry.id person;
-    name = NEString.to_string @@ Model.Person.name' person;
-  }
-
 let dance_to_row (dance : Model.Dance.entry) : Dance_row.t Lwt.t =
   let%lwt devisers = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Dance.devisers' dance in
-  let%lwt devisers = Lwt_list.map_s person_to_name devisers in
+  let devisers = List.map Person.to_name devisers in
   lwt {
     Dance_row.id = Entry.id dance;
     name = NEString.to_string @@ NEList.hd @@ Model.Dance.names' dance;
@@ -98,7 +86,7 @@ let dance_to_row (dance : Model.Dance.entry) : Dance_row.t Lwt.t =
 
 let source_to_row (source : Model.Source.entry) : Source_row.t Lwt.t =
   let%lwt editors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Source.editors' source in
-  let%lwt editors = Lwt_list.map_s person_to_name editors in
+  let editors = List.map Person.to_name editors in
   lwt {
     Source_row.id = Entry.id source;
     name = NEString.to_string @@ Model.Source.name' source;
@@ -109,7 +97,7 @@ let source_to_row (source : Model.Source.entry) : Source_row.t Lwt.t =
 let book_to_row env (book : Model.Book.entry) : Book_row.t Lwt.t =
   let user = Environment.user env in
   let%lwt authors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Book.authors' book in
-  let%lwt authors = Lwt_list.map_s person_to_name authors in
+  let authors = List.map Person.to_name authors in
   lwt {
     Book_row.id = Entry.id book;
     name = NEString.to_string @@ Model.Book.name' book;
@@ -121,7 +109,7 @@ let book_to_row env (book : Model.Book.entry) : Book_row.t Lwt.t =
 let set_to_row env (set : Model.Set.entry) : Set_row.t Lwt.t =
   let user = Environment.user env in
   let%lwt conceptors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Set.conceptors' set in
-  let%lwt conceptors = Lwt_list.map_s person_to_name conceptors in
+  let conceptors = List.map Person.to_name conceptors in
   let%lwt tunes = Lwt_list.map_s (Option.get <%> Model.Version.get % fst) @@ Model.Set.contents' set in
   let%lwt tunes = Lwt_list.map_s version_to_name tunes in
   lwt {
@@ -135,7 +123,7 @@ let set_to_row env (set : Model.Set.entry) : Set_row.t Lwt.t =
 
 let tune_to_row (tune : Model.Tune.entry) : Tune_row.t Lwt.t =
   let%lwt composers = Lwt_list.map_s (Option.get <%> Model.Person.get % Model.Tune.composer_composer) @@ Model.Tune.composers' tune in
-  let%lwt composers = Lwt_list.map_s person_to_name composers in
+  let composers = List.map Person.to_name composers in
   lwt {
     Tune_row.id = Entry.id tune;
     name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
@@ -152,7 +140,7 @@ let version_to_row (version : Model.Version.entry) : Version_row.t Lwt.t =
   let%lwt tune = tune_to_row =<< Model.Version.tune' version in
   let%lwt sources = Lwt_list.map_s (Option.get <%> Model.Source.get % Model.Version.source_source) @@ Model.Version.sources' version in
   let%lwt sources = Lwt_list.map_s source_to_short_name sources in
-  let%lwt arrangers = Lwt_list.map_s person_to_name =<< Model.Version.arrangers' version in
+  let%lwt arrangers = Lwt_list.map_s (Person.to_name % Option.get <%> Model.Person.get) (Model.Version.arrangers' version) in
   lwt {
     Version_row.id = Entry.id version;
     tune;
@@ -175,17 +163,20 @@ let search' env filter =
   let count = sources_result.total + persons_result.total + dances_result.total + books_result.total + sets_result.total + tunes_result.total + versions_result.total in
   let results =
     let stream_to_row to_row =
+      Lwt_stream.map (Pair.map_fst to_row)
+    in
+    let stream_to_row_s to_row =
       Lwt_stream.map_s (Monadise_lwt.monadise_1_1 Pair.map_fst to_row)
     in
     lwt_stream_merge_sorted_l (fun (_, s1) (_, s2) -> Float.compare s2 s1) [
       (* NOTE: keep this list's order in sync with Model.Any.Type.compare *)
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.person) (stream_to_row person_to_row (Lwt_stream.of_list persons_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.dance) (stream_to_row dance_to_row (Lwt_stream.of_list dances_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.source) (stream_to_row source_to_row (Lwt_stream.of_list sources_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.tune) (stream_to_row tune_to_row (Lwt_stream.of_list tunes_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.version) (stream_to_row version_to_row (Lwt_stream.of_list versions_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.set) (stream_to_row (set_to_row env) (Lwt_stream.of_list sets_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.book) (stream_to_row (book_to_row env) (Lwt_stream.of_list books_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.person) (stream_to_row Person.to_row (Lwt_stream.of_list persons_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.dance) (stream_to_row_s dance_to_row (Lwt_stream.of_list dances_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.source) (stream_to_row_s source_to_row (Lwt_stream.of_list sources_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.tune) (stream_to_row_s tune_to_row (Lwt_stream.of_list tunes_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.version) (stream_to_row_s version_to_row (Lwt_stream.of_list versions_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.set) (stream_to_row_s (set_to_row env) (Lwt_stream.of_list sets_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.book) (stream_to_row_s (book_to_row env) (Lwt_stream.of_list books_result.items));
     ]
   in
   let%lwt results = Lwt_stream.to_list results in

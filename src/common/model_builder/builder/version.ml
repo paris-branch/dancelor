@@ -8,9 +8,6 @@ module Build (Getters : Getters.S) = struct
   let tune = Lwt.map Option.get % Getters.get_tune % tune
   let tune' = tune % Entry.value_public
 
-  let arrangers = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % arrangers
-  let arrangers' = arrangers % Entry.value_public
-
   let names version = Core.Tune.names' <$> tune version
   let names' = names % Entry.value_public
 

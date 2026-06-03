@@ -1,6 +1,6 @@
 open Nes
 open Dancelor_common
-
+open Model_new
 open Components
 open Html
 open Utils
@@ -187,13 +187,13 @@ let editor user =
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
-        ~serialise: Entry.id
-        ~unserialise: Model.Person.get
-        ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: (Any_result.make_person_result ?context: None)
-        ~results_when_no_search: (Option.to_list <$> Environment.person)
+        ~serialise: Person_row.id
+        ~unserialise: (madge_call_or_option @@ Person Get_row)
+        ~make_descr: (lwt % Person_row.name)
+        ~make_result: (Any_result_new.make_person_result ?context: None)
+        ~results_when_no_search: (Option.to_list <$> Environment.person_row)
         ~model_name: "person"
-        ~create_dialog_content: Person_editor.create
+        ~create_dialog_content: Person_editor.create_row
         ()
     ) ^::
   Input.prepare
@@ -362,7 +362,7 @@ let editor user =
   nil
 
 let assemble (name, (authors, (date, (contents, (remark, (sources, (scddb_id, (owners, (visibility, ()))))))))) =
-  let authors = List.map Entry.id authors in
+  let authors = List.map Person_row.id authors in
   let sources = List.map Entry.id sources in
   let contents = content_to_model_content contents in
   (
@@ -380,7 +380,7 @@ let unsubmit entry =
 
 let disassemble (book, access) =
   let name = Model.Book.name book in
-  let%lwt authors = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Book.authors book) in
+  let%lwt authors = Lwt_list.map_p (Madge_client.call_exn Endpoints.Api.(route @@ Person Get_row)) (Model.Book.authors book) in
   let date = Model.Book.date book in
   let%lwt contents = model_content_to_content @@ Model.Book.contents book in
   let remark = Model.Book.remark book in

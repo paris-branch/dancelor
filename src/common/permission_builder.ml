@@ -58,10 +58,12 @@ module type S = sig
       used, but is meant to force us to check that the entry exists, and that it
       is indeed public (at type-checking time). *)
   val can_update_public : user -> 'value Entry.public -> can_update_public option
+  val can_update_public_new : user -> 'value -> can_update_public option
 
   (** Whether the given user can delete public elements. Those are only database
       maintainers and administrators. This is the same as {!can_update_public}. *)
   val can_delete_public : user -> 'value Entry.public -> can_delete_public option
+  val can_delete_public_new : user -> 'value -> can_delete_public option
 
   (** Whether the given user can get private elements. This is everyone if the
       visibility is set like that, or the selected viewers if there are some, or
@@ -96,9 +98,15 @@ module Make (User : Model_builder.Signature.User) : S = struct
       <|> ((if User.is_administrator' user then Some Administrator else None) : can_update_public option)
     )
 
+  let can_update_public_new user entry : can_update_public option =
+    can_update_public user entry
+
   (* FIXME: grace period during which anyone can edit *)
   let can_delete_public user entry : can_delete_public option =
     can_update_public user entry
+
+  let can_delete_public_new user entry : can_delete_public option =
+    can_delete_public user entry
 
   let can_get_private user entry : can_get_private option =
     let access = Entry.access entry in

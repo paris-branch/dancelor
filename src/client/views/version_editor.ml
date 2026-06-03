@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 open Components
 open Html
 open Utils
@@ -214,20 +215,20 @@ let editor =
     ~label: "Arrangers"
     (
       Selector.prepare
-        ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: (Any_result.make_person_result ?context: None)
-        ~results_when_no_search: (Option.to_list <$> Environment.person)
+        ~make_descr: (lwt % Person_row.name)
+        ~make_result: (Any_result_new.make_person_result ?context: None)
+        ~results_when_no_search: (Option.to_list <$> Environment.person_row)
         ~label: "Arranger"
         ~model_name: "person"
-        ~create_dialog_content: Person_editor.create
+        ~create_dialog_content: Person_editor.create_row
         ~search: (fun slice input ->
           let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
-        ~serialise: Entry.id
-        ~unserialise: Model.Person.get
+        ~serialise: Person_row.id
+        ~unserialise: (madge_call_or_option @@ Person Get_row)
         ()
     ) ^::
   Input.prepare_option
@@ -286,7 +287,7 @@ let editor =
 
 let assemble (tune, (key, (arrangers, (remark, (sources, (disambiguation, (content, ()))))))) =
   let tune = Entry.id tune in
-  let arrangers = List.map Entry.id arrangers in
+  let arrangers = List.map Person_row.id arrangers in
   let sources = List.map (fun (source, (structure, details)) -> Model.Version.{source = Entry.id source; structure; details}) sources in
   Model.Version.make ~tune ~key ~arrangers ~remark ~sources ~disambiguation ~content ()
 
@@ -323,7 +324,7 @@ let unsubmit version =
 let disassemble version =
   let%lwt tune = Model.Version.tune version in
   let key = Model.Version.key version in
-  let%lwt arrangers = Model.Version.arrangers version in
+  let%lwt arrangers = Lwt_list.map_p (Madge_client.call_exn Endpoints.Api.(route @@ Person Get_row)) (Model.Version.arrangers version) in
   let remark = Model.Version.remark version in
   let%lwt sources =
     Lwt_list.map_p

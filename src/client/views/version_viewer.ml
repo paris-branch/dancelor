@@ -263,7 +263,7 @@ let view context tune_id id =
           div ~a: [a_class ["col-auto"; "text-end"]] [
             Formatters.Version.disambiguation' ~parentheses: false version;
             with_span_placeholder (
-              match%lwt Model.Version.arrangers' version with
+              match%lwt Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Version.arrangers' version) with
               | [] -> lwt_nil
               | arrangers ->
                 let name_block = Formatters.Person.names' ~links: true arrangers in

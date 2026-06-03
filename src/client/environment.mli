@@ -3,6 +3,8 @@
     Client-side environment — persistent information on this run of Dancelor. *)
 
 open Nes
+open Dancelor_common
+open Model_new
 open Html
 
 (** Status of this run with respect to the server. It starts as {!Running} but
@@ -24,7 +26,8 @@ val user : Model.User.entry option Lwt.t
 val user_now : unit -> Model.User.entry option
 
 (** The person corresponding to the user that is currently logged in. *)
-val person : Model.Person.entry option Lwt.t
+val person_id : Person_id.t option Lwt.t
+val person_row : Person_row.t option Lwt.t
 
 (** Alias for [Lwt.map Option.is_some user]. *)
 val is_connected : bool Lwt.t

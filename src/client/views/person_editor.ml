@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 open Components
 open Html
 
@@ -30,9 +31,15 @@ let assemble (name, (scddb_id, ())) =
   Model.Person.make ~name ~scddb_id ~composed_tunes_are_public: false ~published_tunes_are_public: false ()
 
 let submit mode person =
-  match mode with
-  | Editor.Edit prev_person -> Madge_client.call_exn Endpoints.Api.(route @@ Person Update) (Entry.id prev_person) person
-  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Person Create) person
+  let%lwt id =
+    match mode with
+    | Editor.Edit prev_person ->
+      Madge_client.call_exn Endpoints.Api.(route @@ Person Update) (Entry.id prev_person) person;%lwt
+      lwt (Entry.id prev_person)
+    | _ ->
+      Madge_client.call_exn Endpoints.Api.(route @@ Person Create) person
+  in
+  Option.get <$> Model.Person.get id
 
 let unsubmit = lwt % Entry.value
 
@@ -56,6 +63,39 @@ let create mode =
     ~check_product: Model.Person.equal
     ~format: (Formatters.Person.name' ~link: true)
     ~href: (Endpoints.Page.href_person % Entry.id)
+
+let create_row (mode : (Person_row.t, 'a) Editor.mode) =
+  let%lwt (mode : (Model.Person.entry, 'a) Editor.mode) =
+    match mode with
+    | Create state -> lwt @@ Editor.Create state
+    | Create_with_local_storage -> lwt Editor.Create_with_local_storage
+    | Quick_create (init, callback) ->
+      lwt @@
+        Editor.Quick_create (
+          init,
+          (fun result ->
+            let result = {
+              Person_row.id = Entry.id result;
+              name = NEString.to_string @@ Model.Person.name' result;
+            }
+            in
+            callback result
+          )
+        )
+    | Edit result ->
+      let%lwt result = Option.get <$> Model.Person.get (Person_row.id result) in
+      lwt @@ Editor.Edit result
+    | Quick_edit state -> lwt @@ Editor.Quick_edit state
+  in
+  create mode
+
+(* type ('result, 'state) mode = *)
+(*   | Create of 'state *)
+(*   | Create_with_local_storage *)
+(*   | Quick_create of string * ('result -> unit) *)
+(*   | Edit of 'result *)
+(*   | Quick_edit of 'state *)
+(* [@@deriving variants] *)
 
 let add () =
   create Create_with_local_storage

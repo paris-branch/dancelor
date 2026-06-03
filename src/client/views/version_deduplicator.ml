@@ -97,8 +97,8 @@ let confirmation_dialog ~this_version ~other_version =
         ]
     );
     (* arrangers *)
-    let%lwt this_arrangers = Model.Version.arrangers' this_version in
-    let%lwt other_arrangers = Model.Version.arrangers' other_version in
+    let%lwt this_arrangers = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Version.arrangers' this_version) in
+    let%lwt other_arrangers = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Version.arrangers' other_version) in
     if this_arrangers <> other_arrangers then
       failwith "Version de-duplicator: these two versions do not share the same arrangers.";
     (* FIXME: can do better? *)

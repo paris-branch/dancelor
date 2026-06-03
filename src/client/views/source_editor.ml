@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 
 open Components
 open Html
@@ -30,13 +31,13 @@ let editor =
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
-        ~serialise: Entry.id
-        ~unserialise: Model.Person.get
-        ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: (Any_result.make_person_result ?context: None)
-        ~results_when_no_search: (Option.to_list <$> Environment.person)
+        ~serialise: Person_row.id
+        ~unserialise: (madge_call_or_option @@ Person Get_row)
+        ~make_descr: (lwt % Person_row.name)
+        ~make_result: (Any_result_new.make_person_result ?context: None)
+        ~results_when_no_search: (Option.to_list <$> Environment.person_row)
         ~model_name: "person"
-        ~create_dialog_content: Person_editor.create
+        ~create_dialog_content: Person_editor.create_row
         ()
     ) ^::
   Input.prepare
@@ -75,7 +76,7 @@ let editor =
   nil
 
 let assemble (name, (short_name, (editors, (date, (scddb_id, (description, ())))))) =
-  let editors = List.map Entry.id editors in
+  let editors = List.map Person_row.id editors in
   Model.Source.make ~name ~short_name ~editors ~scddb_id ~description ~date ()
 
 let submit mode source =
@@ -88,7 +89,7 @@ let unsubmit = lwt % Entry.value
 let disassemble source =
   let name = Model.Source.name source in
   let short_name = Model.Source.short_name source in
-  let%lwt editors = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Source.editors source) in
+  let%lwt editors = Lwt_list.map_p (Madge_client.call_exn Endpoints.Api.(route @@ Person Get_row)) (Model.Source.editors source) in
   let date = Model.Source.date source in
   let scddb_id = Model.Source.scddb_id source in
   let description = Model.Source.description source in

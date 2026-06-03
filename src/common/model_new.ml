@@ -8,9 +8,18 @@ open Nes
 
 (** {2 Person} *)
 
+module Person_id = struct
+  type t = Model_builder.Core.Person.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
+
 module Person_name = struct
   type t = {
-    id: Model_builder.Core.Person.t Entry.id;
+    id: Person_id.t;
     name: string;
   }
   [@@deriving yojson, fields]
@@ -18,7 +27,7 @@ end
 
 module Person_name_with_details = struct
   type t = {
-    id: Model_builder.Core.Person.t Entry.id;
+    id: Person_id.t;
     name: string;
     details: string option; [@default None]
   }
@@ -27,7 +36,7 @@ end
 
 module Person_row = struct
   type t = Person_name.t = {
-    id: Model_builder.Core.Person.t Entry.id;
+    id: Person_id.t;
     name: string;
   }
   [@@deriving yojson, fields]
@@ -35,11 +44,24 @@ end
 
 module Person_view = struct
   type t = {
-    id: Model_builder.Core.Person.t Entry.id;
+    id: Person_id.t;
     name: string;
     scddb_id: int option; [@default None]
+    composed_tunes_are_public: bool; [@default false]
+    published_tunes_are_public: bool; [@default false]
   }
   [@@deriving yojson, fields]
+end
+
+(** {2 User} *)
+
+module User_id = struct
+  type t = Model_builder.Core.User.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
 end
 
 (** {2 Dance} *)
@@ -252,7 +274,7 @@ end
 
 module Any_id = struct
   type t =
-    | Person of Model_builder.Core.Person.t Entry.id
+    | Person of Person_id.t
     | Dance of Model_builder.Core.Dance.t Entry.id
     | Source of Model_builder.Core.Source.t Entry.id
     | Tune of Model_builder.Core.Tune.t Entry.id
@@ -271,6 +293,15 @@ module Any_id = struct
     | Set id1, Set id2 -> Entry.Id.equal' id1 id2
     | Book id1, Book id2 -> Entry.Id.equal' id1 id2
     | _ -> false
+
+  let to_entry_id = function
+    | Person x -> Entry.Id.unsafe_coerce x
+    | Dance x -> Entry.Id.unsafe_coerce x
+    | Source x -> Entry.Id.unsafe_coerce x
+    | Tune x -> Entry.Id.unsafe_coerce x
+    | Version (_, x) -> Entry.Id.unsafe_coerce x
+    | Set x -> Entry.Id.unsafe_coerce x
+    | Book x -> Entry.Id.unsafe_coerce x
 end
 
 module Any_row = struct
