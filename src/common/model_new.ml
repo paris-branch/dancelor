@@ -32,6 +32,9 @@ module Person_name_with_details = struct
     details: string option; [@default None]
   }
   [@@deriving yojson, fields]
+
+  let to_name : t -> Person_name.t = fun {id; name; _} ->
+    {id; name}
 end
 
 module Person_row = struct
@@ -143,6 +146,8 @@ module Source_row = struct
     editors: Person_name.t list; [@default []]
   }
   [@@deriving yojson, fields]
+
+  let to_name : t -> Source_name.t = fun {id; name; _} -> {id; name}
 end
 
 module Source_view = struct
@@ -193,7 +198,7 @@ module Tune_view = struct
     name: string;
     kind: Kind_base.t;
     extra_names: string list; [@default []]
-    composers: Person_name.t list; [@default []]
+    composers: Person_name_with_details.t list; [@default []]
     dances: Dance_row.t list; [@default []]
     remark: string option; [@default None]
     scddb_id: int option; [@default None]
@@ -204,43 +209,76 @@ end
 
 (** {2 Version} *)
 
-module Version_row = struct
-  type content =
-    | No_content
-    | Destructured
-    | Monolithic of int * Model_builder.Core.Version.Structure.t
+module Version_id = struct
+  type t = Model_builder.Core.Version.t Entry.id
   [@@deriving yojson]
 
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
+
+module Version_name = struct
   type t = {
-    id: Model_builder.Core.Version.t Entry.id;
-    tune: Tune_row.t;
-    sources: Source_short_name.t list; [@default []]
-    disambiguation: NEString.t option; [@default None]
-    arrangers: Person_name.t list; [@default []]
-    content: content;
+    id: Version_id.t;
+    name: string
   }
   [@@deriving yojson, fields]
 end
 
+module Version_row = struct
+  type content =
+    | No_content
+    | Destructured
+    | Monolithic of {bars: int; structure: Model_builder.Core.Version.Structure.t}
+  [@@deriving yojson]
+
+  type t = {
+    id: Version_id.t;
+    tune: Tune_row.t;
+    sources: Source_short_name.t list; [@default []]
+    disambiguation: string option; [@default None]
+    arrangers: Person_name.t list; [@default []]
+    content: content;
+  }
+  [@@deriving yojson, fields]
+
+  let to_name : t -> Version_name.t = fun {id; tune; _} ->
+    {id; name = tune.name}
+end
+
 module Version_view = struct
+  type content =
+    | No_content
+    | Destructured of {default_structure: Model_builder.Core.Version.Structure.t}
+    | Monolithic of {bars: int; structure: Model_builder.Core.Version.Structure.t}
+  [@@deriving yojson]
+
   type source = {
     id: Source_id.t;
     name: string;
     structure: Model_builder.Core.Version.Structure.t;
-    details: NEString.t option; [@default None]
+    details: string option; [@default None]
   }
   [@@deriving yojson, fields]
 
+  let source_to_name : source -> Source_name.t = fun {id; name; _} ->
+    {id; name}
+
   type t = {
-    id: Model_builder.Core.Version.t Entry.id;
+    id: Version_id.t;
     tune: Tune_view.t;
     key: Music.Key.t;
     sources: source list; [@default []]
     arrangers: Person_name.t list; [@default []]
-    remark: NEString.t option; [@default None]
-    disambiguation: NEString.t option; [@default None]
+    remark: string option; [@default None]
+    disambiguation: string option; [@default None]
+    content: content;
   }
   [@@deriving yojson, fields]
+
+  let to_name : t -> Version_name.t = fun {id; tune; _} ->
+    {id; name = tune.name}
 end
 
 (** {2 Set} *)
@@ -306,7 +344,7 @@ module Any_id = struct
     | Dance of Dance_id.t
     | Source of Source_id.t
     | Tune of Tune_id.t
-    | Version of (Tune_id.t * Model_builder.Core.Version.t Entry.id)
+    | Version of (Tune_id.t * Version_id.t)
     | Set of Model_builder.Core.Set.t Entry.id
     | Book of Model_builder.Core.Book.t Entry.id
   [@@deriving yojson, variants]

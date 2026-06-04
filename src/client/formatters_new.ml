@@ -3,6 +3,8 @@ open Dancelor_common
 open Model_new
 open Html
 
+let details content = span ~a: [a_class ["opacity-50"]] content
+
 let switch_signal_option = function
   | None -> S.Option.none
   | Some signal -> S.Option.some signal
@@ -26,16 +28,28 @@ module Person = struct
       | p :: _ -> [p; txt " et al."]
     else
       List.interspersei (fun _ -> txt ", ") ~last: (fun _ -> txt " and ") persons
+
+  let names_with_details ?links (persons : Person_name_with_details.t list) =
+    persons
+    |> List.map (fun person ->
+        (name ?link: links @@ Person_name_with_details.to_name person) ::
+          (match person.details with None -> [] | Some details -> [txtf " (%s)" details])
+      )
+    |> List.interspersei (fun _ -> [txt ", "]) ~last: (fun _ -> [txt " and "])
+    |> List.flatten
 end
 
 module Source = struct
-  let name ?(link = true) ?context (source : Source_row.t) =
+  let name ?(link = true) ?context (source : Source_name.t) =
     if link then
       a
         ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_source ?context source.id) (switch_signal_option context)]
         [txt source.name]
     else
       txt source.name
+
+  let name_row ?link ?context source =
+    name ?link ?context (Source_row.to_name source)
 
   let short_name ?(link = true) ?context (source : Source_short_name.t) =
     if link then
@@ -74,6 +88,14 @@ module Tune = struct
       txt tune.name
 
   let name_row ?link ?context (tune : Tune_row.t) = name ?link ?context {id = tune.id; name = tune.name}
+
+  let description (tune : Tune_view.t) =
+    let kind = Kind.Base.to_long_string ~capitalised: false tune.kind in
+    match tune.composers with
+    | [] -> [txt @@ String.capitalize_ascii kind]
+    | [composer] when composer.name = "Traditional" -> [txtf "Traditional %s" kind]
+    | composers ->
+      (txtf "%s by " @@ String.capitalize_ascii kind) :: Person.names_with_details composers
 end
 
 module Version = struct
@@ -84,6 +106,70 @@ module Version = struct
         [txt version.tune.name]
     else
       txt version.tune.name
+
+  let name_disambiguation_and_sources ?links ?context (version : Version_row.t) =
+    let sources_block =
+      match version.sources with
+      | [] -> []
+      | _ ->
+        List.flatten [
+          [txt " (from "];
+          List.interspersei
+            (fun _ -> txt ", ")
+            ~last: (fun _ -> txt " and ")
+            (List.map (Source.short_name ?link: links) version.sources);
+          [txt ")"];
+        ]
+    in
+    let disambiguation_block =
+      Option.fold
+        version.disambiguation
+        ~none: []
+        ~some: (fun disambiguation -> [txt " "; details [txtf "(%s)" disambiguation]])
+    in
+    [
+      name_row ?link: links ?context version;
+      details sources_block;
+      details disambiguation_block;
+    ]
+
+  let composer_and_arranger ?(short = false) ?links (version : Version_row.t) =
+    Person.names ?links ~short version.tune.composers @
+      match version.arrangers with
+      | [] -> []
+      | _ ->
+        [
+          details (
+            (match version.tune.composers with [] -> [] | _ -> [txt ", "]) @
+            [txt (if short then "arr. " else "arranged by ")] @
+            Person.names ?links ~short version.arrangers
+          )
+        ]
+
+  let parameters params =
+    let params = Option.value params ~default: Model.Version_parameters.none in
+    let display_name_block =
+      match Model.Version_parameters.display_name params with
+      | None -> []
+      | Some display_name -> [txtf " [as “%s”]" @@ NEString.to_string display_name]
+    in
+    let structure_block =
+      match Model.Version_parameters.structure params with
+      | None -> []
+      | Some structure -> [txtf " [play %s]" @@ NEString.to_string @@ Model.Version.Structure.to_string structure]
+    in
+    let transposition_block =
+      match Model.Version_parameters.transposition params with
+      | None -> []
+      | Some transposition -> [txtf " [%+d m2]" @@ Transposition.to_semitones transposition]
+    in
+    display_name_block @ structure_block @ transposition_block
+
+  let display_composer params =
+    let params = Option.value params ~default: Model.Version_parameters.none in
+    match Model.Version_parameters.display_composer params with
+    | None -> []
+    | Some display_composer -> [txtf " [as “%s”]" @@ NEString.to_string display_composer]
 end
 
 module Set = struct

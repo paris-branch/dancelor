@@ -69,24 +69,24 @@ let editor user =
       Parameteriser.prepare
         (
           Selector.prepare
-            ~make_descr: (Lwt.map NEString.to_string % Model.Version.one_name')
-            ~make_result: (Any_result.make_version_result ?context: None)
+            ~make_descr: (lwt % Tune_row.name % Version_row.tune)
+            ~make_result: (Any_result_new.make_version_result ?context: None)
             ~make_more_results: (fun version ->
               S.flip_map show_preview @@ function
-                | true -> [tr [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
+                | true -> [tr [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false (Version_row.to_name version)]]]
                 | false -> []
             )
             ~label: "Version"
             ~model_name: "version"
-            ~create_dialog_content: Version_editor.create
+            ~create_dialog_content: Version_editor.create_row
             ~search: (fun slice input ->
               let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Version.converter) input in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
             )
             ~id_to_yojson: Entry.Id.to_yojson'
             ~id_of_yojson: Entry.Id.of_yojson'
-            ~serialise: Entry.id
-            ~unserialise: Model.Version.get
+            ~serialise: Version_row.id
+            ~unserialise: (madge_call_or_option @@ Version Get_row)
             ()
         )
         (
@@ -185,7 +185,7 @@ let editor user =
 
 let assemble (name, (kind, (conceptors, (contents, (order, (owners, (visibility, ()))))))) =
   let conceptors = List.map Person_row.id conceptors in
-  let contents = List.map (Pair.map_fst Entry.id) contents in
+  let contents = List.map (Pair.map_fst Version_row.id) contents in
   (
     (* FIXME: This erases the existing remarks, or, most likely, tunes with
        remarks will get a Non_convertible exception when we check for the roundtrip. *)
@@ -205,7 +205,7 @@ let disassemble (set, access) =
   let name = Model.Set.name set in
   let kind = Model.Set.kind set in
   let%lwt conceptors = Lwt_list.map_p (Madge_client.call_exn Endpoints.Api.(route @@ Person Get_row)) (Model.Set.conceptors set) in
-  let%lwt contents = Lwt_list.map_p (fun (version, params) -> let%lwt version = Option.get <$> Model.Version.get version in lwt (version, params)) (Model.Set.contents set) in
+  let%lwt contents = Lwt_list.map_p (fun (version, params) -> let%lwt version = Madge_client.call_exn Endpoints.Api.(route @@ Version Get_row) version in lwt (version, params)) (Model.Set.contents set) in
   let order = Model.Set.order set in
   let%lwt owners = NEList.of_list_exn <$> Lwt_list.map_p (fun user -> Option.get <$> Model.User.get user) (NEList.to_list @@ Entry.Access.Private.owners access) in
   let%lwt visibility = visibility_to_visibility' @@ Entry.Access.Private.visibility access in

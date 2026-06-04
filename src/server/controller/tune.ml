@@ -18,8 +18,18 @@ let to_row (tune : Model.Tune.entry) : Tune_row.t Lwt.t =
   }
 
 let to_view (tune : Model.Tune.entry) : Tune_view.t Lwt.t =
-  let%lwt composers = Lwt_list.map_s (Option.get <%> Model.Person.get % Model.Tune.composer_composer) @@ Model.Tune.composers' tune in
-  let composers = List.map Person.to_name composers in
+  let%lwt composers =
+    Lwt_list.map_s (fun composer ->
+      let id = Model.Tune.composer_composer composer in
+      let%lwt person = Option.get <$> Model.Person.get id in
+      lwt {
+        Person_name_with_details.id;
+        name = NEString.to_string @@ Model.Person.name' person;
+        details = Option.map NEString.to_string @@ Model.Tune.composer_details composer;
+      }
+    ) @@
+      Model.Tune.composers' tune
+  in
   let%lwt dances = Lwt_list.map_s (Option.get <%> Model.Dance.get) @@ Model.Tune.dances' tune in
   let%lwt dances = Lwt_list.map_s Dance.to_row dances in
   lwt {

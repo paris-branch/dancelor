@@ -15,7 +15,7 @@ let row ?(classes = []) ?onclick cells =
     )
     (cells)
 
-let inline_details content = span ~a: [a_class ["opacity-50"]] content
+let inline_details = Formatters_new.details
 let block_details content = p ~a: [a_class ["mb-0"; "opacity-50"; "lh-sm"]] [small content]
 
 let make_part_result ?classes ?onclick ?(prefix = []) ?(suffix = []) title =
@@ -27,7 +27,7 @@ let make_source_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) 
     ?onclick
     (
       prefix @
-      [td [Formatters_new.Source.name ~link: (onclick = None) ?context source];
+      [td [Formatters_new.Source.name_row ~link: (onclick = None) ?context source];
       td [txt @@ Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) source.date];
       td (Formatters_new.Person.names ~links: (onclick = None) ~short: true source.editors);
       ] @
@@ -115,56 +115,17 @@ let make_tune_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (t
       suffix
     )
 
-let format_version_name_disambiguation_and_sources ?links ?context (version : Version_row.t) =
-  let sources_block =
-    match version.sources with
-    | [] -> []
-    | _ ->
-      List.flatten [
-        [txt " (from "];
-        List.interspersei
-          (fun _ -> txt ", ")
-          ~last: (fun _ -> txt " and ")
-          (List.map (Formatters_new.Source.short_name ?link: links) version.sources);
-        [txt ")"];
-      ]
-  in
-  let disambiguation_block =
-    Option.fold
-      version.disambiguation
-      ~none: []
-      ~some: (fun disambiguation -> [txt " "; inline_details [txtf "(%s)" @@ NEString.to_string disambiguation]])
-  in
-  span [
-    Formatters_new.Version.name_row ?link: links ?context version;
-    inline_details sources_block;
-    inline_details disambiguation_block;
-  ]
-
 let format_version_kind_and_structure (version : Version_row.t) =
   match version.content with
   | No_content ->
     txt "(no cont.)"
   | Destructured ->
     txt @@ "∗ " ^ Kind.Base.to_short_string version.tune.kind ^ " (destr.)"
-  | Monolithic (bars, structure) ->
+  | Monolithic {bars; structure} ->
     txtf
       "%s (%s)"
       (Kind.Version.to_string (bars, version.tune.kind))
       (NEString.to_string @@ Model.Version.Structure.to_string structure)
-
-let format_version_composer_and_arranger ?(short = false) ?links (version : Version_row.t) =
-  Formatters_new.Person.names ?links ~short version.tune.composers @
-    match version.arrangers with
-    | [] -> []
-    | _ ->
-      [
-        inline_details (
-          (match version.tune.composers with [] -> [] | _ -> [txt ", "]) @
-          [txt (if short then "arr. " else "arranged by ")] @
-          Formatters_new.Person.names ?links ~short version.arrangers
-        )
-      ]
 
 let make_version_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (version : Version_row.t) =
   row
@@ -172,9 +133,9 @@ let make_version_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = [])
     ?onclick
     (
       prefix @
-      [td [format_version_name_disambiguation_and_sources ~links: (onclick = None) ?context version];
+      [td (Formatters_new.Version.name_disambiguation_and_sources ~links: (onclick = None) ?context version);
       td [format_version_kind_and_structure version];
-      td (format_version_composer_and_arranger ~links: (onclick = None) ~short: true version);
+      td (Formatters_new.Version.composer_and_arranger ~links: (onclick = None) ~short: true version);
       ] @
       suffix
     )

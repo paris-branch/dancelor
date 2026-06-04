@@ -89,25 +89,6 @@ let set_to_row env (set : Model.Set.entry) : Set_row.t Lwt.t =
     permission = Option.get @@ Permission.With_reason.can_get_private user set;
   }
 
-let version_to_row (version : Model.Version.entry) : Version_row.t Lwt.t =
-  let content_to_content = function
-    | Model.Version.Content.No_content -> Version_row.No_content
-    | Destructured _ -> Destructured
-    | Monolithic {bars; structure; _} -> Monolithic (bars, structure)
-  in
-  let%lwt tune = Tune.to_row =<< Model.Version.tune' version in
-  let%lwt sources = Lwt_list.map_s (Option.get <%> Model.Source.get % Model.Version.source_source) @@ Model.Version.sources' version in
-  let sources = List.map Source.to_short_name sources in
-  let%lwt arrangers = Lwt_list.map_s (Person.to_name % Option.get <%> Model.Person.get) (Model.Version.arrangers' version) in
-  lwt {
-    Version_row.id = Entry.id version;
-    tune;
-    sources;
-    disambiguation = Model.Version.disambiguation' version;
-    arrangers: Person_name.t list;
-    content = content_to_content @@ Model.Version.content' version;
-  }
-
 let search' env filter =
   Cache.use ~cache ~key: (Environment.cache_key env, filter) @@ fun () ->
   let (book_f, dance_f, person_f, set_f, source_f, tune_f, version_f) = Filter.Any.specialise filter in
@@ -132,7 +113,7 @@ let search' env filter =
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.dance) (stream_to_row_s Dance.to_row (Lwt_stream.of_list dances_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.source) (stream_to_row_s Source.to_row (Lwt_stream.of_list sources_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.tune) (stream_to_row_s Tune.to_row (Lwt_stream.of_list tunes_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.version) (stream_to_row_s version_to_row (Lwt_stream.of_list versions_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.version) (stream_to_row_s Version.to_row (Lwt_stream.of_list versions_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.set) (stream_to_row_s (set_to_row env) (Lwt_stream.of_list sets_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.book) (stream_to_row_s (book_to_row env) (Lwt_stream.of_list books_result.items));
     ]

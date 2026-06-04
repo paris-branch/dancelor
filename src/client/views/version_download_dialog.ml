@@ -2,6 +2,7 @@ open Js_of_ocaml
 open Nes
 open Dancelor_common
 open Model
+open Model_new
 open Html
 open Utils
 open Components
@@ -111,7 +112,7 @@ let copyright_reponse_promise_to_job_registration_promise copyright_response_pro
   | Ok Endpoints.Version.Protected -> lwt_none
   | Ok Endpoints.Version.Granted {payload; _} -> lwt_some payload
 
-let open_ version dialog =
+let open_ (version : Version_name.t) dialog =
   Page.open_dialog @@ fun return ->
   Page.make'
     ~title: (lwt "Download a PDF")
@@ -121,18 +122,17 @@ let open_ version dialog =
       Button.download
         ~onclick: (fun () ->
           let (version_params, rendering_params) = S.value dialog.parameters_signal in
-          let%lwt slug = Version.slug' version in
           return None;
           open_pdf_generation_dialog (
             let copyright_response_promise =
               Madge_client.call
                 Endpoints.Api.(route @@ Version Build_pdf)
-                (Entry.id version)
+                version.id
                 version_params
                 rendering_params
             in
             let job_registration_promise = copyright_reponse_promise_to_job_registration_promise copyright_response_promise in
-            let slug = NesSlug.add_suffix slug ".pdf" in
+            let slug = NesSlug.add_suffix (NesSlug.of_string version.name) ".pdf" in
             Job.run3 slug job_registration_promise
           )
         )

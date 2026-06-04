@@ -306,9 +306,14 @@ let preview version =
         ]
 
 let submit mode version =
-  match mode with
-  | Editor.Edit prev_version -> Madge_client.call_exn Endpoints.Api.(route @@ Version Update) (Entry.id prev_version) version
-  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Version Create) version
+  let%lwt id =
+    match mode with
+    | Editor.Edit prev_version ->
+      Madge_client.call_exn Endpoints.Api.(route @@ Version Update) (Entry.id prev_version) version;%lwt
+      lwt (Entry.id prev_version)
+    | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Version Create) version
+  in
+  Madge_client.call_exn Endpoints.Api.(route @@ Version Get) id
 
 let unsubmit version =
   (* NOTE: The API erases the LilyPond from versions, so we need to pull the
@@ -368,6 +373,43 @@ let create_gen mode =
 
 (* Needs to be exposed for other editors. *)
 let create mode = create_gen (`With_mode mode)
+
+let to_row (version : Model.Version.entry) : Version_row.t Lwt.t =
+  let content_to_content = function
+    | Model.Version.Content.No_content -> Version_row.No_content
+    | Destructured _ -> Destructured
+    | Monolithic {bars; structure; _} -> Monolithic {bars; structure}
+  in
+  let%lwt tune = Tune_editor.to_row =<< Model.Version.tune' version in
+  let%lwt sources = Lwt_list.map_s (Option.get <%> Model.Source.get % Model.Version.source_source) @@ Model.Version.sources' version in
+  let sources = List.map Source_editor.to_short_name sources in
+  let%lwt arrangers = Lwt_list.map_s (Person_editor.to_name % Option.get <%> Model.Person.get) (Model.Version.arrangers' version) in
+  lwt {
+    Version_row.id = Entry.id version;
+    tune;
+    sources;
+    disambiguation = Option.map NEString.to_string @@ Model.Version.disambiguation' version;
+    arrangers;
+    content = content_to_content @@ Model.Version.content' version;
+  }
+
+let create_row (mode : (Version_row.t, 'a) Editor.mode) =
+  let%lwt (mode : (Model.Version.entry, 'a) Editor.mode) =
+    match mode with
+    | Create state -> lwt @@ Editor.Create state
+    | Create_with_local_storage -> lwt Editor.Create_with_local_storage
+    | Quick_create (init, callback) ->
+      lwt @@
+        Editor.Quick_create (
+          init,
+          (fun version -> callback =<< to_row version)
+        )
+    | Edit result ->
+      let%lwt result = Option.get <$> Model.Version.get (Version_row.id result) in
+      lwt @@ Editor.Edit result
+    | Quick_edit state -> lwt @@ Editor.Quick_edit state
+  in
+  create mode
 
 let add = function
   | None -> create Create_with_local_storage

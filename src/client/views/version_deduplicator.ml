@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model
+open Model_new
 open Html
 open Utils
 
@@ -307,7 +308,7 @@ let confirmation_dialog ~this_version ~other_version =
       ];
     lwt_unit
 
-let dialog ~tune ~version () =
+let dialog (version : Version_view.t) =
   let%lwt other_versions =
     Model_new.items
     <$> Madge_client.call_exn
@@ -316,8 +317,8 @@ let dialog ~tune ~version () =
         Formula.(
           and_l
             [
-              Formula_entry.value' (Filter.(Version.tune' % Formula_entry.is') tune);
-              not_ (Formula_entry.is' version);
+              Formula_entry.value' (Filter.(Version.tune' % Formula.pred % Formula_entry.is) version.tune.id);
+              not_ (Formula.pred @@ Formula_entry.is version.id);
             ]
         )
   in
@@ -328,9 +329,11 @@ let dialog ~tune ~version () =
       [txt
         "Only do this if the two versions are actually the same, or if the other \
         one is a destructured version that can encompass this one.";
-      Tables.versions
+      Tables_new.versions
         other_versions
         ~onclick: (fun other_version ->
+          let%lwt version = Option.get <$> Model.Version.get version.id in
+          let%lwt other_version = Option.get <$> Model.Version.get other_version.id in
           confirmation_dialog ~this_version: version ~other_version;%lwt
           return (some ());
           lwt_unit

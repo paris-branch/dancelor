@@ -163,6 +163,16 @@ let create mode =
     ~disassemble
     ~check_product: Model.Tune.equal
 
+let to_row tune =
+  let%lwt composers = Lwt_list.map_s (Option.get <%> Model.Person.get % Model.Tune.composer_composer) @@ Model.Tune.composers' tune in
+  let composers = List.map Person_editor.to_name composers in
+  lwt {
+    Tune_row.id = Entry.id tune;
+    name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
+    kind = Model.Tune.kind' tune;
+    composers;
+  }
+
 let create_row (mode : (Tune_row.t, 'a) Editor.mode) =
   let%lwt (mode : (Model.Tune.entry, 'a) Editor.mode) =
     match mode with
@@ -172,18 +182,7 @@ let create_row (mode : (Tune_row.t, 'a) Editor.mode) =
       lwt @@
         Editor.Quick_create (
           init,
-          (fun tune ->
-            let%lwt composers = Lwt_list.map_s (Option.get <%> Model.Person.get % Model.Tune.composer_composer) @@ Model.Tune.composers' tune in
-            let composers = List.map Person_editor.to_name composers in
-            let tune = {
-              Tune_row.id = Entry.id tune;
-              name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
-              kind = Model.Tune.kind' tune;
-              composers;
-            }
-            in
-            callback tune
-          )
+          (fun tune -> callback =<< to_row tune)
         )
     | Edit result ->
       let%lwt result = Option.get <$> Model.Tune.get (Tune_row.id result) in

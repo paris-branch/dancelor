@@ -28,19 +28,17 @@ module Snippet_ids = struct
 end
 
 type (_, _, _) t =
-(* Actions without specific version *)
-| Create : ((Version.t -> 'w), 'w, Version.entry) t
-| Search : ((Slice.t -> (Version.t, Filter.Version.t) Formula_entry.public -> 'w), 'w, Version.entry search_result) t
-(* Actions on a specific version *)
-| Get : ((Version.t Entry.Id.t -> 'w), 'w, Version.entry) t
-| Content : ((Version.t Entry.Id.t -> 'w), 'w, Version.Content.t copyright_response) t
-| Update : ((Version.t Entry.Id.t -> Version.t -> 'w), 'w, Version.entry) t
-| Delete : ((Version.t Entry.Id.t -> 'w), 'w, unit) t
-(* Files related to a version *)
-| Build_snippets : ((Version.t Entry.Id.t -> Version_parameters.t -> Rendering_parameters.t -> 'w), 'w, Snippet_ids.t Job.registration_response copyright_response) t
-| Build_pdf : ((Version.t Entry.Id.t -> Version_parameters.t -> Rendering_parameters.t -> 'w), 'w, Job_id.t Job.registration_response copyright_response) t
-(* Files related to an anonymous version *)
-| Build_snippets' : ((Version.t -> Version_parameters.t -> Rendering_parameters.t -> 'w), 'w, Snippet_ids.t Job.registration_response) t
+  | Create : (Version.t -> 'w, 'w, Version_id.t) t
+  | Search : (Slice.t -> (Version.t, Filter.Version.t) Formula_entry.public -> 'w, 'w, Version_row.t search_result) t
+  | Get : (Version_id.t -> 'w, 'w, Version.entry) t
+  | Get_row : (Version_id.t -> 'w, 'w, Version_row.t) t
+  | Get_view : (Version_id.t -> 'w, 'w, Version_view.t) t
+  | Content : (Version_id.t -> 'w, 'w, Version.Content.t copyright_response) t
+  | Update : (Version_id.t -> Version.t -> 'w, 'w, unit) t
+  | Delete : (Version_id.t -> 'w, 'w, unit) t
+  | Build_snippets : (Version_id.t -> Version_parameters.t -> Rendering_parameters.t -> 'w, 'w, Snippet_ids.t Job.registration_response copyright_response) t
+  | Build_pdf : (Version_id.t -> Version_parameters.t -> Rendering_parameters.t -> 'w, 'w, Job_id.t Job.registration_response copyright_response) t
+  | Build_snippets' : (Version.t -> Version_parameters.t -> Rendering_parameters.t -> 'w, 'w, Snippet_ids.t Job.registration_response) t
 [@@deriving madge_wrapped_endpoints]
 
 (* NOTE: The version model contains its LilyPond content. This is a big string
@@ -64,15 +62,14 @@ end
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
-    (* Actions without specific version *)
-    | Create -> body "version" (module Version) @@ post (module Entry.JPublic(Version_no_lilypond))
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(Version)(Filter.Version)) @@ get (module Utils.Search_result(Entry.JPublic(Version_no_lilypond)))
-    (* Actions on a specific version *)
+    | Create -> body "version" (module Version) @@ post (module Version_id)
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(Version)(Filter.Version)) @@ get (module Utils.Search_result(Version_row))
     | Get -> variable (module Entry.Id.S(Version)) @@ get (module Entry.JPublic(Version_no_lilypond))
+    | Get_row -> variable (module Entry.Id.S(Version)) @@ literal "row" @@ get (module Version_row)
+    | Get_view -> variable (module Entry.Id.S(Version)) @@ literal "view" @@ get (module Version_view)
     | Content -> literal "content" @@ variable (module Entry.Id.S(Version)) @@ get (module Copyright_response(Version.Content))
-    | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module Entry.JPublic(Version_no_lilypond))
+    | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module JUnit)
     | Delete -> variable (module Entry.Id.S(Version)) @@ delete (module JUnit)
-    (* Files related to a version *)
     | Build_snippets -> literal "build-snippets" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module Version_parameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Copyright_response(Job.Registration_response(Snippet_ids)))
     | Build_pdf -> literal "build-pdf" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module Version_parameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Copyright_response(Job.Registration_response(Job_id)))
     (* Files related to an anonymous version *)

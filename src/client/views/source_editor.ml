@@ -116,6 +116,16 @@ let create mode =
     ~format: (Formatters.Source.name' ~link: true)
     ~href: (Endpoints.Page.href_source % Entry.id)
 
+let to_short_name (source : Model.Source.entry) : Source_short_name.t = {
+  Source_short_name.id = Entry.id source;
+  short_name =
+  NEString.to_string (
+    match Model.Source.short_name' source with
+    | None -> Model.Source.name' source
+    | Some name -> name
+  );
+}
+
 let create_row (mode : (Source_row.t, 'a) Editor.mode) =
   let%lwt (mode : (Model.Source.entry, 'a) Editor.mode) =
     match mode with

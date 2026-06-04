@@ -1,7 +1,61 @@
 open NesUnix
 open Dancelor_common
+open Model_new
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server.controller.version": Logs.LOG)
+
+(* FIXME: The following conversion functions are temporary. We will
+   save some network by having them happen on the server, but they
+   should be pushed into individual controllers in a first place, and
+   then even all the way to the respective databases. *)
+
+let to_row (version : Model.Version.entry) : Version_row.t Lwt.t =
+  let content_to_content = function
+    | Model.Version.Content.No_content -> Version_row.No_content
+    | Destructured _ -> Destructured
+    | Monolithic {bars; structure; _} -> Monolithic {bars; structure}
+  in
+  let%lwt tune = Tune.to_row =<< Model.Version.tune' version in
+  let%lwt sources = Lwt_list.map_s (Option.get <%> Model.Source.get % Model.Version.source_source) @@ Model.Version.sources' version in
+  let sources = List.map Source.to_short_name sources in
+  let%lwt arrangers = Lwt_list.map_s (Person.to_name % Option.get <%> Model.Person.get) (Model.Version.arrangers' version) in
+  lwt {
+    Version_row.id = Entry.id version;
+    tune;
+    sources;
+    disambiguation = Option.map NEString.to_string @@ Model.Version.disambiguation' version;
+    arrangers;
+    content = content_to_content @@ Model.Version.content' version;
+  }
+
+let to_view (version : Model.Version.entry) : Version_view.t Lwt.t =
+  let source_to_source {Model.Version.source; structure; details} =
+    let%lwt source = Option.get <$> Model.Source.get source in
+    lwt ({
+      id = Entry.id source;
+      name = NEString.to_string @@ Model.Source.name' source;
+      structure;
+      details = Option.map NEString.to_string details;
+    }: Version_view.source)
+  in
+  let content_to_content = function
+    | Model.Version.Content.No_content -> Version_view.No_content
+    | Destructured {default_structure; _} -> Destructured {default_structure}
+    | Monolithic {bars; structure; _} -> Monolithic {bars; structure}
+  in
+  let%lwt tune = Tune.to_view =<< Model.Version.tune' version in
+  let%lwt sources = Lwt_list.map_s source_to_source @@ Model.Version.sources' version in
+  let%lwt arrangers = Lwt_list.map_s (Person.to_name % Option.get <%> Model.Person.get) (Model.Version.arrangers' version) in
+  lwt {
+    Version_view.id = Entry.id version;
+    tune;
+    sources;
+    disambiguation = Option.map NEString.to_string @@ Model.Version.disambiguation' version;
+    arrangers;
+    content = content_to_content @@ Model.Version.content' version;
+    key = Model.Version.key' version;
+    remark = Option.map NEString.to_string @@ Model.Version.remark' version;
+  }
 
 let get env id =
   match%lwt Database.Version.get id with
@@ -10,15 +64,19 @@ let get env id =
     Permission.assert_can_get_public env version;%lwt
     lwt version
 
+let get_row env id =
+  to_row =<< get env id
+
+let get_view env id =
+  to_view =<< get env id
+
 let create env version =
   Permission.assert_can_create_public env;%lwt
-  let%lwt id = Database.Version.create version in
-  Option.get <$> Database.Version.get id
+  Database.Version.create version
 
 let update env id version =
   Permission.assert_can_update_public env =<< get env id;%lwt
-  Database.Version.update id version;%lwt
-  Option.get <$> Database.Version.get id
+  Database.Version.update id version
 
 let delete env id =
   Permission.assert_can_delete_public env =<< get env id;%lwt
@@ -186,9 +244,16 @@ let build_snippets' env version version_params _rendering_params =
   Permission.assert_can_create_public env;%lwt
   register_snippets_job ~version_params version
 
+let search env slice filter =
+  let%lwt result = search env slice filter in
+  let%lwt items = Lwt_list.map_s to_row result.items in
+  lwt {result with items}
+
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
+  | Get_row -> get_row env
+  | Get_view -> get_view env
   | Content -> content env
   | Search -> search env
   | Create -> create env

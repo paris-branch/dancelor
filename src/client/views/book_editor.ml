@@ -34,14 +34,14 @@ let model_content_to_content =
       lwt @@ `Dance (dance, `Dance_only)
     | Dance (dance, Dance_versions versions_and_params) ->
       let%lwt dance = Madge_client.call_exn Endpoints.Api.(route @@ Dance Get_row) dance in
-      let%lwt versions_and_params = Monadise_lwt.monadise_1_1 NEList.map (Monadise_lwt.monadise_1_1 Pair.map_fst (Option.get <%> Model.Version.get)) versions_and_params in
+      let%lwt versions_and_params = Monadise_lwt.monadise_1_1 NEList.map (Monadise_lwt.monadise_1_1 Pair.map_fst (Madge_client.call_exn Endpoints.Api.(route @@ Version Get_row))) versions_and_params in
       lwt @@ `Dance (dance, `Dance_versions versions_and_params)
     | Dance (dance, Dance_set (set, params)) ->
       let%lwt dance = Madge_client.call_exn Endpoints.Api.(route @@ Dance Get_row) dance in
       let%lwt set = Option.get <$> Model.Set.get set in
       lwt @@ `Dance (dance, `Dance_set (set, params))
     | Versions versions_and_params ->
-      let%lwt versions_and_params = Monadise_lwt.monadise_1_1 NEList.map (Monadise_lwt.monadise_1_1 Pair.map_fst (Option.get <%> Model.Version.get)) versions_and_params in
+      let%lwt versions_and_params = Monadise_lwt.monadise_1_1 NEList.map (Monadise_lwt.monadise_1_1 Pair.map_fst (Madge_client.call_exn Endpoints.Api.(route @@ Version Get_row))) versions_and_params in
       lwt @@ `Versions versions_and_params
     | Set (set, params) ->
       let%lwt set = Option.get <$> Model.Set.get set in
@@ -51,9 +51,9 @@ let content_to_model_content =
   List.map @@ function
     | `Part title -> Model.Book.Part title
     | `Dance (dance, `Dance_only) -> Model.Book.Dance (Dance_row.id dance, Dance_only)
-    | `Dance (dance, `Dance_versions versions_and_params) -> Model.Book.Dance (Dance_row.id dance, Dance_versions (NEList.map (Pair.map_fst Entry.id) versions_and_params))
+    | `Dance (dance, `Dance_versions versions_and_params) -> Model.Book.Dance (Dance_row.id dance, Dance_versions (NEList.map (Pair.map_fst Version_row.id) versions_and_params))
     | `Dance (dance, `Dance_set (set, params)) -> Model.Book.Dance (Dance_row.id dance, Dance_set (Entry.id set, params))
-    | `Versions versions_and_params -> Model.Book.Versions (NEList.map (Pair.map_fst Entry.id) versions_and_params)
+    | `Versions versions_and_params -> Model.Book.Versions (NEList.map (Pair.map_fst Version_row.id) versions_and_params)
     | `Set (set, params) -> Model.Book.Set (Entry.id set, params)
 
 let versions_and_parameters ?(label = "Versions") () =
@@ -63,24 +63,24 @@ let versions_and_parameters ?(label = "Versions") () =
       Parameteriser.prepare
         (
           Selector.prepare
-            ~make_descr: (Lwt.map NEString.to_string % Model.Version.one_name')
-            ~make_result: (Any_result.make_version_result ?context: None)
+            ~make_descr: (lwt % Tune_row.name % Version_row.tune)
+            ~make_result: (Any_result_new.make_version_result ?context: None)
             ~make_more_results: (fun version ->
               S.flip_map show_preview @@ function
-                | true -> [tr [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
+                | true -> [tr [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false (Version_row.to_name version)]]]
                 | false -> []
             )
             ~label
             ~model_name: "version"
-            ~create_dialog_content: Version_editor.create
+            ~create_dialog_content: Version_editor.create_row
             ~search: (fun slice input ->
               let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Version.converter) input in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
             )
             ~id_to_yojson: Entry.Id.to_yojson'
             ~id_of_yojson: Entry.Id.of_yojson'
-            ~serialise: Entry.id
-            ~unserialise: Model.Version.get
+            ~serialise: Version_row.id
+            ~unserialise: (madge_call_or_option @@ Version Get_row)
             ()
         )
         Version_parameters_editor.e
