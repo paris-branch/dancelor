@@ -194,6 +194,7 @@ let confirmation_dialog ~this_version ~other_version =
     <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) Slice.everything @@
       Formula_entry.value' @@ Filter.Set.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
   in
+  let%lwt sets = Lwt_list.map_p (fun set -> Option.get <$> Model.Set.get set.Set_row.id) sets in
   List.iter
     (fun set ->
       add_changes

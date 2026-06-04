@@ -71,12 +71,6 @@ let make_book_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (b
       suffix
     )
 
-let format_set_tunes ?links (set : Set_row.t) =
-  set.tunes
-  |> List.map (Formatters_new.Tune.name ?link: links)
-  |> List.interspersei (fun _ -> txt " - ")
-  |> List.cons (txt "Tunes: ")
-
 let make_set_result ?classes ?onclick ?context ?params ?(prefix = []) ?(suffix = []) (set : Set_row.t) =
   row
     ?classes
@@ -84,12 +78,12 @@ let make_set_result ?classes ?onclick ?context ?params ?(prefix = []) ?(suffix =
     (
       prefix @
       [td (
-        [Formatters_new.Set.name ~link: (onclick = None) ?context set] @
+        [Formatters_new.Set.name_row ~link: (onclick = None) ?context set] @
         Option.fold
           (Option.bind params Model_builder.Core.Set_parameters.display_name)
           ~none: []
           ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]]) @
-          [block_details (format_set_tunes ~links: (onclick = None) set)]
+          [block_details (Formatters_new.Set.tunes ~links: (onclick = None) set)]
       );
       td [txt @@ Kind.Dance.to_string set.kind];
       td (

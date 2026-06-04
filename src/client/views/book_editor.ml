@@ -38,13 +38,13 @@ let model_content_to_content =
       lwt @@ `Dance (dance, `Dance_versions versions_and_params)
     | Dance (dance, Dance_set (set, params)) ->
       let%lwt dance = Madge_client.call_exn Endpoints.Api.(route @@ Dance Get_row) dance in
-      let%lwt set = Option.get <$> Model.Set.get set in
+      let%lwt set = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_row) set in
       lwt @@ `Dance (dance, `Dance_set (set, params))
     | Versions versions_and_params ->
       let%lwt versions_and_params = Monadise_lwt.monadise_1_1 NEList.map (Monadise_lwt.monadise_1_1 Pair.map_fst (Madge_client.call_exn Endpoints.Api.(route @@ Version Get_row))) versions_and_params in
       lwt @@ `Versions versions_and_params
     | Set (set, params) ->
-      let%lwt set = Option.get <$> Model.Set.get set in
+      let%lwt set = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_row) set in
       lwt @@ `Set (set, params)
 
 let content_to_model_content =
@@ -52,9 +52,9 @@ let content_to_model_content =
     | `Part title -> Model.Book.Part title
     | `Dance (dance, `Dance_only) -> Model.Book.Dance (Dance_row.id dance, Dance_only)
     | `Dance (dance, `Dance_versions versions_and_params) -> Model.Book.Dance (Dance_row.id dance, Dance_versions (NEList.map (Pair.map_fst Version_row.id) versions_and_params))
-    | `Dance (dance, `Dance_set (set, params)) -> Model.Book.Dance (Dance_row.id dance, Dance_set (Entry.id set, params))
+    | `Dance (dance, `Dance_set (set, params)) -> Model.Book.Dance (Dance_row.id dance, Dance_set (Set_row.id set, params))
     | `Versions versions_and_params -> Model.Book.Versions (NEList.map (Pair.map_fst Version_row.id) versions_and_params)
-    | `Set (set, params) -> Model.Book.Set (Entry.id set, params)
+    | `Set (set, params) -> Model.Book.Set (Set_row.id set, params)
 
 let versions_and_parameters ?(label = "Versions") () =
   Star.prepare_non_empty
@@ -90,24 +90,24 @@ let set_and_parameters ?(label = "Set") () =
   Parameteriser.prepare
     (
       Selector.prepare
-        ~make_descr: (lwt % NEString.to_string % Model.Set.name')
-        ~make_result: (Any_result.make_set_result ?context: None ?params: None)
+        ~make_descr: (lwt % Set_row.name)
+        ~make_result: (Any_result_new.make_set_result ?context: None ?params: None)
         ~make_more_results: (fun set ->
           S.flip_map show_preview @@ function
-            | true -> [tr [td ~a: [a_colspan 9999] [Formatters.Set.tunes' set]]]
+            | true -> [tr [td ~a: [a_colspan 9999] (Formatters_new.Set.tunes set)]]
             | false -> []
         )
         ~label
         ~model_name: "set"
-        ~create_dialog_content: Set_editor.create
+        ~create_dialog_content: Set_editor.create_row
         ~search: (fun slice input ->
           let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_private Filter.Set.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
-        ~serialise: Entry.id
-        ~unserialise: Model.Set.get
+        ~serialise: Set_row.id
+        ~unserialise: (madge_call_or_option @@ Set Get_row)
         ()
     )
     Set_parameters_editor.e

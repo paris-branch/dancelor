@@ -55,13 +55,6 @@ let cache : (Environment.cache_key * Filter.Any.t, (int * (Model_new.Any_row.t *
    should be pushed into individual controllers in a first place, and
    then even all the way to the respective databases. *)
 
-let version_to_name (version : Model.Version.entry) : Tune_name.t Lwt.t =
-  let%lwt tune = Model.Version.tune' version in
-  lwt {
-    Tune_name.id = Entry.id tune;
-    name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
-  }
-
 let book_to_row env (book : Model.Book.entry) : Book_row.t Lwt.t =
   let user = Environment.user env in
   let%lwt authors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Book.authors' book in
@@ -72,21 +65,6 @@ let book_to_row env (book : Model.Book.entry) : Book_row.t Lwt.t =
     date = Model.Book.date' book;
     authors: Person_name.t list;
     permission = Option.get @@ Permission.With_reason.can_get_private user book;
-  }
-
-let set_to_row env (set : Model.Set.entry) : Set_row.t Lwt.t =
-  let user = Environment.user env in
-  let%lwt conceptors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Set.conceptors' set in
-  let conceptors = List.map Person.to_name conceptors in
-  let%lwt tunes = Lwt_list.map_s (Option.get <%> Model.Version.get % fst) @@ Model.Set.contents' set in
-  let%lwt tunes = Lwt_list.map_s version_to_name tunes in
-  lwt {
-    Set_row.id = Entry.id set;
-    name = NEString.to_string @@ Model.Set.name' set;
-    kind = Model.Set.kind' set;
-    conceptors;
-    tunes;
-    permission = Option.get @@ Permission.With_reason.can_get_private user set;
   }
 
 let search' env filter =
@@ -114,7 +92,7 @@ let search' env filter =
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.source) (stream_to_row_s Source.to_row (Lwt_stream.of_list sources_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.tune) (stream_to_row_s Tune.to_row (Lwt_stream.of_list tunes_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.version) (stream_to_row_s Version.to_row (Lwt_stream.of_list versions_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.set) (stream_to_row_s (set_to_row env) (Lwt_stream.of_list sets_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.set) (stream_to_row_s (Set.to_row env) (Lwt_stream.of_list sets_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.book) (stream_to_row_s (book_to_row env) (Lwt_stream.of_list books_result.items));
     ]
   in

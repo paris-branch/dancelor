@@ -194,9 +194,14 @@ let assemble (name, (kind, (conceptors, (contents, (order, (owners, (visibility,
   )
 
 let submit mode (set, access) =
-  match mode with
-  | Editor.Edit prev_set -> Madge_client.call_exn Endpoints.Api.(route @@ Set Update) (Entry.id prev_set) set access
-  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Set Create) set access
+  let%lwt id =
+    match mode with
+    | Editor.Edit prev_set ->
+      Madge_client.call_exn Endpoints.Api.(route @@ Set Update) (Entry.id prev_set) set access;%lwt
+      lwt (Entry.id prev_set)
+    | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Set Create) set access
+  in
+  Madge_client.call_exn Endpoints.Api.(route @@ Set Get) id
 
 let unsubmit entry =
   lwt (Entry.value entry, Entry.access entry)
@@ -227,6 +232,46 @@ let create mode =
     ~format: (Formatters.Set.name' ~link: true)
     ~href: (Endpoints.Page.href_set % Entry.id)
     ~check_product: (fun (set1, access1) (set2, access2) -> Model.Set.equal set1 set2 && Entry.Access.Private.equal access1 access2)
+
+let version_to_name (version : Model.Version.entry) : Tune_name.t Lwt.t =
+  let%lwt tune = Model.Version.tune' version in
+  lwt {
+    Tune_name.id = Entry.id tune;
+    name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
+  }
+
+let to_row (set : Model.Set.entry) : Set_row.t Lwt.t =
+  let%lwt conceptors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Set.conceptors' set in
+  let conceptors = List.map Person_editor.to_name conceptors in
+  let%lwt tunes = Lwt_list.map_s (Option.get <%> Model.Version.get % fst) @@ Model.Set.contents' set in
+  let%lwt tunes = Lwt_list.map_s version_to_name tunes in
+  let%lwt permission = Option.get <$> Permission.can_get_private set in
+  lwt {
+    Set_row.id = Entry.id set;
+    name = NEString.to_string @@ Model.Set.name' set;
+    kind = Model.Set.kind' set;
+    conceptors;
+    tunes;
+    permission;
+  }
+
+let create_row (mode : (Set_row.t, 'a) Editor.mode) =
+  let%lwt (mode : (Model.Set.entry, 'a) Editor.mode) =
+    match mode with
+    | Create state -> lwt @@ Editor.Create state
+    | Create_with_local_storage -> lwt Editor.Create_with_local_storage
+    | Quick_create (init, callback) ->
+      lwt @@
+        Editor.Quick_create (
+          init,
+          (fun set -> callback =<< to_row set)
+        )
+    | Edit result ->
+      let%lwt result = Option.get <$> Model.Set.get (Set_row.id result) in
+      lwt @@ Editor.Edit result
+    | Quick_edit state -> lwt @@ Editor.Quick_edit state
+  in
+  create mode
 
 let add () =
   create Create_with_local_storage

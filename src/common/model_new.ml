@@ -283,9 +283,18 @@ end
 
 (** {2 Set} *)
 
+module Set_id = struct
+  type t = Model_builder.Core.Set.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
+
 module Set_row = struct
   type t = {
-    id: Model_builder.Core.Set.t Entry.id;
+    id: Set_id.t;
     name: string;
     kind: Kind_dance.t;
     conceptors: Person_name.t list; [@default []]
@@ -297,7 +306,7 @@ end
 
 module Set_view = struct
   type t = {
-    id: Model_builder.Core.Set.t Entry.id;
+    id: Set_id.t;
     name: string;
     conceptors: Person_name.t list; [@default []]
     kind: Kind.Dance.t;

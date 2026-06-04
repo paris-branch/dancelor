@@ -52,7 +52,11 @@ let add_to_set_dialog (version : Version_name.t) user =
     ~target_converter: (Formula_entry.converter_private Filter.Set.converter)
     ~target_filter_owners': Formula_entry.(access' % owners')
     ~target_result: (Any_result.make_set_result ?classes: None ?prefix: None ?suffix: None ?params: None)
-    ~target_search: (Madge_client.call_exn Endpoints.Api.(route @@ Set Search))
+    ~target_search: (fun slice filter ->
+      let%lwt sets = Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter in
+      let%lwt items = Lwt_list.map_p (fun set -> Option.get <$> Model.Set.get set.Set_row.id) sets.items in
+      lwt {sets with items}
+    )
     ~target_update: (Madge_client.call_exn Endpoints.Api.(route @@ Set Update))
     ~target_history: History.get_sets
     ~target_add_source_to_content: (fun set ->
