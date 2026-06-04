@@ -58,7 +58,10 @@ let add_to_set_dialog (version : Version_name.t) user =
       lwt {sets with items}
     )
     ~target_update: (Madge_client.call_exn Endpoints.Api.(route @@ Set Update))
-    ~target_history: History.get_sets
+    ~target_history: (fun () ->
+      let%lwt sets = History.get_sets () in
+      Lwt_list.map_p (fun set -> Option.get <$> Model.Set.get set.Set_row.id) sets
+    )
     ~target_add_source_to_content: (fun set ->
       let contents = Model.Set.contents set in
       Model.Set.set_contents (contents @ [(version.id, Model.Version_parameters.none)]) set

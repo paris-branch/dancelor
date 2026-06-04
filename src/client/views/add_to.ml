@@ -93,7 +93,10 @@ let dialog_to_book ~source_type ~source_format user source source_page =
       lwt {books with items}
     )
     ~target_update: (Madge_client.call_exn Endpoints.Api.(route @@ Book Update))
-    ~target_history: History.get_books
+    ~target_history: (fun () ->
+      let%lwt books = History.get_books () in
+      Lwt_list.map_p (fun book -> Option.get <$> Model.Book.get book.Book_row.id) books
+    )
     ~target_add_source_to_content: (fun book ->
       let contents = Model.Book.contents book in
       Model.Book.set_contents (contents @ [source_page]) book

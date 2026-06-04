@@ -47,7 +47,7 @@ let create () =
           S.from_lwt (Utils.Tables.placeholder ~rows: length ()) @@
             match%lwt History.get_models () with
             | [] -> lwt_nil
-            | history -> lwt [Utils.Tables.any @@ List.take length history]
+            | history -> lwt [Utils.Tables_new.any @@ List.take length history]
         )
       ];
       section [

@@ -408,6 +408,8 @@ module Any_row = struct
     | Version v -> Version v.id
     | Set s -> Set s.id
     | Book b -> Book b.id
+
+  let equal a1 a2 = Any_id.equal (to_id a1) (to_id a2)
 end
 
 (** {2 Other} *)
