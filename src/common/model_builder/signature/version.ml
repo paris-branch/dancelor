@@ -49,8 +49,8 @@ module type S = sig
   val sources_grouped : t -> source list list
   val sources_grouped' : entry -> source list list
 
-  val arrangers : t -> Core.Person.entry list Lwt.t
-  val arrangers' : entry -> Core.Person.entry list Lwt.t
+  val arrangers : t -> Core.Person.t Entry.id list
+  val arrangers' : entry -> Core.Person.t Entry.id list
 
   val remark : t -> NEString.t option
   val remark' : entry -> NEString.t option

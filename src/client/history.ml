@@ -40,7 +40,7 @@ let get_models () : Model.Any.t list Lwt.t =
     | Dance -> (fun _ id -> Some (Option.map Model.Any.dance <$> Model.Dance.get id))
     | Source -> (fun _ id -> Some (Option.map Model.Any.source <$> Model.Source.get id))
     | Tune -> (fun _ id -> Some (Option.map Model.Any.tune <$> Model.Tune.get id))
-    | Version -> (fun _ _ id -> Some (Option.map Model.Any.version <$> Model.Version.get id))
+    | Version -> (fun _ id -> Some (Option.map Model.Any.version <$> Model.Version.get id))
     | Set -> (fun _ id -> Some (Option.map Model.Any.set <$> Model.Set.get id))
     | Book -> (fun _ id -> Some (Option.map Model.Any.book <$> Model.Book.get id))
     (* FIXME: user once there is a user viewer page endpoint *)

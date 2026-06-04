@@ -227,6 +227,64 @@ let get_all () =
       ~destructured_transitions: (List.rev @@ Hashtbl.find_all destructured_transitions id)
   )
 
+let get_all_for_tune tune_id =
+  let tune_id = Entry.Id.to_string tune_id in
+  Connection.with_ @@ fun db ->
+  let arrangers = Hashtbl.create 8 in
+  let sources = Hashtbl.create 8 in
+  let destructured_parts = Hashtbl.create 8 in
+  let destructured_transitions = Hashtbl.create 8 in
+  Version_sql.Fold.get_all_arrangers
+    db
+    (fun ~version_id ~arranger_id () ->
+      Hashtbl.add arrangers version_id (Entry.Id.of_string_exn arranger_id)
+    )
+    ();%lwt
+  Version_sql.Fold.get_all_sources
+    db
+    (fun ~version_id ~source_id ~structure ~details () ->
+      Hashtbl.add
+        sources
+        version_id
+        {
+          Model_builder.Core.Version.source = Entry.Id.of_string_exn source_id;
+          structure = Option.get (Model_builder.Core.Version.Structure.of_string (NEString.of_string_exn structure));
+          details = Option.map NEString.of_string_exn details;
+        }
+    )
+    ();%lwt
+  Version_sql.Fold.get_all_destructured_parts
+    db
+    (fun ~version_id ~part ~melody ~chords () ->
+      Hashtbl.add destructured_parts version_id (
+        Option.get (Model_builder.Core.Version.Part_name.of_string part),
+        {Model_builder.Core.Version.Voices.melody; chords}
+      )
+    )
+    ();%lwt
+  Version_sql.Fold.get_all_destructured_transitions
+    db
+    (fun ~version_id ~from_parts ~to_parts ~melody ~chords () ->
+      Hashtbl.add
+        destructured_transitions
+        version_id
+        (
+          Option.get (Model_builder.Core.Version.Part_name.opens_of_string from_parts),
+          Option.get (Model_builder.Core.Version.Part_name.opens_of_string to_parts),
+          {Model_builder.Core.Version.Voices.melody; chords}
+        )
+    )
+    ();%lwt
+  Version_sql.List.get_all_for_tune db ~tune_id (fun ~id ->
+    row_to_version
+      ~id
+      ~tune_id
+      ~arrangers: (List.rev @@ Hashtbl.find_all arrangers id)
+      ~sources: (List.rev @@ Hashtbl.find_all sources id)
+      ~destructured_parts: (check_destructured_parts @@ List.rev @@ Hashtbl.find_all destructured_parts id)
+      ~destructured_transitions: (List.rev @@ Hashtbl.find_all destructured_transitions id)
+  )
+
 let create version =
   Connection.with_ @@ fun db ->
   let%lwt id = Globally_unique_id.make db Version in

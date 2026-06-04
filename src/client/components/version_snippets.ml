@@ -1,5 +1,7 @@
 open Nes
+
 open Dancelor_common
+open Model_new
 open Html
 
 let make_svg_gen ?(show_logs = false) status_signal =
@@ -68,11 +70,11 @@ let make_gen
     );
   ]
 
-let make ?show_logs ?show_audio ?(params = Model.Version_parameters.none) version =
+let make ?show_logs ?show_audio ?(params = Model.Version_parameters.none) (version : Version_name.t) =
   let copyright_response_promise =
     Madge_client.call
       Endpoints.Api.(route @@ Version Build_snippets)
-      (Entry.id version)
+      version.id
       params
       Rendering_parameters.none
   in
@@ -84,7 +86,7 @@ let make ?show_logs ?show_audio ?(params = Model.Version_parameters.none) versio
   in
   let svg_status_signal =
     Job.status_signal_from_promise @@
-      let%lwt slug = Model.Version.slug' version in
+      let slug = NesSlug.of_string version.name in
       lwt @@
       Job.run3 (NesSlug.add_suffix slug ".svg") @@
       Job.copyright_reponse_promise_to_job_registration_promise @@
@@ -101,7 +103,7 @@ let make ?show_logs ?show_audio ?(params = Model.Version_parameters.none) versio
   in
   let ogg_status_signal =
     Job.status_signal_from_promise @@
-      let%lwt slug = Model.Version.slug' version in
+      let slug = NesSlug.of_string version.name in
       lwt @@
       Job.run3 (NesSlug.add_suffix slug ".ogg") @@
       Job.copyright_reponse_promise_to_job_registration_promise @@

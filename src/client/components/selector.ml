@@ -4,13 +4,15 @@
 
 open Js_of_ocaml
 open Nes
-open Dancelor_common
 open Utils
 open Html
 
-let prepare_gen (type model)(type access)(type model_validated)
+let prepare_gen (type id)(type model)(type model_validated)
   ~label
   ~search
+  ~id_to_yojson
+  ~id_of_yojson
+  ~serialise
   ~unserialise
   ~make_descr
   ~(make_result :
@@ -18,46 +20,42 @@ let prepare_gen (type model)(type access)(type model_validated)
     ?onclick: (unit -> unit Lwt.t) ->
     ?prefix: Html_types.td Html.elt list ->
     ?suffix: Html_types.td Html.elt list ->
-    (model, access) Entry.t ->
+    model ->
     Html_types.tr Html.elt
   )
   ?(make_more_results =
-  (const (S.const []): (model, access) Entry.t ->
+  (const (S.const []): model ->
     Html_types.tr Html.elt list S.t))
   ?(results_when_no_search = lwt_nil)
   ~model_name
-  ?(create_dialog_content : (((model, access) Entry.t, 'any) Editor.mode -> Page.t Lwt.t) option)
-  ~(validate : (model, access) Entry.t option -> (model_validated, string) Result.t)
-  ~(unvalidate : model_validated -> (model, access) Entry.t option)
+  ?(create_dialog_content : ((model, 'any) Editor.mode -> Page.t Lwt.t) option)
+  ~(validate : model option -> (model_validated, string) Result.t)
+  ~(unvalidate : model_validated -> model option)
   ()
-  : (model_validated, model Entry.id option) Component.s
+  : (model_validated, id option) Component.s
 = (module struct
   let label = label
 
   type value = model_validated
 
-  (* Dirty trick to convince Yojson to serialise ids. *)
-  let model_to_yojson _ = assert false
-  let model_of_yojson _ = assert false
-
-  type state = model Entry.Id.t option [@@deriving yojson]
+  type state = id option [@@deriving yojson]
 
   let empty = None
   let from_initial_text _ = None
 
   let value_to_string = Option.fold ~none: (lwt "<invalid model>") ~some: make_descr % unvalidate
 
-  let value_to_state = lwt % Option.map Entry.id % unvalidate
+  let value_to_state = lwt % Option.map serialise % unvalidate
 
   type t = {
-    signal: (model, access) Entry.t option S.t;
-    set: (model, access) Entry.t option -> unit;
+    signal: model option S.t;
+    set: model option -> unit;
     (* quick_search: model Entry.t Search.Quick.t; *)
     inner_html: Html_types.div_content_fun elt;
     select_button_dom: Dom_html.buttonElement Js.t;
   }
 
-  let state s = S.map (flip Option.bind (some % Entry.id)) s.signal (* FIXME: can we simplify? *)
+  let state s = S.map (flip Option.bind (some % serialise)) s.signal (* FIXME: can we simplify? *)
 
   let signal i = S.map validate i.signal
 
@@ -125,7 +123,7 @@ let prepare_gen (type model)(type access)(type model_validated)
                       create_dialog_content (
                         Editor.Quick_create (
                           S.value (Search.Quick.text quick_search),
-                          sub_dialog_return
+                          lwt % sub_dialog_return
                         )
                       )
                   )
@@ -179,6 +177,9 @@ end)
 let prepare
     ~label
     ~search
+    ~id_to_yojson
+    ~id_of_yojson
+    ~serialise
     ~unserialise
     ~make_descr
     ~make_result
@@ -187,11 +188,14 @@ let prepare
     ~model_name
     ?create_dialog_content
     ()
-    : (('model, 'access) Entry.t, 'model Entry.id option) Component.s
+    : ('model, 'id option) Component.s
   =
   prepare_gen
     ~label
+    ~id_to_yojson
+    ~id_of_yojson
     ~search
+    ~serialise
     ~unserialise
     ~make_descr
     ~make_result
@@ -206,6 +210,9 @@ let prepare
 let make
     ~label
     ~search
+    ~id_to_yojson
+    ~id_of_yojson
+    ~serialise
     ~unserialise
     ~make_descr
     ~make_result
@@ -219,7 +226,10 @@ let make
     (
       prepare
         ~label
+        ~id_to_yojson
+        ~id_of_yojson
         ~search
+        ~serialise
         ~unserialise
         ~make_descr
         ~make_result

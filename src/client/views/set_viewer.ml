@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model
+open Model_new
 open Html
 open Utils
 
@@ -88,6 +89,8 @@ let view context id =
             Lwt_list.mapi_p
               (fun index (version, params) ->
                 let%lwt version = Option.get <$> Model.Version.get version in
+                let%lwt name = NEList.hd <$> Model.Version.names' version in
+                let version_name = {Version_name.id = Entry.id version; name = NEString.to_string name} in
                 let context = Endpoints.Page.in_set id index in
                 lwt @@
                   div
@@ -107,7 +110,7 @@ let view context id =
                             version
                         ];
                       ];
-                      Components.Version_snippets.make ~show_audio: false ~params version;
+                      Components.Version_snippets.make ~show_audio: false ~params version_name;
                     ]
               )
               (Set.contents' set)

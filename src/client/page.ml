@@ -1,3 +1,5 @@
+open Dancelor_common
+open Model_new
 open Js_of_ocaml
 open Nes
 open Html
@@ -9,7 +11,7 @@ type t = {
   title: string Lwt.t;
   subtitles: Html_types.phrasing elt list;
   content: Html_types.div_content_fun elt list;
-  share: Model.Any.t option;
+  share: Any_id.t option;
   actions: Html_types.li_content_fun elt list Lwt.t list;
   buttons: Html_types.div_content_fun elt list;
   on_load: unit -> unit;
@@ -27,22 +29,30 @@ let full_title p =
     (S.from_lwt "" p.title)
 
 let make
-  ?(parent_title = "")
-  ?(before_title = [])
-  ~title
-  ?(subtitles = [])
-  ?share
-  ?(actions = [])
-  ?(buttons = [])
-  ?(on_load = Fun.id)
-  content
-=
-  {parent_title; before_title; title; subtitles; content; share; actions; buttons; on_load}
+    ?(parent_title = "")
+    ?(before_title = [])
+    ~title
+    ?(subtitles = [])
+    ?share
+    ?share_new
+    ?(actions = [])
+    ?(buttons = [])
+    ?(on_load = Fun.id)
+    content
+  =
+  let share =
+    match share, share_new with
+    | None, None -> None
+    | Some _, Some _ -> assert false
+    | Some share, None -> Some (Utils.old_any_to_any_id share)
+    | None, Some share -> Some share
+  in
+    {parent_title; before_title; title; subtitles; content; share; actions; buttons; on_load}
 
-let make' ?parent_title ?before_title ~title ?subtitles ?share ?actions ?buttons ?on_load content =
+let make' ?parent_title ?before_title ~title ?subtitles ?share ?share_new ?actions ?buttons ?on_load content =
   (* NOTE: In general, [lwt] for no reason should be avoided. However, this
      particular function is only ever used in an [Lwt] context. *)
-  lwt @@ make ?parent_title ?before_title ~title ?subtitles ?share ?actions ?buttons ?on_load content
+  lwt @@ make ?parent_title ?before_title ~title ?subtitles ?share ?share_new ?actions ?buttons ?on_load content
 
 let render p =
   (* Handling of actions. We could probably generate the <ul> elements gradually
@@ -64,7 +74,7 @@ let render p =
                     ~icon: (Action Share)
                     ~classes: ["btn-primary"]
                     ~onclick: (fun _ ->
-                      write_to_clipboard @@ href_any_for_sharing share;
+                      write_to_clipboard @@ href_any_for_sharing_new share;
                       Toast.open_ ~title: "Copied to clipboard" [txt "A short link to this page has been copied to your clipboard."];
                       lwt_unit
                     )

@@ -46,7 +46,7 @@ type (_, _, _) t =
   | Tune : ((Context.t option -> Core.Tune.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Version_add : (Core.Tune.t Entry.Id.t option -> 'w, 'w, Void.t) t
   | Version_edit : ((Core.Version.t Entry.Id.t -> 'w), 'w, Void.t) t
-  | Version : ((Context.t option -> Core.Tune.t Entry.Id.t -> Core.Version.t Entry.Id.t -> 'w), 'w, Void.t) t
+  | Version : ((Context.t option -> Core.Version.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Index : ('w, 'w, Void.t) t
   | Explore : ((string option -> 'w), 'w, Void.t) t
   | User_create : ('w, 'w, Void.t) t
@@ -77,9 +77,9 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Source_add -> literal "source" @@ literal "add" @@ void ()
     | Source_edit -> literal "source" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Source)) @@ void ()
     | Tune -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Tune)) @@ void ()
-    | Version -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Tune)) @@ variable (module Entry.Id.S(Core.Version)) @@ void ()
     | Tune_add -> literal "tune" @@ literal "add" @@ void ()
     | Tune_edit -> literal "tune" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Tune)) @@ void ()
+    | Version -> literal "version" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Version)) @@ void ()
     | Version_add -> query_opt "tune" (module Entry.Id.J(Core.Tune)) @@ literal "version" @@ literal "add" @@ void ()
     | Version_edit -> literal "version" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Version)) @@ void ()
     | Index -> void ()
@@ -102,7 +102,7 @@ let href_tune ?context tune = href Tune context tune
 
 let href_version ?context tune = function
   | None -> href Tune context tune
-  | Some version -> href Version context tune version
+  | Some version -> href Version context version
 
 let href_any_full ?context any =
   let open Core.Any in
@@ -148,7 +148,7 @@ let consume : type a w r. return: w -> (a, w, r) t -> a = fun ~return: value end
   | Source_add -> value
   | Source_edit -> const value
   | Tune -> const2 value
-  | Version -> (fun _ _ _ -> value)
+  | Version -> (fun _ _ -> value)
   | Tune_add -> value
   | Tune_edit -> const value
   | Version_add -> const value
@@ -163,7 +163,7 @@ module Make_describe (Model : Model_builder.S) = struct
     let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
       | Any -> (fun id -> lwt_some ("any", Entry.Id.to_string id))
       | Version ->
-        (fun _ _ id ->
+        (fun _ id ->
           let%lwt name = NEString.to_string <$> (Model.Version.one_name' % Option.get =<< Model.Version.get id) in
           lwt_some ("version", name)
         )

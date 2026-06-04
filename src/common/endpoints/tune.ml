@@ -5,22 +5,22 @@ open Model_builder.Core
 module Filter = Filter_builder.Core
 
 type (_, _, _) t =
-(* Actions without specific tune *)
-| Create : ((Tune.t -> 'w), 'w, Tune.entry) t
-| Search : ((Slice.t -> (Tune.t, Filter.Tune.t) Formula_entry.public -> 'w), 'w, Tune.entry search_result) t
-(* Actions on a specific tune *)
-| Get : ((Tune.t Entry.Id.t -> 'w), 'w, Tune.entry) t
-| Update : ((Tune.t Entry.Id.t -> Tune.t -> 'w), 'w, Tune.entry) t
-| Delete : ((Tune.t Entry.Id.t -> 'w), 'w, unit) t
+  | Create : (Tune.t -> 'w, 'w, Tune_id.t) t
+  | Search : (Slice.t -> (Tune.t, Filter.Tune.t) Formula_entry.public -> 'w, 'w, Tune_row.t search_result) t
+  | Get : (Tune_id.t -> 'w, 'w, Tune.entry) t
+  | Get_row : (Tune_id.t -> 'w, 'w, Tune_row.t) t
+  | Get_view : (Tune_id.t -> 'w, 'w, Tune_view.t) t
+  | Update : (Tune_id.t -> Tune.t -> 'w, 'w, unit) t
+  | Delete : (Tune_id.t -> 'w, 'w, unit) t
 [@@deriving madge_wrapped_endpoints]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
-    (* Actions without specific tune *)
-    | Create -> body "tune" (module Tune) @@ post (module Entry.JPublic(Tune))
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(Tune)(Filter.Tune)) @@ get (module Utils.Search_result(Entry.JPublic(Tune)))
-    (* Actions on a specific tune *)
-    | Get -> variable (module Entry.Id.S(Tune)) @@ get (module Entry.JPublic(Tune))
-    | Update -> variable (module Entry.Id.S(Tune)) @@ body "tune" (module Tune) @@ put (module Entry.JPublic(Tune))
-    | Delete -> variable (module Entry.Id.S(Tune)) @@ delete (module JUnit)
+    | Create -> body "tune" (module Tune) @@ post (module Tune_id)
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(Tune)(Filter.Tune)) @@ get (module Utils.Search_result(Tune_row))
+    | Get -> variable (module Tune_id) @@ get (module Entry.JPublic(Tune))
+    | Get_row -> variable (module Tune_id) @@ literal "row" @@ get (module Tune_row)
+    | Get_view -> variable (module Tune_id) @@ literal "view" @@ get (module Tune_view)
+    | Update -> variable (module Tune_id) @@ body "tune" (module Tune) @@ put (module JUnit)
+    | Delete -> variable (module Tune_id) @@ delete (module JUnit)

@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model
+open Model_new
 open Html
 open Utils
 
@@ -97,8 +98,8 @@ let confirmation_dialog ~this_version ~other_version =
         ]
     );
     (* arrangers *)
-    let%lwt this_arrangers = Model.Version.arrangers' this_version in
-    let%lwt other_arrangers = Model.Version.arrangers' other_version in
+    let%lwt this_arrangers = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Version.arrangers' this_version) in
+    let%lwt other_arrangers = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Version.arrangers' other_version) in
     if this_arrangers <> other_arrangers then
       failwith "Version de-duplicator: these two versions do not share the same arrangers.";
     (* FIXME: can do better? *)
@@ -193,6 +194,7 @@ let confirmation_dialog ~this_version ~other_version =
     <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) Slice.everything @@
       Formula_entry.value' @@ Filter.Set.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
   in
+  let%lwt sets = Lwt_list.map_p (fun set -> Option.get <$> Model.Set.get set.Set_row.id) sets in
   List.iter
     (fun set ->
       add_changes
@@ -215,6 +217,7 @@ let confirmation_dialog ~this_version ~other_version =
     <$> Madge_client.call_exn Endpoints.Api.(route @@ Book Search) Slice.everything @@
       Formula_entry.value' @@ Filter.Book.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
   in
+  let%lwt books = Lwt_list.map_p (fun book -> Option.get <$> Model.Book.get book.Book_row.id) books in
   List.iter
     (fun book ->
       add_changes
@@ -307,7 +310,7 @@ let confirmation_dialog ~this_version ~other_version =
       ];
     lwt_unit
 
-let dialog ~tune ~version () =
+let dialog (version : Version_view.t) =
   let%lwt other_versions =
     Model_new.items
     <$> Madge_client.call_exn
@@ -316,8 +319,8 @@ let dialog ~tune ~version () =
         Formula.(
           and_l
             [
-              Formula_entry.value' (Filter.(Version.tune' % Formula_entry.is') tune);
-              not_ (Formula_entry.is' version);
+              Formula_entry.value' (Filter.(Version.tune' % Formula.pred % Formula_entry.is) version.tune.id);
+              not_ (Formula.pred @@ Formula_entry.is version.id);
             ]
         )
   in
@@ -328,9 +331,11 @@ let dialog ~tune ~version () =
       [txt
         "Only do this if the two versions are actually the same, or if the other \
         one is a destructured version that can encompass this one.";
-      Tables.versions
+      Tables_new.versions
         other_versions
         ~onclick: (fun other_version ->
+          let%lwt version = Option.get <$> Model.Version.get version.id in
+          let%lwt other_version = Option.get <$> Model.Version.get other_version.id in
           confirmation_dialog ~this_version: version ~other_version;%lwt
           return (some ());
           lwt_unit

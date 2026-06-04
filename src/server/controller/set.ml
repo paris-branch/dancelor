@@ -1,5 +1,56 @@
 open Nes
 open Dancelor_common
+open Model_new
+
+(* FIXME: The following conversion functions are temporary. We will
+   save some network by having them happen on the server, but they
+   should be pushed into individual controllers in a first place, and
+   then even all the way to the respective databases. *)
+
+let version_to_name (version : Model.Version.entry) : Tune_name.t Lwt.t =
+  let%lwt tune = Model.Version.tune' version in
+  lwt {
+    Tune_name.id = Entry.id tune;
+    name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
+  }
+
+let to_row env (set : Model.Set.entry) : Set_row.t Lwt.t =
+  let user = Environment.user env in
+  let%lwt conceptors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Set.conceptors' set in
+  let conceptors = List.map Person.to_name conceptors in
+  let%lwt tunes = Lwt_list.map_s (Option.get <%> Model.Version.get % fst) @@ Model.Set.contents' set in
+  let%lwt tunes = Lwt_list.map_s version_to_name tunes in
+  lwt {
+    Set_row.id = Entry.id set;
+    name = NEString.to_string @@ Model.Set.name' set;
+    kind = Model.Set.kind' set;
+    conceptors;
+    tunes;
+    permission = Option.get @@ Permission.With_reason.can_get_private user set;
+  }
+
+let to_view env (set : Model.Set.entry) : Set_view.t Lwt.t =
+  let user = Environment.user env in
+  let%lwt conceptors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Set.conceptors' set in
+  let conceptors = List.map Person.to_name conceptors in
+  let%lwt contents =
+    Lwt_list.map_s (fun (version, params) ->
+      let%lwt version = Option.get <$> Model.Version.get version in
+      let%lwt version = Version.to_row version in
+      lwt (version, params)
+    ) @@
+      Model.Set.contents' set
+  in
+  lwt {
+    Set_view.id = Entry.id set;
+    name = NEString.to_string @@ Model.Set.name' set;
+    kind = Model.Set.kind' set;
+    conceptors;
+    contents;
+    order = Model.Set.order' set;
+    remark = Option.map NEString.to_string @@ Model.Set.remark' set;
+    permission = Option.get @@ Permission.With_reason.can_get_private user set;
+  }
 
 let get env id =
   match%lwt Database.Set.get id with
@@ -8,16 +59,20 @@ let get env id =
     Permission.assert_can_get_private env set;%lwt
     lwt set
 
+let get_row env id =
+  to_row env =<< get env id
+
+let get_view env id =
+  to_view env =<< get env id
+
 let create env set access =
   Permission.assert_can_create_private env;%lwt
-  let%lwt id = Database.Set.create set access in
-  Option.get <$> Database.Set.get id
+  Database.Set.create set access
 
 let update env id set access =
   let%lwt entry = get env id in
   Permission.assert_can_update_private env entry;%lwt
-  Database.Set.update id set access;%lwt
-  Option.get <$> Database.Set.get id
+  Database.Set.update id set access
 
 let delete env id =
   Permission.assert_can_delete_private env =<< get env id;%lwt
@@ -62,9 +117,16 @@ let build_pdf env id set_params rendering_params =
   let%lwt book_pdf_arg = Model_to_renderer.renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata in
   uncurry Job.register_job <$> Renderer.make_book_pdf book_pdf_arg
 
+let search env slice filter =
+  let%lwt result = search env slice filter in
+  let%lwt items = Lwt_list.map_s (to_row env) result.items in
+  lwt {result with items}
+
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Set.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
+  | Get_row -> get_row env
+  | Get_view -> get_view env
   | Search -> search env
   | Create -> create env
   | Update -> update env

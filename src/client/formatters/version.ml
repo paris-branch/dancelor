@@ -124,7 +124,7 @@ let composer_and_arranger ?(short = false) ?link ?(params = Model.Version_parame
     let composer_block = Tune.composers' ?links: link ~short tune in
     let exist_composers = (not % List.is_empty) (Model.Tune.composers' tune) in
     let%lwt arranger_block =
-      match%lwt Model.Version.arrangers version with
+      match%lwt Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Version.arrangers version) with
       | [] -> lwt_nil
       | arrangers ->
         let arr = if short then "arr." else "arranged by" in

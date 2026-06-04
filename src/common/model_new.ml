@@ -8,9 +8,18 @@ open Nes
 
 (** {2 Person} *)
 
+module Person_id = struct
+  type t = Model_builder.Core.Person.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
+
 module Person_name = struct
   type t = {
-    id: Model_builder.Core.Person.t Entry.id;
+    id: Person_id.t;
     name: string;
   }
   [@@deriving yojson, fields]
@@ -18,16 +27,19 @@ end
 
 module Person_name_with_details = struct
   type t = {
-    id: Model_builder.Core.Person.t Entry.id;
+    id: Person_id.t;
     name: string;
     details: string option; [@default None]
   }
   [@@deriving yojson, fields]
+
+  let to_name : t -> Person_name.t = fun {id; name; _} ->
+    {id; name}
 end
 
 module Person_row = struct
   type t = Person_name.t = {
-    id: Model_builder.Core.Person.t Entry.id;
+    id: Person_id.t;
     name: string;
   }
   [@@deriving yojson, fields]
@@ -35,18 +47,40 @@ end
 
 module Person_view = struct
   type t = {
-    id: Model_builder.Core.Person.t Entry.id;
+    id: Person_id.t;
     name: string;
     scddb_id: int option; [@default None]
+    composed_tunes_are_public: bool; [@default false]
+    published_tunes_are_public: bool; [@default false]
   }
   [@@deriving yojson, fields]
 end
 
+(** {2 User} *)
+
+module User_id = struct
+  type t = Model_builder.Core.User.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
+
 (** {2 Dance} *)
+
+module Dance_id = struct
+  type t = Model_builder.Core.Dance.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
 
 module Dance_name = struct
   type t = {
-    id: Model_builder.Core.Dance.t Entry.id;
+    id: Dance_id.t;
     name: string;
   }
   [@@deriving yojson, fields]
@@ -54,7 +88,7 @@ end
 
 module Dance_row = struct
   type t = {
-    id: Model_builder.Core.Dance.t Entry.id;
+    id: Dance_id.t;
     name: string;
     kind: Kind_dance.t;
     devisers: Person_name.t list; [@default []]
@@ -65,7 +99,7 @@ end
 
 module Dance_view = struct
   type t = {
-    id: Model_builder.Core.Dance.t Entry.id;
+    id: Dance_id.t;
     name: string;
     extra_names: string list; [@default []]
     kind: Kind_dance.t;
@@ -79,9 +113,18 @@ end
 
 (** {2 Source} *)
 
+module Source_id = struct
+  type t = Model_builder.Core.Source.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
+
 module Source_name = struct
   type t = {
-    id: Model_builder.Core.Source.t Entry.id;
+    id: Source_id.t;
     name: string;
   }
   [@@deriving yojson, fields]
@@ -89,7 +132,7 @@ end
 
 module Source_short_name = struct
   type t = {
-    id: Model_builder.Core.Source.t Entry.id;
+    id: Source_id.t;
     short_name: string;
   }
   [@@deriving yojson, fields]
@@ -97,19 +140,21 @@ end
 
 module Source_row = struct
   type t = {
-    id: Model_builder.Core.Source.t Entry.id;
+    id: Source_id.t;
     name: string;
     date: PartialDate.t option; [@default None]
     editors: Person_name.t list; [@default []]
   }
   [@@deriving yojson, fields]
+
+  let to_name : t -> Source_name.t = fun {id; name; _} -> {id; name}
 end
 
 module Source_view = struct
   type t = {
-    id: Model_builder.Core.Source.t Entry.id;
+    id: Source_id.t;
     name: string;
-    short_name: string;
+    short_name: string option; [@default None]
     editors: Person_name.t list; [@default []]
     scddb_id: int option; [@default None]
     description: string option; [@default None]
@@ -120,9 +165,18 @@ end
 
 (** {2 Tune} *)
 
+module Tune_id = struct
+  type t = Model_builder.Core.Tune.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
+
 module Tune_name = struct
   type t = {
-    id: Model_builder.Core.Tune.t Entry.id;
+    id: Tune_id.t;
     name: string
   }
   [@@deriving yojson, fields]
@@ -130,7 +184,7 @@ end
 
 module Tune_row = struct
   type t = {
-    id: Model_builder.Core.Tune.t Entry.id;
+    id: Tune_id.t;
     name: string;
     kind: Kind_base.t;
     composers: Person_name.t list; [@default []]
@@ -140,10 +194,11 @@ end
 
 module Tune_view = struct
   type t = {
-    id: Model_builder.Core.Tune.t Entry.id;
+    id: Tune_id.t;
     name: string;
+    kind: Kind_base.t;
     extra_names: string list; [@default []]
-    composers: Person_name.t list; [@default []]
+    composers: Person_name_with_details.t list; [@default []]
     dances: Dance_row.t list; [@default []]
     remark: string option; [@default None]
     scddb_id: int option; [@default None]
@@ -154,50 +209,92 @@ end
 
 (** {2 Version} *)
 
+module Version_id = struct
+  type t = Model_builder.Core.Version.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
+
+module Version_name = struct
+  type t = {
+    id: Version_id.t;
+    name: string
+  }
+  [@@deriving yojson, fields]
+end
+
 module Version_row = struct
   type content =
     | No_content
     | Destructured
-    | Monolithic of int * Model_builder.Core.Version.Structure.t
+    | Monolithic of {bars: int; structure: Model_builder.Core.Version.Structure.t}
   [@@deriving yojson]
 
   type t = {
-    id: Model_builder.Core.Version.t Entry.id;
+    id: Version_id.t;
     tune: Tune_row.t;
     sources: Source_short_name.t list; [@default []]
-    disambiguation: NEString.t option; [@default None]
+    disambiguation: string option; [@default None]
     arrangers: Person_name.t list; [@default []]
     content: content;
   }
   [@@deriving yojson, fields]
+
+  let to_name : t -> Version_name.t = fun {id; tune; _} ->
+    {id; name = tune.name}
 end
 
 module Version_view = struct
+  type content =
+    | No_content
+    | Destructured of {default_structure: Model_builder.Core.Version.Structure.t}
+    | Monolithic of {bars: int; structure: Model_builder.Core.Version.Structure.t}
+  [@@deriving yojson]
+
   type source = {
-    id: Model_builder.Core.Source.t Entry.id;
+    id: Source_id.t;
     name: string;
     structure: Model_builder.Core.Version.Structure.t;
-    details: NEString.t option; [@default None]
+    details: string option; [@default None]
   }
   [@@deriving yojson, fields]
 
+  let source_to_name : source -> Source_name.t = fun {id; name; _} ->
+    {id; name}
+
   type t = {
-    id: Model_builder.Core.Version.t Entry.id;
+    id: Version_id.t;
     tune: Tune_view.t;
     key: Music.Key.t;
     sources: source list; [@default []]
     arrangers: Person_name.t list; [@default []]
-    remark: NEString.t option; [@default None]
-    disambiguation: NEString.t option; [@default None]
+    remark: string option; [@default None]
+    disambiguation: string option; [@default None]
+    content: content;
   }
   [@@deriving yojson, fields]
+
+  let to_name : t -> Version_name.t = fun {id; tune; _} ->
+    {id; name = tune.name}
 end
 
 (** {2 Set} *)
 
+module Set_id = struct
+  type t = Model_builder.Core.Set.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
+
 module Set_row = struct
   type t = {
-    id: Model_builder.Core.Set.t Entry.id;
+    id: Set_id.t;
     name: string;
     kind: Kind_dance.t;
     conceptors: Person_name.t list; [@default []]
@@ -209,7 +306,7 @@ end
 
 module Set_view = struct
   type t = {
-    id: Model_builder.Core.Set.t Entry.id;
+    id: Set_id.t;
     name: string;
     conceptors: Person_name.t list; [@default []]
     kind: Kind.Dance.t;
@@ -223,9 +320,18 @@ end
 
 (** {2 Book} *)
 
+module Book_id = struct
+  type t = Model_builder.Core.Book.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
+
 module Book_row = struct
   type t = {
-    id: Model_builder.Core.Book.t Entry.id;
+    id: Book_id.t;
     name: string;
     date: PartialDate.t option; [@default None]
     authors: Person_name.t list; [@default []]
@@ -236,6 +342,7 @@ end
 
 module Book_view = struct
   type t = {
+    id: Book_id.t;
     name: string;
     authors: Person_name.t list; [@default []]
     date: PartialDate.t option; [@default None]
@@ -252,13 +359,13 @@ end
 
 module Any_id = struct
   type t =
-    | Person of Model_builder.Core.Person.t Entry.id
-    | Dance of Model_builder.Core.Dance.t Entry.id
-    | Source of Model_builder.Core.Source.t Entry.id
-    | Tune of Model_builder.Core.Tune.t Entry.id
-    | Version of (Model_builder.Core.Tune.t Entry.id * Model_builder.Core.Version.t Entry.id)
-    | Set of Model_builder.Core.Set.t Entry.id
-    | Book of Model_builder.Core.Book.t Entry.id
+    | Person of Person_id.t
+    | Dance of Dance_id.t
+    | Source of Source_id.t
+    | Tune of Tune_id.t
+    | Version of (Tune_id.t * Version_id.t)
+    | Set of Set_id.t
+    | Book of Book_id.t
   [@@deriving yojson, variants]
 
   let equal any1 any2 =
@@ -271,6 +378,15 @@ module Any_id = struct
     | Set id1, Set id2 -> Entry.Id.equal' id1 id2
     | Book id1, Book id2 -> Entry.Id.equal' id1 id2
     | _ -> false
+
+  let to_entry_id = function
+    | Person x -> Entry.Id.unsafe_coerce x
+    | Dance x -> Entry.Id.unsafe_coerce x
+    | Source x -> Entry.Id.unsafe_coerce x
+    | Tune x -> Entry.Id.unsafe_coerce x
+    | Version (_, x) -> Entry.Id.unsafe_coerce x
+    | Set x -> Entry.Id.unsafe_coerce x
+    | Book x -> Entry.Id.unsafe_coerce x
 end
 
 module Any_row = struct

@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 
 open Components
 open Html
@@ -36,12 +37,15 @@ let editor =
           let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
-        ~unserialise: Model.Person.get
-        ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: (Any_result.make_person_result ?context: None)
-        ~results_when_no_search: (Option.to_list <$> Environment.person)
+        ~id_to_yojson: Entry.Id.to_yojson'
+        ~id_of_yojson: Entry.Id.of_yojson'
+        ~serialise: Model_new.Person_row.id
+        ~unserialise: (madge_call_or_option @@ Person Get_row)
+        ~make_descr: (lwt % Person_row.name)
+        ~make_result: (Any_result_new.make_person_result ?context: None)
+        ~results_when_no_search: (Option.to_list <$> Environment.person_row)
         ~model_name: "person"
-        ~create_dialog_content: Person_editor.create
+        ~create_dialog_content: Person_editor.create_row
         ()
     ) ^::
   Input.prepare_option
@@ -87,20 +91,25 @@ let editor =
   nil
 
 let assemble (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ()))))))) =
-  let devisers = List.map Entry.id devisers in
+  let devisers = List.map Person_row.id devisers in
   Model.Dance.make ~names ~kind ~devisers ~two_chords ~scddb_id ~disambiguation ~date ()
 
 let submit mode dance =
-  match mode with
-  | Editor.Edit prev_dance -> Madge_client.call_exn Endpoints.Api.(route @@ Dance Update) (Entry.id prev_dance) dance
-  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) dance
+  let%lwt id =
+    match mode with
+    | Editor.Edit prev_dance ->
+      Madge_client.call_exn Endpoints.Api.(route @@ Dance Update) (Entry.id prev_dance) dance;%lwt
+      lwt (Entry.id prev_dance)
+    | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) dance
+  in
+  Option.get <$> Model.Dance.get id
 
 let unsubmit = lwt % Entry.value
 
 let disassemble dance =
   let names = Model.Dance.names dance in
   let kind = Model.Dance.kind dance in
-  let%lwt devisers = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Dance.devisers dance) in
+  let%lwt devisers = Lwt_list.map_p (Madge_client.call_exn Endpoints.Api.(route @@ Person Get_row)) (Model.Dance.devisers dance) in
   let date = Model.Dance.date dance in
   let disambiguation = Model.Dance.disambiguation dance in
   let two_chords = Model.Dance.two_chords dance in
@@ -122,6 +131,36 @@ let create mode =
     ~unsubmit
     ~disassemble
     ~check_product: Model.Dance.equal
+
+let create_row (mode : (Dance_row.t, 'a) Editor.mode) =
+  let%lwt (mode : (Model.Dance.entry, 'a) Editor.mode) =
+    match mode with
+    | Create state -> lwt @@ Editor.Create state
+    | Create_with_local_storage -> lwt Editor.Create_with_local_storage
+    | Quick_create (init, callback) ->
+      lwt @@
+        Editor.Quick_create (
+          init,
+          (fun dance ->
+            let%lwt devisers = Lwt_list.map_p (Option.get <%> Model.Person.get) @@ Model.Dance.devisers' dance in
+            let devisers = List.map Person_editor.to_name devisers in
+            let dance = {
+              Dance_row.id = Entry.id dance;
+              name = NEString.to_string @@ NEList.hd @@ Model.Dance.names' dance;
+              kind = Model.Dance.kind' dance;
+              devisers;
+              disambiguation = Option.map NEString.to_string @@ Model.Dance.disambiguation' dance;
+            }
+            in
+            callback dance
+          )
+        )
+    | Edit result ->
+      let%lwt result = Option.get <$> Model.Dance.get (Dance_row.id result) in
+      lwt @@ Editor.Edit result
+    | Quick_edit state -> lwt @@ Editor.Quick_edit state
+  in
+  create mode
 
 let add () =
   create Create_with_local_storage

@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 
 open Components
 open Html
@@ -32,17 +33,20 @@ let editor =
         ~label: "Composer"
         (
           Selector.prepare
-            ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-            ~make_result: (Any_result.make_person_result ?context: None)
-            ~results_when_no_search: (Option.to_list <$> Environment.person)
+            ~make_descr: (lwt % Person_row.name)
+            ~make_result: (Any_result_new.make_person_result ?context: None)
+            ~results_when_no_search: (Option.to_list <$> Environment.person_row)
             ~label: "Composer"
             ~model_name: "person"
-            ~create_dialog_content: Person_editor.create
+            ~create_dialog_content: Person_editor.create_row
             ~search: (fun slice input ->
               let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
             )
-            ~unserialise: Model.Person.get
+            ~id_to_yojson: Entry.Id.to_yojson'
+            ~id_of_yojson: Entry.Id.of_yojson'
+            ~serialise: Person_row.id
+            ~unserialise: (madge_call_or_option @@ Person Get_row)
             ()
         )
         (
@@ -76,12 +80,15 @@ let editor =
           let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Dance.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
         )
-        ~unserialise: Model.Dance.get
-        ~make_descr: (lwt % NEString.to_string % Model.Dance.one_name')
-        ~make_result: (Any_result.make_dance_result ?context: None)
+        ~id_to_yojson: Entry.Id.to_yojson'
+        ~id_of_yojson: Entry.Id.of_yojson'
+        ~serialise: Dance_row.id
+        ~unserialise: (madge_call_or_option @@ Dance Get_row)
+        ~make_descr: (lwt % Dance_row.name)
+        ~make_result: (Any_result_new.make_dance_result ?context: None)
         ~label: "Dance"
         ~model_name: "dance"
-        ~create_dialog_content: Dance_editor.create
+        ~create_dialog_content: Dance_editor.create_row
         ()
     ) ^::
   Input.prepare_option
@@ -107,14 +114,19 @@ let editor =
   nil
 
 let assemble (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))))))) =
-  let composers = List.map (fun (composer, details) -> {Model.Tune.composer = Entry.id composer; details}) composers in
-  let dances = List.map Entry.id dances in
+  let composers = List.map (fun (composer, details) -> {Model.Tune.composer = Person_row.id composer; details}) composers in
+  let dances = List.map Dance_row.id dances in
   Model.Tune.make ~names ~kind ~composers ~date ~dances ~remark ~scddb_id ()
 
 let submit mode tune =
-  match mode with
-  | Editor.Edit prev_tune -> Madge_client.call_exn Endpoints.Api.(route @@ Tune Update) (Entry.id prev_tune) tune
-  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) tune
+  let%lwt id =
+    match mode with
+    | Editor.Edit prev_tune ->
+      Madge_client.call_exn Endpoints.Api.(route @@ Tune Update) (Entry.id prev_tune) tune;%lwt
+      lwt (Entry.id prev_tune)
+    | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) tune
+  in
+  Madge_client.call_exn Endpoints.Api.(route @@ Tune Get) id
 
 let unsubmit = lwt % Entry.value
 
@@ -124,13 +136,13 @@ let disassemble tune =
   let%lwt composers =
     Lwt_list.map_p
       (fun Model.Tune.{composer; details} ->
-        let%lwt composer = Option.get <$> Model.Person.get composer in
+        let%lwt composer = Madge_client.call_exn Endpoints.Api.(route @@ Person Get_row) composer in
         lwt (composer, details)
       )
       (Model.Tune.composers tune)
   in
   let date = Model.Tune.date tune in
-  let%lwt dances = Lwt_list.map_p (Option.get <%> Model.Dance.get) (Model.Tune.dances tune) in
+  let%lwt dances = Lwt_list.map_p (Madge_client.call_exn Endpoints.Api.(route @@ Dance Get_row)) (Model.Tune.dances tune) in
   let remark = Model.Tune.remark tune in
   let scddb_id = Model.Tune.scddb_id tune in
   lwt (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ())))))))
@@ -150,6 +162,34 @@ let create mode =
     ~unsubmit
     ~disassemble
     ~check_product: Model.Tune.equal
+
+let to_row tune =
+  let%lwt composers = Lwt_list.map_s (Option.get <%> Model.Person.get % Model.Tune.composer_composer) @@ Model.Tune.composers' tune in
+  let composers = List.map Person_editor.to_name composers in
+  lwt {
+    Tune_row.id = Entry.id tune;
+    name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
+    kind = Model.Tune.kind' tune;
+    composers;
+  }
+
+let create_row (mode : (Tune_row.t, 'a) Editor.mode) =
+  let%lwt (mode : (Model.Tune.entry, 'a) Editor.mode) =
+    match mode with
+    | Create state -> lwt @@ Editor.Create state
+    | Create_with_local_storage -> lwt Editor.Create_with_local_storage
+    | Quick_create (init, callback) ->
+      lwt @@
+        Editor.Quick_create (
+          init,
+          (fun tune -> callback =<< to_row tune)
+        )
+    | Edit result ->
+      let%lwt result = Option.get <$> Model.Tune.get (Tune_row.id result) in
+      lwt @@ Editor.Edit result
+    | Quick_edit state -> lwt @@ Editor.Quick_edit state
+  in
+  create mode
 
 let add () =
   create Create_with_local_storage

@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 open Components
 open Html
 open Utils
@@ -46,17 +47,20 @@ let editor user =
     ~label: "Conceptors"
     (
       Selector.prepare
-        ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: (Any_result.make_person_result ?context: None)
-        ~results_when_no_search: (Option.to_list <$> Environment.person)
+        ~make_descr: (lwt % Person_row.name)
+        ~make_result: (Any_result_new.make_person_result ?context: None)
+        ~results_when_no_search: (Option.to_list <$> Environment.person_row)
         ~label: "Conceptor"
         ~model_name: "person"
-        ~create_dialog_content: Person_editor.create
+        ~create_dialog_content: Person_editor.create_row
         ~search: (fun slice input ->
           let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
-        ~unserialise: Model.Person.get
+        ~id_to_yojson: Entry.Id.to_yojson'
+        ~id_of_yojson: Entry.Id.of_yojson'
+        ~serialise: Person_row.id
+        ~unserialise: (madge_call_or_option @@ Person Get_row)
         ()
     ) ^::
   Star.prepare
@@ -65,21 +69,24 @@ let editor user =
       Parameteriser.prepare
         (
           Selector.prepare
-            ~make_descr: (Lwt.map NEString.to_string % Model.Version.one_name')
-            ~make_result: (Any_result.make_version_result ?context: None)
+            ~make_descr: (lwt % Tune_row.name % Version_row.tune)
+            ~make_result: (Any_result_new.make_version_result ?context: None)
             ~make_more_results: (fun version ->
               S.flip_map show_preview @@ function
-                | true -> [tr [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false version]]]
+                | true -> [tr [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false (Version_row.to_name version)]]]
                 | false -> []
             )
             ~label: "Version"
             ~model_name: "version"
-            ~create_dialog_content: Version_editor.create
+            ~create_dialog_content: Version_editor.create_row
             ~search: (fun slice input ->
               let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Version.converter) input in
               ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
             )
-            ~unserialise: Model.Version.get
+            ~id_to_yojson: Entry.Id.to_yojson'
+            ~id_of_yojson: Entry.Id.of_yojson'
+            ~serialise: Version_row.id
+            ~unserialise: (madge_call_or_option @@ Version Get_row)
             ()
         )
         (
@@ -125,6 +132,9 @@ let editor user =
           let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.User.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
         )
+        ~id_to_yojson: Entry.Id.to_yojson'
+        ~id_of_yojson: Entry.Id.of_yojson'
+        ~serialise: Entry.id
         ~unserialise: Model.User.get
         ()
     ) ^::
@@ -161,6 +171,9 @@ let editor user =
                   let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.User.converter) input in
                   ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
                 )
+                ~id_to_yojson: Entry.Id.to_yojson'
+                ~id_of_yojson: Entry.Id.of_yojson'
+                ~serialise: Entry.id
                 ~unserialise: Model.User.get
                 ()
             )
@@ -171,8 +184,8 @@ let editor user =
   nil
 
 let assemble (name, (kind, (conceptors, (contents, (order, (owners, (visibility, ()))))))) =
-  let conceptors = List.map Entry.id conceptors in
-  let contents = List.map (Pair.map_fst Entry.id) contents in
+  let conceptors = List.map Person_row.id conceptors in
+  let contents = List.map (Pair.map_fst Version_row.id) contents in
   (
     (* FIXME: This erases the existing remarks, or, most likely, tunes with
        remarks will get a Non_convertible exception when we check for the roundtrip. *)
@@ -181,9 +194,14 @@ let assemble (name, (kind, (conceptors, (contents, (order, (owners, (visibility,
   )
 
 let submit mode (set, access) =
-  match mode with
-  | Editor.Edit prev_set -> Madge_client.call_exn Endpoints.Api.(route @@ Set Update) (Entry.id prev_set) set access
-  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Set Create) set access
+  let%lwt id =
+    match mode with
+    | Editor.Edit prev_set ->
+      Madge_client.call_exn Endpoints.Api.(route @@ Set Update) (Entry.id prev_set) set access;%lwt
+      lwt (Entry.id prev_set)
+    | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Set Create) set access
+  in
+  Madge_client.call_exn Endpoints.Api.(route @@ Set Get) id
 
 let unsubmit entry =
   lwt (Entry.value entry, Entry.access entry)
@@ -191,8 +209,8 @@ let unsubmit entry =
 let disassemble (set, access) =
   let name = Model.Set.name set in
   let kind = Model.Set.kind set in
-  let%lwt conceptors = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Set.conceptors set) in
-  let%lwt contents = Lwt_list.map_p (fun (version, params) -> let%lwt version = Option.get <$> Model.Version.get version in lwt (version, params)) (Model.Set.contents set) in
+  let%lwt conceptors = Lwt_list.map_p (Madge_client.call_exn Endpoints.Api.(route @@ Person Get_row)) (Model.Set.conceptors set) in
+  let%lwt contents = Lwt_list.map_p (fun (version, params) -> let%lwt version = Madge_client.call_exn Endpoints.Api.(route @@ Version Get_row) version in lwt (version, params)) (Model.Set.contents set) in
   let order = Model.Set.order set in
   let%lwt owners = NEList.of_list_exn <$> Lwt_list.map_p (fun user -> Option.get <$> Model.User.get user) (NEList.to_list @@ Entry.Access.Private.owners access) in
   let%lwt visibility = visibility_to_visibility' @@ Entry.Access.Private.visibility access in
@@ -214,6 +232,46 @@ let create mode =
     ~format: (Formatters.Set.name' ~link: true)
     ~href: (Endpoints.Page.href_set % Entry.id)
     ~check_product: (fun (set1, access1) (set2, access2) -> Model.Set.equal set1 set2 && Entry.Access.Private.equal access1 access2)
+
+let version_to_name (version : Model.Version.entry) : Tune_name.t Lwt.t =
+  let%lwt tune = Model.Version.tune' version in
+  lwt {
+    Tune_name.id = Entry.id tune;
+    name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
+  }
+
+let to_row (set : Model.Set.entry) : Set_row.t Lwt.t =
+  let%lwt conceptors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Set.conceptors' set in
+  let conceptors = List.map Person_editor.to_name conceptors in
+  let%lwt tunes = Lwt_list.map_s (Option.get <%> Model.Version.get % fst) @@ Model.Set.contents' set in
+  let%lwt tunes = Lwt_list.map_s version_to_name tunes in
+  let%lwt permission = Option.get <$> Permission.can_get_private set in
+  lwt {
+    Set_row.id = Entry.id set;
+    name = NEString.to_string @@ Model.Set.name' set;
+    kind = Model.Set.kind' set;
+    conceptors;
+    tunes;
+    permission;
+  }
+
+let create_row (mode : (Set_row.t, 'a) Editor.mode) =
+  let%lwt (mode : (Model.Set.entry, 'a) Editor.mode) =
+    match mode with
+    | Create state -> lwt @@ Editor.Create state
+    | Create_with_local_storage -> lwt Editor.Create_with_local_storage
+    | Quick_create (init, callback) ->
+      lwt @@
+        Editor.Quick_create (
+          init,
+          (fun set -> callback =<< to_row set)
+        )
+    | Edit result ->
+      let%lwt result = Option.get <$> Model.Set.get (Set_row.id result) in
+      lwt @@ Editor.Edit result
+    | Quick_edit state -> lwt @@ Editor.Quick_edit state
+  in
+  create mode
 
 let add () =
   create Create_with_local_storage

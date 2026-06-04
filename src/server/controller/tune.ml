@@ -1,5 +1,48 @@
 open Nes
 open Dancelor_common
+open Model_new
+
+(* FIXME: The following conversion functions are temporary. We will
+   save some network by having them happen on the server, but they
+   should be pushed into individual controllers in a first place, and
+   then even all the way to the respective databases. *)
+
+let to_row (tune : Model.Tune.entry) : Tune_row.t Lwt.t =
+  let%lwt composers = Lwt_list.map_s (Option.get <%> Model.Person.get % Model.Tune.composer_composer) @@ Model.Tune.composers' tune in
+  let composers = List.map Person.to_name composers in
+  lwt {
+    Tune_row.id = Entry.id tune;
+    name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
+    kind = Model.Tune.kind' tune;
+    composers;
+  }
+
+let to_view (tune : Model.Tune.entry) : Tune_view.t Lwt.t =
+  let%lwt composers =
+    Lwt_list.map_s (fun composer ->
+      let id = Model.Tune.composer_composer composer in
+      let%lwt person = Option.get <$> Model.Person.get id in
+      lwt {
+        Person_name_with_details.id;
+        name = NEString.to_string @@ Model.Person.name' person;
+        details = Option.map NEString.to_string @@ Model.Tune.composer_details composer;
+      }
+    ) @@
+      Model.Tune.composers' tune
+  in
+  let%lwt dances = Lwt_list.map_s (Option.get <%> Model.Dance.get) @@ Model.Tune.dances' tune in
+  let%lwt dances = Lwt_list.map_s Dance.to_row dances in
+  lwt {
+    Tune_view.id = Entry.id tune;
+    name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
+    extra_names = List.map NEString.to_string @@ NEList.tl @@ Model.Tune.names' tune;
+    kind = Model.Tune.kind' tune;
+    composers;
+    dances;
+    remark = Option.map NEString.to_string @@ Model.Tune.remark' tune;
+    scddb_id = Model.Tune.scddb_id' tune;
+    date = Model.Tune.date' tune;
+  }
 
 let get env id =
   match%lwt Database.Tune.get id with
@@ -8,15 +51,19 @@ let get env id =
     Permission.assert_can_get_public env tune;%lwt
     lwt tune
 
+let get_row env id =
+  to_row =<< get env id
+
+let get_view env id =
+  to_view =<< get env id
+
 let create env tune =
   Permission.assert_can_create_public env;%lwt
-  let%lwt id = Database.Tune.create tune in
-  Option.get <$> Database.Tune.get id
+  Database.Tune.create tune
 
 let update env id tune =
   Permission.assert_can_update_public env =<< get env id;%lwt
-  ignore <$> Database.Tune.update id tune;%lwt
-  Option.get <$> Database.Tune.get id
+  ignore <$> Database.Tune.update id tune
 
 let delete env id =
   Permission.assert_can_delete_public env =<< get env id;%lwt
@@ -42,9 +89,16 @@ include Search.Build(struct
     ]
 end)
 
+let search env slice filter =
+  let%lwt result = search env slice filter in
+  let%lwt items = Lwt_list.map_s to_row result.items in
+  lwt {result with items}
+
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Tune.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
+  | Get_row -> get_row env
+  | Get_view -> get_view env
   | Search -> search env
   | Create -> create env
   | Update -> update env

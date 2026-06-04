@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 
 open Components
 open Html
@@ -28,12 +29,15 @@ let editor =
           let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
-        ~unserialise: Model.Person.get
-        ~make_descr: (lwt % NEString.to_string % Model.Person.name')
-        ~make_result: (Any_result.make_person_result ?context: None)
-        ~results_when_no_search: (Option.to_list <$> Environment.person)
+        ~id_to_yojson: Entry.Id.to_yojson'
+        ~id_of_yojson: Entry.Id.of_yojson'
+        ~serialise: Person_row.id
+        ~unserialise: (madge_call_or_option @@ Person Get_row)
+        ~make_descr: (lwt % Person_row.name)
+        ~make_result: (Any_result_new.make_person_result ?context: None)
+        ~results_when_no_search: (Option.to_list <$> Environment.person_row)
         ~model_name: "person"
-        ~create_dialog_content: Person_editor.create
+        ~create_dialog_content: Person_editor.create_row
         ()
     ) ^::
   Input.prepare
@@ -72,20 +76,25 @@ let editor =
   nil
 
 let assemble (name, (short_name, (editors, (date, (scddb_id, (description, ())))))) =
-  let editors = List.map Entry.id editors in
+  let editors = List.map Person_row.id editors in
   Model.Source.make ~name ~short_name ~editors ~scddb_id ~description ~date ()
 
 let submit mode source =
-  match mode with
-  | Editor.Edit prev_source -> Madge_client.call_exn Endpoints.Api.(route @@ Source Update) (Entry.id prev_source) source
-  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Source Create) source
+  let%lwt id =
+    match mode with
+    | Editor.Edit prev_source ->
+      Madge_client.call_exn Endpoints.Api.(route @@ Source Update) (Entry.id prev_source) source;%lwt
+      lwt (Entry.id prev_source)
+    | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Source Create) source
+  in
+  Option.get <$> Model.Source.get id
 
 let unsubmit = lwt % Entry.value
 
 let disassemble source =
   let name = Model.Source.name source in
   let short_name = Model.Source.short_name source in
-  let%lwt editors = Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Source.editors source) in
+  let%lwt editors = Lwt_list.map_p (Madge_client.call_exn Endpoints.Api.(route @@ Person Get_row)) (Model.Source.editors source) in
   let date = Model.Source.date source in
   let scddb_id = Model.Source.scddb_id source in
   let description = Model.Source.description source in
@@ -106,6 +115,45 @@ let create mode =
     ~check_product: Model.Source.equal
     ~format: (Formatters.Source.name' ~link: true)
     ~href: (Endpoints.Page.href_source % Entry.id)
+
+let to_short_name (source : Model.Source.entry) : Source_short_name.t = {
+  Source_short_name.id = Entry.id source;
+  short_name =
+  NEString.to_string (
+    match Model.Source.short_name' source with
+    | None -> Model.Source.name' source
+    | Some name -> name
+  );
+}
+
+let create_row (mode : (Source_row.t, 'a) Editor.mode) =
+  let%lwt (mode : (Model.Source.entry, 'a) Editor.mode) =
+    match mode with
+    | Create state -> lwt @@ Editor.Create state
+    | Create_with_local_storage -> lwt Editor.Create_with_local_storage
+    | Quick_create (init, callback) ->
+      lwt @@
+        Editor.Quick_create (
+          init,
+          (fun source ->
+            let%lwt editors = Lwt_list.map_p (Option.get <%> Model.Person.get) @@ Model.Source.editors' source in
+            let editors = List.map Person_editor.to_name editors in
+            let source = {
+              Source_row.id = Entry.id source;
+              name = NEString.to_string @@ Model.Source.name' source;
+              date = Model.Source.date' source;
+              editors;
+            }
+            in
+            callback source
+          )
+        )
+    | Edit result ->
+      let%lwt result = Option.get <$> Model.Source.get (Source_row.id result) in
+      lwt @@ Editor.Edit result
+    | Quick_edit state -> lwt @@ Editor.Quick_edit state
+  in
+  create mode
 
 let add () =
   create Create_with_local_storage

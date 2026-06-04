@@ -37,6 +37,9 @@ let create () =
         let%rlwt filter = lwt (Text_formula.string_to_formula (Formula_entry.converter_public Filter.User.converter) input) in
         ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
       )
+      ~id_to_yojson: Entry.Id.to_yojson'
+      ~id_of_yojson: Entry.Id.of_yojson'
+      ~serialise: Entry.id
       ~unserialise: Model.User.get
       None
   in
