@@ -119,9 +119,14 @@ let assemble (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))
   Model.Tune.make ~names ~kind ~composers ~date ~dances ~remark ~scddb_id ()
 
 let submit mode tune =
-  match mode with
-  | Editor.Edit prev_tune -> Madge_client.call_exn Endpoints.Api.(route @@ Tune Update) (Entry.id prev_tune) tune
-  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) tune
+  let%lwt id =
+    match mode with
+    | Editor.Edit prev_tune ->
+      Madge_client.call_exn Endpoints.Api.(route @@ Tune Update) (Entry.id prev_tune) tune;%lwt
+      lwt (Entry.id prev_tune)
+    | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) tune
+  in
+  Madge_client.call_exn Endpoints.Api.(route @@ Tune Get) id
 
 let unsubmit = lwt % Entry.value
 
@@ -157,6 +162,35 @@ let create mode =
     ~unsubmit
     ~disassemble
     ~check_product: Model.Tune.equal
+
+let create_row (mode : (Tune_row.t, 'a) Editor.mode) =
+  let%lwt (mode : (Model.Tune.entry, 'a) Editor.mode) =
+    match mode with
+    | Create state -> lwt @@ Editor.Create state
+    | Create_with_local_storage -> lwt Editor.Create_with_local_storage
+    | Quick_create (init, callback) ->
+      lwt @@
+        Editor.Quick_create (
+          init,
+          (fun tune ->
+            let%lwt composers = Lwt_list.map_s (Option.get <%> Model.Person.get % Model.Tune.composer_composer) @@ Model.Tune.composers' tune in
+            let composers = List.map Person_editor.to_name composers in
+            let tune = {
+              Tune_row.id = Entry.id tune;
+              name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
+              kind = Model.Tune.kind' tune;
+              composers;
+            }
+            in
+            callback tune
+          )
+        )
+    | Edit result ->
+      let%lwt result = Option.get <$> Model.Tune.get (Tune_row.id result) in
+      lwt @@ Editor.Edit result
+    | Quick_edit state -> lwt @@ Editor.Quick_edit state
+  in
+  create mode
 
 let add () =
   create Create_with_local_storage

@@ -186,19 +186,19 @@ let content () =
 let editor =
   let open Editor in
   Selector.prepare
-    ~make_descr: (lwt % NEString.to_string % Model.Tune.one_name')
-    ~make_result: (Any_result.make_tune_result ?context: None)
+    ~make_descr: (lwt % Tune_row.name)
+    ~make_result: (Any_result_new.make_tune_result ?context: None)
     ~label: "Tune"
     ~model_name: "tune"
-    ~create_dialog_content: Tune_editor.create
+    ~create_dialog_content: Tune_editor.create_row
     ~search: (fun slice input ->
       let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Tune.converter) input in
       ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) slice filter
     )
     ~id_to_yojson: Entry.Id.to_yojson'
     ~id_of_yojson: Entry.Id.of_yojson'
-    ~serialise: Entry.id
-    ~unserialise: Model.Tune.get
+    ~serialise: Tune_row.id
+    ~unserialise: (madge_call_or_option @@ Tune Get_row)
     () ^::
   Input.prepare
     ~type_: Text
@@ -286,7 +286,7 @@ let editor =
   nil
 
 let assemble (tune, (key, (arrangers, (remark, (sources, (disambiguation, (content, ()))))))) =
-  let tune = Entry.id tune in
+  let tune = Tune_row.id tune in
   let arrangers = List.map Person_row.id arrangers in
   let sources = List.map (fun (source, (structure, details)) -> Model.Version.{source = Source_row.id source; structure; details}) sources in
   Model.Version.make ~tune ~key ~arrangers ~remark ~sources ~disambiguation ~content ()
@@ -322,7 +322,7 @@ let unsubmit version =
   lwt @@ Model.Version.set_content content (Entry.value version)
 
 let disassemble version =
-  let%lwt tune = Model.Version.tune version in
+  let%lwt tune = Madge_client.call_exn Endpoints.Api.(route @@ Tune Get_row) (Model.Version.tune_id version) in
   let key = Model.Version.key version in
   let%lwt arrangers = Lwt_list.map_p (Madge_client.call_exn Endpoints.Api.(route @@ Person Get_row)) (Model.Version.arrangers version) in
   let remark = Model.Version.remark version in
