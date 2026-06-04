@@ -7,6 +7,10 @@ open Model_new
    should be pushed into individual controllers in a first place, and
    then even all the way to the respective databases. *)
 
+let to_name (source : Model.Source.entry) : Source_name.t = {
+  Source_name.id = Entry.id source;
+  name = NEString.to_string @@ Model.Source.name' source;
+}
 let to_short_name (source : Model.Source.entry) : Source_short_name.t = {
   Source_short_name.id = Entry.id source;
   short_name =

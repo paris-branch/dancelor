@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 open Html
 open Utils
 
@@ -86,7 +87,11 @@ let dialog_to_book ~source_type ~source_format user source source_page =
     ~target_converter: (Formula_entry.converter_private Filter.Book.converter)
     ~target_filter_owners': Formula_entry.(access' % owners')
     ~target_result: (Any_result.make_book_result ?classes: None ?prefix: None ?suffix: None)
-    ~target_search: (Madge_client.call_exn Endpoints.Api.(route @@ Book Search))
+    ~target_search: (fun slice filter ->
+      let%lwt books = Madge_client.call_exn Endpoints.Api.(route @@ Book Search) slice filter in
+      let%lwt items = Lwt_list.map_p (fun book -> Option.get <$> Model.Book.get book.Book_row.id) books.items in
+      lwt {books with items}
+    )
     ~target_update: (Madge_client.call_exn Endpoints.Api.(route @@ Book Update))
     ~target_history: History.get_books
     ~target_add_source_to_content: (fun book ->

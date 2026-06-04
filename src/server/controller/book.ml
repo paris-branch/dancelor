@@ -1,5 +1,41 @@
 open NesUnix
 open Dancelor_common
+open Model_new
+
+(* FIXME: The following conversion functions are temporary. We will
+   save some network by having them happen on the server, but they
+   should be pushed into individual controllers in a first place, and
+   then even all the way to the respective databases. *)
+
+let to_row env (book : Model.Book.entry) : Book_row.t Lwt.t =
+  let user = Environment.user env in
+  let%lwt authors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Book.authors' book in
+  let authors = List.map Person.to_name authors in
+  lwt {
+    Book_row.id = Entry.id book;
+    name = NEString.to_string @@ Model.Book.name' book;
+    date = Model.Book.date' book;
+    authors: Person_name.t list;
+    permission = Option.get @@ Permission.With_reason.can_get_private user book;
+  }
+
+let to_view env (book : Model.Book.entry) : Book_view.t Lwt.t =
+  let user = Environment.user env in
+  let%lwt authors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Book.authors' book in
+  let authors = List.map Person.to_name authors in
+  let%lwt sources = Lwt_list.map_s (Option.get <%> Model.Source.get) @@ Model.Book.sources' book in
+  let sources = List.map Source.to_name sources in
+  lwt {
+    Book_view.id = Entry.id book;
+    name = NEString.to_string @@ Model.Book.name' book;
+    date = Model.Book.date' book;
+    authors;
+    contents = Model.Book.contents' book;
+    remark = Option.map NEString.to_string @@ Model.Book.remark' book;
+    sources;
+    scddb_id = Model.Book.scddb_id' book;
+    permission = Option.get @@ Permission.With_reason.can_get_private user book;
+  }
 
 let get env id =
   match%lwt Database.Book.get id with
@@ -8,15 +44,19 @@ let get env id =
     Permission.assert_can_get_private env book;%lwt
     lwt book
 
+let get_row env id =
+  to_row env =<< get env id
+
+let get_view env id =
+  to_view env =<< get env id
+
 let create env book access =
   Permission.assert_can_create_private env;%lwt
-  let%lwt id = Database.Book.create book access in
-  Option.get <$> Database.Book.get id
+  Database.Book.create book access
 
 let update env id book access =
   Permission.assert_can_update_private env =<< get env id;%lwt
-  Database.Book.update id book access;%lwt
-  Option.get <$> Database.Book.get id
+  Database.Book.update id book access
 
 let delete env id =
   Permission.assert_can_delete_private env =<< get env id;%lwt
@@ -53,9 +93,16 @@ let build_pdf env id book_params rendering_params =
   let%lwt book_pdf_arg = Model_to_renderer.renderer_book_to_renderer_book_pdf_arg book rendering_params pdf_metadata in
   uncurry Job.register_job <$> Renderer.make_book_pdf book_pdf_arg
 
+let search env slice filter =
+  let%lwt result = search env slice filter in
+  let%lwt items = Lwt_list.map_s (to_row env) result.items in
+  lwt {result with items}
+
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Book.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
+  | Get_row -> get_row env
+  | Get_view -> get_view env
   | Search -> search env
   | Create -> create env
   | Update -> update env

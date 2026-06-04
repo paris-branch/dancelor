@@ -371,9 +371,14 @@ let assemble (name, (authors, (date, (contents, (remark, (sources, (scddb_id, (o
   )
 
 let submit mode (book, access) =
-  match mode with
-  | Editor.Edit prev_book -> Madge_client.call_exn Endpoints.Api.(route @@ Book Update) (Entry.id prev_book) book access
-  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Book Create) book access
+  let%lwt id =
+    match mode with
+    | Editor.Edit prev_book ->
+      Madge_client.call_exn Endpoints.Api.(route @@ Book Update) (Entry.id prev_book) book access;%lwt
+      lwt (Entry.id prev_book)
+    | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Book Create) book access
+  in
+  Madge_client.call_exn Endpoints.Api.(route @@ Book Get) id
 
 let unsubmit entry =
   lwt (Entry.value entry, Entry.access entry)

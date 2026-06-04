@@ -217,6 +217,7 @@ let confirmation_dialog ~this_version ~other_version =
     <$> Madge_client.call_exn Endpoints.Api.(route @@ Book Search) Slice.everything @@
       Formula_entry.value' @@ Filter.Book.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
   in
+  let%lwt books = Lwt_list.map_p (fun book -> Option.get <$> Model.Book.get book.Book_row.id) books in
   List.iter
     (fun book ->
       add_changes

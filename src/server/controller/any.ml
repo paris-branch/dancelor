@@ -50,23 +50,6 @@ let slice_lwt_stream = fun ?(strict = true) slice xs ->
 
 let cache : (Environment.cache_key * Filter.Any.t, (int * (Model_new.Any_row.t * float) list) Lwt.t) Cache.t = Cache.create ~lifetime: 600 ()
 
-(* FIXME: The following conversion functions are temporary. We will
-   save some network by having them happen on the server, but they
-   should be pushed into individual controllers in a first place, and
-   then even all the way to the respective databases. *)
-
-let book_to_row env (book : Model.Book.entry) : Book_row.t Lwt.t =
-  let user = Environment.user env in
-  let%lwt authors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Book.authors' book in
-  let authors = List.map Person.to_name authors in
-  lwt {
-    Book_row.id = Entry.id book;
-    name = NEString.to_string @@ Model.Book.name' book;
-    date = Model.Book.date' book;
-    authors: Person_name.t list;
-    permission = Option.get @@ Permission.With_reason.can_get_private user book;
-  }
-
 let search' env filter =
   Cache.use ~cache ~key: (Environment.cache_key env, filter) @@ fun () ->
   let (book_f, dance_f, person_f, set_f, source_f, tune_f, version_f) = Filter.Any.specialise filter in
@@ -93,7 +76,7 @@ let search' env filter =
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.tune) (stream_to_row_s Tune.to_row (Lwt_stream.of_list tunes_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.version) (stream_to_row_s Version.to_row (Lwt_stream.of_list versions_result.items));
       Lwt_stream.map (Pair.map_fst Model_new.Any_row.set) (stream_to_row_s (Set.to_row env) (Lwt_stream.of_list sets_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.book) (stream_to_row_s (book_to_row env) (Lwt_stream.of_list books_result.items));
+      Lwt_stream.map (Pair.map_fst Model_new.Any_row.book) (stream_to_row_s (Book.to_row env) (Lwt_stream.of_list books_result.items));
     ]
   in
   let%lwt results = Lwt_stream.to_list results in

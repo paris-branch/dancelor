@@ -320,9 +320,18 @@ end
 
 (** {2 Book} *)
 
+module Book_id = struct
+  type t = Model_builder.Core.Book.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
+
 module Book_row = struct
   type t = {
-    id: Model_builder.Core.Book.t Entry.id;
+    id: Book_id.t;
     name: string;
     date: PartialDate.t option; [@default None]
     authors: Person_name.t list; [@default []]
@@ -333,6 +342,7 @@ end
 
 module Book_view = struct
   type t = {
+    id: Book_id.t;
     name: string;
     authors: Person_name.t list; [@default []]
     date: PartialDate.t option; [@default None]
@@ -354,8 +364,8 @@ module Any_id = struct
     | Source of Source_id.t
     | Tune of Tune_id.t
     | Version of (Tune_id.t * Version_id.t)
-    | Set of Model_builder.Core.Set.t Entry.id
-    | Book of Model_builder.Core.Book.t Entry.id
+    | Set of Set_id.t
+    | Book of Book_id.t
   [@@deriving yojson, variants]
 
   let equal any1 any2 =
