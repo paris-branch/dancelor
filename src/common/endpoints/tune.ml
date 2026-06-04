@@ -5,13 +5,13 @@ open Model_builder.Core
 module Filter = Filter_builder.Core
 
 type (_, _, _) t =
-  | Create : ((Tune.t -> 'w), 'w, Tune_id.t) t
-  | Search : ((Slice.t -> (Tune.t, Filter.Tune.t) Formula_entry.public -> 'w), 'w, Tune_row.t search_result) t
-  | Get : ((Tune_id.t -> 'w), 'w, Tune.entry) t
-  | Get_row : ((Tune_id.t -> 'w), 'w, Tune_row.t) t
-  | Get_view : ((Tune_id.t -> 'w), 'w, Tune_view.t) t
-  | Update : ((Tune_id.t -> Tune.t -> 'w), 'w, unit) t
-  | Delete : ((Tune_id.t -> 'w), 'w, unit) t
+  | Create : (Tune.t -> 'w, 'w, Tune_id.t) t
+  | Search : (Slice.t -> (Tune.t, Filter.Tune.t) Formula_entry.public -> 'w, 'w, Tune_row.t search_result) t
+  | Get : (Tune_id.t -> 'w, 'w, Tune.entry) t
+  | Get_row : (Tune_id.t -> 'w, 'w, Tune_row.t) t
+  | Get_view : (Tune_id.t -> 'w, 'w, Tune_view.t) t
+  | Update : (Tune_id.t -> Tune.t -> 'w, 'w, unit) t
+  | Delete : (Tune_id.t -> 'w, 'w, unit) t
 [@@deriving madge_wrapped_endpoints]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =

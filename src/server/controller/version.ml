@@ -125,6 +125,21 @@ let with_copyright_check env version f =
     let%lwt payload = f () in
     lwt (Endpoints.Version.Granted {payload; reason})
 
+let can_get_and_copyright_ok env version =
+  Lwt.l2
+    (&&)
+    (Permission.can_get_public env version)
+    (((<>) Endpoints.Version.Protected) <$> with_copyright_check env version (const lwt_unit))
+
+let get_view_for_tune env id =
+  let all = Database.Version.get_all_for_tune id in
+  let stream = (Lwt_stream.filter_s (can_get_and_copyright_ok env) % Lwt_stream.of_list) <$> all in
+  let stream = Lwt_stream.flip_lwt stream in
+  (* FIXME: some logic to choose a “good” version? *)
+  match%lwt Lwt_stream.get stream with
+  | Some version -> (fun v -> Endpoints.Version.Version_view_fallback.Found v) <$> to_view version
+  | None -> (fun t -> Endpoints.Version.Version_view_fallback.Fallback t) <$> Tune.get_view env id
+
 let rec search_and_extract acc s regexp =
   let rem = Str.replace_first regexp "" s in
   try
@@ -157,14 +172,8 @@ include Search.Build(struct
   type filter = (Model.Version.t, Filter.Version.t) Formula_entry.public
 
   let get_all env =
-    let can_get_and_copyright_ok version =
-      Lwt.l2
-        (&&)
-        (Permission.can_get_public env version)
-        (((<>) Endpoints.Version.Protected) <$> with_copyright_check env version (const lwt_unit))
-    in
     let all = Database.Version.get_all () in
-    let stream = (Lwt_stream.filter_s can_get_and_copyright_ok % Lwt_stream.of_list) <$> all in
+    let stream = (Lwt_stream.filter_s (can_get_and_copyright_ok env) % Lwt_stream.of_list) <$> all in
     Lwt_stream.flip_lwt stream
 
   let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_public Filter.Version.converter)
@@ -254,6 +263,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t ->
   | Get -> get env
   | Get_row -> get_row env
   | Get_view -> get_view env
+  | Get_view_for_tune -> get_view_for_tune env
   | Content -> content env
   | Search -> search env
   | Create -> create env

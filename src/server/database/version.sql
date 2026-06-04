@@ -26,6 +26,20 @@ SELECT
     "modified_at"
 FROM "version";
 
+-- @get_all_for_tune
+SELECT
+    "id",
+    "key",
+    "remark",
+    "disambiguation",
+    "monolithic_lilypond",
+    "monolithic_bars",
+    "monolithic_or_default_structure",
+    "created_at",
+    "modified_at"
+FROM "version"
+WHERE "tune_id" = @tune_id;
+
 -- @create
 INSERT INTO "version" (
     "id",

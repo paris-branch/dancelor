@@ -62,35 +62,23 @@ let add_to_set_dialog (version : Version_name.t) user =
 
 let madge_call_tune_or_version tune_or_version_id f =
   match tune_or_version_id with
-  | `Tune id -> Main_page.madge_call_or_404 (Tune Get_view) id (fun tune -> f tune None)
-  | `Version id -> Main_page.madge_call_or_404 (Version Get_view) id (fun version -> f version.tune (Some version))
+  | `Tune id ->
+    Main_page.madge_call_or_404 (Version Get_view_for_tune) id (function
+      | Found version -> f version.tune (Some version)
+      | Fallback tune -> f tune None
+    )
+  | `Version id ->
+    Main_page.madge_call_or_404 (Version Get_view) id (fun version -> f version.tune (Some version))
 
 let view context tune_or_version_id =
-  madge_call_tune_or_version tune_or_version_id @@ fun tune specific_version ->
-  let specific_version_id = Option.map Version_view.id specific_version in
-  let versions_of_this_tune_lwt =
-    Model_new.items
-    <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
-      Formula_entry.value' @@ Filter.Version.tune' @@ Formula.pred @@ Formula_entry.is tune.id
-  in
-  (* If no specific version was provided, grab any available one. FIXME: Some
-     more logic here, eg. priorities books or versions that the user likes. *)
-  let%lwt version =
-    match specific_version with
-    | Some version -> lwt_some version
-    | None ->
-      (* FIXME: this whole mechanism should be server side, I think *)
-      match%lwt List.hd_opt <$> versions_of_this_tune_lwt with
-      | None -> lwt_none
-      | Some version -> some <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Get_view) version.id
-  in
+  madge_call_tune_or_version tune_or_version_id @@ fun tune version ->
   Page.make'
     ~parent_title: "Tune"
     ~before_title: [
       Components.Context_links.make_and_render_new
         ?context
-        ~this_page: (Endpoints.Page.href_version tune.id specific_version_id)
-        (Option.fold specific_version_id ~some: (fun id -> Any_id.Version (tune.id, id)) ~none: (Any_id.tune tune.id));
+        ~this_page: (Endpoints.Page.href_version tune.id (match tune_or_version_id with `Tune _ -> None | `Version id -> Some id))
+        (match tune_or_version_id with `Tune _ -> Any_id.Tune tune.id | `Version id -> Any_id.Version (tune.id, id))
     ]
     ~title: (lwt tune.name)
     ~subtitles: (Formatters_new.Tune.description tune)

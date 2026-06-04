@@ -1,15 +1,18 @@
 open Dancelor_common
+open Model_new
 
 type t = Model_builder.Core.Version.t
 type entry = Model_builder.Core.Version.entry
 
-val get : t Entry.id -> entry option Lwt.t
+val get : Version_id.t -> entry option Lwt.t
 
 (* FIXME: we should really rather provide a fold function, or directly an Lwt_stream or something *)
 val get_all : unit -> entry list Lwt.t
 
-val create : t -> t Entry.id Lwt.t
+val get_all_for_tune : Tune_id.t -> entry list Lwt.t
 
-val update : t Entry.id -> t -> unit Lwt.t
+val create : t -> Version_id.t Lwt.t
 
-val delete : t Entry.id -> unit Lwt.t
+val update : Version_id.t -> t -> unit Lwt.t
+
+val delete : Version_id.t -> unit Lwt.t
