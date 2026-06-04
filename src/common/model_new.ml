@@ -363,7 +363,7 @@ module Any_id = struct
     | Dance of Dance_id.t
     | Source of Source_id.t
     | Tune of Tune_id.t
-    | Version of (Tune_id.t * Version_id.t)
+    | Version of Version_id.t
     | Set of Set_id.t
     | Book of Book_id.t
   [@@deriving yojson, variants]
@@ -374,7 +374,7 @@ module Any_id = struct
     | Dance id1, Dance id2 -> Entry.Id.equal' id1 id2
     | Source id1, Source id2 -> Entry.Id.equal' id1 id2
     | Tune id1, Tune id2 -> Entry.Id.equal' id1 id2
-    | Version (_, id1), Version (_, id2) -> Entry.Id.equal' id1 id2
+    | Version id1, Version id2 -> Entry.Id.equal' id1 id2
     | Set id1, Set id2 -> Entry.Id.equal' id1 id2
     | Book id1, Book id2 -> Entry.Id.equal' id1 id2
     | _ -> false
@@ -384,7 +384,7 @@ module Any_id = struct
     | Dance x -> Entry.Id.unsafe_coerce x
     | Source x -> Entry.Id.unsafe_coerce x
     | Tune x -> Entry.Id.unsafe_coerce x
-    | Version (_, x) -> Entry.Id.unsafe_coerce x
+    | Version x -> Entry.Id.unsafe_coerce x
     | Set x -> Entry.Id.unsafe_coerce x
     | Book x -> Entry.Id.unsafe_coerce x
 end
@@ -405,7 +405,7 @@ module Any_row = struct
     | Dance d -> Dance d.id
     | Source s -> Source s.id
     | Tune t -> Tune t.id
-    | Version v -> Version (v.tune.id, v.id)
+    | Version v -> Version v.id
     | Set s -> Set s.id
     | Book b -> Book b.id
 end

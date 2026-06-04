@@ -99,7 +99,7 @@ let old_any_to_any_id : Model.Any.t -> Any_id.t = function
   | Book b -> Book (Entry.id b)
   | Set s -> Set (Entry.id s)
   | Tune t -> Tune (Entry.id t)
-  | Version v -> Version (Model.Version.tune_id' v, Entry.id v)
+  | Version v -> Version (Entry.id v)
   | User _ -> assert false
 
 let any_id_to_old_any : Any_id.t -> Model.Any.t Lwt.t = function
@@ -109,4 +109,4 @@ let any_id_to_old_any : Any_id.t -> Model.Any.t Lwt.t = function
   | Book id -> (fun b -> Model.Any.Book (Option.get b)) <$> Model.Book.get id
   | Set id -> (fun s -> Model.Any.Set (Option.get s)) <$> Model.Set.get id
   | Tune id -> (fun t -> Model.Any.Tune (Option.get t)) <$> Model.Tune.get id
-  | Version (_, id) -> (fun v -> Model.Any.Version (Option.get v)) <$> Model.Version.get id
+  | Version id -> (fun v -> Model.Any.Version (Option.get v)) <$> Model.Version.get id
