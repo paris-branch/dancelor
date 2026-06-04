@@ -360,7 +360,7 @@ let view context tune_or_version_id =
                     ]
                   ]
                 else
-                    [Tables_new.versions versions]
+                    [Tables.versions versions]
           );
       ];
       div [
@@ -370,7 +370,7 @@ let view context tune_or_version_id =
           if dances = [] then
             txt "There are no dances that recommend this tune."
           else
-            Tables_new.dances dances
+            Tables.dances dances
         )
       ];
     ]

@@ -47,7 +47,7 @@ let create () =
           S.from_lwt (Utils.Tables.placeholder ~rows: length ()) @@
             match%lwt History.get_models () with
             | [] -> lwt_nil
-            | history -> lwt [Utils.Tables_new.any @@ List.take length history]
+            | history -> lwt [Utils.Tables.any @@ List.take length history]
         )
       ];
       section [
@@ -70,7 +70,7 @@ let create () =
             in
             let slice = Slice.make ~length () in
             let%lwt results = Model_new.items <$> Madge_client.call_exn Dancelor_common.Endpoints.Api.(route @@ Any Search) slice filter in
-            lwt [Utils.Tables_new.any results]
+            lwt [Utils.Tables.any results]
         );
       ];
       section [

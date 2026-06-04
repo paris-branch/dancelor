@@ -331,7 +331,7 @@ let dialog (version : Version_view.t) =
       [txt
         "Only do this if the two versions are actually the same, or if the other \
         one is a destructured version that can encompass this one.";
-      Tables_new.versions
+      Tables.versions
         other_versions
         ~onclick: (fun other_version ->
           let%lwt version = Option.get <$> Model.Version.get version.id in

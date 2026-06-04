@@ -13,7 +13,6 @@ module Action = Action
 module Documentation = Documentation
 module Markdown = Markdown
 module Tables = Tables
-module Tables_new = Tables_new
 
 let write_to_clipboard = Clipboard.write_to_clipboard
 
