@@ -12,16 +12,16 @@ let map_table ~header f list =
     ]
 
 let dances dances =
-  map_table ~header: ["Name"; "Kind"; "Deviser"] Any_result.make_dance_result dances
+  map_table ~header: ["Name"; "Kind"; "Deviser"] Any_result_new.make_dance_result dances
 
 let tunes tunes =
-  map_table ~header: ["Name"; "Kind"; "Composer"] Any_result.make_tune_result tunes
+  map_table ~header: ["Name"; "Kind"; "Composer"] Any_result_new.make_tune_result tunes
 
 let versions ?onclick versions =
   map_table
     ~header: ["Name"; "Kind"; "Composer"]
     (fun version ->
-      Any_result.make_version_result
+      Any_result_new.make_version_result
         ?onclick: (Option.map (fun onclick () -> onclick version) onclick)
         version
     )
@@ -48,7 +48,7 @@ let any ?context anys =
         ~a: [a_class ["table-primary"; "pe-none"]]
         [tr [td []; td []; td []; td []; td []]]
     )
-    [tbody (List.map (Any_result.make_result ?context) anys)]
+    [tbody (List.map (Any_result_new.make_result ?context) anys)]
 
 let placeholder ?(show_thead = true) ?(show_tfoot = true) ?(rows = 3) () = [
   div

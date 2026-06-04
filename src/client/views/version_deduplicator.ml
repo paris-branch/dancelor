@@ -305,7 +305,7 @@ let confirmation_dialog ~this_version ~other_version =
           ~label: "Go to other version"
           ~icon: (Model Version)
           ~classes: ["btn-primary"]
-          ~href: (S.const @@ Endpoints.Page.href_version (Model_builder.Core.Version.tune' other_version) (some @@ Entry.id other_version))
+          ~href: (S.const @@ Endpoints.Page.href_version (Entry.id other_version))
           ();
       ];
     lwt_unit
@@ -331,7 +331,7 @@ let dialog (version : Version_view.t) =
       [txt
         "Only do this if the two versions are actually the same, or if the other \
         one is a destructured version that can encompass this one.";
-      Tables_new.versions
+      Tables.versions
         other_versions
         ~onclick: (fun other_version ->
           let%lwt version = Option.get <$> Model.Version.get version.id in

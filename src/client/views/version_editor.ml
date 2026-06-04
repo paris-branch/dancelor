@@ -348,7 +348,7 @@ let prepare () =
     ~key: "version"
     ~icon: (Model Version)
     editor
-    ~href: (fun version -> Endpoints.Page.href_version (Model_builder.Core.Version.tune' version) (some @@ Entry.id version))
+    ~href: (fun version -> Endpoints.Page.href_version (Entry.id version))
     ~format: (Formatters.Version.name' ~link: true)
     ~assemble
     ~submit

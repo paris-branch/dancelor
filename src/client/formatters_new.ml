@@ -102,7 +102,7 @@ module Version = struct
   let name_row ?(link = true) ?context (version : Version_row.t) =
     if link then
       a
-        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_version ?context version.tune.id (Some version.id)) (switch_signal_option context)]
+        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_version ?context version.id) (switch_signal_option context)]
         [txt version.tune.name]
     else
       txt version.tune.name

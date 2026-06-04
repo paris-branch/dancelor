@@ -1,8 +1,15 @@
 open Js_of_ocaml
 open Nes
 open Dancelor_common
+open Model_new
 
 module Log = (val Logs.src_log @@ Logs.Src.create "client.history": Logs.LOG)
+
+let madge_call_or_option endpoint id =
+  Lwt.flip_map (Madge_client.call (Endpoints.Api.route @@ endpoint) id) @@ function
+    | Ok v -> Some v
+    | Error (Madge_client.Http {status = `Not_found; _}) -> None
+    | Error e -> raise (Madge_client.Error e)
 
 type history = (Datetime.t * Uri.t) list [@@deriving yojson]
 
@@ -33,21 +40,21 @@ let add (uri : Uri.t) : unit =
   update (fun history -> (Datetime.now (), uri) :: List.take (limit - 1) history)
 
 (** Returns all the models whose page is present in the history. *)
-let get_models () : Model.Any.t list Lwt.t =
+let get_models () : Any_row.t list Lwt.t =
   Logger.bracket_lwt (module Log) "getting models" @@ fun () ->
-  let model_val : type a r. (a, Model.Any.t option Lwt.t option, r) Endpoints.Page.t -> a = function
-    | Person -> (fun _ id -> Some (Option.map Model.Any.person <$> Model.Person.get id))
-    | Dance -> (fun _ id -> Some (Option.map Model.Any.dance <$> Model.Dance.get id))
-    | Source -> (fun _ id -> Some (Option.map Model.Any.source <$> Model.Source.get id))
-    | Tune -> (fun _ id -> Some (Option.map Model.Any.tune <$> Model.Tune.get id))
-    | Version -> (fun _ id -> Some (Option.map Model.Any.version <$> Model.Version.get id))
-    | Set -> (fun _ id -> Some (Option.map Model.Any.set <$> Model.Set.get id))
-    | Book -> (fun _ id -> Some (Option.map Model.Any.book <$> Model.Book.get id))
+  let model_val : type a r. (a, Any_row.t option Lwt.t option, r) Endpoints.Page.t -> a = function
+    | Person -> (fun _ id -> Some (Option.map Any_row.person <$> madge_call_or_option (Person Get_row) id))
+    | Dance -> (fun _ id -> Some (Option.map Any_row.dance <$> madge_call_or_option (Dance Get_row) id))
+    | Source -> (fun _ id -> Some (Option.map Any_row.source <$> madge_call_or_option (Source Get_row) id))
+    | Tune -> (fun _ id -> Some (Option.map Any_row.tune <$> madge_call_or_option (Tune Get_row) id))
+    | Version -> (fun _ id -> Some (Option.map Any_row.version <$> madge_call_or_option (Version Get_row) id))
+    | Set -> (fun _ id -> Some (Option.map Any_row.set <$> madge_call_or_option (Set Get_row) id))
+    | Book -> (fun _ id -> Some (Option.map Any_row.book <$> madge_call_or_option (Book Get_row) id))
     (* FIXME: user once there is a user viewer page endpoint *)
     (* everything else we ignore *)
     | endpoint -> Endpoints.Page.consume endpoint ~return: None
   in
-  let model_val uri : Model.Any.t option Lwt.t option =
+  let model_val uri : Any_row.t option Lwt.t option =
     Option.join @@
     Option.map (fun f -> f ()) @@
     List.find_map
@@ -61,10 +68,10 @@ let get_models () : Model.Any.t list Lwt.t =
   in
   let models = List.filter_map (model_val % snd) (get ()) in
   let%lwt models = Lwt_list.filter_map_p Fun.id models in
-  lwt @@ List.deduplicate ~eq: (Model.Any.equal) models
+  lwt @@ List.deduplicate ~eq: (Any_row.equal) models
 
 (** Returns all the sets whose page is present in the history. *)
-let get_sets () = List.filter_map (function Model.Any.Set set -> Some set | _ -> None) <$> get_models ()
+let get_sets () = List.filter_map (function Any_row.Set set -> Some set | _ -> None) <$> get_models ()
 
 (** Returns all the books whose page is present in the history. *)
-let get_books () = List.filter_map (function Model.Any.Book book -> Some book | _ -> None) <$> get_models ()
+let get_books () = List.filter_map (function Any_row.Book book -> Some book | _ -> None) <$> get_models ()

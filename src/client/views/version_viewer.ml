@@ -58,7 +58,10 @@ let add_to_set_dialog (version : Version_name.t) user =
       lwt {sets with items}
     )
     ~target_update: (Madge_client.call_exn Endpoints.Api.(route @@ Set Update))
-    ~target_history: History.get_sets
+    ~target_history: (fun () ->
+      let%lwt sets = History.get_sets () in
+      Lwt_list.map_p (fun set -> Option.get <$> Model.Set.get set.Set_row.id) sets
+    )
     ~target_add_source_to_content: (fun set ->
       let contents = Model.Set.contents set in
       Model.Set.set_contents (contents @ [(version.id, Model.Version_parameters.none)]) set
@@ -81,12 +84,12 @@ let view context tune_or_version_id =
     ~before_title: [
       Components.Context_links.make_and_render_new
         ?context
-        ~this_page: (Endpoints.Page.href_version tune.id (match tune_or_version_id with `Tune _ -> None | `Version id -> Some id))
-        (match tune_or_version_id with `Tune _ -> Any_id.Tune tune.id | `Version id -> Any_id.Version (tune.id, id))
+        ~this_page: (match tune_or_version_id with `Tune _ -> Endpoints.Page.href_tune tune.id | `Version id -> Endpoints.Page.href_version id)
+        (match tune_or_version_id with `Tune _ -> Any_id.Tune tune.id | `Version id -> Any_id.Version id)
     ]
     ~title: (lwt tune.name)
     ~subtitles: (Formatters_new.Tune.description tune)
-    ~share_new: (Option.fold version ~none: (Any_id.tune tune.id) ~some: (fun version -> Any_id.Version (tune.id, version.Version_view.id)))
+    ~share_new: (Option.fold version ~none: (Any_id.tune tune.id) ~some: (fun version -> Any_id.Version version.Version_view.id))
     ~actions: [
       (
         lwt @@
@@ -357,7 +360,7 @@ let view context tune_or_version_id =
                     ]
                   ]
                 else
-                    [Tables_new.versions versions]
+                    [Tables.versions versions]
           );
       ];
       div [
@@ -367,7 +370,7 @@ let view context tune_or_version_id =
           if dances = [] then
             txt "There are no dances that recommend this tune."
           else
-            Tables_new.dances dances
+            Tables.dances dances
         )
       ];
     ]

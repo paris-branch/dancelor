@@ -99,15 +99,12 @@ let href_person ?context person = href Person context person
 let href_source ?context source = href Source context source
 let href_set ?context set = href Set context set
 let href_tune ?context tune = href Tune context tune
-
-let href_version ?context tune = function
-  | None -> href Tune context tune
-  | Some version -> href Version context version
+let href_version ?context version = href Version context version
 
 let href_any_full ?context any =
   let open Core.Any in
   match any with
-  | Version version -> href_version ?context (Model_builder.Core.Version.tune' version) (some @@ Entry.id version)
+  | Version version -> href_version ?context (Entry.id version)
   | Set set -> href_set ?context (Entry.id set)
   | Person person -> href_person ?context (Entry.id person)
   | Source source -> href_source ?context (Entry.id source)
@@ -118,7 +115,7 @@ let href_any_full ?context any =
 
 let href_any_full_new ?context (any : Any_id.t) =
   match any with
-  | Version (tune, version) -> href_version ?context tune (Some version)
+  | Version version -> href_version ?context version
   | Set set -> href_set ?context set
   | Person person -> href_person ?context person
   | Source source -> href_source ?context source
