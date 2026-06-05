@@ -40,38 +40,46 @@ let add (uri : Uri.t) : unit =
   update (fun history -> (Datetime.now (), uri) :: List.take (limit - 1) history)
 
 (** Returns all the models whose page is present in the history. *)
-let get_models () : Any_row.t list Lwt.t =
-  Logger.bracket_lwt (module Log) "getting models" @@ fun () ->
-  let model_val : type a r. (a, Any_row.t option Lwt.t option, r) Endpoints.Page.t -> a = function
-    | Person -> (fun _ id -> Some (Option.map Any_row.person <$> madge_call_or_option (Person Get_row) id))
-    | Dance -> (fun _ id -> Some (Option.map Any_row.dance <$> madge_call_or_option (Dance Get_row) id))
-    | Source -> (fun _ id -> Some (Option.map Any_row.source <$> madge_call_or_option (Source Get_row) id))
-    | Tune -> (fun _ id -> Some (Option.map Any_row.tune <$> madge_call_or_option (Tune Get_row) id))
-    | Version -> (fun _ id -> Some (Option.map Any_row.version <$> madge_call_or_option (Version Get_row) id))
-    | Set -> (fun _ id -> Some (Option.map Any_row.set <$> madge_call_or_option (Set Get_row) id))
-    | Book -> (fun _ id -> Some (Option.map Any_row.book <$> madge_call_or_option (Book Get_row) id))
+let get_model_ids () : Any_id.t list =
+  let model_id : type a r. (a, Any_id.t option, r) Endpoints.Page.t -> a = function
+    | Person -> (fun _ -> some % Any_id.person)
+    | Dance -> (fun _ -> some % Any_id.dance)
+    | Source -> (fun _ -> some % Any_id.source)
+    | Tune -> (fun _ -> some % Any_id.tune)
+    | Version -> (fun _ -> some % Any_id.version)
+    | Set -> (fun _ -> some % Any_id.set)
+    | Book -> (fun _ -> some % Any_id.book)
     (* FIXME: user once there is a user viewer page endpoint *)
     (* everything else we ignore *)
     | endpoint -> Endpoints.Page.consume endpoint ~return: None
   in
-  let model_val uri : Any_row.t option Lwt.t option =
+  let model_id uri : Any_id.t option =
     Option.join @@
     Option.map (fun f -> f ()) @@
     List.find_map
       (fun (Endpoints.Page.W' endpoint) ->
         Madge.apply'
           (Endpoints.Page.route endpoint)
-          (fun () -> model_val endpoint)
+          (fun () -> model_id endpoint)
           (Madge.Request.make ~meth: GET ~uri ~body: "")
       )
       (Endpoints.Page.all' ())
   in
-  let models = List.filter_map (model_val % snd) (get ()) in
-  let%lwt models = Lwt_list.filter_map_p Fun.id models in
-  lwt @@ List.deduplicate ~eq: (Any_row.equal) models
+  let model_ids = List.filter_map (model_id % snd) (get ()) in
+  List.deduplicate ~eq: (Any_id.equal) model_ids
+
+let get_models () : Any_row.t list Lwt.t =
+  Logger.bracket (module Log) "getting models" @@ fun () ->
+  Madge_client.call_exn Endpoints.Api.(route @@ Any Get_rows) (get_model_ids ())
 
 (** Returns all the sets whose page is present in the history. *)
-let get_sets () = List.filter_map (function Any_row.Set set -> Some set | _ -> None) <$> get_models ()
+let get_sets () : Set_row.t list Lwt.t =
+  Logger.bracket_lwt (module Log) "getting sets" @@ fun () ->
+  let set_ids = List.filter_map (function Any_id.Set set -> Some set | _ -> None) (get_model_ids ()) in
+  Madge_client.call_exn Endpoints.Api.(route @@ Set Get_rows) set_ids
 
 (** Returns all the books whose page is present in the history. *)
-let get_books () = List.filter_map (function Any_row.Book book -> Some book | _ -> None) <$> get_models ()
+let get_books () : Book_row.t list Lwt.t =
+  Logger.bracket_lwt (module Log) "getting books" @@ fun () ->
+  let book_ids = List.filter_map (function Any_id.Book book -> Some book | _ -> None) (get_model_ids ()) in
+  Madge_client.call_exn Endpoints.Api.(route @@ Book Get_rows) book_ids
