@@ -7,24 +7,15 @@ module Dance_sql = Dance_sql.Sqlgg(Sqlgg_postgresql)
 type t = Model_builder.Core.Dance.t
 type entry = Model_builder.Core.Dance.entry
 
-(* NOTE: Do not reorder as that would break serialisation to and deserialisation
-   from PostgreSQL. *)
-(* FIXME: We should just have a proper enum in PostgreSQL... *)
-type two_chords =
-  | Dont_know
-  | One_chord
-  | Two_chords
-[@@deriving enum]
+let two_chords_to_common = function
+  | `Dont_know -> Model_builder.Core.Dance.Dont_know
+  | `One_chord -> One_chord
+  | `Two_chords -> Two_chords
 
-let two_chords_to_common : two_chords -> Model_builder.Core.Dance.two_chords = function
-  | Dont_know -> Dont_know
-  | One_chord -> One_chord
-  | Two_chords -> Two_chords
-
-let two_chords_of_common : Model_builder.Core.Dance.two_chords -> two_chords = function
-  | Dont_know -> Dont_know
-  | One_chord -> One_chord
-  | Two_chords -> Two_chords
+let two_chords_of_common = function
+  | Model_builder.Core.Dance.Dont_know -> `Dont_know
+  | One_chord -> `One_chord
+  | Two_chords -> `Two_chords
 
 let sql_to_row ~id ~name ~kind ~devisers ~disambiguation ~(k : Dance_row.t -> 'w) : 'w =
   k {
@@ -65,7 +56,7 @@ let sql_to_dance
       Model_builder.Core.Dance.make
         ~names: (NEList.cons (NEString.of_string_exn name) extra_names)
         ~kind: (Kind_dance.of_string kind)
-        ~two_chords: (two_chords_to_common @@ Option.get @@ two_chords_of_enum @@ Int64.to_int two_chords)
+        ~two_chords: (two_chords_to_common two_chords)
         ~scddb_id: (Option.map Int64.to_int scddb_id)
         ~disambiguation: (Option.map NEString.of_string_exn disambiguation)
         ~date: (Option.map (Option.get % PartialDate.from_string) date)
@@ -82,7 +73,7 @@ let dance_to_sql ~create_or_update db id dance =
       ~id
       ~name: (NEString.to_string @@ NEList.hd @@ Model_builder.Core.Dance.names dance)
       ~kind: (Kind_dance.to_string @@ Model_builder.Core.Dance.kind dance)
-      ~two_chords: (Int64.of_int @@ two_chords_to_enum @@ two_chords_of_common @@ Model_builder.Core.Dance.two_chords dance)
+      ~two_chords: (two_chords_of_common @@ Model_builder.Core.Dance.two_chords dance)
       ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Dance.scddb_id dance)
       ~disambiguation: (Option.map NEString.to_string @@ Model_builder.Core.Dance.disambiguation dance)
       ~date: (Option.map PartialDate.to_string @@ Model_builder.Core.Dance.date dance);%lwt

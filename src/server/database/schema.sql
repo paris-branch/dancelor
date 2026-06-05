@@ -14,6 +14,8 @@ CREATE TABLE "person" (
     CONSTRAINT "fk_person_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
+CREATE TYPE "role" AS ENUM ('Normal_user', 'Maintainer', 'Administrator');
+
 CREATE TABLE "user" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
     "username" VARCHAR(256) NOT NULL UNIQUE,
@@ -22,7 +24,7 @@ CREATE TABLE "user" (
     "password_reset_token_max_date" TIMESTAMP,
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
-    "role" SMALLINT NOT NULL,
+    "role" "role" NOT NULL,
     "omniscience" BOOLEAN NOT NULL,
     "person_id" VARCHAR(14) NULL,
     CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id"),
@@ -59,11 +61,13 @@ CREATE TABLE "source_editors" (
     CONSTRAINT "uq_source_editors_source_id_person_id" UNIQUE ("source_id", "person_id")
 );
 
+CREATE TYPE "two_chords" AS ENUM ('Dont_know', 'One_chord', 'Two_chords');
+
 CREATE TABLE "dance" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
     "name" VARCHAR(256) NOT NULL,
     "kind" VARCHAR(32) NOT NULL,
-    "two_chords" SMALLINT NOT NULL,
+    "two_chords" "two_chords" NOT NULL,
     "scddb_id" INT,
     "disambiguation" VARCHAR(256),
     "date" VARCHAR(32),

@@ -198,7 +198,7 @@ SELECT * FROM (
             WHEN "set"."visibility" = 1 THEN 'Everyone'
             WHEN "set_owners"."owner_id" IS NOT NULL THEN 'Owner'
             WHEN "set"."visibility" = 2 AND "set_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
-            WHEN "user"."role" = 2 AND "user"."omniscience" THEN 'Omniscient_administrator'
+            WHEN "user"."role" = 'Administrator' AND "user"."omniscience" THEN 'Omniscient_administrator'
             ELSE NULL
         END AS "permission"
     FROM "set"

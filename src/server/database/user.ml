@@ -11,24 +11,15 @@ module Remember_me_token_hashed = Fresh.Make(HashedSecret)
 type t = Entry.User.t
 type entry = t Entry.public
 
-(* NOTE: Do not reorder as that would break serialisation to and deserialisation
-   from PostgreSQL. *)
-(* FIXME: We should just have a proper enum in PostgreSQL... *)
-type role =
-  | Normal_user
-  | Maintainer
-  | Administrator
-[@@deriving enum]
-
 let role_to_common omniscience = function
-  | Normal_user -> Entry.User.Normal_user
-  | Maintainer -> Maintainer
-  | Administrator -> Administrator {omniscience}
+  | `Normal_user -> Entry.User.Normal_user
+  | `Maintainer -> Maintainer
+  | `Administrator -> Administrator {omniscience}
 
 let role_of_common = function
-  | Entry.User.Normal_user -> (Normal_user, false)
-  | Maintainer -> (Maintainer, false)
-  | Administrator {omniscience} -> (Administrator, omniscience)
+  | Entry.User.Normal_user -> (`Normal_user, false)
+  | Maintainer -> (`Maintainer, false)
+  | Administrator {omniscience} -> (`Administrator, omniscience)
 
 let row_to_user
     ~id
@@ -45,7 +36,7 @@ let row_to_user
     (
       Entry.User.make
         ~username: (Username.of_string_exn username)
-        ~role: (role_to_common omniscience @@ Option.get @@ role_of_enum @@ Int64.to_int role)
+        ~role: (role_to_common omniscience role)
         ()
     )
 
@@ -93,7 +84,7 @@ let create ~username ~role ~password_reset_token_hash ~password_reset_token_max_
       db
       ~id: (Entry.Id.to_string id)
       ~username: (Username.to_string username)
-      ~role: (Int64.of_int @@ role_to_enum role)
+      ~role
       ~omniscience
       ~password_reset_token_hash: (some @@ HashedSecret.unsafe_to_string @@ Password_reset_token_hashed.project password_reset_token_hash)
       ~password_reset_token_max_date: (Some password_reset_token_max_date)

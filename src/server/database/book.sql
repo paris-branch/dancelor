@@ -309,7 +309,7 @@ SELECT * FROM (
             WHEN "book"."visibility" = 1 THEN 'Everyone'
             WHEN "book_owners"."owner_id" IS NOT NULL THEN 'Owner'
             WHEN "book"."visibility" = 2 AND "book_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
-            WHEN "user"."role" = 2 AND "user"."omniscience" THEN 'Omniscient_administrator'
+            WHEN "user"."role" = 'Administrator' AND "user"."omniscience" THEN 'Omniscient_administrator'
             ELSE NULL
         END AS "permission"
     FROM "book"

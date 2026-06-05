@@ -1180,3 +1180,51 @@ WHERE "remark" = '';
 
 -- -- @m060_2026_06_create_extension_pg_trgm
 -- CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- @m061_2026_06_use_enum_for_user_role__create_type_role
+CREATE TYPE "role" AS ENUM ('Normal_user', 'Maintainer', 'Administrator');
+
+-- @m061_2026_06_use_enum_for_user_role__add_column_role_new
+ALTER TABLE "user" ADD COLUMN "role_new" "role";
+
+-- @m061_2026_06_use_enum_for_user_role__convert_normal_users
+UPDATE "user" SET "role_new" = 'Normal_user' WHERE "role" = 0;
+
+-- @m061_2026_06_use_enum_for_user_role__convert_maintainers
+UPDATE "user" SET "role_new" = 'Maintainer' WHERE "role" = 1;
+
+-- @m061_2026_06_use_enum_for_user_role__convert_administrators
+UPDATE "user" SET "role_new" = 'Administrator' WHERE "role" = 2;
+
+-- @m061_2026_06_use_enum_for_user_role__cleanup_columns_1
+ALTER TABLE "user"
+  ALTER COLUMN "role_new" SET NOT NULL,
+  DROP COLUMN "role";
+
+-- @m061_2026_06_use_enum_for_user_role__cleanup_columns_2
+ALTER TABLE "user"
+  RENAME COLUMN "role_new" TO "role";
+
+-- @m062_2026_06_use_enum_for_two_chords__create_type_two_chords
+CREATE TYPE "two_chords" AS ENUM ('Dont_know', 'One_chord', 'Two_chords');
+
+-- @m062_2026_06_use_enum_for_two_chords__add_column_two_chords_new
+ALTER TABLE "dance" ADD COLUMN "two_chords_new" "two_chords";
+
+-- @m062_2026_06_use_enum_for_two_chords__convert_dont_know
+UPDATE "dance" SET "two_chords_new" = 'Dont_know' WHERE "two_chords" = 0;
+
+-- @m062_2026_06_use_enum_for_two_chords__convert_one_chord
+UPDATE "dance" SET "two_chords_new" = 'One_chord' WHERE "two_chords" = 1;
+
+-- @m062_2026_06_use_enum_for_two_chords__convert_two_chords
+UPDATE "dance" SET "two_chords_new" = 'Two_chords' WHERE "two_chords" = 2;
+
+-- @m062_2026_06_use_enum_for_two_chords__cleanup_columns_1
+ALTER TABLE "dance"
+  ALTER COLUMN "two_chords_new" SET NOT NULL,
+  DROP COLUMN "two_chords";
+
+-- @m062_2026_06_use_enum_for_two_chords__cleanup_columns_2
+ALTER TABLE "dance"
+  RENAME COLUMN "two_chords_new" TO "two_chords";

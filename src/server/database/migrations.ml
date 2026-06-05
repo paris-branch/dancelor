@@ -871,6 +871,24 @@ let migrations : migration list = [
     Connection.bypass_exec db "CREATE EXTENSION IF NOT EXISTS pg_trgm";
     lwt_unit
   );
+  make_ddls "m061_2026_06_use_enum_for_user_role" [
+    Migrations_sql.m061_2026_06_use_enum_for_user_role__create_type_role;
+    Migrations_sql.m061_2026_06_use_enum_for_user_role__add_column_role_new;
+    Migrations_sql.m061_2026_06_use_enum_for_user_role__convert_normal_users;
+    Migrations_sql.m061_2026_06_use_enum_for_user_role__convert_maintainers;
+    Migrations_sql.m061_2026_06_use_enum_for_user_role__convert_administrators;
+    Migrations_sql.m061_2026_06_use_enum_for_user_role__cleanup_columns_1;
+    Migrations_sql.m061_2026_06_use_enum_for_user_role__cleanup_columns_2;
+  ];
+  make_ddls "m062_2026_06_use_enum_for_two_chords" [
+    Migrations_sql.m062_2026_06_use_enum_for_two_chords__create_type_two_chords;
+    Migrations_sql.m062_2026_06_use_enum_for_two_chords__add_column_two_chords_new;
+    Migrations_sql.m062_2026_06_use_enum_for_two_chords__convert_dont_know;
+    Migrations_sql.m062_2026_06_use_enum_for_two_chords__convert_one_chord;
+    Migrations_sql.m062_2026_06_use_enum_for_two_chords__convert_two_chords;
+    Migrations_sql.m062_2026_06_use_enum_for_two_chords__cleanup_columns_1;
+    Migrations_sql.m062_2026_06_use_enum_for_two_chords__cleanup_columns_2;
+  ];
 ]
 
 exception Migration_failed of string * exn
