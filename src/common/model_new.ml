@@ -163,10 +163,19 @@ module Source_view = struct
   [@@deriving yojson, fields]
 end
 
-(** {2 Tune} *)
+(** {2 Tune and version} *)
 
 module Tune_id = struct
   type t = Model_builder.Core.Tune.t Entry.id
+  [@@deriving yojson]
+
+  (* For URI serialisation *)
+  let to_string = Entry.Id.to_string
+  let of_string = Entry.Id.of_string
+end
+
+module Version_id = struct
+  type t = Model_builder.Core.Version.t Entry.id
   [@@deriving yojson]
 
   (* For URI serialisation *)
@@ -182,46 +191,20 @@ module Tune_name = struct
   [@@deriving yojson, fields]
 end
 
+module Version_name = struct
+  type t = {
+    id: Version_id.t;
+    name: string
+  }
+  [@@deriving yojson, fields]
+end
+
 module Tune_row = struct
   type t = {
     id: Tune_id.t;
     name: string;
     kind: Kind_base.t;
     composers: Person_name.t list; [@default []]
-  }
-  [@@deriving yojson, fields]
-end
-
-module Tune_view = struct
-  type t = {
-    id: Tune_id.t;
-    name: string;
-    kind: Kind_base.t;
-    extra_names: string list; [@default []]
-    composers: Person_name_with_details.t list; [@default []]
-    dances: Dance_row.t list; [@default []]
-    remark: string option; [@default None]
-    scddb_id: int option; [@default None]
-    date: PartialDate.t option; [@default None]
-  }
-  [@@deriving yojson, fields]
-end
-
-(** {2 Version} *)
-
-module Version_id = struct
-  type t = Model_builder.Core.Version.t Entry.id
-  [@@deriving yojson]
-
-  (* For URI serialisation *)
-  let to_string = Entry.Id.to_string
-  let of_string = Entry.Id.of_string
-end
-
-module Version_name = struct
-  type t = {
-    id: Version_id.t;
-    name: string
   }
   [@@deriving yojson, fields]
 end
@@ -245,6 +228,43 @@ module Version_row = struct
 
   let to_name : t -> Version_name.t = fun {id; tune; _} ->
     {id; name = tune.name}
+end
+
+module Tune_view = struct
+  type version_row_without_tune = {
+    id: Version_id.t;
+    sources: Source_short_name.t list; [@default []]
+    disambiguation: string option; [@default None]
+    arrangers: Person_name.t list; [@default []]
+    content: Version_row.content;
+  }
+  [@@deriving yojson, fields]
+
+  type t = {
+    id: Tune_id.t;
+    name: string;
+    kind: Kind_base.t;
+    extra_names: string list; [@default []]
+    composers: Person_name_with_details.t list; [@default []]
+    dances: Dance_row.t list; [@default []]
+    remark: string option; [@default None]
+    scddb_id: int option; [@default None]
+    date: PartialDate.t option; [@default None]
+    versions: version_row_without_tune list; [@default []]
+  }
+  [@@deriving yojson, fields]
+
+  let to_row : t -> Tune_row.t = fun {id; name; kind; composers; _} ->
+    {id; name; kind; composers = List.map Person_name_with_details.to_name composers}
+
+  let version_row_without_tune_to_version_row (tune : t) (version : version_row_without_tune) : Version_row.t = {
+    id = version.id;
+    tune = to_row tune;
+    sources = version.sources;
+    disambiguation = version.disambiguation;
+    arrangers = version.arrangers;
+    content = version.content;
+  }
 end
 
 module Version_view = struct

@@ -28,7 +28,7 @@ let to_row (version : Model.Version.entry) : Version_row.t Lwt.t =
     content = content_to_content @@ Model.Version.content' version;
   }
 
-let to_view (version : Model.Version.entry) : Version_view.t Lwt.t =
+let to_view env (version : Model.Version.entry) : Version_view.t Lwt.t =
   let source_to_source {Model.Version.source; structure; details} =
     let%lwt source = Option.get <$> Model.Source.get source in
     lwt ({
@@ -43,7 +43,7 @@ let to_view (version : Model.Version.entry) : Version_view.t Lwt.t =
     | Destructured {default_structure; _} -> Destructured {default_structure}
     | Monolithic {bars; structure; _} -> Monolithic {bars; structure}
   in
-  let%lwt tune = Tune.to_view =<< Model.Version.tune' version in
+  let%lwt tune = Tune.to_view env =<< Model.Version.tune' version in
   let%lwt sources = Lwt_list.map_s source_to_source @@ Model.Version.sources' version in
   let%lwt arrangers = Lwt_list.map_s (Person.to_name % Option.get <%> Model.Person.get) (Model.Version.arrangers' version) in
   lwt {
@@ -68,7 +68,30 @@ let get_row env id =
   to_row =<< get env id
 
 let get_view env id =
-  to_view =<< get env id
+  to_view env =<< get env id
+
+(** Returns a hash table containing as many of the ids as possible. *)
+let get_rows_table env ids =
+  let table = Hashtbl.create 8 in
+  Lwt_list.iter_s
+    (fun id ->
+      let%lwt version = Database.Version.get id in
+      Monadise_lwt.monadise_1_1
+        Option.iter
+        (fun version ->
+          if%lwt Permission.can_get_public env version then
+            Hashtbl.add table id <$> to_row version
+          else
+            lwt_unit
+        )
+        version
+    )
+    ids;%lwt
+  lwt table
+
+let get_rows env ids =
+  let%lwt table = get_rows_table env ids in
+  lwt @@ List.filter_map (Hashtbl.find_opt table) ids
 
 let create env version =
   Permission.assert_can_create_public env;%lwt
@@ -137,7 +160,7 @@ let get_view_for_tune env id =
   let stream = Lwt_stream.flip_lwt stream in
   (* FIXME: some logic to choose a “good” version? *)
   match%lwt Lwt_stream.get stream with
-  | Some version -> (fun v -> Endpoints.Version.Version_view_fallback.Found v) <$> to_view version
+  | Some version -> (fun v -> Endpoints.Version.Version_view_fallback.Found v) <$> to_view env version
   | None -> (fun t -> Endpoints.Version.Version_view_fallback.Fallback t) <$> Tune.get_view env id
 
 let rec search_and_extract acc s regexp =

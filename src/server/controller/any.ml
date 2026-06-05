@@ -12,6 +12,45 @@ let get env id =
       ~on_private: (Permission.assert_can_get_private env);%lwt
     lwt any
 
+let get_rows env ids =
+  let (person_ids, dance_ids, source_ids, tune_ids, version_ids, set_ids, book_ids) =
+    List.fold_left
+      (fun
+          (person_ids, dance_ids, source_ids, tune_ids, version_ids, set_ids, book_ids)
+          id
+        ->
+        match id with
+        | Any_id.Person id -> (id :: person_ids, dance_ids, source_ids, tune_ids, version_ids, set_ids, book_ids)
+        | Dance id -> (person_ids, id :: dance_ids, source_ids, tune_ids, version_ids, set_ids, book_ids)
+        | Source id -> (person_ids, dance_ids, id :: source_ids, tune_ids, version_ids, set_ids, book_ids)
+        | Tune id -> (person_ids, dance_ids, source_ids, id :: tune_ids, version_ids, set_ids, book_ids)
+        | Version id -> (person_ids, dance_ids, source_ids, tune_ids, id :: version_ids, set_ids, book_ids)
+        | Set id -> (person_ids, dance_ids, source_ids, tune_ids, version_ids, id :: set_ids, book_ids)
+        | Book id -> (person_ids, dance_ids, source_ids, tune_ids, version_ids, set_ids, id :: book_ids)
+      )
+      ([], [], [], [], [], [], [])
+      ids
+  in
+  let%lwt person_rows = Person.get_rows_table env person_ids in
+  let%lwt dance_rows = Dance.get_rows_table env dance_ids in
+  let%lwt source_rows = Source.get_rows_table env source_ids in
+  let%lwt tune_rows = Tune.get_rows_table env tune_ids in
+  let%lwt version_rows = Version.get_rows_table env version_ids in
+  let%lwt set_rows = Set.get_rows_table env set_ids in
+  let%lwt book_rows = Book.get_rows_table env book_ids in
+  lwt @@
+    List.filter_map
+      (function
+        | Any_id.Person id -> Option.map Any_row.person @@ Hashtbl.find_opt person_rows id
+        | Dance id -> Option.map Any_row.dance @@ Hashtbl.find_opt dance_rows id
+        | Source id -> Option.map Any_row.source @@ Hashtbl.find_opt source_rows id
+        | Tune id -> Option.map Any_row.tune @@ Hashtbl.find_opt tune_rows id
+        | Version id -> Option.map Any_row.version @@ Hashtbl.find_opt version_rows id
+        | Set id -> Option.map Any_row.set @@ Hashtbl.find_opt set_rows id
+        | Book id -> Option.map Any_row.book @@ Hashtbl.find_opt book_rows id
+      )
+      ids
+
 (** Given two streams sorted according to the comparison function, produce one
     sorted stream of all the values. In case of equality, the left stream wins. *)
 let lwt_stream_merge_sorted cmp xs ys =
@@ -96,5 +135,6 @@ let search_context env filter element =
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Any.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
+  | Get_rows -> get_rows env
   | Search -> search env
   | Search_context -> search_context env

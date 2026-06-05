@@ -57,6 +57,29 @@ let get_row env id =
 let get_view env id =
   to_view =<< get env id
 
+(** Returns a hash table containing as many of the ids as possible. *)
+let get_rows_table env ids =
+  let table = Hashtbl.create 8 in
+  Lwt_list.iter_s
+    (fun id ->
+      let%lwt source = Database.Source.get id in
+      Monadise_lwt.monadise_1_1
+        Option.iter
+        (fun source ->
+          if%lwt Permission.can_get_public env source then
+            Hashtbl.add table id <$> to_row source
+          else
+            lwt_unit
+        )
+        source
+    )
+    ids;%lwt
+  lwt table
+
+let get_rows env ids =
+  let%lwt table = get_rows_table env ids in
+  lwt @@ List.filter_map (Hashtbl.find_opt table) ids
+
 let create env source =
   Permission.assert_can_create_public env;%lwt
   Database.Source.create source

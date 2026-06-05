@@ -10,6 +10,7 @@ type (_, _, _) t =
   | Get : (Set_id.t -> 'w, 'w, Set.entry) t
   | Get_row : (Set_id.t -> 'w, 'w, Set_row.t) t
   | Get_view : (Set_id.t -> 'w, 'w, Set_view.t) t
+  | Get_rows : (Set_id.t list -> 'w, 'w, Set_row.t list) t
   | Update : (Set_id.t -> Set.t -> Entry.Access.Private.t -> 'w, 'w, unit) t
   | Delete : (Set_id.t -> 'w, 'w, unit) t
   | Build_pdf : (Set_id.t -> Set_parameters.t -> Rendering_parameters.t -> 'w, 'w, Job_id.t Job.registration_response) t
@@ -25,6 +26,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Get -> variable (module Set_id) @@ get (module Entry.JPrivate(Set))
     | Get_row -> variable (module Set_id) @@ literal "row" @@ get (module Set_row)
     | Get_view -> variable (module Set_id) @@ literal "view" @@ get (module Set_view)
+    | Get_rows -> literal "rows" @@ body "ids" (module JList(Set_id)) @@ post (module JList(Set_row))
     | Update -> variable (module Set_id) @@ body "set" (module Set) @@ body "access" (module Entry.Access.Private) @@ put (module JUnit)
     | Delete -> variable (module Set_id) @@ delete (module JUnit)
     (* Files related to a set *)

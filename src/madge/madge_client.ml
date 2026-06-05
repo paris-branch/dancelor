@@ -12,7 +12,7 @@ type error_response = {message: string} [@@deriving yojson]
 
 let max_attempts = 10 (* up to ~2 minutes *)
 
-let call_retry ?(retry = true) (request : Request.t) : (Response.t, error) result Lwt.t =
+let call_retry ~retry (request : Request.t) : (Response.t, error) result Lwt.t =
   let meth = Request.meth_to_cohttp_code_meth (Request.meth request) in
   let body = Cohttp_lwt.Body.of_string (Request.body request) in
   let rec call_retry attempt =
@@ -65,7 +65,7 @@ type response_list = Response.t list
 
 let process_batch = function
   | [(request, resolver)] ->
-    let%lwt response = call_retry request in
+    let%lwt response = call_retry ~retry: true request in
     Lwt.wakeup_later resolver response;
     lwt_unit
   | batch ->
@@ -73,7 +73,7 @@ let process_batch = function
     with_request
       (batch_route ())
       (fun _ batched_request ->
-        match%lwt call_retry batched_request with
+        match%lwt call_retry ~retry: true batched_request with
         | Error error ->
           let batch_error =
             match error with
@@ -117,6 +117,9 @@ let call_batch (request : Request.t) : (Response.t, error) result Lwt.t =
     );
   promise
 
+(** Whether to use the batching mechanism of Madge. *)
+let do_batch = false
+
 (** A very short-lived cache to avoid performing the exact same request several times in a row. *)
 let cache : (Request.t, (Response.t, error) result Lwt.t) Cache.t = Cache.create ~lifetime: 1 ()
 
@@ -125,14 +128,15 @@ let call_gen
   (a, z, r) Route.t ->
   ((r, error) result Lwt.t -> z) ->
   a
-= fun ?retry route cont ->
+= fun ?(retry = true) route cont ->
   with_request route @@ fun (module R) request ->
   cont @@
     let%rlwt (response, body) =
-      ignore retry;
-      (* FIXME *)
       Cache.use ~cache ~key: request ~if_: Request.(is_safe @@ meth request) @@ fun () ->
-      call_batch request
+      if do_batch && retry then
+        call_batch request
+      else
+        call_retry ~retry request
     in
     let status = Cohttp.Response.status response in
     let body = Cohttp.Body.to_string body in
