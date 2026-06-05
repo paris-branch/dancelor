@@ -332,37 +332,36 @@ let view context tune_or_version_id =
           Option.flip_map version (fun version -> ("books containing this version", lwt @@ Filter.(Any.book' % Formula_entry.value' % Book.versions_deep' % Formula_list.exists' % Formula.pred % Formula_entry.is) version.id));
           Some ("books containing this tune", lwt @@ Filter.(Any.book' % Formula_entry.value' % Book.versions_deep' % Formula_list.exists' % Formula_entry.value' % Version.tune' % Formula.pred % Formula_entry.is) tune.id);
         ];
-      div [
-        h3 [txt "Versions of this tune"];
-        R.div
+      div (
+        let (title, versions) =
+          match version with
+          | None -> ("Versions", tune.versions)
+          | Some version -> ("Other versions", List.filter (fun (v : Tune_view.version_row_without_tune) -> not @@ Entry.Id.equal' v.id version.Version_view.id) tune.versions)
+        in
+        let versions = List.map (Tune_view.version_row_without_tune_to_version_row tune) versions in
+        [
+          h3 [txtf "%s of this tune" title];
           (
-            S.from_lwt (Tables.placeholder ()) @@
-              let%lwt versions =
-                Model_new.items
-                <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
-                  Formula_entry.value' @@ Filter.Version.tune' @@ Formula.pred @@ Formula_entry.is tune.id
-              in
-              let%lwt is_connected = Environment.is_connected in
-              lwt @@
-                if versions = [] then
-                  [
-                    Alert.make ~level: Info [
-                      txt "There are no versions for this tune. ";
-                      span (
-                        if is_connected then
-                          [
-                            txt "Do you maybe want to ";
-                            a ~a: [a_href @@ Endpoints.Page.(href Version_add (Some tune.id))] [txt "add one"];
-                            txt "?";
-                          ]
-                        else [txt "Did you maybe forget to sign in?"]
-                      )
-                    ]
-                  ]
-                else
-                    [Tables.versions versions]
+            match versions with
+            | [] ->
+              Alert.make ~level: Info [
+                txt "There are no versions for this tune. ";
+                R.span (
+                  S.from_lwt [] @@
+                    if%lwt Environment.is_connected then
+                      lwt [
+                        txt "Do you maybe want to ";
+                        a ~a: [a_href @@ Endpoints.Page.(href Version_add (Some tune.id))] [txt "add one"];
+                        txt "?";
+                      ]
+                    else lwt [txt "Did you maybe forget to sign in?"]
+                )
+              ]
+            | _ ->
+              Tables.versions versions
           );
-      ];
+        ]
+      );
       div [
         h3 [txt "Dances that recommend this tune"];
         (
