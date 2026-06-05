@@ -162,7 +162,10 @@ let versions_to_renderer_set versions_and_params set_params =
   lwt Renderer.{slug; name; conceptor; kind; contents}
 
 let versions_to_renderer_set' versions_and_params set_params =
-  let%lwt versions_and_params = Monadise_lwt.monadise_1_1 NEList.map (Monadise_lwt.monadise_1_1 Pair.map_fst (Entry.value % Option.get <%> Model.Version.get)) versions_and_params in
+  let%lwt versions_and_params =
+    Monadise_lwt.run @@ fun () ->
+    NEList.map (Pair.map_fst (Entry.value % Option.get % Monadise_lwt.yield % Model.Version.get)) versions_and_params
+  in
   versions_to_renderer_set versions_and_params set_params
 
 let dance_to_renderer_set set_params =

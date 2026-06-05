@@ -32,11 +32,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1778835104,
-        "narHash": "sha256-tIEs9lNwKNOVXyfE8itOcIU3oM6wWfZMKQTMOKjDd0w=",
+        "lastModified": 1780669651,
+        "narHash": "sha256-ZqpbBBWx66V++1rDeBBBmnu20eyJAVezLh8XKBb/0jw=",
         "ref": "refs/heads/main",
-        "rev": "b48bb5eb9e9074ba0c7af6b5814a997a03e6216c",
-        "revCount": 297,
+        "rev": "72e732720ac696c00753030c9e78bb80d500e1e6",
+        "revCount": 301,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/lesboloss-es/camelotte.git"

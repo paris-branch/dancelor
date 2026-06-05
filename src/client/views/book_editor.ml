@@ -22,7 +22,7 @@ let visibility_to_visibility' : Entry.Access.Private.visibility -> visibility' L
   | Owners_only -> lwt Owners_only
   | Everyone -> lwt Everyone
   | Select_viewers users ->
-    let%lwt users = Monadise_lwt.monadise_1_1 NEList.map (Option.get <%> Model.User.get) users in
+    let%lwt users = Monadise_lwt.lift_1_1 NEList.map (Option.get <%> Model.User.get) users in
     lwt (Select_viewers users)
 
 let model_content_to_content =
@@ -34,14 +34,20 @@ let model_content_to_content =
       lwt @@ `Dance (dance, `Dance_only)
     | Dance (dance, Dance_versions versions_and_params) ->
       let%lwt dance = Madge_client.call_exn Endpoints.Api.(route @@ Dance Get_row) dance in
-      let%lwt versions_and_params = Monadise_lwt.monadise_1_1 NEList.map (Monadise_lwt.monadise_1_1 Pair.map_fst (Madge_client.call_exn Endpoints.Api.(route @@ Version Get_row))) versions_and_params in
+      let%lwt versions_and_params =
+        Monadise_lwt.run @@ fun () ->
+        NEList.map (Pair.map_fst (Monadise_lwt.yield % Madge_client.call_exn Endpoints.Api.(route @@ Version Get_row))) versions_and_params
+      in
       lwt @@ `Dance (dance, `Dance_versions versions_and_params)
     | Dance (dance, Dance_set (set, params)) ->
       let%lwt dance = Madge_client.call_exn Endpoints.Api.(route @@ Dance Get_row) dance in
       let%lwt set = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_row) set in
       lwt @@ `Dance (dance, `Dance_set (set, params))
     | Versions versions_and_params ->
-      let%lwt versions_and_params = Monadise_lwt.monadise_1_1 NEList.map (Monadise_lwt.monadise_1_1 Pair.map_fst (Madge_client.call_exn Endpoints.Api.(route @@ Version Get_row))) versions_and_params in
+      let%lwt versions_and_params =
+        Monadise_lwt.run @@ fun () ->
+        NEList.map (Pair.map_fst (Monadise_lwt.yield % Madge_client.call_exn Endpoints.Api.(route @@ Version Get_row))) versions_and_params
+      in
       lwt @@ `Versions versions_and_params
     | Set (set, params) ->
       let%lwt set = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_row) set in

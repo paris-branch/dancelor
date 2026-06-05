@@ -35,7 +35,7 @@ let get_neighbours any = function
     lwt_some (total, Option.map old_any_to_any_id previous, index, Option.map old_any_to_any_id next)
   | Endpoints.Page.In_book (book, index) ->
     let%olwt book = Book.get book in
-    let%lwt viewable_content = Monadise_lwt.monadise_1_1 List.filter_map book_page_to_any (Book.contents' book) in
+    let%lwt viewable_content = Monadise_lwt.lift_1_1 List.filter_map book_page_to_any (Book.contents' book) in
     match List.findi_context (fun i _ -> i = index) viewable_content with
     | None -> lwt_none
     | Some List.{total; previous; index; next; element = _} ->

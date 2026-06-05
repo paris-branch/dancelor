@@ -48,7 +48,7 @@ let opens_to_string = String.concat ", " % List.map open_to_string % NEList.to_l
 
 let opens_of_string =
   Option.join % Option.map NEList.of_list %
-    Monadise.Option.monadise_1_1 List.map (open_of_string % String.trim) %
+    Monadise.Option.lift_1_1 List.map (open_of_string % String.trim) %
     String.split_on_char ','
 
 let opens_to_yojson p = `String (opens_to_string p)

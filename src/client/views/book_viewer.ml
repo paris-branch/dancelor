@@ -36,7 +36,10 @@ let display_warnings warnings =
       R.li @@
       S.from_lwt [] @@
       let%lwt tune = Option.get <$> Model.Tune.get tune in
-      let%lwt sets_opt = Lwt_list.map_p (Monadise_lwt.monadise_1_1 Pair.map_fst (Monadise_lwt.monadise_1_1 Option.map (Option.get <%> Model.Set.get))) sets_opt in
+      let%lwt sets_opt =
+        Monadise_lwt.run @@ fun () ->
+        List.map (Pair.map_fst (Option.map (Option.get % Monadise_lwt.yield % Model.Set.get))) sets_opt
+      in
       lwt (txt "Tune “" :: Formatters.Tune.name' tune :: txt "” appears several times: " :: (display_sets sets_opt |> format_set_list))
     | Book.Set_dance_kind_mismatch (set, dance) ->
       R.li @@
@@ -100,7 +103,10 @@ let table_contents ~this_id contents =
                       dance
                 | Book.Dance (dance, Dance_versions versions_and_params) ->
                   let%lwt dance = Option.get <$> Model.Dance.get dance in
-                  let%lwt versions_and_params = Monadise_lwt.monadise_1_1 NEList.map (Monadise_lwt.monadise_1_1 Pair.map_fst (Option.get <%> Model.Version.get)) versions_and_params in
+                  let%lwt versions_and_params =
+                    Monadise_lwt.run @@ fun () ->
+                    NEList.map (Pair.map_fst (Option.get % Monadise_lwt.yield % Model.Version.get)) versions_and_params
+                  in
                   lwt @@
                     Any_result.make_dance_plus_versions_result
                       ~prefix: [td [txt "Dance"; Any_result.details [txt (if NEList.is_singleton versions_and_params then "+Tune" else "+Tunes")]]]
@@ -117,7 +123,10 @@ let table_contents ~this_id contents =
                       set
                       ~set_params: params
                 | Book.Versions versions_and_params ->
-                  let%lwt versions_and_params = Monadise_lwt.monadise_1_1 NEList.map (Monadise_lwt.monadise_1_1 Pair.map_fst (Option.get <%> Model.Version.get)) versions_and_params in
+                  let%lwt versions_and_params =
+                    Monadise_lwt.run @@ fun () ->
+                    NEList.map (Pair.map_fst (Option.get % Monadise_lwt.yield % Model.Version.get)) versions_and_params
+                  in
                   lwt @@
                     Any_result.make_versions_result
                       ~prefix: [td [txt @@ if NEList.is_singleton versions_and_params then "Tune" else "Tunes"]]

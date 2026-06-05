@@ -105,7 +105,7 @@ let search' env filter =
       Lwt_stream.map (Pair.map_fst to_row)
     in
     let stream_to_row_s to_row =
-      Lwt_stream.map_s (Monadise_lwt.monadise_1_1 Pair.map_fst to_row)
+      Lwt_stream.map_s (Monadise_lwt.lift_1_1 Pair.map_fst to_row)
     in
     lwt_stream_merge_sorted_l (fun (_, s1) (_, s2) -> Float.compare s2 s1) [
       (* NOTE: keep this list's order in sync with Model.Any.Type.compare *)
