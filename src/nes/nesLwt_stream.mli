@@ -12,9 +12,11 @@ val get_available_1 : 'a t -> 'a option
     stream. *)
 
 val choose_biased : 'a t list -> 'a t
-(** Variant of {!Lwt_stream.choose} that tries to pick in order. If one of the
-    streams gets closed, then it raises {!Lwt_stream.Empty}. FIXME: we could
-    continue with the other streams until they are all closed. *)
+(** Given a list of stream, produce a stream that reads from all of
+    them. When several streams have available values, prefer the ones
+    earlier in the list. When no streams have available values, pick
+    the first value that gets available. The stream closes when all
+    the streams from the list have closed. *)
 
 val return_lwt : 'a Lwt.t -> 'a t [@@alert unsafe "Lwt_stream.return_lwt has the bad practice of ignoring its argument; use NesLwt_stream.return_lwt' instead"]
 

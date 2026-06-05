@@ -50,7 +50,9 @@ let initialiase_job_runners ~threads =
       )
   );
   Lwt.async (fun () ->
-    (* The others (at least one) are fully dedicated to user jobs. *)
+    (* The others (at least one) are fully dedicated to user jobs,
+       even when there are none, so they are ready to start
+       immediately when a new job is created. *)
     run_jobs_from
       ~max_concurrency: (threads - 1)
       Controller.Job.pending_jobs
