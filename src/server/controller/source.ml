@@ -63,7 +63,7 @@ let get_rows_table env ids =
   Lwt_list.iter_s
     (fun id ->
       let%lwt source = Database.Source.get id in
-      Monadise_lwt.monadise_1_1
+      Monadise_lwt.lift_1_1
         Option.iter
         (fun source ->
           if%lwt Permission.can_get_public env source then

@@ -22,7 +22,7 @@ let visibility_to_visibility' : Entry.Access.Private.visibility -> visibility' L
   | Owners_only -> lwt Owners_only
   | Everyone -> lwt Everyone
   | Select_viewers users ->
-    let%lwt users = Monadise_lwt.monadise_1_1 NEList.map (Option.get <%> Model.User.get) users in
+    let%lwt users = Monadise_lwt.lift_1_1 NEList.map (Option.get <%> Model.User.get) users in
     lwt (Select_viewers users)
 
 let editor user =

@@ -53,7 +53,7 @@ module Build (M : Searchable) : S with type value = M.value and type filter = M.
       let%lwt values = Lwt_stream.to_list values in
       (* We sort by score, decreasing, falling back on the tiebreakers otherwise. *)
       let compare = Lwt_list.compare_multiple (Lwt_list.decreasing (lwt % snd) Float.compare :: List.map (fun compare -> fun x y -> compare (fst x) (fst y)) M.tiebreakers) in
-      let%lwt values = Monadise_lwt.monadise_2_1 List.sort compare values in
+      let%lwt values = Monadise_lwt.lift_2_1 List.sort compare values in
       lwt {total = List.length values; items = values}
 
   let search env slice filter =
