@@ -180,10 +180,15 @@
         pname = "sqlgg";
         version = "dev";
         src = pkgs.fetchFromGitHub {
-          owner = "niols"; # FIXME: should be "ygrek" - using the fork until https://github.com/ygrek/sqlgg/pull/276 is merged
+          ## NOTE: using the fork until these PRs are merged:
+          ##
+          ##   - https://github.com/ygrek/sqlgg/pull/276 - support for ALTER COLUMN
+          ##   - https://github.com/ygrek/sqlgg/pull/281 - support for CREATE TYPE AS ENUM
+          ##
+          owner = "niols"; # FIXME: should be ygrek
           repo = pname;
-          rev = "f13bbfa8ca90565d55979b51cb6a3d8d084f2787";
-          sha256 = "sha256-zUTcrPBgZ/0Ja/ZWhoFeeD2KSBiXScu/Dp1ziqOUWPg=";
+          rev = "24f8ad1c456f63d60a5fb62467035be214108b3d";
+          sha256 = "sha256-tz50B8xyb2wm5Gkz7lMez8lmXFMssVi8TjdMz/Cjwuo=";
         };
         nativeBuildInputs = with pkgs.ocamlPackages; [
           menhir
