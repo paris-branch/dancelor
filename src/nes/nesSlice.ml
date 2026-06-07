@@ -7,6 +7,7 @@ type t = {
 let start s = s.start
 let end_incl s = s.end_incl
 let end_excl s = s.end_incl + 1
+let length s = s.end_incl - s.start + 1
 
 let make
     ?(start = 0)

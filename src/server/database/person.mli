@@ -1,15 +1,19 @@
+open Nes
 open Dancelor_common
+open Model_new
 
 type t = Model_builder.Core.Person.t
 type entry = Model_builder.Core.Person.entry
 
-val get : t Entry.id -> entry option Lwt.t
+val get : Person_id.t -> entry option Lwt.t
 
 (* FIXME: we should really rather provide a fold function, or directly an Lwt_stream or something *)
 val get_all : unit -> entry list Lwt.t
 
-val create : t -> t Entry.id Lwt.t
+val create : t -> Person_id.t Lwt.t
 
-val update : t Entry.id -> t -> unit Lwt.t
+val update : Person_id.t -> t -> unit Lwt.t
 
-val delete : t Entry.id -> unit Lwt.t
+val delete : Person_id.t -> unit Lwt.t
+
+val search : ?threshold: float -> string -> Person_row.t list Lwt.t

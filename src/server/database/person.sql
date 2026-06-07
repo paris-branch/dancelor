@@ -53,3 +53,16 @@ WHERE "id" = @id;
 -- @delete
 DELETE FROM "person"
 WHERE "id" = @id;
+
+-- @search
+SELECT
+    "person"."id",
+    "name"
+FROM (
+    SELECT "id", word_similarity(@needle, "name") AS "score"
+    FROM "person"
+) AS "search"
+JOIN "person"
+ON "person"."id" = "search"."id"
+WHERE "search"."score" >= @threshold
+ORDER BY "score" DESC;

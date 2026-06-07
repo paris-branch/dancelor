@@ -48,6 +48,7 @@ module type S = sig
   (** Whether the given user can get public elements. As the name suggests, they
       are public, so anyone, including anonymous users. *)
   val can_get_public : user -> 'value Entry.public -> can_get_public option
+  val can_get_public_new : user -> 'value -> can_get_public option
 
   (** Whether the given user can create public elements. This is any connected
       user. *)
@@ -88,6 +89,7 @@ module Make (User : Model_builder.Signature.User) : S = struct
   let is_connected user = user <> None
 
   let can_get_public _user _entry : can_get_public option = Some Everyone
+  let can_get_public_new _user _entry : can_get_public option = Some Everyone
 
   let can_create_public user : can_create_public option = if is_connected user then Some Connected else None
 

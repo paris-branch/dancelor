@@ -14,6 +14,7 @@ include With_reason
 let can can = fun env -> lwt (can (Environment.user env) <> None)
 
 let can_get_public env entry = can (flip can_get_public entry) env
+let can_get_public_new env entry = can (flip can_get_public_new entry) env
 
 let can_create_public env = can can_create_public env
 
