@@ -310,22 +310,7 @@ let migrations : migration list = [
             ~modified_at: (Some user.meta.modified_at)
       )
       all;%lwt
-    (* NOTE: As of April 2026, Sqlgg does not support `ALTER COLUMN` but only
-       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
-       SQL for Sqlgg to infer the right column types, but exec a
-       PostgreSQL-compatible one manually here. *)
-    ignore @@
-      Connection.bypass_exec
-        db
-        {|
-          ALTER TABLE "user"
-            ALTER COLUMN "username" SET NOT NULL,
-            ALTER COLUMN "role" SET NOT NULL,
-            ALTER COLUMN "remember_me_tokens" SET NOT NULL,
-            ALTER COLUMN "created_at" SET NOT NULL,
-            ALTER COLUMN "modified_at" SET NOT NULL,
-            ADD UNIQUE ("username");
-        |};
+    let%lwt _ = Migrations_sql.m026_2026_04_split_user_json_into_fields__set_not_null db in
     let%lwt _ = Migrations_sql.m026_2026_04_split_user_json_into_fields__drop_json_column db in
     lwt_unit
   );
@@ -348,23 +333,8 @@ let migrations : migration list = [
             ~omniscience: (Some omniscience)
       )
       all;%lwt
-    (* NOTE: As of April 2026, Sqlgg does not support `ALTER COLUMN` but only
-       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
-       SQL for Sqlgg to infer the right column types, but exec a
-       PostgreSQL-compatible one manually here. *)
-    ignore (
-      Connection.bypass_exec
-        db
-        {|
-          ALTER TABLE "user"
-            DROP COLUMN "role",
-            ALTER COLUMN "role_new" TYPE SMALLINT,
-            ALTER COLUMN "role_new" SET NOT NULL,
-            ALTER COLUMN "omniscience" TYPE BOOLEAN,
-            ALTER COLUMN "omniscience" SET NOT NULL;
-        |}
-    );
-    ignore (Connection.bypass_exec db {| ALTER TABLE "user" RENAME COLUMN "role_new" TO "role"; |});
+    let%lwt _ = Migrations_sql.m027_2026_04_split_role_json_into_fields__cleanup_columns_1 db in
+    let%lwt _ = Migrations_sql.m027_2026_04_split_role_json_into_fields__cleanup_columns_2 db in
     lwt_unit
   );
   make_ddl "m028_2026_04_add_remember_me_tokens_table" Migrations_sql.m028_2026_04_add_remember_me_tokens_table;
@@ -397,23 +367,7 @@ let migrations : migration list = [
         | Some user -> ignore <$> Migrations_sql.m030_2026_05_split_person_json_into_fields__update_user db ~id: user ~person_id: (Some id)
       )
       all;%lwt
-    (* NOTE: As of May 2026, Sqlgg does not support `ALTER COLUMN` but only
-       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
-       SQL for Sqlgg to infer the right column types, but exec a
-       PostgreSQL-compatible one manually here. *)
-    ignore (
-      Connection.bypass_exec
-        db
-        {|
-            ALTER TABLE "person"
-              ALTER COLUMN "name" SET NOT NULL,
-              ALTER COLUMN "composed_tunes_are_public" SET NOT NULL,
-              ALTER COLUMN "published_tunes_are_public" SET NOT NULL,
-              ALTER COLUMN "created_at" SET NOT NULL,
-              ALTER COLUMN "modified_at" SET NOT NULL,
-              DROP COLUMN "json";
-          |}
-    );
+    let%lwt _ = Migrations_sql.m030_2026_05_split_person_json_into_fields__cleanup_columns db in
     ignore <$> Migrations_sql.m030_2026_05_split_person_json_into_fields__add_constraint db;%lwt
     lwt_unit
   );
@@ -452,22 +406,7 @@ let migrations : migration list = [
           source.value.editors
       )
       all;%lwt
-    (* NOTE: As of May 2026, Sqlgg does not support `ALTER COLUMN` but only
-       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
-       SQL for Sqlgg to infer the right column types, but exec a
-       PostgreSQL-compatible one manually here. *)
-    ignore (
-      Connection.bypass_exec
-        db
-        {|
-            ALTER TABLE "source"
-              ALTER COLUMN "name" SET NOT NULL,
-              ALTER COLUMN "created_at" SET NOT NULL,
-              ALTER COLUMN "modified_at" SET NOT NULL,
-              DROP COLUMN "json";
-          |}
-    );
-    lwt_unit
+    ignore <$> Migrations_sql.m031_2026_05_split_source_json_into_fields__cleanup_columns db
   );
   make_custom "m032_2026_05_split_dance_json_into_fields" (fun db ->
     let%lwt _ = Migrations_sql.m032_2026_05_split_dance_json_into_fields__add_columns db in
@@ -522,25 +461,7 @@ let migrations : migration list = [
           dance.value.devisers
       )
       all;%lwt
-    (* NOTE: As of May 2026, Sqlgg does not support `ALTER COLUMN` but only
-       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
-       SQL for Sqlgg to infer the right column types, but exec a
-       PostgreSQL-compatible one manually here. *)
-    ignore (
-      Connection.bypass_exec
-        db
-        {|
-            ALTER TABLE "dance"
-              ALTER COLUMN "name" SET NOT NULL,
-              ALTER COLUMN "kind" SET NOT NULL,
-              ALTER COLUMN "two_chords" SET NOT NULL,
-              ALTER COLUMN "disambiguation" SET NOT NULL,
-              ALTER COLUMN "created_at" SET NOT NULL,
-              ALTER COLUMN "modified_at" SET NOT NULL,
-              DROP COLUMN "json";
-          |}
-    );
-    lwt_unit
+    ignore <$> Migrations_sql.m032_2026_05_split_dance_json_into_fields__cleanup_columns db
   );
   make_custom "m033_2026_05_split_tune_json_into_fields" (fun db ->
     let%lwt _ = Migrations_sql.m033_2026_05_split_tune_json_into_fields__add_columns db in
@@ -599,24 +520,7 @@ let migrations : migration list = [
           tune.value.dances
       )
       all;%lwt
-    (* NOTE: As of May 2026, Sqlgg does not support `ALTER COLUMN` but only
-       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
-       SQL for Sqlgg to infer the right column types, but exec a
-       PostgreSQL-compatible one manually here. *)
-    ignore (
-      Connection.bypass_exec
-        db
-        {|
-          ALTER TABLE "tune"
-            ALTER COLUMN "name" SET NOT NULL,
-            ALTER COLUMN "kind" SET NOT NULL,
-            ALTER COLUMN "remark" SET NOT NULL,
-            ALTER COLUMN "created_at" SET NOT NULL,
-            ALTER COLUMN "modified_at" SET NOT NULL,
-            DROP COLUMN "json";
-        |}
-    );
-    lwt_unit
+    ignore <$> Migrations_sql.m033_2026_05_split_tune_json_into_fields__cleanup_columns db
   );
   make_custom "m034_2026_05_split_version_json_into_fields" (fun db ->
     let%lwt _ = Migrations_sql.m034_2026_05_split_version_json_into_fields__add_columns db in
@@ -703,26 +607,7 @@ let migrations : migration list = [
         )
       )
       all;%lwt
-    (* NOTE: As of May 2026, Sqlgg does not support `ALTER COLUMN` but only
-       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
-       SQL for Sqlgg to infer the right column types, but exec a
-       PostgreSQL-compatible one manually here. *)
-    ignore (
-      Connection.bypass_exec
-        db
-        {|
-          ALTER TABLE "version"
-            ALTER COLUMN "tune_id" SET NOT NULL,
-            ALTER COLUMN "key" SET NOT NULL,
-            ALTER COLUMN "remark" SET NOT NULL,
-            ALTER COLUMN "disambiguation" SET NOT NULL,
-            ALTER COLUMN "created_at" SET NOT NULL,
-            ALTER COLUMN "modified_at" SET NOT NULL,
-            ADD CONSTRAINT "fk_version_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id"),
-            DROP COLUMN "json";
-        |}
-    );
-    lwt_unit
+    ignore <$> Migrations_sql.m034_2026_05_split_version_json_into_fields__cleanup_columns db
   );
   make_custom "m035_2026_05_split_set_json_into_fields" (fun db ->
     let%lwt _ = Migrations_sql.m035_2026_05_split_set_json_into_fields__add_columns db in
@@ -814,27 +699,7 @@ let migrations : migration list = [
           set.access.owners
       )
       all;%lwt
-    (* NOTE: As of May 2026, Sqlgg does not support `ALTER COLUMN` but only
-       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
-       SQL for Sqlgg to infer the right column types, but exec a
-       PostgreSQL-compatible one manually here. *)
-    ignore (
-      Connection.bypass_exec
-        db
-        {|
-          ALTER TABLE "set"
-            ALTER COLUMN "name" SET NOT NULL,
-            ALTER COLUMN "kind" SET NOT NULL,
-            ALTER COLUMN "order" SET NOT NULL,
-            ALTER COLUMN "instructions" SET NOT NULL,
-            ALTER COLUMN "remark" SET NOT NULL,
-            ALTER COLUMN "created_at" SET NOT NULL,
-            ALTER COLUMN "modified_at" SET NOT NULL,
-            ALTER COLUMN "visibility" SET NOT NULL,
-            DROP COLUMN "json";
-        |}
-    );
-    lwt_unit
+    ignore <$> Migrations_sql.m035_2026_05_split_set_json_into_fields__cleanup_columns db
   );
   make_custom "m036_2026_05_split_book_json_into_fields" (fun db ->
     let%lwt _ = Migrations_sql.m036_2026_05_split_book_json_into_fields__add_columns db in
@@ -961,24 +826,7 @@ let migrations : migration list = [
           book.access.owners
       )
       all;%lwt
-    (* NOTE: As of May 2026, Sqlgg does not support `ALTER COLUMN` but only
-       the MySQL-specific `MODIFY` or `CHANGE COLUMN`. So we put one of those in
-       SQL for Sqlgg to infer the right column types, but exec a
-       PostgreSQL-compatible one manually here. *)
-    ignore (
-      Connection.bypass_exec
-        db
-        {|
-            ALTER TABLE "book"
-              ALTER COLUMN "title" SET NOT NULL,
-              ALTER COLUMN "remark" SET NOT NULL,
-              ALTER COLUMN "created_at" SET NOT NULL,
-              ALTER COLUMN "modified_at" SET NOT NULL,
-              ALTER COLUMN "visibility" SET NOT NULL,
-              DROP COLUMN "json";
-        |}
-    );
-    lwt_unit
+    ignore <$> Migrations_sql.m036_2026_05_split_book_json_into_fields__cleanup_columns db
   );
   make_ddl "m037_2026_05_alter_table_set_drop_column_instructions" Migrations_sql.m037_2026_05_alter_table_set_drop_column_instructions;
   make_ddl "m038_2026_05_drop_table_set_dances" Migrations_sql.m038_2026_05_drop_table_set_dances;

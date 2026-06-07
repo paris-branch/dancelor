@@ -200,13 +200,15 @@ SET
     "modified_at" = @modified_at
 WHERE "id" = @id;
 
--- @m026_2026_04_split_user_json_into_fields__set_not_null__for_sqlgg
+-- @m026_2026_04_split_user_json_into_fields__set_not_null
 ALTER TABLE "user"
-CHANGE COLUMN "username" "username" VARCHAR(256) NOT NULL UNIQUE,
-CHANGE COLUMN "role" "role" JSON NOT NULL,
-CHANGE COLUMN "remember_me_tokens" "remember_me_tokens" JSON NOT NULL,
-CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
-CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL;
+  ALTER COLUMN "username" SET NOT NULL,
+  ALTER COLUMN "role" SET NOT NULL,
+  ALTER COLUMN "remember_me_tokens" SET NOT NULL,
+  ALTER COLUMN "created_at" SET NOT NULL,
+  ALTER COLUMN "modified_at" SET NOT NULL,
+  ADD UNIQUE ("username");
+
 
 -- @m026_2026_04_split_user_json_into_fields__drop_json_column
 ALTER TABLE "user"
@@ -230,12 +232,17 @@ SET
     "omniscience" = @omniscience
 WHERE id = @id;
 
--- @m027_2026_04_split_role_json_into_fields__cleanup_columns__for_sqlgg
+-- @m027_2026_04_split_role_json_into_fields__cleanup_columns_1
 ALTER TABLE "user"
-DROP COLUMN "role",
-CHANGE COLUMN "role_new" "role_new" SMALLINT NOT NULL,
-CHANGE COLUMN "omniscience" "omniscience" BOOLEAN NOT NULL,
-RENAME COLUMN "role_new" TO "role";
+  DROP COLUMN "role",
+  ALTER COLUMN "role_new" TYPE SMALLINT,
+  ALTER COLUMN "role_new" SET NOT NULL,
+  ALTER COLUMN "omniscience" TYPE BOOLEAN,
+  ALTER COLUMN "omniscience" SET NOT NULL;
+
+-- @m027_2026_04_split_role_json_into_fields__cleanup_columns_2
+ALTER TABLE "user"
+  RENAME COLUMN "role_new" TO "role";
 
 -- @m028_2026_04_add_remember_me_tokens_table
 CREATE TABLE "remember_me_tokens" (
@@ -286,14 +293,14 @@ SET
     "person_id" = @person_id
 WHERE "id" = @id;
 
--- @m030_2026_05_split_person_json_into_fields__cleanup_columns__for_sqlgg
+-- @m030_2026_05_split_person_json_into_fields__cleanup_columns
 ALTER TABLE "person"
-CHANGE COLUMN "name" "name" VARCHAR(256) NOT NULL,
-CHANGE COLUMN "composed_tunes_are_public" "composed_tunes_are_public" BOOLEAN NOT NULL,
-CHANGE COLUMN "published_tunes_are_public" "published_tunes_are_public" BOOLEAN NOT NULL,
-CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
-CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
-DROP COLUMN "json";
+  ALTER COLUMN "name" SET NOT NULL,
+  ALTER COLUMN "composed_tunes_are_public" SET NOT NULL,
+  ALTER COLUMN "published_tunes_are_public" SET NOT NULL,
+  ALTER COLUMN "created_at" SET NOT NULL,
+  ALTER COLUMN "modified_at" SET NOT NULL,
+  DROP COLUMN "json";
 
 -- @m030_2026_05_split_person_json_into_fields__add_constraint
 ALTER TABLE "user"
@@ -344,23 +351,23 @@ INSERT INTO "source_editors" (
     @person_id
 );
 
--- @m031_2026_05_split_source_json_into_fields__cleanup_columns__for_sqlgg
+-- @m031_2026_05_split_source_json_into_fields__cleanup_columns
 ALTER TABLE "source"
-CHANGE COLUMN "name" "name" VARCHAR(256) NOT NULL,
-CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
-CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
-DROP COLUMN "json";
+  ALTER COLUMN "name" SET NOT NULL,
+  ALTER COLUMN "created_at" SET NOT NULL,
+  ALTER COLUMN "modified_at" SET NOT NULL,
+  DROP COLUMN "json";
 
 -- @m032_2026_05_split_dance_json_into_fields__add_columns
 ALTER TABLE "dance"
-ADD COLUMN "name" VARCHAR(256),
-ADD COLUMN "kind" VARCHAR(32),
-ADD COLUMN "two_chords" SMALLINT,
-ADD COLUMN "scddb_id" INT,
-ADD COLUMN "disambiguation" VARCHAR(256),
-ADD COLUMN "date" VARCHAR(32),
-ADD COLUMN "created_at" TIMESTAMP,
-ADD COLUMN "modified_at" TIMESTAMP;
+  ADD COLUMN "name" VARCHAR(256),
+  ADD COLUMN "kind" VARCHAR(32),
+  ADD COLUMN "two_chords" SMALLINT,
+  ADD COLUMN "scddb_id" INT,
+  ADD COLUMN "disambiguation" VARCHAR(256),
+  ADD COLUMN "date" VARCHAR(32),
+  ADD COLUMN "created_at" TIMESTAMP,
+  ADD COLUMN "modified_at" TIMESTAMP;
 
 -- @m032_2026_05_split_dance_json_into_fields__add_dance_extra_names_table
 CREATE TABLE "dance_extra_names" (
@@ -417,25 +424,25 @@ INSERT INTO "dance_devisers" (
     @deviser_id
 );
 
--- @m032_2026_05_split_dance_json_into_fields__cleanup_columns__for_sqlgg
+-- @m032_2026_05_split_dance_json_into_fields__cleanup_columns
 ALTER TABLE "dance"
-CHANGE COLUMN "name" "name" VARCHAR(256) NOT NULL,
-CHANGE COLUMN "kind" "kind" VARCHAR(32) NOT NULL,
-CHANGE COLUMN "two_chords" "two_chords" SMALLINT NOT NULL,
-CHANGE COLUMN "disambiguation" "disambiguation" VARCHAR(256) NOT NULL,
-CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
-CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
-DROP COLUMN "json";
+  ALTER COLUMN "name" SET NOT NULL,
+  ALTER COLUMN "kind" SET NOT NULL,
+  ALTER COLUMN "two_chords" SET NOT NULL,
+  ALTER COLUMN "disambiguation" SET NOT NULL,
+  ALTER COLUMN "created_at" SET NOT NULL,
+  ALTER COLUMN "modified_at" SET NOT NULL,
+  DROP COLUMN "json";
 
 -- @m033_2026_05_split_tune_json_into_fields__add_columns
 ALTER TABLE "tune"
-ADD COLUMN "name" VARCHAR,
-ADD COLUMN "kind" VARCHAR(32),
-ADD COLUMN "remark" VARCHAR,
-ADD COLUMN "scddb_id" INT,
-ADD COLUMN "date" VARCHAR(32),
-ADD COLUMN "created_at" TIMESTAMP,
-ADD COLUMN "modified_at" TIMESTAMP;
+  ADD COLUMN "name" VARCHAR,
+  ADD COLUMN "kind" VARCHAR(32),
+  ADD COLUMN "remark" VARCHAR,
+  ADD COLUMN "scddb_id" INT,
+  ADD COLUMN "date" VARCHAR(32),
+  ADD COLUMN "created_at" TIMESTAMP,
+  ADD COLUMN "modified_at" TIMESTAMP;
 
 -- @m033_2026_05_split_tune_json_into_fields__add_tune_extra_names_table
 CREATE TABLE "tune_extra_names" (
@@ -511,33 +518,26 @@ INSERT INTO "recommended_tunes" (
     @tune_id
 );
 
--- @m033_2026_05_split_tune_json_into_fields__cleanup_columns__for_sqlgg
+-- @m033_2026_05_split_tune_json_into_fields__cleanup_columns
 ALTER TABLE "tune"
-CHANGE COLUMN "name" "name" VARCHAR NOT NULL,
-CHANGE COLUMN "kind" "kind" VARCHAR(32) NOT NULL,
-CHANGE COLUMN "remark" "remark" VARCHAR NOT NULL,
-CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
-CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
-DROP COLUMN "json";
-
-
-
-
-
-
-
+  ALTER COLUMN "name" SET NOT NULL,
+  ALTER COLUMN "kind" SET NOT NULL,
+  ALTER COLUMN "remark" SET NOT NULL,
+  ALTER COLUMN "created_at" SET NOT NULL,
+  ALTER COLUMN "modified_at" SET NOT NULL,
+  DROP COLUMN "json";
 
 -- @m034_2026_05_split_version_json_into_fields__add_columns
 ALTER TABLE "version"
-ADD COLUMN "tune_id" VARCHAR(14),
-ADD COLUMN "key" VARCHAR(32),
-ADD COLUMN "remark" VARCHAR,
-ADD COLUMN "disambiguation" VARCHAR,
-ADD COLUMN "monolithic_lilypond" TEXT,
-ADD COLUMN "monolithic_bars" INT,
-ADD COLUMN "monolithic_or_default_structure" VARCHAR(32),
-ADD COLUMN "created_at" TIMESTAMP,
-ADD COLUMN "modified_at" TIMESTAMP;
+  ADD COLUMN "tune_id" VARCHAR(14),
+  ADD COLUMN "key" VARCHAR(32),
+  ADD COLUMN "remark" VARCHAR,
+  ADD COLUMN "disambiguation" VARCHAR,
+  ADD COLUMN "monolithic_lilypond" TEXT,
+  ADD COLUMN "monolithic_bars" INT,
+  ADD COLUMN "monolithic_or_default_structure" VARCHAR(32),
+  ADD COLUMN "created_at" TIMESTAMP,
+  ADD COLUMN "modified_at" TIMESTAMP;
 
 -- @m034_2026_05_split_version_json_into_fields__add_version_arrangers_table
 CREATE TABLE "version_arrangers" (
@@ -646,27 +646,27 @@ INSERT INTO "version_destructured_transitions" (
     @chords
 );
 
--- @m034_2026_05_split_version_json_into_fields__cleanup_columns__for_sqlgg
+-- @m034_2026_05_split_version_json_into_fields__cleanup_columns
 ALTER TABLE "version"
-CHANGE COLUMN "tune_id" "tune_id" VARCHAR(14) NOT NULL,
-CHANGE COLUMN "key" "key" VARCHAR(32) NOT NULL,
-CHANGE COLUMN "remark" "remark" VARCHAR NOT NULL,
-CHANGE COLUMN "disambiguation" "disambiguation" VARCHAR NOT NULL,
-CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
-CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
-ADD CONSTRAINT "fk_version_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id"),
-DROP COLUMN "json";
+  ALTER COLUMN "tune_id" SET NOT NULL,
+  ALTER COLUMN "key" SET NOT NULL,
+  ALTER COLUMN "remark" SET NOT NULL,
+  ALTER COLUMN "disambiguation" SET NOT NULL,
+  ALTER COLUMN "created_at" SET NOT NULL,
+  ALTER COLUMN "modified_at" SET NOT NULL,
+  ADD CONSTRAINT "fk_version_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id"),
+  DROP COLUMN "json";
 
 -- @m035_2026_05_split_set_json_into_fields__add_columns
 ALTER TABLE "set"
-ADD COLUMN "name" VARCHAR,
-ADD COLUMN "kind" VARCHAR,
-ADD COLUMN "order" VARCHAR,
-ADD COLUMN "instructions" VARCHAR,
-ADD COLUMN "remark" VARCHAR,
-ADD COLUMN "created_at" TIMESTAMP,
-ADD COLUMN "modified_at" TIMESTAMP,
-ADD COLUMN "visibility" INT;
+  ADD COLUMN "name" VARCHAR,
+  ADD COLUMN "kind" VARCHAR,
+  ADD COLUMN "order" VARCHAR,
+  ADD COLUMN "instructions" VARCHAR,
+  ADD COLUMN "remark" VARCHAR,
+  ADD COLUMN "created_at" TIMESTAMP,
+  ADD COLUMN "modified_at" TIMESTAMP,
+  ADD COLUMN "visibility" INT;
 
 -- @m035_2026_05_split_set_json_into_fields__add_conceptors_table
 CREATE TABLE "set_conceptors" (
@@ -796,27 +796,27 @@ INSERT INTO "set_owners" (
     @owner_id
 );
 
--- @m035_2026_05_split_set_json_into_fields__cleanup_columns__for_sqlgg
+-- @m035_2026_05_split_set_json_into_fields__cleanup_columns
 ALTER TABLE "set"
-CHANGE COLUMN "name" "name" VARCHAR NOT NULL,
-CHANGE COLUMN "kind" "kind" VARCHAR NOT NULL,
-CHANGE COLUMN "order" "order" VARCHAR NOT NULL,
-CHANGE COLUMN "instructions" "instructions" VARCHAR NOT NULL,
-CHANGE COLUMN "remark" "remark" VARCHAR NOT NULL,
-CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
-CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
-CHANGE COLUMN "visibility" "visibility" INT NOT NULL,
-DROP COLUMN "json";
+  ALTER COLUMN "name" SET NOT NULL,
+  ALTER COLUMN "kind" SET NOT NULL,
+  ALTER COLUMN "order" SET NOT NULL,
+  ALTER COLUMN "instructions" SET NOT NULL,
+  ALTER COLUMN "remark" SET NOT NULL,
+  ALTER COLUMN "created_at" SET NOT NULL,
+  ALTER COLUMN "modified_at" SET NOT NULL,
+  ALTER COLUMN "visibility" SET NOT NULL,
+  DROP COLUMN "json";
 
 -- @m036_2026_05_split_book_json_into_fields__add_columns
 ALTER TABLE "book"
-ADD COLUMN "title" VARCHAR,
-ADD COLUMN "date" VARCHAR,
-ADD COLUMN "remark" VARCHAR,
-ADD COLUMN "scddb_id" INT,
-ADD COLUMN "created_at" TIMESTAMP,
-ADD COLUMN "modified_at" TIMESTAMP,
-ADD COLUMN "visibility" INT;
+  ADD COLUMN "title" VARCHAR,
+  ADD COLUMN "date" VARCHAR,
+  ADD COLUMN "remark" VARCHAR,
+  ADD COLUMN "scddb_id" INT,
+  ADD COLUMN "created_at" TIMESTAMP,
+  ADD COLUMN "modified_at" TIMESTAMP,
+  ADD COLUMN "visibility" INT;
 
 -- @m036_2026_05_split_book_json_into_fields__add_authors_table
 CREATE TABLE "book_authors" (
@@ -1008,14 +1008,14 @@ INSERT INTO "book_owners" (
     @owner_id
 );
 
--- @m036_2026_05_split_book_json_into_fields__cleanup_columns__for_sqlgg
+-- @m036_2026_05_split_book_json_into_fields__cleanup_columns
 ALTER TABLE "book"
-CHANGE COLUMN "title" "title" VARCHAR NOT NULL,
-CHANGE COLUMN "remark" "remark" VARCHAR NOT NULL,
-CHANGE COLUMN "created_at" "created_at" TIMESTAMP NOT NULL,
-CHANGE COLUMN "modified_at" "modified_at" TIMESTAMP NOT NULL,
-CHANGE COLUMN "visibility" "visibility" INT NOT NULL,
-DROP COLUMN "json";
+  ALTER COLUMN "title" SET NOT NULL,
+  ALTER COLUMN "remark" SET NOT NULL,
+  ALTER COLUMN "created_at" SET NOT NULL,
+  ALTER COLUMN "modified_at" SET NOT NULL,
+  ALTER COLUMN "visibility" SET NOT NULL,
+  DROP COLUMN "json";
 
 -- @m037_2026_05_alter_table_set_drop_column_instructions
 ALTER TABLE "set"
