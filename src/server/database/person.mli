@@ -16,4 +16,4 @@ val update : Person_id.t -> t -> unit Lwt.t
 
 val delete : Person_id.t -> unit Lwt.t
 
-val search : ?threshold: float -> string -> (Person_row.t * float) list Lwt.t
+val search : ?threshold: float -> NEString.t option -> (Person_row.t * float) list Lwt.t

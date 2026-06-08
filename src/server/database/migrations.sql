@@ -1177,3 +1177,6 @@ ALTER COLUMN "remark" DROP NOT NULL;
 UPDATE "book"
 SET "remark" = NULL
 WHERE "remark" = '';
+
+-- -- @m060_2026_06_create_extension_pg_trgm
+-- CREATE EXTENSION IF NOT EXISTS pg_trgm;

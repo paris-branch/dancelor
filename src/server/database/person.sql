@@ -60,10 +60,12 @@ SELECT
     "person"."id",
     "name"
 FROM (
-    SELECT "id", word_similarity(@needle, "name") AS "score"
+    SELECT
+        "id",
+	@needle {Some { word_similarity(@needle, "name") } | None { '1' } } AS "score"
     FROM "person"
 ) AS "search"
 JOIN "person"
 ON "person"."id" = "search"."id"
 WHERE "search"."score" >= @threshold
-ORDER BY "score" DESC;
+ORDER BY "score" DESC, "name" ASC;

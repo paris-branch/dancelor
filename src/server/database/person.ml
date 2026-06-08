@@ -14,7 +14,7 @@ let search ?(threshold = 0.3) needle : (Person_row.t * float) list Lwt.t =
   Connection.with_ @@ fun db ->
   Person_sql.List.search
     db
-    ~needle
+    ~needle: (match needle with None -> `None | Some s -> `Some (NEString.to_string s))
     ~threshold: (string_of_float threshold)
     (fun ~score -> sql_to_row_k @@ Pair.snoc @@ float_of_string score)
 

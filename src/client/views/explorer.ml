@@ -15,9 +15,9 @@ let update_uri input =
 let view query =
   let search =
     Search.make
-      ~search: (fun slice input ->
-        let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Any.converter input in
-        ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice filter
+      ~search: (fun slice filter ->
+        (* let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Any.converter input in *)
+        ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice @@ NEString.of_string filter
       )
       ?initial_input: query
       ~pagination_mode: (Pagination ())
