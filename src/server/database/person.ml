@@ -7,16 +7,16 @@ module Person_sql = Person_sql.Sqlgg(Sqlgg_postgresql)
 type t = Model_builder.Core.Person.t
 type entry = Model_builder.Core.Person.entry
 
-let sql_to_row ~id ~name : Person_row.t =
-  {id = Entry.Id.of_string_exn id; name}
+let sql_to_row_k ~id ~name (k : Person_row.t -> 'w) : 'w =
+  k {id = Entry.Id.of_string_exn id; name}
 
-let search ?(threshold = 0.3) needle : Person_row.t list Lwt.t =
+let search ?(threshold = 0.3) needle : (Person_row.t * float) list Lwt.t =
   Connection.with_ @@ fun db ->
   Person_sql.List.search
     db
     ~needle
     ~threshold: (string_of_float threshold)
-    sql_to_row
+    (fun ~score -> sql_to_row_k @@ Pair.snoc @@ float_of_string score)
 
 let sql_to_person
     ~id

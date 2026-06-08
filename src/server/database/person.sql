@@ -56,6 +56,7 @@ WHERE "id" = @id;
 
 -- @search
 SELECT
+    "search"."score",
     "person"."id",
     "name"
 FROM (

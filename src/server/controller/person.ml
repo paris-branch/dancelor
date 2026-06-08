@@ -110,10 +110,15 @@ let search env slice filter =
   let%lwt result = search env slice filter in
   lwt {result with items = List.map to_row result.items}
 
+let search'_new env filter =
+  let%lwt items = Database.Person.search filter in
+  let%lwt items = Lwt_list.filter_s (Permission.can_get_public_new env % fst) items in
+  lwt {total = List.length items; items}
+
 let search_new env slice filter =
-  let%lwt all = Database.Person.search filter in
-  let%lwt all = Lwt_list.filter_s (Permission.can_get_public_new env) all in
-  lwt {total = List.length all; items = Slice.list slice all}
+  let%lwt {total; items} = search'_new env filter in
+  let items = List.map fst @@ Slice.list slice items in
+  lwt {total; items}
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Person.t -> a = fun env endpoint ->
   match endpoint with
