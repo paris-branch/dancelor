@@ -18,7 +18,7 @@ val update : Version_id.t -> t -> unit Lwt.t
 
 val delete : Version_id.t -> unit Lwt.t
 
-val search : ?threshold: float -> string -> (Version_row.t * float) list Lwt.t
+val search : string -> (Version_row.t * float) list Lwt.t
 
 (** {2 Utilities for other models} *)
 

@@ -15,4 +15,4 @@ val update : Set_id.t -> t -> Entry.Access.Private.t -> unit Lwt.t
 
 val delete : Set_id.t -> unit Lwt.t
 
-val search : user: User_id.t option -> ?threshold: float -> string -> (Set_row.t * float) list Lwt.t
+val search : user: User_id.t option -> string -> (Set_row.t * float) list Lwt.t

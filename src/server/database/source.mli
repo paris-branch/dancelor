@@ -20,7 +20,7 @@ val with_cover : Source_id.t -> (string option -> 'a Lwt.t) -> 'a Lwt.t
 (** Given a source id, produce a file containing the cover and pass its path to
     the callback. [None] means that there is no cover for this source. *)
 
-val search : ?threshold: float -> string -> (Source_row.t * float) list Lwt.t
+val search : string -> (Source_row.t * float) list Lwt.t
 
 (** {2 Utilities for other models} *)
 
