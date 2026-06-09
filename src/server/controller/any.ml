@@ -154,10 +154,12 @@ let search_context env filter element =
 
 let search_new env slice filter =
   let%lwt persons_result = Person.search'_new env filter in
-  let total = persons_result.total in
+  let%lwt sources_result = Source.search'_new env filter in
+  let total = persons_result.total + sources_result.total in
   let items =
     list_merge_sorted_l_on (fun (_, s1) (_, s2) -> Float.compare s2 s1) [
       List.map (Pair.map_fst Any_row.person) persons_result.items;
+      List.map (Pair.map_fst Any_row.source) sources_result.items;
     ]
   in
   let items = List.map fst @@ Slice.list ~strict: false slice items in

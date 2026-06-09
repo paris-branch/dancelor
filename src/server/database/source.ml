@@ -13,14 +13,9 @@ let sql_to_person_name ~id ~name ~(k : Person_name.t -> 'w) : 'w =
 let sql_to_row ~id ~name ~date ~editors ~(k : Source_row.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name; date = Option.map (Option.get % PartialDate.from_string) date; editors}
 
-let fold_to_hashtbl f =
-  let tbl = Hashtbl.create 8 in
-  f (fun k x () -> Hashtbl.add tbl k x);%lwt
-  lwt tbl
-
 let search ?(threshold = 0.3) needle : (Source_row.t * float) list Lwt.t =
   Connection.with_ @@ fun db ->
-  let%lwt editors = fold_to_hashtbl (fun k -> Source_sql.Fold.get_all_editors_new db (fun ~source_id -> sql_to_person_name ~k: (k source_id)) ()) in
+  let%lwt editors = Utils.fold_to_hashtbl Source_sql.Fold.get_all_editors_new db (fun k ~source_id -> sql_to_person_name ~k: (k source_id)) in
   Source_sql.List.search
     db
     ~needle: (match needle with None -> `None | Some s -> `Some (NEString.to_string s))
