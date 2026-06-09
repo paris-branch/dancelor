@@ -56,18 +56,9 @@ WHERE "id" = @id;
 
 -- @search
 SELECT
-    "search"."score",
-    "person"."id",
+    CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+    "id",
     "name"
-FROM (
-    SELECT
-        "id",
-        CASE WHEN @needle = '' THEN 1.0
-             ELSE word_similarity(@needle, "name")
-        END AS "score"
-    FROM "person"
-) AS "search"
-JOIN "person"
-ON "person"."id" = "search"."id"
-WHERE "search"."score" >= @threshold
+FROM "person"
+WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
 ORDER BY "score" DESC, "name" ASC;

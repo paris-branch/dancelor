@@ -299,19 +299,12 @@ INSERT INTO "book_content_versions" (
 );
 
 -- @search
-SELECT
-    "search"."score",
-    "book"."id",
-    "name",
-    "date",
-    "permission"
-FROM (
+SELECT * FROM (
     SELECT
+        CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
         "book"."id",
-        CASE
-            WHEN @needle = '' THEN 1.0
-            ELSE word_similarity(@needle, "name")
-        END AS "score",
+        "name",
+        "date",
         CASE
             WHEN "book"."visibility" = 1 THEN 'Everyone'
             WHEN "book_owners"."owner_id" IS NOT NULL THEN 'Owner'
@@ -323,12 +316,10 @@ FROM (
     LEFT JOIN "book_owners" ON "book_owners"."book_id" = "book"."id" AND "book_owners"."owner_id" = @user_id
     LEFT JOIN "book_viewers" ON "book_viewers"."book_id" = "book"."id" AND "book_viewers"."viewer_id" = @user_id
     LEFT JOIN "user" ON "user"."id" = @user_id
-) AS "search"
-JOIN "book" ON "book"."id" = "search"."id"
-WHERE "search"."score" >= @threshold
-  AND "search"."permission" IS NOT NULL
+    WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
+) AS "book+"
+WHERE "book+"."permission" IS NOT NULL
 ORDER BY "score" DESC, "name" ASC;
-
 
 -- @get_all_authors_new
 SELECT

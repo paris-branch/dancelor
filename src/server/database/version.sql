@@ -215,7 +215,8 @@ INSERT INTO "version_destructured_transitions" (
 
 -- @search
 SELECT
-    "search"."score",
+    CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+    -- ids
     "version"."id",
     "tune"."id" AS "tune_id",
     -- version
@@ -225,17 +226,9 @@ SELECT
     -- tune
     "name" AS "tune_name",
     "kind" AS "tune_kind"
-FROM (
-    SELECT
-        "id",
-        CASE WHEN @needle = '' THEN 1.0
-             ELSE word_similarity(@needle, "name")
-        END AS "score"
-    FROM "tune"
-) AS "search"
-JOIN "tune" ON "tune"."id" = "search"."id"
-JOIN "version" ON "version"."tune_id" = "tune"."id"
-WHERE "search"."score" >= @threshold
+FROM "version"
+JOIN "tune" ON "version"."tune_id" = "tune"."id"
+WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_arrangers_new

@@ -90,20 +90,12 @@ WHERE "id" = @id;
 
 -- @search
 SELECT
-    "search"."score",
+    CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
     "source"."id",
     "name",
     "date"
-FROM (
-    SELECT
-        "id",
-        CASE WHEN @needle = '' THEN 1.0
-             ELSE word_similarity(@needle, "name")
-        END AS "score"
-    FROM "source"
-) AS "search"
-JOIN "source" ON "source"."id" = "search"."id"
-WHERE "search"."score" >= @threshold
+FROM "source"
+WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_editors_new

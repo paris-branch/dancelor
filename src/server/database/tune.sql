@@ -145,20 +145,12 @@ INSERT INTO "recommended_tunes" (
 
 -- @search
 SELECT
-    "search"."score",
+    CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
     "tune"."id",
     "name",
     "kind"
-FROM (
-    SELECT
-        "id",
-        CASE WHEN @needle = '' THEN 1.0
-             ELSE word_similarity(@needle, "name")
-        END AS "score"
-    FROM "tune"
-) AS "search"
-JOIN "tune" ON "tune"."id" = "search"."id"
-WHERE "search"."score" >= @threshold
+FROM "tune"
+WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_composers_new

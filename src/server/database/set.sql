@@ -188,19 +188,12 @@ INSERT INTO "set_content" (
 );
 
 -- @search
-SELECT
-    "search"."score",
-    "set"."id",
-    "name",
-    "kind",
-    "permission"
-FROM (
+SELECT * FROM (
     SELECT
+        CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
         "set"."id",
-        CASE
-            WHEN @needle = '' THEN 1.0
-            ELSE word_similarity(@needle, "name")
-        END AS "score",
+        "set"."name",
+        "set"."kind",
         CASE
             WHEN "set"."visibility" = 1 THEN 'Everyone'
             WHEN "set_owners"."owner_id" IS NOT NULL THEN 'Owner'
@@ -212,10 +205,9 @@ FROM (
     LEFT JOIN "set_owners" ON "set_owners"."set_id" = "set"."id" AND "set_owners"."owner_id" = @user_id
     LEFT JOIN "set_viewers" ON "set_viewers"."set_id" = "set"."id" AND "set_viewers"."viewer_id" = @user_id
     LEFT JOIN "user" ON "user"."id" = @user_id
-) AS "search"
-JOIN "set" ON "set"."id" = "search"."id"
-WHERE "search"."score" >= @threshold
-  AND "search"."permission" IS NOT NULL
+    WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
+) AS "set+"
+WHERE "set+"."permission" IS NOT NULL
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_conceptors_new
