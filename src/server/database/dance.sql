@@ -118,3 +118,31 @@ INSERT INTO "dance_devisers" (
     @index,
     @deviser_id
 );
+
+-- @search
+SELECT
+    "search"."score",
+    "dance"."id",
+    "name",
+    "kind",
+    "disambiguation"
+FROM (
+    SELECT
+        "id",
+	@needle {Some { word_similarity(@needle, "name") } | None { '1' } } AS "score"
+    FROM "dance"
+) AS "search"
+JOIN "dance"
+ON "dance"."id" = "search"."id"
+WHERE "search"."score" >= @threshold
+ORDER BY "score" DESC, "name" ASC;
+
+-- @get_all_devisers_new
+SELECT
+    "dance_id",
+    "person"."id",
+    "person"."name"
+FROM "dance_devisers"
+JOIN "person"
+ON "dance_devisers"."deviser_id" = "person"."id"
+ORDER BY "index";

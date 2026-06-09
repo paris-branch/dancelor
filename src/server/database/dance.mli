@@ -1,4 +1,6 @@
+open Nes
 open Dancelor_common
+open Model_new
 
 type t = Model_builder.Core.Dance.t
 type entry = Model_builder.Core.Dance.entry
@@ -13,3 +15,5 @@ val create : t -> t Entry.id Lwt.t
 val update : t Entry.id -> t -> unit Lwt.t
 
 val delete : t Entry.id -> unit Lwt.t
+
+val search : ?threshold: float -> NEString.t option -> (Dance_row.t * float) list Lwt.t
