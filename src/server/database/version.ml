@@ -1,12 +1,67 @@
 open Nes
 open Dancelor_common
+open Model_new
 
+module Tune_sql = Tune_sql.Sqlgg(Sqlgg_postgresql)
 module Version_sql = Version_sql.Sqlgg(Sqlgg_postgresql)
 
 type t = Model_builder.Core.Version.t
 type entry = Model_builder.Core.Version.entry
 
-let row_to_version
+let sql_to_row
+    ~sources
+    ~arrangers
+    ~tune_composers
+    ~id
+    ~disambiguation
+    ~monolithic_bars
+    ~monolithic_or_default_structure
+    ~tune_id
+    ~tune_name
+    ~tune_kind
+    ~(k : Version_row.t -> 'w)
+    : 'w
+  =
+  let content : Version_row.content =
+    match (monolithic_bars, monolithic_or_default_structure) with
+    | (None, None) -> No_content
+    | (None, Some _default_structure) -> Destructured
+    | (Some bars, Some structure) ->
+      Monolithic {
+        bars = Int64.to_int bars;
+        structure = Option.get (Model_builder.Core.Version.Structure.of_string (NEString.of_string_exn structure));
+      }
+    | _ -> assert false
+  in
+  k {
+    id = Entry.Id.of_string_exn id;
+    tune = Tune.sql_to_row ~id: tune_id ~name: tune_name ~kind: tune_kind ~composers: tune_composers ~k: Fun.id;
+    sources;
+    disambiguation;
+    arrangers;
+    content;
+  }
+
+let search ?(threshold = 0.3) needle : (Version_row.t * float) list Lwt.t =
+  Connection.with_ @@ fun db ->
+  let%lwt tune_composers = Utils.fold_to_hashtbl Tune_sql.Fold.get_all_composers_new db (fun k ~tune_id -> Utils.sql_to_person_name ~k: (k tune_id)) in
+  let%lwt sources = Utils.fold_to_hashtbl Version_sql.Fold.get_all_sources_new db (fun k ~version_id -> Source.sql_to_short_name ~k: (k version_id)) in
+  let%lwt arrangers = Utils.fold_to_hashtbl Version_sql.Fold.get_all_arrangers_new db (fun k ~version_id -> Utils.sql_to_person_name ~k: (k version_id)) in
+  Version_sql.List.search
+    db
+    ~needle: (match needle with None -> `None | Some s -> `Some (NEString.to_string s))
+    ~threshold: (string_of_float threshold)
+    (fun ~score ~id ~tune_id ->
+      sql_to_row
+        ~id
+        ~tune_id
+        ~tune_composers: (Hashtbl.find_all tune_composers tune_id)
+        ~sources: (Hashtbl.find_all sources id)
+        ~arrangers: (Hashtbl.find_all arrangers id)
+        ~k: (Pair.snoc @@ float_of_string score)
+    )
+
+let sql_to_version
     ~id
     ~tune_id
     ~key
@@ -54,7 +109,7 @@ let row_to_version
         ()
     )
 
-let version_to_row ~create_or_update db id version =
+let version_to_sql ~create_or_update db id version =
   (* FIXME: transaction, maybe [Connection.with_transaction] *)
   let (monolithic_lilypond, monolithic_bars, monolithic_or_default_structure) =
     match Model_builder.Core.Version.content version with
@@ -169,7 +224,7 @@ let get id : Model_builder.Core.Version.entry option Lwt.t =
       )
     )
   in
-  Version_sql.Single.get db ~id (row_to_version ~id ~arrangers ~sources ~destructured_parts ~destructured_transitions)
+  Version_sql.Single.get db ~id (sql_to_version ~id ~arrangers ~sources ~destructured_parts ~destructured_transitions)
 
 let get_all () =
   Connection.with_ @@ fun db ->
@@ -219,7 +274,7 @@ let get_all () =
     )
     ();%lwt
   Version_sql.List.get_all db (fun ~id ->
-    row_to_version
+    sql_to_version
       ~id
       ~arrangers: (List.rev @@ Hashtbl.find_all arrangers id)
       ~sources: (List.rev @@ Hashtbl.find_all sources id)
@@ -276,7 +331,7 @@ let get_all_for_tune tune_id =
     )
     ();%lwt
   Version_sql.List.get_all_for_tune db ~tune_id (fun ~id ->
-    row_to_version
+    sql_to_version
       ~id
       ~tune_id
       ~arrangers: (List.rev @@ Hashtbl.find_all arrangers id)
@@ -288,12 +343,12 @@ let get_all_for_tune tune_id =
 let create version =
   Connection.with_ @@ fun db ->
   let%lwt id = Globally_unique_id.make db Version in
-  version_to_row ~create_or_update: Version_sql.create db id version;%lwt
+  version_to_sql ~create_or_update: Version_sql.create db id version;%lwt
   lwt id
 
 let update id version =
   Connection.with_ @@ fun db ->
-  version_to_row ~create_or_update: (fun db ~id -> Version_sql.update db ~id) db id version
+  version_to_sql ~create_or_update: (fun db ~id -> Version_sql.update db ~id) db id version
 
 let delete id =
   Connection.with_ @@ fun db ->

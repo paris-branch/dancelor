@@ -1,3 +1,4 @@
+open Nes
 open Dancelor_common
 open Model_new
 
@@ -16,3 +17,5 @@ val create : t -> Version_id.t Lwt.t
 val update : Version_id.t -> t -> unit Lwt.t
 
 val delete : Version_id.t -> unit Lwt.t
+
+val search : ?threshold: float -> NEString.t option -> (Version_row.t * float) list Lwt.t

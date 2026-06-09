@@ -100,8 +100,7 @@ FROM (
 	@needle {Some { word_similarity(@needle, "name") } | None { '1' } } AS "score"
     FROM "source"
 ) AS "search"
-JOIN "source"
-ON "source"."id" = "search"."id"
+JOIN "source" ON "source"."id" = "search"."id"
 WHERE "search"."score" >= @threshold
 ORDER BY "score" DESC, "name" ASC;
 
@@ -111,5 +110,4 @@ SELECT
     "person"."id",
     "person"."name"
 FROM "source_editors"
-JOIN "person"
-ON "source_editors"."person_id" = "person"."id";
+JOIN "person" ON "source_editors"."person_id" = "person"."id";

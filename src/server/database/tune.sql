@@ -155,8 +155,7 @@ FROM (
 	@needle {Some { word_similarity(@needle, "name") } | None { '1' } } AS "score"
     FROM "tune"
 ) AS "search"
-JOIN "tune"
-ON "tune"."id" = "search"."id"
+JOIN "tune" ON "tune"."id" = "search"."id"
 WHERE "search"."score" >= @threshold
 ORDER BY "score" DESC, "name" ASC;
 
@@ -166,6 +165,5 @@ SELECT
     "person"."id",
     "person"."name"
 FROM "tune_composers"
-JOIN "person"
-ON "tune_composers"."composer_id" = "person"."id"
+JOIN "person" ON "tune_composers"."composer_id" = "person"."id"
 ORDER BY "index";

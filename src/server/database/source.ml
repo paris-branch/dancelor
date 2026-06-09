@@ -7,6 +7,10 @@ module Source_sql = Source_sql.Sqlgg(Sqlgg_postgresql)
 type t = Model_builder.Core.Source.t
 type entry = Model_builder.Core.Source.entry
 
+let sql_to_short_name ~id ~name ~short_name ~(k : Source_short_name.t -> 'w) : 'w =
+  let short_name = Option.value short_name ~default: name in
+  k {id = Entry.Id.of_string_exn id; short_name}
+
 let sql_to_row ~id ~name ~date ~editors ~(k : Source_row.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name; date = Option.map (Option.get % PartialDate.from_string) date; editors}
 

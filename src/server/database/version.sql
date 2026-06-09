@@ -212,3 +212,43 @@ INSERT INTO "version_destructured_transitions" (
     @melody,
     @chords
 );
+
+-- @search
+SELECT
+    "search"."score",
+    "version"."id",
+    "tune"."id" AS "tune_id",
+    -- version
+    "version"."disambiguation",
+    "version"."monolithic_bars",
+    "version"."monolithic_or_default_structure",
+    -- tune
+    "name" AS "tune_name",
+    "kind" AS "tune_kind"
+FROM (
+    SELECT
+        "id",
+	@needle {Some { word_similarity(@needle, "name") } | None { '1' } } AS "score"
+    FROM "tune"
+) AS "search"
+JOIN "tune" ON "tune"."id" = "search"."id"
+JOIN "version" ON "version"."tune_id" = "tune"."id"
+WHERE "search"."score" >= @threshold
+ORDER BY "score" DESC, "name" ASC;
+
+-- @get_all_arrangers_new
+SELECT
+    "version_id",
+    "person"."id",
+    "person"."name"
+FROM "version_arrangers"
+JOIN "person" ON "version_arrangers"."arranger_id" = "person"."id";
+
+-- @get_all_sources_new
+SELECT
+    "version_id",
+    "source"."id",
+    "source"."name",
+    "source"."short_name"
+FROM "version_sources"
+JOIN "source" ON "version_sources"."source_id" = "source"."id";
