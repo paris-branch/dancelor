@@ -53,9 +53,8 @@ let editor user =
         ~label: "Conceptor"
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create_row
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+        ~search: (fun slice filter ->
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search_new) slice filter
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
@@ -79,9 +78,8 @@ let editor user =
             ~label: "Version"
             ~model_name: "version"
             ~create_dialog_content: Version_editor.create_row
-            ~search: (fun slice input ->
-              let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Version.converter) input in
-              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
+            ~search: (fun slice filter ->
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search_new) slice filter
             )
             ~id_to_yojson: Entry.Id.to_yojson'
             ~id_of_yojson: Entry.Id.of_yojson'
