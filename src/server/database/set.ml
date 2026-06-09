@@ -7,12 +7,6 @@ module Set_sql = Set_sql.Sqlgg(Sqlgg_postgresql)
 type t = Model_builder.Core.Set.t
 type entry = Model_builder.Core.Set.entry
 
-(* type can_get_private = *)
-(*   | Everyone (\** everyone can see this entry *\) *)
-(*   | Owner (\** you can see this entry because you are its owner *\) *)
-(*   | Viewer (\** you can see this entry because its owner marked you as a viewer *\) *)
-(*   | Omniscient_administrator (\** you can see this entry because you are an administrator with omniscience enabled *\) *)
-
 let sql_to_row ~id ~name ~kind ~conceptors ~tunes ~permission ~(k : Set_row.t -> 'w) : 'w =
   k {
     id = Entry.Id.of_string_exn id;

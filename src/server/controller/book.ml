@@ -121,6 +121,16 @@ let search env slice filter =
   let%lwt items = Lwt_list.map_s (to_row env) result.items in
   lwt {result with items}
 
+let search'_new env filter =
+  let user = Environment.user env in
+  let%lwt items = Database.Book.search ~user: (Option.map Entry.id user) filter in
+  lwt {total = List.length items; items}
+
+let search_new env slice filter =
+  let%lwt {total; items} = search'_new env filter in
+  let items = List.map fst @@ Slice.list slice items in
+  lwt {total; items}
+
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Book.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
@@ -128,6 +138,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Book.t -> a 
   | Get_view -> get_view env
   | Get_rows -> get_rows env
   | Search -> search env
+  | Search_new -> search_new env
   | Create -> create env
   | Update -> update env
   | Delete -> delete env

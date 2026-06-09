@@ -148,7 +148,6 @@ let search env slice filter =
 let search'_new env filter =
   let user = Environment.user env in
   let%lwt items = Database.Set.search ~user: (Option.map Entry.id user) filter in
-  let%lwt items = Lwt_list.filter_s (Permission.can_get_public_new env % fst) items in
   lwt {total = List.length items; items}
 
 let search_new env slice filter =
@@ -163,6 +162,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Set.t -> a =
   | Get_view -> get_view env
   | Get_rows -> get_rows env
   | Search -> search env
+  | Search_new -> search_new env
   | Create -> create env
   | Update -> update env
   | Delete -> delete env
