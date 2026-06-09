@@ -50,9 +50,9 @@ let sql_to_set
   =
   let visibility : Entry.Access.Private.visibility =
     match (visibility, viewers) with
-    | (0L, []) -> Owners_only
-    | (1L, []) -> Everyone
-    | (2L, _) ->
+    | (`Owners_only, []) -> Owners_only
+    | (`Everyone, []) -> Everyone
+    | (`Select_viewers, _) ->
       (
         match viewers with
         | [] -> assert false
@@ -78,9 +78,9 @@ let sql_to_set
 let set_to_sql ~create_or_update db id set access =
   let (visibility, viewers) =
     match Entry.Access.Private.visibility access with
-    | Owners_only -> (0L, [])
-    | Everyone -> (1L, [])
-    | Select_viewers viewers -> (2L, NEList.to_list viewers)
+    | Owners_only -> (`Owners_only, [])
+    | Everyone -> (`Everyone, [])
+    | Select_viewers viewers -> (`Select_viewers, NEList.to_list viewers)
   in
   (* FIXME: transaction, maybe [Connection.with_transaction] *)
   let id = Entry.Id.to_string id in
