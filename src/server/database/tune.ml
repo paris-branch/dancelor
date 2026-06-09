@@ -1,12 +1,30 @@
 open Nes
 open Dancelor_common
+open Model_new
 
 module Tune_sql = Tune_sql.Sqlgg(Sqlgg_postgresql)
 
 type t = Model_builder.Core.Tune.t
 type entry = Model_builder.Core.Tune.entry
 
-let row_to_tune
+let sql_to_row ~id ~name ~kind ~composers ~(k : Tune_row.t -> 'w) : 'w =
+  k {
+    id = Entry.Id.of_string_exn id;
+    name;
+    kind = Kind_base.of_string kind;
+    composers;
+  }
+
+let search ?(threshold = 0.3) needle : (Tune_row.t * float) list Lwt.t =
+  Connection.with_ @@ fun db ->
+  let%lwt composers = Utils.fold_to_hashtbl Tune_sql.Fold.get_all_composers_new db (fun k ~tune_id -> Utils.sql_to_person_name ~k: (k tune_id)) in
+  Tune_sql.List.search
+    db
+    ~needle: (match needle with None -> `None | Some s -> `Some (NEString.to_string s))
+    ~threshold: (string_of_float threshold)
+    (fun ~score ~id -> sql_to_row ~id ~composers: (Hashtbl.find_all composers id) ~k: (Pair.snoc @@ float_of_string score))
+
+let sql_to_tune
     ~id
     ~name
     ~extra_names
@@ -35,7 +53,7 @@ let row_to_tune
         ()
     )
 
-let tune_to_row ~create_or_update db id tune =
+let tune_to_sql ~create_or_update db id tune =
   (* FIXME: transaction, maybe [Connection.with_transaction] *)
   let id = Entry.Id.to_string id in
   ignore
@@ -78,7 +96,7 @@ let get id : Model_builder.Core.Tune.entry option Lwt.t =
   let%lwt extra_names = Tune_sql.List.get_extra_names db ~tune_id: id (fun ~extra_name -> NEString.of_string_exn extra_name) in
   let%lwt composers = Tune_sql.List.get_composers db ~tune_id: id (fun ~composer_id ~details -> (Entry.Id.of_string_exn composer_id, Option.map NEString.of_string_exn details)) in
   let%lwt dances = Tune_sql.List.get_dances db ~tune_id: id (fun ~dance_id -> Entry.Id.of_string_exn dance_id) in
-  Tune_sql.Single.get db ~id (row_to_tune ~id ~extra_names ~composers ~dances)
+  Tune_sql.Single.get db ~id (sql_to_tune ~id ~extra_names ~composers ~dances)
 
 let get_all () =
   Connection.with_ @@ fun db ->
@@ -104,7 +122,7 @@ let get_all () =
     )
     ();%lwt
   Tune_sql.List.get_all db (fun ~id ->
-    row_to_tune
+    sql_to_tune
       ~id
       ~extra_names: (List.rev @@ Hashtbl.find_all extra_names id)
       ~composers: (List.rev @@ Hashtbl.find_all composers id)
@@ -114,12 +132,12 @@ let get_all () =
 let create tune =
   Connection.with_ @@ fun db ->
   let%lwt id = Globally_unique_id.make db Tune in
-  tune_to_row ~create_or_update: Tune_sql.create db id tune;%lwt
+  tune_to_sql ~create_or_update: Tune_sql.create db id tune;%lwt
   lwt id
 
 let update id tune =
   Connection.with_ @@ fun db ->
-  tune_to_row ~create_or_update: (fun db ~id -> Tune_sql.update db ~id) db id tune
+  tune_to_sql ~create_or_update: (fun db ~id -> Tune_sql.update db ~id) db id tune
 
 let delete id =
   Connection.with_ @@ fun db ->

@@ -18,11 +18,9 @@ type (_, _, _) t =
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
-    (* Actions without a specific dance *)
     | Create -> body "dance" (module Dance) @@ post (module Dance_id)
     | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(Dance)(Filter.Dance)) @@ get (module Utils.Search_result(Dance_row))
     | Search_new -> literal "search" @@ query "slice" (module Slice) @@ query "filter" (module JOption(JNEString)) @@ get (module Utils.Search_result(Dance_row))
-    (* Actions on a specific dance *)
     | Get -> variable (module Dance_id) @@ get (module Entry.JPublic(Dance))
     | Get_row -> variable (module Dance_id) @@ literal "row" @@ get (module Dance_row)
     | Get_view -> variable (module Dance_id) @@ literal "view" @@ get (module Dance_view)

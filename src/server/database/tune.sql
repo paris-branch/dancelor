@@ -142,3 +142,30 @@ INSERT INTO "recommended_tunes" (
     @tune_id,
     @dance_id
 );
+
+-- @search
+SELECT
+    "search"."score",
+    "tune"."id",
+    "name",
+    "kind"
+FROM (
+    SELECT
+        "id",
+	@needle {Some { word_similarity(@needle, "name") } | None { '1' } } AS "score"
+    FROM "tune"
+) AS "search"
+JOIN "tune"
+ON "tune"."id" = "search"."id"
+WHERE "search"."score" >= @threshold
+ORDER BY "score" DESC, "name" ASC;
+
+-- @get_all_composers_new
+SELECT
+    "tune_id",
+    "person"."id",
+    "person"."name"
+FROM "tune_composers"
+JOIN "person"
+ON "tune_composers"."composer_id" = "person"."id"
+ORDER BY "index";
