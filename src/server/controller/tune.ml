@@ -145,7 +145,7 @@ let search'_new env filter =
 
 let search_new env slice filter =
   let%lwt {total; items} = search'_new env filter in
-  let items = List.map fst @@ Slice.list slice items in
+  let items = List.map fst @@ Slice.list ~strict: false slice items in
   lwt {total; items}
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Tune.t -> a = fun env endpoint ->
