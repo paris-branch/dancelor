@@ -49,8 +49,8 @@ let search ?(threshold = 0.3) needle : (Version_row.t * float) list Lwt.t =
   let%lwt arrangers = Utils.fold_to_hashtbl Version_sql.Fold.get_all_arrangers_new db (fun k ~version_id -> Person.sql_to_name ~k: (k version_id)) in
   Version_sql.List.search
     db
-    ~needle: (match needle with None -> `None | Some s -> `Some (NEString.to_string s))
-    ~threshold: (string_of_float threshold)
+    ~needle
+    ~threshold
     (fun ~score ~id ~tune_id ->
       sql_to_row
         ~id
@@ -58,7 +58,7 @@ let search ?(threshold = 0.3) needle : (Version_row.t * float) list Lwt.t =
         ~tune_composers: (Hashtbl.find_all tune_composers tune_id)
         ~sources: (Hashtbl.find_all sources id)
         ~arrangers: (Hashtbl.find_all arrangers id)
-        ~k: (Pair.snoc @@ float_of_string score)
+        ~k: (Pair.snoc score)
     )
 
 let sql_to_version

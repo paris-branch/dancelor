@@ -17,7 +17,7 @@ let view query =
     Search.make
       ~search: (fun slice filter ->
         (* let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Any.converter input in *)
-        ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice @@ NEString.of_string filter
+        ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice filter
       )
       ?initial_input: query
       ~pagination_mode: (Pagination ())

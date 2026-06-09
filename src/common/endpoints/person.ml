@@ -8,7 +8,7 @@ type (_, _, _) t =
   | For_user_row : (User_id.t -> 'w, 'w, Person_row.t option) t (* FIXME: move to user endpoints *)
   | Create : (Person.t -> 'w, 'w, Person_id.t) t
   | Search : (Slice.t -> (Person.t, Filter.Person.t) Formula_entry.public -> 'w, 'w, Person_row.t search_result) t
-  | Search_new : (Slice.t -> NEString.t option -> 'w, 'w, Person_row.t search_result) t
+  | Search_new : (Slice.t -> string -> 'w, 'w, Person_row.t search_result) t
   | Get : (Person_id.t -> 'w, 'w, Person.entry) t (* FIXME: remove *)
   | Get_row : (Person_id.t -> 'w, 'w, Person_row.t) t
   | Get_view : (Person_id.t -> 'w, 'w, Person_view.t) t
@@ -22,7 +22,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | For_user_row -> literal "for-user" @@ variable (module User_id) @@ literal "row" @@ get (module JOption(Person_row))
     | Create -> body "person" (module Person) @@ post (module Person_id)
     | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(Person)(Filter.Person)) @@ get (module Utils.Search_result(Person_row))
-    | Search_new -> literal "search" @@ query "slice" (module Slice) @@ query "filter" (module JOption(JNEString)) @@ get (module Utils.Search_result(Person_row))
+    | Search_new -> literal "search" @@ query "slice" (module Slice) @@ query "filter" (module JString) @@ get (module Utils.Search_result(Person_row))
     | Get -> variable (module Person_id) @@ get (module Entry.JPublic(Person))
     | Get_row -> variable (module Person_id) @@ literal "row" @@ get (module Person_row)
     | Get_view -> variable (module Person_id) @@ literal "view" @@ get (module Person_view)

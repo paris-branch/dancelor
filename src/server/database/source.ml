@@ -19,9 +19,9 @@ let search ?(threshold = 0.3) needle : (Source_row.t * float) list Lwt.t =
   let%lwt editors = Utils.fold_to_hashtbl Source_sql.Fold.get_all_editors_new db (fun k ~source_id -> Person.sql_to_name ~k: (k source_id)) in
   Source_sql.List.search
     db
-    ~needle: (match needle with None -> `None | Some s -> `Some (NEString.to_string s))
-    ~threshold: (string_of_float threshold)
-    (fun ~score ~id -> sql_to_row ~id ~editors: (Hashtbl.find_all editors id) ~k: (Pair.snoc @@ float_of_string score))
+    ~needle
+    ~threshold
+    (fun ~score ~id -> sql_to_row ~id ~editors: (Hashtbl.find_all editors id) ~k: (Pair.snoc score))
 
 let sql_to_source
     ~id

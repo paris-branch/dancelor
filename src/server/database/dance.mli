@@ -16,4 +16,4 @@ val update : t Entry.id -> t -> unit Lwt.t
 
 val delete : t Entry.id -> unit Lwt.t
 
-val search : ?threshold: float -> NEString.t option -> (Dance_row.t * float) list Lwt.t
+val search : ?threshold: float -> string -> (Dance_row.t * float) list Lwt.t

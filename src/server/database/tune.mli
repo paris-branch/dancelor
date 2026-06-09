@@ -16,7 +16,7 @@ val update : t Entry.id -> t -> unit Lwt.t
 
 val delete : t Entry.id -> unit Lwt.t
 
-val search : ?threshold: float -> NEString.t option -> (Tune_row.t * float) list Lwt.t
+val search : ?threshold: float -> string -> (Tune_row.t * float) list Lwt.t
 
 (** {2 Utilities for other models} *)
 

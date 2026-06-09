@@ -40,9 +40,9 @@ let search ?(threshold = 0.3) needle : (Dance_row.t * float) list Lwt.t =
   let%lwt devisers = Utils.fold_to_hashtbl Dance_sql.Fold.get_all_devisers_new db (fun k ~dance_id -> Person.sql_to_name ~k: (k dance_id)) in
   Dance_sql.List.search
     db
-    ~needle: (match needle with None -> `None | Some s -> `Some (NEString.to_string s))
-    ~threshold: (string_of_float threshold)
-    (fun ~score ~id -> sql_to_row ~id ~devisers: (Hashtbl.find_all devisers id) ~k: (Pair.snoc @@ float_of_string score))
+    ~needle
+    ~threshold
+    (fun ~score ~id -> sql_to_row ~id ~devisers: (Hashtbl.find_all devisers id) ~k: (Pair.snoc score))
 
 let sql_to_dance
     ~id

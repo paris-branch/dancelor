@@ -97,7 +97,9 @@ SELECT
 FROM (
     SELECT
         "id",
-	@needle {Some { word_similarity(@needle, "name") } | None { '1' } } AS "score"
+        CASE WHEN @needle = '' THEN 1.0
+             ELSE word_similarity(@needle, "name")
+        END AS "score"
     FROM "source"
 ) AS "search"
 JOIN "source" ON "source"."id" = "search"."id"
