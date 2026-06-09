@@ -37,7 +37,7 @@ let sql_to_row ~id ~name ~kind ~devisers ~disambiguation ~(k : Dance_row.t -> 'w
 
 let search ?(threshold = 0.3) needle : (Dance_row.t * float) list Lwt.t =
   Connection.with_ @@ fun db ->
-  let%lwt devisers = Utils.fold_to_hashtbl Dance_sql.Fold.get_all_devisers_new db (fun k ~dance_id -> Utils.sql_to_person_name ~k: (k dance_id)) in
+  let%lwt devisers = Utils.fold_to_hashtbl Dance_sql.Fold.get_all_devisers_new db (fun k ~dance_id -> Person.sql_to_name ~k: (k dance_id)) in
   Dance_sql.List.search
     db
     ~needle: (match needle with None -> `None | Some s -> `Some (NEString.to_string s))

@@ -7,6 +7,9 @@ module Person_sql = Person_sql.Sqlgg(Sqlgg_postgresql)
 type t = Model_builder.Core.Person.t
 type entry = Model_builder.Core.Person.entry
 
+let sql_to_name ~id ~name ~(k : Person_name.t -> 'w) : 'w =
+  k {id = Entry.Id.of_string_exn id; name}
+
 let sql_to_row ~id ~name (k : Person_row.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name}
 
