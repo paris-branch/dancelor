@@ -12,13 +12,10 @@ let update_uri input =
     (Js.string "")
     (Js.some (Js.string (Uri.to_string uri)))
 
-let view query =
+let view_gen ~search query =
   let search =
     Search.make
-      ~search: (fun slice filter ->
-        (* let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Any.converter input in *)
-        ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice filter
-      )
+      ~search
       ?initial_input: query
       ~pagination_mode: (Pagination ())
       ~on_input: update_uri
@@ -54,3 +51,16 @@ let view query =
             ();
         ]
     ]
+
+let view =
+  view_gen
+    ~search: (fun slice input ->
+      let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Any.converter input in
+      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice filter
+    )
+
+let view_new =
+  view_gen
+    ~search: (fun slice filter ->
+      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice filter
+    )

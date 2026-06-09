@@ -14,15 +14,14 @@ let set_title title =
 let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 
 let quick_search_to_explorer value =
-  let href = Endpoints.Page.(href Explore) (Some value) in
+  let href = Endpoints.Page.(href Explore_new) (Some value) in
   Dom_html.window##.location##.href := Js.string (Uri.to_string href);
   Js_of_ocaml_lwt.Lwt_js.sleep 10.
 
 let quick_search =
   Components.Search.Quick.make
-    ~search: (fun slice input ->
-      let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Any.converter input in
-      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice filter
+    ~search: (fun slice filter ->
+      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice filter
     )
     ~on_enter: (fun value -> Lwt.async (fun () -> quick_search_to_explorer value))
     ()
@@ -58,6 +57,7 @@ let nav_item_explore =
         ~a: [a_class ["dropdown-menu"]]
         (
           [li [Button.make_a ~label: "All" ~href: (S.const @@ Endpoints.Page.(href Explore) None) ~dropdown: true ()];
+          li [Button.make_a ~label: "All (new)" ~href: (S.const @@ Endpoints.Page.(href Explore_new) None) ~dropdown: true ()];
           li [hr ~a: [a_class ["dropdown-divider"]] ()];
           ] @
             List.map

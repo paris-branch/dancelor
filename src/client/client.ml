@@ -20,6 +20,7 @@ let dispatch uri =
     | Index -> Index.create ()
     | Any -> redirect_any
     | Explore -> Explorer.view
+    | Explore_new -> Explorer.view_new
     | Book -> Book_viewer.view
     | Book_add -> Book_editor.add ()
     | Book_edit -> Book_editor.edit
