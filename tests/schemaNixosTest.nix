@@ -48,6 +48,7 @@
       ## The `dancelor` database now has the schema produced by migrations.
       ## Create a second database and import schema.sql directly into it.
       machine.succeed("sudo -u postgres createdb --owner=dancelor dancelor_from_schema")
+      machine.succeed("sudo -u dancelor psql --dbname=dancelor_from_schema --file=${../src/server/database/schema-extra-before.sql}")
       machine.succeed("sudo -u dancelor psql --dbname=dancelor_from_schema --file=${../src/server/database/schema.sql}")
 
       ## Dump both schemas and compare.
