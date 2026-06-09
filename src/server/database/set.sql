@@ -186,3 +186,50 @@ INSERT INTO "set_content" (
     @version_parameter_display_name,
     @version_parameter_display_composer
 );
+
+-- @search
+SELECT
+    "search"."score",
+    "set"."id",
+    "name",
+    "kind",
+    "permission"
+FROM (
+    SELECT
+        "set"."id",
+        CASE
+	    WHEN @needle = '' THEN 1.0
+            ELSE word_similarity(@needle, "name")
+        END AS "score",
+	CASE
+	    WHEN "set"."visibility" = 1 THEN 'Everyone'
+	    WHEN EXISTS (SELECT 1 FROM "set_owners" WHERE "set_owners"."set_id" = "set"."id" AND "set_owners"."owner_id" = @user_id) THEN 'Owner'
+	    WHEN "set"."visibility" = 2 AND EXISTS (SELECT 1 FROM "set_viewers" WHERE "set_viewers"."set_id" = "set"."id" AND "set_viewers"."viewer_id" = @user_id) THEN 'Viewer'
+	    WHEN "user"."role" = 2 AND "user"."omniscience" THEN 'Omniscient_administrator'
+	    ELSE NULL
+	END AS "permission"
+    FROM "set"
+    LEFT JOIN "user" ON "user"."id" = @user_id
+) AS "search"
+JOIN "set" ON "set"."id" = "search"."id"
+WHERE "search"."score" >= @threshold
+  AND "search"."permission" IS NOT NULL
+ORDER BY "score" DESC, "name" ASC;
+
+-- @get_all_conceptors_new
+SELECT
+    "set_id",
+    "person"."id",
+    "person"."name"
+FROM "set_conceptors"
+JOIN "person" ON "set_conceptors"."conceptor_id" = "person"."id";
+
+-- @get_all_tunes_new
+SELECT
+    "set_id",
+    "version"."id",
+    "tune"."name"
+FROM "set_content"
+JOIN "version" ON "set_content"."version_id" = "version"."id"
+JOIN "tune" ON "version"."tune_id" = "tune"."id"
+ORDER BY "index";

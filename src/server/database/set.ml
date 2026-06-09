@@ -1,12 +1,46 @@
 open Nes
 open Dancelor_common
+open Model_new
 
 module Set_sql = Set_sql.Sqlgg(Sqlgg_postgresql)
 
 type t = Model_builder.Core.Set.t
 type entry = Model_builder.Core.Set.entry
 
-let row_to_set
+(* type can_get_private = *)
+(*   | Everyone (\** everyone can see this entry *\) *)
+(*   | Owner (\** you can see this entry because you are its owner *\) *)
+(*   | Viewer (\** you can see this entry because its owner marked you as a viewer *\) *)
+(*   | Omniscient_administrator (\** you can see this entry because you are an administrator with omniscience enabled *\) *)
+
+let sql_to_row ~id ~name ~kind ~conceptors ~tunes ~permission ~(k : Set_row.t -> 'w) : 'w =
+  k {
+    id = Entry.Id.of_string_exn id;
+    name;
+    kind = Kind_dance.of_string kind;
+    conceptors;
+    tunes;
+    permission = (match permission with `Everyone -> Everyone | `Owner -> Owner | `Viewer -> Viewer | `Omniscient_administrator -> Omniscient_administrator);
+  }
+
+let search ~user ?(threshold = 0.3) needle : (Set_row.t * float) list Lwt.t =
+  Connection.with_ @@ fun db ->
+  let%lwt tunes = Utils.fold_to_hashtbl Set_sql.Fold.get_all_tunes_new db (fun k ~set_id -> Version.sql_to_name ~k: (k set_id)) in
+  let%lwt conceptors = Utils.fold_to_hashtbl Set_sql.Fold.get_all_conceptors_new db (fun k ~set_id -> Person.sql_to_name ~k: (k set_id)) in
+  Set_sql.List.search
+    db
+    ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
+    ~needle
+    ~threshold
+    (fun ~score ~id ->
+      sql_to_row
+        ~id
+        ~tunes: (Hashtbl.find_all tunes id)
+        ~conceptors: (Hashtbl.find_all conceptors id)
+        ~k: (Pair.snoc score)
+    )
+
+let sql_to_set
     ~id
     ~name
     ~kind
@@ -47,7 +81,7 @@ let row_to_set
         ()
     )
 
-let set_to_row ~create_or_update db id set access =
+let set_to_sql ~create_or_update db id set access =
   let (visibility, viewers) =
     match Entry.Access.Private.visibility access with
     | Owners_only -> (0L, [])
@@ -145,7 +179,7 @@ let get id : Model_builder.Core.Set.entry option Lwt.t =
       )
     )
   in
-  Set_sql.Single.get db ~id (row_to_set ~id ~conceptors ~viewers ~owners ~content)
+  Set_sql.Single.get db ~id (sql_to_set ~id ~conceptors ~viewers ~owners ~content)
 
 let get_all () =
   Connection.with_ @@ fun db ->
@@ -185,7 +219,7 @@ let get_all () =
     )
     ();%lwt
   Set_sql.List.get_all db (fun ~id ->
-    row_to_set
+    sql_to_set
       ~id
       ~conceptors: (List.rev @@ Hashtbl.find_all conceptors id)
       ~viewers: (List.rev @@ Hashtbl.find_all viewers id)
@@ -196,12 +230,12 @@ let get_all () =
 let create set access =
   Connection.with_ @@ fun db ->
   let%lwt id = Globally_unique_id.make db Set in
-  set_to_row ~create_or_update: Set_sql.create db id set access;%lwt
+  set_to_sql ~create_or_update: Set_sql.create db id set access;%lwt
   lwt id
 
 let update id set access =
   Connection.with_ @@ fun db ->
-  set_to_row ~create_or_update: (fun db ~id -> Set_sql.update db ~id) db id set access
+  set_to_sql ~create_or_update: (fun db ~id -> Set_sql.update db ~id) db id set access
 
 let delete id =
   Connection.with_ @@ fun db ->

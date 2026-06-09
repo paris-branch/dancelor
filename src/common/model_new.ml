@@ -318,7 +318,7 @@ module Set_row = struct
     name: string;
     kind: Kind_dance.t;
     conceptors: Person_name.t list; [@default []]
-    tunes: Tune_name.t list; [@default []]
+    tunes: Version_name.t list; [@default []]
     permission: Permission_builder.can_get_private;
   }
   [@@deriving yojson, fields]

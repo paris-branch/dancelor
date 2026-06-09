@@ -8,6 +8,9 @@ module Version_sql = Version_sql.Sqlgg(Sqlgg_postgresql)
 type t = Model_builder.Core.Version.t
 type entry = Model_builder.Core.Version.entry
 
+let sql_to_name ~id ~name ~(k : Version_name.t -> 'w) : 'w =
+  k {id = Entry.Id.of_string_exn id; name}
+
 let sql_to_row
     ~sources
     ~arrangers

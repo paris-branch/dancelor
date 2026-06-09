@@ -233,10 +233,10 @@ let create mode =
     ~href: (Endpoints.Page.href_set % Entry.id)
     ~check_product: (fun (set1, access1) (set2, access2) -> Model.Set.equal set1 set2 && Entry.Access.Private.equal access1 access2)
 
-let version_to_name (version : Model.Version.entry) : Tune_name.t Lwt.t =
+let version_to_name (version : Model.Version.entry) : Version_name.t Lwt.t =
   let%lwt tune = Model.Version.tune' version in
   lwt {
-    Tune_name.id = Entry.id tune;
+    Version_name.id = Entry.id version;
     name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
   }
 
