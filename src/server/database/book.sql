@@ -309,23 +309,26 @@ FROM (
     SELECT
         "book"."id",
         CASE
-	    WHEN @needle = '' THEN 1.0
+            WHEN @needle = '' THEN 1.0
             ELSE word_similarity(@needle, "name")
         END AS "score",
-	CASE
-	    WHEN "book"."visibility" = 1 THEN 'Everyone'
-	    WHEN EXISTS (SELECT 1 FROM "book_owners" WHERE "book_owners"."book_id" = "book"."id" AND "book_owners"."owner_id" = @user_id) THEN 'Owner'
-	    WHEN "book"."visibility" = 2 AND EXISTS (SELECT 1 FROM "book_viewers" WHERE "book_viewers"."book_id" = "book"."id" AND "book_viewers"."viewer_id" = @user_id) THEN 'Viewer'
-	    WHEN "user"."role" = 2 AND "user"."omniscience" THEN 'Omniscient_administrator'
-	    ELSE NULL
-	END AS "permission"
+        CASE
+            WHEN "book"."visibility" = 1 THEN 'Everyone'
+            WHEN "book_owners"."owner_id" IS NOT NULL THEN 'Owner'
+            WHEN "book"."visibility" = 2 AND "book_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
+            WHEN "user"."role" = 2 AND "user"."omniscience" THEN 'Omniscient_administrator'
+            ELSE NULL
+        END AS "permission"
     FROM "book"
+    LEFT JOIN "book_owners" ON "book_owners"."book_id" = "book"."id" AND "book_owners"."owner_id" = @user_id
+    LEFT JOIN "book_viewers" ON "book_viewers"."book_id" = "book"."id" AND "book_viewers"."viewer_id" = @user_id
     LEFT JOIN "user" ON "user"."id" = @user_id
 ) AS "search"
 JOIN "book" ON "book"."id" = "search"."id"
 WHERE "search"."score" >= @threshold
   AND "search"."permission" IS NOT NULL
 ORDER BY "score" DESC, "name" ASC;
+
 
 -- @get_all_authors_new
 SELECT

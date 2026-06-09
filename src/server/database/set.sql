@@ -198,17 +198,19 @@ FROM (
     SELECT
         "set"."id",
         CASE
-	    WHEN @needle = '' THEN 1.0
+            WHEN @needle = '' THEN 1.0
             ELSE word_similarity(@needle, "name")
         END AS "score",
-	CASE
-	    WHEN "set"."visibility" = 1 THEN 'Everyone'
-	    WHEN EXISTS (SELECT 1 FROM "set_owners" WHERE "set_owners"."set_id" = "set"."id" AND "set_owners"."owner_id" = @user_id) THEN 'Owner'
-	    WHEN "set"."visibility" = 2 AND EXISTS (SELECT 1 FROM "set_viewers" WHERE "set_viewers"."set_id" = "set"."id" AND "set_viewers"."viewer_id" = @user_id) THEN 'Viewer'
-	    WHEN "user"."role" = 2 AND "user"."omniscience" THEN 'Omniscient_administrator'
-	    ELSE NULL
-	END AS "permission"
+        CASE
+            WHEN "set"."visibility" = 1 THEN 'Everyone'
+            WHEN "set_owners"."owner_id" IS NOT NULL THEN 'Owner'
+            WHEN "set"."visibility" = 2 AND "set_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
+            WHEN "user"."role" = 2 AND "user"."omniscience" THEN 'Omniscient_administrator'
+            ELSE NULL
+        END AS "permission"
     FROM "set"
+    LEFT JOIN "set_owners" ON "set_owners"."set_id" = "set"."id" AND "set_owners"."owner_id" = @user_id
+    LEFT JOIN "set_viewers" ON "set_viewers"."set_id" = "set"."id" AND "set_viewers"."viewer_id" = @user_id
     LEFT JOIN "user" ON "user"."id" = @user_id
 ) AS "search"
 JOIN "set" ON "set"."id" = "search"."id"
