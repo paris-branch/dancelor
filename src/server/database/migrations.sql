@@ -1306,3 +1306,42 @@ ALTER TABLE "book_content"
 -- @m064_2026_06_use_enum_for_page_type__cleanup_columns_2
 ALTER TABLE "book_content"
   RENAME COLUMN "page_type_new" TO "page_type";
+
+-- @m065_2026_06_use_enum_for_type__create_type_type
+CREATE TYPE "type" AS ENUM ('Person', 'User', 'Dance', 'Source', 'Tune', 'Version', 'Set', 'Book');
+
+-- @m065_2026_06_use_enum_for_type__add_column_type_new
+ALTER TABLE "globally_unique_id" ADD COLUMN "type_new" "type";
+
+-- @m065_2026_06_use_enum_for_type__convert_person
+UPDATE "globally_unique_id" SET "type_new" = 'Person' WHERE "type" = 'Person';
+
+-- @m065_2026_06_use_enum_for_type__convert_user
+UPDATE "globally_unique_id" SET "type_new" = 'User' WHERE "type" = 'User';
+
+-- @m065_2026_06_use_enum_for_type__convert_dance
+UPDATE "globally_unique_id" SET "type_new" = 'Dance' WHERE "type" = 'Dance';
+
+-- @m065_2026_06_use_enum_for_type__convert_source
+UPDATE "globally_unique_id" SET "type_new" = 'Source' WHERE "type" = 'Source';
+
+-- @m065_2026_06_use_enum_for_type__convert_tune
+UPDATE "globally_unique_id" SET "type_new" = 'Tune' WHERE "type" = 'Tune';
+
+-- @m065_2026_06_use_enum_for_type__convert_version
+UPDATE "globally_unique_id" SET "type_new" = 'Version' WHERE "type" = 'Version';
+
+-- @m065_2026_06_use_enum_for_type__convert_set
+UPDATE "globally_unique_id" SET "type_new" = 'Set' WHERE "type" = 'Set';
+
+-- @m065_2026_06_use_enum_for_type__convert_book
+UPDATE "globally_unique_id" SET "type_new" = 'Book' WHERE "type" = 'Book';
+
+-- @m065_2026_06_use_enum_for_type__cleanup_columns_1
+ALTER TABLE "globally_unique_id"
+  ALTER COLUMN "type_new" SET NOT NULL,
+  DROP COLUMN "type";
+
+-- @m065_2026_06_use_enum_for_type__cleanup_columns_2
+ALTER TABLE "globally_unique_id"
+  RENAME COLUMN "type_new" TO "type";

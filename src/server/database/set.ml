@@ -222,7 +222,7 @@ let get_all () =
 
 let create set access =
   Connection.with_ @@ fun db ->
-  let%lwt id = Globally_unique_id.make db Set in
+  let%lwt id = Globally_unique_id.make db `Set in
   set_to_sql ~create_or_update: Set_sql.create db id set access;%lwt
   lwt id
 

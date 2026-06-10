@@ -1,6 +1,8 @@
+CREATE TYPE "type" AS ENUM ('Person', 'User', 'Dance', 'Source', 'Tune', 'Version', 'Set', 'Book');
+
 CREATE TABLE "globally_unique_id" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "type" TEXT NOT NULL
+    "type" "type" NOT NULL
 );
 
 CREATE TABLE "person" (
