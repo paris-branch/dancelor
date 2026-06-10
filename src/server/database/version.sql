@@ -228,7 +228,7 @@ SELECT
     "kind" AS "tune_kind"
 FROM "version"
 JOIN "tune" ON "version"."tune_id" = "tune"."id"
-WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
+WHERE (@needle = '' OR @needle <% "name")
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_arrangers_new

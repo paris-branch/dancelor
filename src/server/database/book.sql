@@ -316,7 +316,7 @@ SELECT * FROM (
     LEFT JOIN "book_owners" ON "book_owners"."book_id" = "book"."id" AND "book_owners"."owner_id" = @user_id
     LEFT JOIN "book_viewers" ON "book_viewers"."book_id" = "book"."id" AND "book_viewers"."viewer_id" = @user_id
     LEFT JOIN "user" ON "user"."id" = @user_id
-    WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
+    WHERE (@needle = '' OR @needle <% "name")
 ) AS "book+"
 WHERE "book+"."permission" IS NOT NULL
 ORDER BY "score" DESC, "name" ASC;

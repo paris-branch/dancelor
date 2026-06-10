@@ -184,11 +184,12 @@
           ##
           ##   - https://github.com/ygrek/sqlgg/pull/276 - support for ALTER COLUMN
           ##   - https://github.com/ygrek/sqlgg/pull/281 - support for CREATE TYPE AS ENUM
+          ##   - <no PR yet> - support for pgtrgm functions and operators
           ##
           owner = "niols"; # FIXME: should be ygrek
           repo = pname;
-          rev = "24f8ad1c456f63d60a5fb62467035be214108b3d";
-          sha256 = "sha256-tz50B8xyb2wm5Gkz7lMez8lmXFMssVi8TjdMz/Cjwuo=";
+          rev = "e4a9544ee9c205a48d328e697708dfa6cb904873";
+          sha256 = "sha256-S43s0lDUjGFpscN/y8HnLTnwonvxor5h8N2MqvrUc44=";
         };
         nativeBuildInputs = with pkgs.ocamlPackages; [
           menhir

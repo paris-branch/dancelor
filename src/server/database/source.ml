@@ -14,13 +14,12 @@ let sql_to_short_name ~id ~name ~short_name ~(k : Source_short_name.t -> 'w) : '
 let sql_to_row ~id ~name ~date ~editors ~(k : Source_row.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name; date = Option.map (Option.get % PartialDate.from_string) date; editors}
 
-let search ?(threshold = 0.3) needle : (Source_row.t * float) list Lwt.t =
+let search needle : (Source_row.t * float) list Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt editors = Utils.fold_to_hashtbl Source_sql.Fold.get_all_editors_new db (fun k ~source_id -> Person.sql_to_name ~k: (k source_id)) in
   Source_sql.List.search
     db
     ~needle
-    ~threshold
     (fun ~score ~id -> sql_to_row ~id ~editors: (Hashtbl.find_all editors id) ~k: (Pair.snoc score))
 
 let sql_to_source

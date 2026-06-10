@@ -150,7 +150,7 @@ SELECT
     "name",
     "kind"
 FROM "tune"
-WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
+WHERE (@needle = '' OR @needle <% "name")
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_composers_new

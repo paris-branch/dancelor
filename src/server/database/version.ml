@@ -45,7 +45,7 @@ let sql_to_row
     content;
   }
 
-let search ?(threshold = 0.3) needle : (Version_row.t * float) list Lwt.t =
+let search needle : (Version_row.t * float) list Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt tune_composers = Utils.fold_to_hashtbl Tune_sql.Fold.get_all_composers_new db (fun k ~tune_id -> Person.sql_to_name ~k: (k tune_id)) in
   let%lwt sources = Utils.fold_to_hashtbl Version_sql.Fold.get_all_sources_new db (fun k ~version_id -> Source.sql_to_short_name ~k: (k version_id)) in
@@ -53,7 +53,6 @@ let search ?(threshold = 0.3) needle : (Version_row.t * float) list Lwt.t =
   Version_sql.List.search
     db
     ~needle
-    ~threshold
     (fun ~score ~id ~tune_id ->
       sql_to_row
         ~id

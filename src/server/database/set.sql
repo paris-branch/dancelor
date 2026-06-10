@@ -205,7 +205,7 @@ SELECT * FROM (
     LEFT JOIN "set_owners" ON "set_owners"."set_id" = "set"."id" AND "set_owners"."owner_id" = @user_id
     LEFT JOIN "set_viewers" ON "set_viewers"."set_id" = "set"."id" AND "set_viewers"."viewer_id" = @user_id
     LEFT JOIN "user" ON "user"."id" = @user_id
-    WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
+    WHERE (@needle = '' OR @needle <% "name")
 ) AS "set+"
 WHERE "set+"."permission" IS NOT NULL
 ORDER BY "score" DESC, "name" ASC;

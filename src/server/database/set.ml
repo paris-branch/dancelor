@@ -17,7 +17,7 @@ let sql_to_row ~id ~name ~kind ~conceptors ~tunes ~permission ~(k : Set_row.t ->
     permission = (match permission with `Everyone -> Everyone | `Owner -> Owner | `Viewer -> Viewer | `Omniscient_administrator -> Omniscient_administrator);
   }
 
-let search ~user ?(threshold = 0.3) needle : (Set_row.t * float) list Lwt.t =
+let search ~user needle : (Set_row.t * float) list Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt tunes = Utils.fold_to_hashtbl Set_sql.Fold.get_all_tunes_new db (fun k ~set_id -> Version.sql_to_name ~k: (k set_id)) in
   let%lwt conceptors = Utils.fold_to_hashtbl Set_sql.Fold.get_all_conceptors_new db (fun k ~set_id -> Person.sql_to_name ~k: (k set_id)) in
@@ -25,7 +25,6 @@ let search ~user ?(threshold = 0.3) needle : (Set_row.t * float) list Lwt.t =
     db
     ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
     ~needle
-    ~threshold
     (fun ~score ~id ->
       sql_to_row
         ~id
