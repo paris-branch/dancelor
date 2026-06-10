@@ -2,7 +2,7 @@ open Nes
 open Dancelor_common
 
 let get id =
-  match%lwt Connection.with_ @@ fun db -> Globally_unique_id.get db (Entry.Id.unsafe_coerce id) with
+  match%lwt Connection.with_ @@ fun db -> Entry_new.get db (Entry.Id.unsafe_coerce id) with
   | None -> lwt_none
   | Some `Book -> Option.map Model_builder.Core.Any.book <$> (Book.get @@ Entry.Id.unsafe_coerce id)
   | Some `Dance -> Option.map Model_builder.Core.Any.dance <$> (Dance.get @@ Entry.Id.unsafe_coerce id)

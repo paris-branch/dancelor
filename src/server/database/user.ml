@@ -78,7 +78,7 @@ let get_password_reset_token_from_username username =
 let create ~username ~role ~password_reset_token_hash ~password_reset_token_max_date =
   let (role, omniscience) = role_of_common role in
   Connection.with_ @@ fun db ->
-  let%lwt id = Globally_unique_id.make db `User in
+  let%lwt id = Entry_new.make db `User in
   let%lwt _ =
     User_sql.create
       db

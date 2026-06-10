@@ -250,10 +250,10 @@ CREATE TABLE "dancelor"."dance_extra_names" (
 
 
 --
--- Name: globally_unique_id; Type: TABLE; Schema: dancelor; Owner: -
+-- Name: entry; Type: TABLE; Schema: dancelor; Owner: -
 --
 
-CREATE TABLE "dancelor"."globally_unique_id" (
+CREATE TABLE "dancelor"."entry" (
     "id" character varying(14) NOT NULL,
     "type" "dancelor"."type" NOT NULL
 );
@@ -605,29 +605,29 @@ INSERT INTO "dancelor"."dance_extra_names" ("dance_id", "extra_name") VALUES ('c
 
 
 --
--- Data for Name: globally_unique_id; Type: TABLE DATA; Schema: dancelor; Owner: -
+-- Data for Name: entry; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('4plf-srss-ihav', 'Person');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('8h62-3eis-xfem', 'Person');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('uwoe-u6ij-ikgp', 'Person');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('9fdg-glrm-0zoi', 'Person');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('lt3h-edgt-ac97', 'User');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('l02q-i1j0-qpoi', 'Dance');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('cy5n-qvpl-k0yl', 'Dance');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('0xf7-xwz9-1fhj', 'Dance');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('2f8s-90v8-33do', 'Source');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('2wrv-25yu-yc07', 'Source');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('qdod-ad7l-8gr2', 'Tune');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('rifw-ul36-3uq5', 'Tune');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('gm7o-khcu-8faz', 'Tune');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xzzb-wasm-babe', 'Version');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xsbz-vqy7-xj3s', 'Version');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('jyot-ypt9-caxu', 'Version');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('or5b-64lk-hlj5', 'Version');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('ului-yd9x-o35w', 'Set');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('wrwk-cz9g-g3wi', 'Set');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('0fi3-1iot-6tbq', 'Book');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('4plf-srss-ihav', 'Person');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('8h62-3eis-xfem', 'Person');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('uwoe-u6ij-ikgp', 'Person');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('9fdg-glrm-0zoi', 'Person');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('lt3h-edgt-ac97', 'User');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('l02q-i1j0-qpoi', 'Dance');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('cy5n-qvpl-k0yl', 'Dance');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('0xf7-xwz9-1fhj', 'Dance');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('2f8s-90v8-33do', 'Source');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('2wrv-25yu-yc07', 'Source');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('qdod-ad7l-8gr2', 'Tune');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('rifw-ul36-3uq5', 'Tune');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('gm7o-khcu-8faz', 'Tune');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('xzzb-wasm-babe', 'Version');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('xsbz-vqy7-xj3s', 'Version');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('jyot-ypt9-caxu', 'Version');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('or5b-64lk-hlj5', 'Version');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('ului-yd9x-o35w', 'Set');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('wrwk-cz9g-g3wi', 'Set');
+INSERT INTO "dancelor"."entry" ("id", "type") VALUES ('0fi3-1iot-6tbq', 'Book');
 
 
 --
@@ -699,6 +699,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m062_2026_06
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m063_2026_06_use_enum_for_visibility', '2026-06-10 00:04:50.874698+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m064_2026_06_use_enum_for_page_type', '2026-06-10 00:04:50.878206+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m065_2026_06_use_enum_for_type', '2026-06-10 08:14:11.873705+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m066_2026_06_rename_table_globally_unique_id', '2026-06-10 15:31:35.92784+00');
 
 
 --
@@ -972,11 +973,11 @@ ALTER TABLE ONLY "dancelor"."dance"
 
 
 --
--- Name: globally_unique_id idx_16419_primary; Type: CONSTRAINT; Schema: dancelor; Owner: -
+-- Name: entry idx_16419_primary; Type: CONSTRAINT; Schema: dancelor; Owner: -
 --
 
-ALTER TABLE ONLY "dancelor"."globally_unique_id"
-    ADD CONSTRAINT "idx_16419_primary" PRIMARY KEY ("id");
+ALTER TABLE ONLY "dancelor"."entry"
+    ADD CONSTRAINT "pk_entry" PRIMARY KEY ("id");
 
 
 --
@@ -1272,7 +1273,7 @@ ALTER TABLE ONLY "dancelor"."book_content_versions"
 --
 
 ALTER TABLE ONLY "dancelor"."book"
-    ADD CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+    ADD CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "dancelor"."entry"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 
 --
@@ -1352,7 +1353,7 @@ ALTER TABLE ONLY "dancelor"."dance_extra_names"
 --
 
 ALTER TABLE ONLY "dancelor"."dance"
-    ADD CONSTRAINT "fk_dance_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+    ADD CONSTRAINT "fk_dance_id" FOREIGN KEY ("id") REFERENCES "dancelor"."entry"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 
 --
@@ -1360,7 +1361,7 @@ ALTER TABLE ONLY "dancelor"."dance"
 --
 
 ALTER TABLE ONLY "dancelor"."person"
-    ADD CONSTRAINT "fk_person_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+    ADD CONSTRAINT "fk_person_id" FOREIGN KEY ("id") REFERENCES "dancelor"."entry"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 
 --
@@ -1416,7 +1417,7 @@ ALTER TABLE ONLY "dancelor"."set_content"
 --
 
 ALTER TABLE ONLY "dancelor"."set"
-    ADD CONSTRAINT "fk_set_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+    ADD CONSTRAINT "fk_set_id" FOREIGN KEY ("id") REFERENCES "dancelor"."entry"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 
 --
@@ -1472,7 +1473,7 @@ ALTER TABLE ONLY "dancelor"."source_editors"
 --
 
 ALTER TABLE ONLY "dancelor"."source"
-    ADD CONSTRAINT "fk_source_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+    ADD CONSTRAINT "fk_source_id" FOREIGN KEY ("id") REFERENCES "dancelor"."entry"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 
 --
@@ -1504,7 +1505,7 @@ ALTER TABLE ONLY "dancelor"."tune_extra_names"
 --
 
 ALTER TABLE ONLY "dancelor"."tune"
-    ADD CONSTRAINT "fk_tune_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+    ADD CONSTRAINT "fk_tune_id" FOREIGN KEY ("id") REFERENCES "dancelor"."entry"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 
 --
@@ -1520,7 +1521,7 @@ ALTER TABLE ONLY "dancelor"."remember_me_tokens"
 --
 
 ALTER TABLE ONLY "dancelor"."user"
-    ADD CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+    ADD CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "dancelor"."entry"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 
 --
@@ -1568,7 +1569,7 @@ ALTER TABLE ONLY "dancelor"."version_destructured_transitions"
 --
 
 ALTER TABLE ONLY "dancelor"."version"
-    ADD CONSTRAINT "fk_version_id" FOREIGN KEY ("id") REFERENCES "dancelor"."globally_unique_id"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
+    ADD CONSTRAINT "fk_version_id" FOREIGN KEY ("id") REFERENCES "dancelor"."entry"("id") ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 
 --

@@ -258,6 +258,10 @@ let make_ddls name ddls =
 let make_ddl name ddl =
   make_ddls name [ddl]
 
+let bypass ddl_str = fun db ->
+  Connection.bypass_exec db ddl_str;
+  lwt {Sqlgg_postgresql.affected_rows = 0L; insert_id = None}
+
 let migrations : migration list = [
   make_ddl "m001_2026_04_add_book_table" Migrations_sql.m001_2026_04_add_book_table;
   make_ddl "m002_2026_04_add_dance_table" Migrations_sql.m002_2026_04_add_dance_table;
@@ -930,6 +934,10 @@ let migrations : migration list = [
     Migrations_sql.m065_2026_06_use_enum_for_type__cleanup_columns_1;
     Migrations_sql.m065_2026_06_use_enum_for_type__cleanup_columns_2;
   ];
+  make_ddls "m066_2026_06_rename_table_globally_unique_id" [
+    Migrations_sql.m066_2026_06_rename_table_globally_unique_id__table;
+    bypass "ALTER TABLE \"entry\" RENAME CONSTRAINT \"globally_unique_id_pkey\" TO \"pk_entry\"";
+  ];
 ]
 
 exception Migration_failed of string * exn
@@ -963,6 +971,9 @@ let apply_migrations () =
             Connection.with_transaction db @@ fun () ->
             migration.apply db
           with
+            | Sqlgg_postgresql.Oops msg as exn ->
+              Log.err (fun m -> m "%a" (Format.pp_multiline_sensible @@ spf "Could not apply migration %S" migration.name) msg);
+              raise (Migration_failed (migration.name, exn))
             | exn ->
               Log.err (fun m -> m "Could not apply migration %S:\n%s\n%s" migration.name (Printexc.to_string exn) (Printexc.get_backtrace ()));
               raise (Migration_failed (migration.name, exn))

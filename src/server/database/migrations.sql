@@ -1345,3 +1345,12 @@ ALTER TABLE "globally_unique_id"
 -- @m065_2026_06_use_enum_for_type__cleanup_columns_2
 ALTER TABLE "globally_unique_id"
   RENAME COLUMN "type_new" TO "type";
+
+-- @m066_2026_06_rename_table_globally_unique_id__table
+ALTER TABLE "globally_unique_id" RENAME TO "entry";
+
+-- @m066_2026_06_rename_table_globally_unique_id__drop_primary_key__for_sqlgg
+ALTER TABLE "entry" DROP PRIMARY KEY;
+
+-- @m066_2026_06_rename_table_globally_unique_id__add_primary_key__for_sqlgg
+ALTER TABLE "entry" ADD CONSTRAINT "pk_entry" PRIMARY KEY ("id");

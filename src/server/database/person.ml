@@ -61,7 +61,7 @@ let get_all () =
 
 let create person =
   Connection.with_ @@ fun db ->
-  let%lwt id = Globally_unique_id.make db `Person in
+  let%lwt id = Entry_new.make db `Person in
   let%lwt _ = person_to_sql ~create_or_update: (Person_sql.create db) id person in
   lwt id
 
