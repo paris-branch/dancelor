@@ -48,9 +48,9 @@ let sql_to_book
   =
   let visibility : Entry.Access.Private.visibility =
     match (visibility, viewers) with
-    | (0L, []) -> Owners_only
-    | (1L, []) -> Everyone
-    | (2L, _) ->
+    | (`Owners_only, []) -> Owners_only
+    | (`Everyone, []) -> Everyone
+    | (`Select_viewers, _) ->
       (
         match viewers with
         | [] -> assert false
@@ -77,9 +77,9 @@ let sql_to_book
 let book_to_sql ~create_or_update db id book access =
   let (visibility, viewers) =
     match Entry.Access.Private.visibility access with
-    | Owners_only -> (0L, [])
-    | Everyone -> (1L, [])
-    | Select_viewers viewers -> (2L, NEList.to_list viewers)
+    | Owners_only -> (`Owners_only, [])
+    | Everyone -> (`Everyone, [])
+    | Select_viewers viewers -> (`Select_viewers, NEList.to_list viewers)
   in
   (* FIXME: transaction, maybe [Connection.with_transaction] *)
   let id = Entry.Id.to_string id in
@@ -118,12 +118,12 @@ let book_to_sql ~create_or_update db id book access =
     (fun content_index page ->
       let (page_type, part_title, dance_id, set_id, set_params, versions_and_params) =
         match (page : Model_builder.Core.Book.page) with
-        | Part title -> (0L, Some title, None, None, Model_builder.Core.Set_parameters.none, [])
-        | Dance (dance, Dance_only) -> (1L, None, Some dance, None, Model_builder.Core.Set_parameters.none, [])
-        | Dance (dance, Dance_versions versions_and_params) -> (2L, None, Some dance, None, Model_builder.Core.Set_parameters.none, NEList.to_list versions_and_params)
-        | Dance (dance, Dance_set (set, set_params)) -> (3L, None, Some dance, Some set, set_params, [])
-        | Versions versions_and_params -> (4L, None, None, None, Model_builder.Core.Set_parameters.none, NEList.to_list versions_and_params)
-        | Set (set, set_params) -> (5L, None, None, Some set, set_params, [])
+        | Part title -> (`Part, Some title, None, None, Model_builder.Core.Set_parameters.none, [])
+        | Dance (dance, Dance_only) -> (`Dance_only, None, Some dance, None, Model_builder.Core.Set_parameters.none, [])
+        | Dance (dance, Dance_versions versions_and_params) -> (`Dance_versions, None, Some dance, None, Model_builder.Core.Set_parameters.none, NEList.to_list versions_and_params)
+        | Dance (dance, Dance_set (set, set_params)) -> (`Dance_set, None, Some dance, Some set, set_params, [])
+        | Versions versions_and_params -> (`Versions, None, None, None, Model_builder.Core.Set_parameters.none, NEList.to_list versions_and_params)
+        | Set (set, set_params) -> (`Set, None, None, Some set, set_params, [])
       in
       let set_version_params = Model_builder.Core.Set_parameters.every_version set_params in
       ignore
@@ -246,12 +246,12 @@ let sql_to_content_item ~versions_and_params ~k = fun
   in
   k @@
     match page_type with
-    | 0L -> Model_builder.Core.Book.Part (NEString.of_string_exn @@ Option.get part_title)
-    | 1L -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_only)
-    | 2L -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_versions (NEList.of_list_exn versions_and_params))
-    | 3L -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_set (Entry.Id.of_string_exn (Option.get set_id), set_params))
-    | 4L -> Versions (NEList.of_list_exn versions_and_params)
-    | 5L -> Set (Entry.Id.of_string_exn (Option.get set_id), set_params)
+    | `Part -> Model_builder.Core.Book.Part (NEString.of_string_exn @@ Option.get part_title)
+    | `Dance_only -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_only)
+    | `Dance_versions -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_versions (NEList.of_list_exn versions_and_params))
+    | `Dance_set -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_set (Entry.Id.of_string_exn (Option.get set_id), set_params))
+    | `Versions -> Versions (NEList.of_list_exn versions_and_params)
+    | `Set -> Set (Entry.Id.of_string_exn (Option.get set_id), set_params)
     | _ -> assert false
 
 let get id : Model_builder.Core.Book.entry option Lwt.t =

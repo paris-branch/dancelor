@@ -14,6 +14,8 @@ CREATE TABLE "person" (
     CONSTRAINT "fk_person_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
+CREATE TYPE "role" AS ENUM ('Normal_user', 'Maintainer', 'Administrator');
+
 CREATE TABLE "user" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
     "username" VARCHAR(256) NOT NULL UNIQUE,
@@ -22,9 +24,9 @@ CREATE TABLE "user" (
     "password_reset_token_max_date" TIMESTAMP,
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
-    "role" SMALLINT NOT NULL,
     "omniscience" BOOLEAN NOT NULL,
     "person_id" VARCHAR(14) NULL,
+    "role" "role" NOT NULL,
     CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id"),
     CONSTRAINT "fk_user_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
 );
@@ -59,16 +61,18 @@ CREATE TABLE "source_editors" (
     CONSTRAINT "uq_source_editors_source_id_person_id" UNIQUE ("source_id", "person_id")
 );
 
+CREATE TYPE "two_chords" AS ENUM ('Dont_know', 'One_chord', 'Two_chords');
+
 CREATE TABLE "dance" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
     "name" VARCHAR(256) NOT NULL,
     "kind" VARCHAR(32) NOT NULL,
-    "two_chords" SMALLINT NOT NULL,
     "scddb_id" INT,
     "disambiguation" VARCHAR(256),
     "date" VARCHAR(32),
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
+    "two_chords" "two_chords" NOT NULL,
     CONSTRAINT "fk_dance_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
@@ -177,6 +181,8 @@ CREATE TABLE "version_destructured_transitions" (
     CONSTRAINT "uq_version_destructured_transitions_version_id_from_parts_to_parts" UNIQUE ("version_id", "from_parts", "to_parts")
 );
 
+CREATE TYPE "visibility" AS ENUM ('Owners_only', 'Everyone', 'Select_viewers');
+
 CREATE TABLE "set" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
     "name" VARCHAR NOT NULL,
@@ -185,7 +191,7 @@ CREATE TABLE "set" (
     "remark" VARCHAR,
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
-    "visibility" INT NOT NULL,
+    "visibility" "visibility" NOT NULL,
     CONSTRAINT "fk_set_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
@@ -237,7 +243,7 @@ CREATE TABLE "book" (
     "scddb_id" INT,
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
-    "visibility" INT NOT NULL,
+    "visibility" "visibility" NOT NULL,
     CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
@@ -257,10 +263,11 @@ CREATE TABLE "book_sources" (
     CONSTRAINT "uq_book_sources_book_id_source_id" UNIQUE ("book_id", "source_id")
 );
 
+CREATE TYPE "page_type" AS ENUM ('Part', 'Dance_only', 'Dance_versions', 'Dance_set', 'Versions', 'Set');
+
 CREATE TABLE "book_content" (
     "book_id" VARCHAR(14) NOT NULL,
     "index" INT NOT NULL,
-    "page_type" INT NOT NULL,
     "part_title" VARCHAR,
     "dance_id" VARCHAR(14),
     "set_id" VARCHAR(14), -- standalone or within dance
@@ -274,6 +281,7 @@ CREATE TABLE "book_content" (
     "set_parameter_version_parameter_trivia" VARCHAR,
     "set_parameter_version_parameter_display_name" VARCHAR,
     "set_parameter_version_parameter_display_composer" VARCHAR,
+    "page_type" "page_type" NOT NULL,
     CONSTRAINT "fk_book_content_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
     CONSTRAINT "fk_book_content_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id"),
     CONSTRAINT "fk_book_content_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
