@@ -1228,3 +1228,81 @@ ALTER TABLE "dance"
 -- @m062_2026_06_use_enum_for_two_chords__cleanup_columns_2
 ALTER TABLE "dance"
   RENAME COLUMN "two_chords_new" TO "two_chords";
+
+-- @m063_2026_06_use_enum_for_visibility__create_type_visibility
+CREATE TYPE "visibility" AS ENUM ('Owners_only', 'Everyone', 'Select_viewers');
+
+-- @m063_2026_06_use_enum_for_visibility__set_add_column_visibility_new
+ALTER TABLE "set" ADD COLUMN "visibility_new" "visibility";
+
+-- @m063_2026_06_use_enum_for_visibility__book_add_column_visibility_new
+ALTER TABLE "book" ADD COLUMN "visibility_new" "visibility";
+
+-- @m063_2026_06_use_enum_for_visibility__set_convert_owners_only
+UPDATE "set" SET "visibility_new" = 'Owners_only' WHERE "visibility" = 0;
+
+-- @m063_2026_06_use_enum_for_visibility__book_convert_owners_only
+UPDATE "book" SET "visibility_new" = 'Owners_only' WHERE "visibility" = 0;
+
+-- @m063_2026_06_use_enum_for_visibility__set_convert_everyone
+UPDATE "set" SET "visibility_new" = 'Everyone' WHERE "visibility" = 1;
+
+-- @m063_2026_06_use_enum_for_visibility__book_convert_everyone
+UPDATE "book" SET "visibility_new" = 'Everyone' WHERE "visibility" = 1;
+
+-- @m063_2026_06_use_enum_for_visibility__set_convert_select_viewers
+UPDATE "set" SET "visibility_new" = 'Select_viewers' WHERE "visibility" = 1;
+
+-- @m063_2026_06_use_enum_for_visibility__book_convert_select_viewers
+UPDATE "book" SET "visibility_new" = 'Select_viewers' WHERE "visibility" = 1;
+
+-- @m063_2026_06_use_enum_for_visibility__set_cleanup_columns_1
+ALTER TABLE "set"
+  ALTER COLUMN "visibility_new" SET NOT NULL,
+  DROP COLUMN "visibility";
+
+-- @m063_2026_06_use_enum_for_visibility__set_cleanup_columns_2
+ALTER TABLE "set"
+  RENAME COLUMN "visibility_new" TO "visibility";
+
+-- @m063_2026_06_use_enum_for_visibility__book_cleanup_columns_1
+ALTER TABLE "book"
+  ALTER COLUMN "visibility_new" SET NOT NULL,
+  DROP COLUMN "visibility";
+
+-- @m063_2026_06_use_enum_for_visibility__book_cleanup_columns_2
+ALTER TABLE "book"
+  RENAME COLUMN "visibility_new" TO "visibility";
+
+-- @m064_2026_06_use_enum_for_page_type__create_type_page_type
+CREATE TYPE "page_type" AS ENUM ('Part', 'Dance_only', 'Dance_versions', 'Dance_set', 'Versions', 'Set');
+
+-- @m064_2026_06_use_enum_for_page_type__add_column_page_type_new
+ALTER TABLE "book_content" ADD COLUMN "page_type_new" "page_type";
+
+-- @m064_2026_06_use_enum_for_page_type__convert_part
+UPDATE "book_content" SET "page_type_new" = 'Part' WHERE "page_type" = 0;
+
+-- @m064_2026_06_use_enum_for_page_type__convert_dance_only
+UPDATE "book_content" SET "page_type_new" = 'Dance_only' WHERE "page_type" = 1;
+
+-- @m064_2026_06_use_enum_for_page_type__convert_dance_versions
+UPDATE "book_content" SET "page_type_new" = 'Dance_versions' WHERE "page_type" = 2;
+
+-- @m064_2026_06_use_enum_for_page_type__convert_dance_set
+UPDATE "book_content" SET "page_type_new" = 'Dance_set' WHERE "page_type" = 3;
+
+-- @m064_2026_06_use_enum_for_page_type__convert_versions
+UPDATE "book_content" SET "page_type_new" = 'Versions' WHERE "page_type" = 4;
+
+-- @m064_2026_06_use_enum_for_page_type__convert_set
+UPDATE "book_content" SET "page_type_new" = 'Set' WHERE "page_type" = 5;
+
+-- @m064_2026_06_use_enum_for_page_type__cleanup_columns_1
+ALTER TABLE "book_content"
+  ALTER COLUMN "page_type_new" SET NOT NULL,
+  DROP COLUMN "page_type";
+
+-- @m064_2026_06_use_enum_for_page_type__cleanup_columns_2
+ALTER TABLE "book_content"
+  RENAME COLUMN "page_type_new" TO "page_type";

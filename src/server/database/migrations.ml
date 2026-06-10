@@ -889,6 +889,33 @@ let migrations : migration list = [
     Migrations_sql.m062_2026_06_use_enum_for_two_chords__cleanup_columns_1;
     Migrations_sql.m062_2026_06_use_enum_for_two_chords__cleanup_columns_2;
   ];
+  make_ddls "m063_2026_06_use_enum_for_visibility" [
+    Migrations_sql.m063_2026_06_use_enum_for_visibility__create_type_visibility;
+    Migrations_sql.m063_2026_06_use_enum_for_visibility__set_add_column_visibility_new;
+    Migrations_sql.m063_2026_06_use_enum_for_visibility__book_add_column_visibility_new;
+    Migrations_sql.m063_2026_06_use_enum_for_visibility__set_convert_owners_only;
+    Migrations_sql.m063_2026_06_use_enum_for_visibility__book_convert_owners_only;
+    Migrations_sql.m063_2026_06_use_enum_for_visibility__set_convert_everyone;
+    Migrations_sql.m063_2026_06_use_enum_for_visibility__book_convert_everyone;
+    Migrations_sql.m063_2026_06_use_enum_for_visibility__set_convert_select_viewers;
+    Migrations_sql.m063_2026_06_use_enum_for_visibility__book_convert_select_viewers;
+    Migrations_sql.m063_2026_06_use_enum_for_visibility__set_cleanup_columns_1;
+    Migrations_sql.m063_2026_06_use_enum_for_visibility__set_cleanup_columns_2;
+    Migrations_sql.m063_2026_06_use_enum_for_visibility__book_cleanup_columns_1;
+    Migrations_sql.m063_2026_06_use_enum_for_visibility__book_cleanup_columns_2;
+  ];
+  make_ddls "m064_2026_06_use_enum_for_page_type" [
+    Migrations_sql.m064_2026_06_use_enum_for_page_type__create_type_page_type;
+    Migrations_sql.m064_2026_06_use_enum_for_page_type__add_column_page_type_new;
+    Migrations_sql.m064_2026_06_use_enum_for_page_type__convert_part;
+    Migrations_sql.m064_2026_06_use_enum_for_page_type__convert_dance_only;
+    Migrations_sql.m064_2026_06_use_enum_for_page_type__convert_dance_versions;
+    Migrations_sql.m064_2026_06_use_enum_for_page_type__convert_dance_set;
+    Migrations_sql.m064_2026_06_use_enum_for_page_type__convert_versions;
+    Migrations_sql.m064_2026_06_use_enum_for_page_type__convert_set;
+    Migrations_sql.m064_2026_06_use_enum_for_page_type__cleanup_columns_1;
+    Migrations_sql.m064_2026_06_use_enum_for_page_type__cleanup_columns_2;
+  ];
 ]
 
 exception Migration_failed of string * exn
