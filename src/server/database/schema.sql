@@ -24,9 +24,9 @@ CREATE TABLE "user" (
     "password_reset_token_max_date" TIMESTAMP,
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
-    "role" "role" NOT NULL,
     "omniscience" BOOLEAN NOT NULL,
     "person_id" VARCHAR(14) NULL,
+    "role" "role" NOT NULL,
     CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id"),
     CONSTRAINT "fk_user_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
 );
@@ -67,12 +67,12 @@ CREATE TABLE "dance" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
     "name" VARCHAR(256) NOT NULL,
     "kind" VARCHAR(32) NOT NULL,
-    "two_chords" "two_chords" NOT NULL,
     "scddb_id" INT,
     "disambiguation" VARCHAR(256),
     "date" VARCHAR(32),
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
+    "two_chords" "two_chords" NOT NULL,
     CONSTRAINT "fk_dance_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
 );
 
@@ -268,7 +268,6 @@ CREATE TYPE "page_type" AS ENUM ('Part', 'Dance_only', 'Dance_versions', 'Dance_
 CREATE TABLE "book_content" (
     "book_id" VARCHAR(14) NOT NULL,
     "index" INT NOT NULL,
-    "page_type" "page_type" NOT NULL,
     "part_title" VARCHAR,
     "dance_id" VARCHAR(14),
     "set_id" VARCHAR(14), -- standalone or within dance
@@ -282,6 +281,7 @@ CREATE TABLE "book_content" (
     "set_parameter_version_parameter_trivia" VARCHAR,
     "set_parameter_version_parameter_display_name" VARCHAR,
     "set_parameter_version_parameter_display_composer" VARCHAR,
+    "page_type" "page_type" NOT NULL,
     CONSTRAINT "fk_book_content_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
     CONSTRAINT "fk_book_content_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id"),
     CONSTRAINT "fk_book_content_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
