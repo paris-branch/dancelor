@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 
 module Dance_sql = Dance_sql.Sqlgg(Sqlgg_postgresql)
 
@@ -25,7 +26,25 @@ let two_chords_of_common : Model_builder.Core.Dance.two_chords -> two_chords = f
   | One_chord -> One_chord
   | Two_chords -> Two_chords
 
-let row_to_dance
+let sql_to_row ~id ~name ~kind ~devisers ~disambiguation ~(k : Dance_row.t -> 'w) : 'w =
+  k {
+    id = Entry.Id.of_string_exn id;
+    name;
+    kind = Kind_dance.of_string kind;
+    devisers;
+    disambiguation;
+  }
+
+let search ?(threshold = 0.3) needle : (Dance_row.t * float) list Lwt.t =
+  Connection.with_ @@ fun db ->
+  let%lwt devisers = Utils.fold_to_hashtbl Dance_sql.Fold.get_all_devisers_new db (fun k ~dance_id -> Person.sql_to_name ~k: (k dance_id)) in
+  Dance_sql.List.search
+    db
+    ~needle
+    ~threshold
+    (fun ~score ~id -> sql_to_row ~id ~devisers: (Hashtbl.find_all devisers id) ~k: (Pair.snoc score))
+
+let sql_to_dance
     ~id
     ~name
     ~extra_names
@@ -54,7 +73,7 @@ let row_to_dance
         ()
     )
 
-let dance_to_row ~create_or_update db id dance =
+let dance_to_sql ~create_or_update db id dance =
   (* FIXME: transaction, maybe [Connection.with_transaction] *)
   let id = Entry.Id.to_string id in
   ignore
@@ -90,7 +109,7 @@ let get id : Model_builder.Core.Dance.entry option Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt extra_names = Dance_sql.List.get_extra_names db ~dance_id: id (fun ~extra_name -> NEString.of_string_exn extra_name) in
   let%lwt devisers = Dance_sql.List.get_devisers db ~dance_id: id (fun ~deviser_id -> Entry.Id.of_string_exn deviser_id) in
-  Dance_sql.Single.get db ~id (row_to_dance ~id ~extra_names ~devisers)
+  Dance_sql.Single.get db ~id (sql_to_dance ~id ~extra_names ~devisers)
 
 let get_all () =
   Connection.with_ @@ fun db ->
@@ -109,7 +128,7 @@ let get_all () =
     )
     ();%lwt
   Dance_sql.List.get_all db (fun ~id ->
-    row_to_dance
+    sql_to_dance
       ~id
       ~extra_names: (List.rev @@ Hashtbl.find_all extra_names id)
       ~devisers: (List.rev @@ Hashtbl.find_all devisers id)
@@ -118,12 +137,12 @@ let get_all () =
 let create dance =
   Connection.with_ @@ fun db ->
   let%lwt id = Globally_unique_id.make db Dance in
-  dance_to_row ~create_or_update: Dance_sql.create db id dance;%lwt
+  dance_to_sql ~create_or_update: Dance_sql.create db id dance;%lwt
   lwt id
 
 let update id dance =
   Connection.with_ @@ fun db ->
-  dance_to_row ~create_or_update: (fun db ~id -> Dance_sql.update db ~id) db id dance
+  dance_to_sql ~create_or_update: (fun db ~id -> Dance_sql.update db ~id) db id dance
 
 let delete id =
   Connection.with_ @@ fun db ->

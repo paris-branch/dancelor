@@ -281,6 +281,16 @@ let search env slice filter =
   let%lwt items = Lwt_list.map_s to_row result.items in
   lwt {result with items}
 
+let search'_new env filter =
+  let%lwt items = Database.Version.search filter in
+  let%lwt items = Lwt_list.filter_s (Permission.can_get_public_new env % fst) items in
+  lwt {total = List.length items; items}
+
+let search_new env slice filter =
+  let%lwt {total; items} = search'_new env filter in
+  let items = List.map fst @@ Slice.list ~strict: false slice items in
+  lwt {total; items}
+
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
@@ -289,6 +299,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t ->
   | Get_view_for_tune -> get_view_for_tune env
   | Content -> content env
   | Search -> search env
+  | Search_new -> search_new env
   | Create -> create env
   | Update -> update env
   | Delete -> delete env

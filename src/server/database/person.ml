@@ -1,12 +1,27 @@
 open Nes
 open Dancelor_common
+open Model_new
 
 module Person_sql = Person_sql.Sqlgg(Sqlgg_postgresql)
 
 type t = Model_builder.Core.Person.t
 type entry = Model_builder.Core.Person.entry
 
-let row_to_person
+let sql_to_name ~id ~name ~(k : Person_name.t -> 'w) : 'w =
+  k {id = Entry.Id.of_string_exn id; name}
+
+let sql_to_row ~id ~name (k : Person_row.t -> 'w) : 'w =
+  k {id = Entry.Id.of_string_exn id; name}
+
+let search ?(threshold = 0.3) needle : (Person_row.t * float) list Lwt.t =
+  Connection.with_ @@ fun db ->
+  Person_sql.List.search
+    db
+    ~needle
+    ~threshold
+    (fun ~score -> sql_to_row (Pair.snoc score))
+
+let sql_to_person
     ~id
     ~name
     ~scddb_id
@@ -28,7 +43,7 @@ let row_to_person
         ()
     )
 
-let person_to_row ~create_or_update id person =
+let person_to_sql ~create_or_update id person =
   create_or_update
     ~id: (Entry.Id.to_string id)
     ~name: (NEString.to_string @@ Model_builder.Core.Person.name person)
@@ -39,21 +54,21 @@ let person_to_row ~create_or_update id person =
 let get id : Model_builder.Core.Person.entry option Lwt.t =
   let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
-  Person_sql.Single.get db ~id (row_to_person ~id)
+  Person_sql.Single.get db ~id (sql_to_person ~id)
 
 let get_all () =
   Connection.with_ @@ fun db ->
-  Person_sql.List.get_all db row_to_person
+  Person_sql.List.get_all db sql_to_person
 
 let create person =
   Connection.with_ @@ fun db ->
   let%lwt id = Globally_unique_id.make db Person in
-  let%lwt _ = person_to_row ~create_or_update: (Person_sql.create db) id person in
+  let%lwt _ = person_to_sql ~create_or_update: (Person_sql.create db) id person in
   lwt id
 
 let update id person =
   Connection.with_ @@ fun db ->
-  ignore <$> person_to_row ~create_or_update: (fun ~id -> Person_sql.update db ~id) id person
+  ignore <$> person_to_sql ~create_or_update: (fun ~id -> Person_sql.update db ~id) id person
 
 let delete id =
   let%lwt _ =

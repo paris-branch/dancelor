@@ -867,6 +867,10 @@ let migrations : migration list = [
     Migrations_sql.m059_2026_05_string_to_nestring_option__make_book_remarks_nullable;
     Migrations_sql.m059_2026_05_string_to_nestring_option__convert_book_remarks;
   ];
+  make_custom "m060_2026_06_create_extension_pg_trgm" (fun db ->
+    Connection.bypass_exec db "CREATE EXTENSION IF NOT EXISTS pg_trgm";
+    lwt_unit
+  );
 ]
 
 exception Migration_failed of string * exn

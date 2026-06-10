@@ -53,3 +53,12 @@ WHERE "id" = @id;
 -- @delete
 DELETE FROM "person"
 WHERE "id" = @id;
+
+-- @search
+SELECT
+    CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+    "id",
+    "name"
+FROM "person"
+WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
+ORDER BY "score" DESC, "name" ASC;

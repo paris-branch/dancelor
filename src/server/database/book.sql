@@ -297,3 +297,34 @@ INSERT INTO "book_content_versions" (
     @version_parameter_display_name,
     @version_parameter_display_composer
 );
+
+-- @search
+SELECT * FROM (
+    SELECT
+        CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+        "book"."id",
+        "name",
+        "date",
+        CASE
+            WHEN "book"."visibility" = 1 THEN 'Everyone'
+            WHEN "book_owners"."owner_id" IS NOT NULL THEN 'Owner'
+            WHEN "book"."visibility" = 2 AND "book_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
+            WHEN "user"."role" = 2 AND "user"."omniscience" THEN 'Omniscient_administrator'
+            ELSE NULL
+        END AS "permission"
+    FROM "book"
+    LEFT JOIN "book_owners" ON "book_owners"."book_id" = "book"."id" AND "book_owners"."owner_id" = @user_id
+    LEFT JOIN "book_viewers" ON "book_viewers"."book_id" = "book"."id" AND "book_viewers"."viewer_id" = @user_id
+    LEFT JOIN "user" ON "user"."id" = @user_id
+    WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
+) AS "book+"
+WHERE "book+"."permission" IS NOT NULL
+ORDER BY "score" DESC, "name" ASC;
+
+-- @get_all_authors_new
+SELECT
+    "book_id",
+    "person"."id",
+    "person"."name"
+FROM "book_authors"
+JOIN "person" ON "book_authors"."author_id" = "person"."id";

@@ -42,6 +42,10 @@ module JString : JSONABLE with type t = string = struct
   type t = string [@@deriving yojson]
 end
 
+module JNEString : JSONABLE with type t = NEString.t = struct
+  type t = NEString.t [@@deriving yojson]
+end
+
 module JUri : JSONABLE with type t = Uri.t = struct
   type t = Uri.t
   let to_yojson = JString.to_yojson % Uri.to_string

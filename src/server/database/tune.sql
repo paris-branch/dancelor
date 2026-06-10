@@ -142,3 +142,22 @@ INSERT INTO "recommended_tunes" (
     @tune_id,
     @dance_id
 );
+
+-- @search
+SELECT
+    CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+    "tune"."id",
+    "name",
+    "kind"
+FROM "tune"
+WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
+ORDER BY "score" DESC, "name" ASC;
+
+-- @get_all_composers_new
+SELECT
+    "tune_id",
+    "person"."id",
+    "person"."name"
+FROM "tune_composers"
+JOIN "person" ON "tune_composers"."composer_id" = "person"."id"
+ORDER BY "index";

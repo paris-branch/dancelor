@@ -27,6 +27,13 @@ CREATE SCHEMA "dancelor";
 
 
 --
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS "pg_trgm" WITH SCHEMA "dancelor";
+
+
+--
 -- Name: globally_unique_id_type; Type: TYPE; Schema: dancelor; Owner: -
 --
 
@@ -623,6 +630,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m056_2026_05
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m057_2026_05_add_unique_constraint_book_viewers_book_id_viewer_id', '2026-05-15 10:17:27.616679+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m058_2026_05_add_unique_constraint_book_owners_book_id_owner_id', '2026-05-15 10:17:27.622578+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m059_2026_05_string_to_nestring_option', '2026-05-29 14:34:07.211399+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m060_2026_06_create_extension_pg_trgm', '2026-06-09 16:38:11.371022+00');
 
 
 --

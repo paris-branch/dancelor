@@ -121,12 +121,23 @@ let get_cover env id =
   let fname = Option.value fname ~default: (Filename.concat (Config.get ()).share "no-cover.webp") in
   Madge_server.respond_file ~fname
 
+let search'_new env filter =
+  let%lwt items = Database.Source.search filter in
+  let%lwt items = Lwt_list.filter_s (Permission.can_get_public_new env % fst) items in
+  lwt {total = List.length items; items}
+
+let search_new env slice filter =
+  let%lwt {total; items} = search'_new env filter in
+  let items = List.map fst @@ Slice.list ~strict: false slice items in
+  lwt {total; items}
+
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Source.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
   | Get_row -> get_row env
   | Get_view -> get_view env
   | Search -> search env
+  | Search_new -> search_new env
   | Create -> create env
   | Update -> update env
   | Delete -> delete env

@@ -60,9 +60,9 @@ let lwt_stream_merge_sorted cmp xs ys =
   match x, y with
   | Some x, Some y when cmp x y <= 0 -> Lwt_stream.junk xs;%lwt lwt_some x
   | Some _, Some y -> Lwt_stream.junk ys;%lwt lwt_some y
-  | Some x, _ -> Lwt_stream.junk xs;%lwt lwt_some x
-  | _, Some y -> Lwt_stream.junk ys;%lwt lwt_some y
-  | _ -> lwt_none
+  | Some x, None -> Lwt_stream.junk xs;%lwt lwt_some x
+  | None, Some y -> Lwt_stream.junk ys;%lwt lwt_some y
+  | None, None -> lwt_none
 
 (** Given a list of streams sorted according to the comparison function, produce
     one sorted stream of all the values. In case of equality, a stream appearing
@@ -70,6 +70,26 @@ let lwt_stream_merge_sorted cmp xs ys =
 let lwt_stream_merge_sorted_l cmp = function
   | [] -> Lwt_stream.of_list []
   | s :: ss -> List.fold_left (lwt_stream_merge_sorted cmp) s ss
+
+(** Given two lists sorted according to the comparison function,
+    produce one sorted list of all the values. In case of equality,
+    the left list wins. *)
+let list_merge_sorted_on cmp xs ys =
+  let rec aux = function
+    | [], [] -> []
+    | xs, [] -> xs
+    | [], ys -> ys
+    | x :: xs, ((y :: _) as ys) when cmp x y <= 0 -> x :: aux (xs, ys)
+    | xs, y :: ys -> y :: aux (xs, ys)
+  in
+  aux (xs, ys)
+
+(** Given a list of lists sorted according to the comparison function,
+    produce one sorted list of all the values. In case of equality, a
+    list appearing earlier wins. *)
+let list_merge_sorted_l_on cmp = function
+  | [] -> []
+  | l :: ls -> List.fold_left (list_merge_sorted_on cmp) l ls
 
 (** Slice a stream. Raises {!Invalid_argument} if [start] is strictly bigger
     than the length of the stream. If [strict] is set (the default), also raises
@@ -132,9 +152,41 @@ let search_context env filter element =
   | None -> Madge_server.shortcut_not_found "Could not find the given element in the search results."
   | Some List.{total; previous; index; next; _} -> lwt {Model_new.index; total; previous_item = previous; next_item = next}
 
+let search_new env slice filter =
+  let%lwt persons_result = Person.search'_new env filter in
+  let%lwt dances_result = Dance.search'_new env filter in
+  let%lwt sources_result = Source.search'_new env filter in
+  let%lwt tunes_result = Tune.search'_new env filter in
+  let%lwt versions_result = Version.search'_new env filter in
+  let%lwt sets_result = Set.search'_new env filter in
+  let%lwt books_result = Book.search'_new env filter in
+  let total =
+    persons_result.total +
+      dances_result.total +
+      sources_result.total +
+      tunes_result.total +
+      versions_result.total +
+      sets_result.total +
+      books_result.total
+  in
+  let items =
+    list_merge_sorted_l_on (fun (_, s1) (_, s2) -> Float.compare s2 s1) [
+      List.map (Pair.map_fst Any_row.person) persons_result.items;
+      List.map (Pair.map_fst Any_row.dance) dances_result.items;
+      List.map (Pair.map_fst Any_row.source) sources_result.items;
+      List.map (Pair.map_fst Any_row.tune) tunes_result.items;
+      List.map (Pair.map_fst Any_row.version) versions_result.items;
+      List.map (Pair.map_fst Any_row.set) sets_result.items;
+      List.map (Pair.map_fst Any_row.book) books_result.items;
+    ]
+  in
+  let items = List.map fst @@ Slice.list ~strict: false slice items in
+  lwt {Model_new.total; items}
+
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Any.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
   | Get_rows -> get_rows env
   | Search -> search env
   | Search_context -> search_context env
+  | Search_new -> search_new env

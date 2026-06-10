@@ -1,12 +1,37 @@
 open Nes
 open Dancelor_common
+open Model_new
 
 module Book_sql = Book_sql.Sqlgg(Sqlgg_postgresql)
 
 type t = Model_builder.Core.Book.t
 type entry = Model_builder.Core.Book.entry
 
-let row_to_book
+let sql_to_row ~id ~name ~date ~authors ~permission ~(k : Book_row.t -> 'w) : 'w =
+  k {
+    id = Entry.Id.of_string_exn id;
+    name;
+    date = Option.map (Option.get % PartialDate.from_string) date;
+    authors;
+    permission = (match permission with `Everyone -> Everyone | `Owner -> Owner | `Viewer -> Viewer | `Omniscient_administrator -> Omniscient_administrator);
+  }
+
+let search ~user ?(threshold = 0.3) needle : (Book_row.t * float) list Lwt.t =
+  Connection.with_ @@ fun db ->
+  let%lwt authors = Utils.fold_to_hashtbl Book_sql.Fold.get_all_authors_new db (fun k ~book_id -> Person.sql_to_name ~k: (k book_id)) in
+  Book_sql.List.search
+    db
+    ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
+    ~needle
+    ~threshold
+    (fun ~score ~id ->
+      sql_to_row
+        ~id
+        ~authors: (Hashtbl.find_all authors id)
+        ~k: (Pair.snoc score)
+    )
+
+let sql_to_book
     ~id
     ~name
     ~date
@@ -49,7 +74,7 @@ let row_to_book
         ()
     )
 
-let book_to_row ~create_or_update db id book access =
+let book_to_sql ~create_or_update db id book access =
   let (visibility, viewers) =
     match Entry.Access.Private.visibility access with
     | Owners_only -> (0L, [])
@@ -161,7 +186,7 @@ let book_to_row ~create_or_update db id book access =
     )
     (NEList.to_list @@ Entry.Access.Private.owners access)
 
-let row_to_content_version ~k = fun
+let sql_to_content_version ~k = fun
     ~version_id
     ~version_parameter_transposition_semitones
     ~version_parameter_first_bar
@@ -185,7 +210,7 @@ let row_to_content_version ~k = fun
         ()
     )
 
-let row_to_content_item ~versions_and_params ~k = fun
+let sql_to_content_item ~versions_and_params ~k = fun
     ~page_type
     ~part_title
     ~dance_id
@@ -237,9 +262,9 @@ let get id : Model_builder.Core.Book.entry option Lwt.t =
   let%lwt owners = Book_sql.List.get_owners db ~book_id: id (fun ~owner_id -> Entry.Id.of_string_exn owner_id) in
   let%lwt viewers = Book_sql.List.get_viewers db ~book_id: id (fun ~viewer_id -> Entry.Id.of_string_exn viewer_id) in
   let content_versions = Hashtbl.create 8 in
-  Book_sql.Fold.get_content_versions db ~book_id: id (fun ~content_index -> row_to_content_version ~k: (fun v () -> Hashtbl.add content_versions content_index v)) ();%lwt
-  let%lwt content = Book_sql.List.get_content db ~book_id: id (fun ~index -> row_to_content_item ~versions_and_params: (List.rev @@ Hashtbl.find_all content_versions index) ~k: Fun.id) in
-  Book_sql.Single.get db ~id (row_to_book ~id ~authors ~sources ~viewers ~owners ~content)
+  Book_sql.Fold.get_content_versions db ~book_id: id (fun ~content_index -> sql_to_content_version ~k: (fun v () -> Hashtbl.add content_versions content_index v)) ();%lwt
+  let%lwt content = Book_sql.List.get_content db ~book_id: id (fun ~index -> sql_to_content_item ~versions_and_params: (List.rev @@ Hashtbl.find_all content_versions index) ~k: Fun.id) in
+  Book_sql.Single.get db ~id (sql_to_book ~id ~authors ~sources ~viewers ~owners ~content)
 
 let get_all () =
   Connection.with_ @@ fun db ->
@@ -253,10 +278,10 @@ let get_all () =
   Book_sql.Fold.get_all_sources db (fun ~book_id ~source_id () -> Hashtbl.add sources book_id @@ Entry.Id.of_string_exn source_id) ();%lwt
   Book_sql.Fold.get_all_owners db (fun ~book_id ~owner_id () -> Hashtbl.add owners book_id @@ Entry.Id.of_string_exn owner_id) ();%lwt
   Book_sql.Fold.get_all_viewers db (fun ~book_id ~viewer_id () -> Hashtbl.add viewers book_id @@ Entry.Id.of_string_exn viewer_id) ();%lwt
-  Book_sql.Fold.get_all_content_versions db (fun ~book_id ~content_index -> row_to_content_version ~k: (fun v () -> Hashtbl.add content_versions (book_id, content_index) v)) ();%lwt
-  Book_sql.Fold.get_all_content db (fun ~book_id ~index -> row_to_content_item ~versions_and_params: (List.rev @@ Hashtbl.find_all content_versions (book_id, index)) ~k: (fun v () -> Hashtbl.add content book_id v)) ();%lwt
+  Book_sql.Fold.get_all_content_versions db (fun ~book_id ~content_index -> sql_to_content_version ~k: (fun v () -> Hashtbl.add content_versions (book_id, content_index) v)) ();%lwt
+  Book_sql.Fold.get_all_content db (fun ~book_id ~index -> sql_to_content_item ~versions_and_params: (List.rev @@ Hashtbl.find_all content_versions (book_id, index)) ~k: (fun v () -> Hashtbl.add content book_id v)) ();%lwt
   Book_sql.List.get_all db (fun ~id ->
-    row_to_book
+    sql_to_book
       ~id
       ~authors: (List.rev @@ Hashtbl.find_all authors id)
       ~sources: (List.rev @@ Hashtbl.find_all sources id)
@@ -268,12 +293,12 @@ let get_all () =
 let create book access =
   Connection.with_ @@ fun db ->
   let%lwt id = Globally_unique_id.make db Book in
-  book_to_row ~create_or_update: Book_sql.create db id book access;%lwt
+  book_to_sql ~create_or_update: Book_sql.create db id book access;%lwt
   lwt id
 
 let update id book access =
   Connection.with_ @@ fun db ->
-  book_to_row ~create_or_update: (fun db ~id -> Book_sql.update db ~id) db id book access
+  book_to_sql ~create_or_update: (fun db ~id -> Book_sql.update db ~id) db id book access
 
 let delete id =
   Connection.with_ @@ fun db ->

@@ -7,10 +7,10 @@ open Model_new
    should be pushed into individual controllers in a first place, and
    then even all the way to the respective databases. *)
 
-let version_to_name (version : Model.Version.entry) : Tune_name.t Lwt.t =
+let version_to_name (version : Model.Version.entry) : Version_name.t Lwt.t =
   let%lwt tune = Model.Version.tune' version in
   lwt {
-    Tune_name.id = Entry.id tune;
+    Version_name.id = Entry.id version;
     name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
   }
 
@@ -145,6 +145,16 @@ let search env slice filter =
   let%lwt items = Lwt_list.map_s (to_row env) result.items in
   lwt {result with items}
 
+let search'_new env filter =
+  let user = Environment.user env in
+  let%lwt items = Database.Set.search ~user: (Option.map Entry.id user) filter in
+  lwt {total = List.length items; items}
+
+let search_new env slice filter =
+  let%lwt {total; items} = search'_new env filter in
+  let items = List.map fst @@ Slice.list ~strict: false slice items in
+  lwt {total; items}
+
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Set.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
@@ -152,6 +162,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Set.t -> a =
   | Get_view -> get_view env
   | Get_rows -> get_rows env
   | Search -> search env
+  | Search_new -> search_new env
   | Create -> create env
   | Update -> update env
   | Delete -> delete env

@@ -118,3 +118,24 @@ INSERT INTO "dance_devisers" (
     @index,
     @deviser_id
 );
+
+-- @search
+SELECT
+    CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+    "dance"."id",
+    "name",
+    "kind",
+    "disambiguation"
+FROM "dance"
+WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
+ORDER BY "score" DESC, "name" ASC;
+
+-- @get_all_devisers_new
+SELECT
+    "dance_id",
+    "person"."id",
+    "person"."name"
+FROM "dance_devisers"
+JOIN "person"
+ON "dance_devisers"."deviser_id" = "person"."id"
+ORDER BY "index";

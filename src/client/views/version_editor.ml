@@ -191,9 +191,8 @@ let editor =
     ~label: "Tune"
     ~model_name: "tune"
     ~create_dialog_content: Tune_editor.create_row
-    ~search: (fun slice input ->
-      let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Tune.converter) input in
-      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) slice filter
+    ~search: (fun slice filter ->
+      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search_new) slice filter
     )
     ~id_to_yojson: Entry.Id.to_yojson'
     ~id_of_yojson: Entry.Id.of_yojson'
@@ -221,9 +220,8 @@ let editor =
         ~label: "Arranger"
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create_row
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Person.converter) input in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+        ~search: (fun slice filter ->
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search_new) slice filter
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
@@ -250,9 +248,8 @@ let editor =
             ~label: "Source"
             ~model_name: "source"
             ~create_dialog_content: Source_editor.create_row
-            ~search: (fun slice input ->
-              let%rlwt filter = lwt @@ Text_formula.string_to_formula (Formula_entry.converter_public Filter.Source.converter) input in
-              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
+            ~search: (fun slice filter ->
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search_new) slice filter
             )
             ~id_to_yojson: Entry.Id.to_yojson'
             ~id_of_yojson: Entry.Id.of_yojson'

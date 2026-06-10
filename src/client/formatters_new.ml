@@ -99,6 +99,14 @@ module Tune = struct
 end
 
 module Version = struct
+  let name ?(link = true) ?context (version : Version_name.t) =
+    if link then
+      a
+        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_version ?context version.id) (switch_signal_option context)]
+        [txt version.name]
+    else
+      txt version.name
+
   let name_row ?(link = true) ?context (version : Version_row.t) =
     if link then
       a
@@ -183,7 +191,7 @@ module Set = struct
 
   let tunes ?links (set : Set_row.t) =
     set.tunes
-    |> List.map (Tune.name ?link: links)
+    |> List.map (Version.name ?link: links)
     |> List.interspersei (fun _ -> txt " - ")
     |> List.cons (txt "Tunes: ")
 end

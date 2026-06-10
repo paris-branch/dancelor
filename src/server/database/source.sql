@@ -87,3 +87,21 @@ WHERE "id" = @id;
 SELECT "cover"
 FROM "source"
 WHERE "id" = @id;
+
+-- @search
+SELECT
+    CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+    "source"."id",
+    "name",
+    "date"
+FROM "source"
+WHERE (CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END) >= @threshold
+ORDER BY "score" DESC, "name" ASC;
+
+-- @get_all_editors_new
+SELECT
+    "source_id",
+    "person"."id",
+    "person"."name"
+FROM "source_editors"
+JOIN "person" ON "source_editors"."person_id" = "person"."id";
