@@ -50,6 +50,53 @@ CREATE TYPE "dancelor"."globally_unique_id_type" AS ENUM (
 
 
 --
+-- Name: page_type; Type: TYPE; Schema: dancelor; Owner: -
+--
+
+CREATE TYPE "dancelor"."page_type" AS ENUM (
+    'Part',
+    'Dance_only',
+    'Dance_versions',
+    'Dance_set',
+    'Versions',
+    'Set'
+);
+
+
+--
+-- Name: role; Type: TYPE; Schema: dancelor; Owner: -
+--
+
+CREATE TYPE "dancelor"."role" AS ENUM (
+    'Normal_user',
+    'Maintainer',
+    'Administrator'
+);
+
+
+--
+-- Name: two_chords; Type: TYPE; Schema: dancelor; Owner: -
+--
+
+CREATE TYPE "dancelor"."two_chords" AS ENUM (
+    'Dont_know',
+    'One_chord',
+    'Two_chords'
+);
+
+
+--
+-- Name: visibility; Type: TYPE; Schema: dancelor; Owner: -
+--
+
+CREATE TYPE "dancelor"."visibility" AS ENUM (
+    'Owners_only',
+    'Everyone',
+    'Select_viewers'
+);
+
+
+--
 -- Name: book; Type: TABLE; Schema: dancelor; Owner: -
 --
 
@@ -61,7 +108,7 @@ CREATE TABLE "dancelor"."book" (
     "scddb_id" integer,
     "created_at" timestamp without time zone NOT NULL,
     "modified_at" timestamp without time zone NOT NULL,
-    "visibility" integer NOT NULL
+    "visibility" "dancelor"."visibility" NOT NULL
 );
 
 
@@ -82,7 +129,6 @@ CREATE TABLE "dancelor"."book_authors" (
 CREATE TABLE "dancelor"."book_content" (
     "book_id" character varying(14) NOT NULL,
     "index" integer NOT NULL,
-    "page_type" integer NOT NULL,
     "part_title" character varying,
     "dance_id" character varying(14),
     "set_id" character varying(14),
@@ -95,7 +141,8 @@ CREATE TABLE "dancelor"."book_content" (
     "set_parameter_version_parameter_structure" character varying,
     "set_parameter_version_parameter_trivia" character varying,
     "set_parameter_version_parameter_display_name" character varying,
-    "set_parameter_version_parameter_display_composer" character varying
+    "set_parameter_version_parameter_display_composer" character varying,
+    "page_type" "dancelor"."page_type" NOT NULL
 );
 
 
@@ -156,12 +203,12 @@ CREATE TABLE "dancelor"."dance" (
     "id" character varying(14) NOT NULL,
     "name" character varying(256) NOT NULL,
     "kind" character varying(32) NOT NULL,
-    "two_chords" smallint NOT NULL,
     "scddb_id" integer,
     "disambiguation" character varying(256),
     "date" character varying(32),
     "created_at" timestamp without time zone NOT NULL,
-    "modified_at" timestamp without time zone NOT NULL
+    "modified_at" timestamp without time zone NOT NULL,
+    "two_chords" "dancelor"."two_chords" NOT NULL
 );
 
 
@@ -255,7 +302,7 @@ CREATE TABLE "dancelor"."set" (
     "remark" character varying,
     "created_at" timestamp without time zone NOT NULL,
     "modified_at" timestamp without time zone NOT NULL,
-    "visibility" integer NOT NULL
+    "visibility" "dancelor"."visibility" NOT NULL
 );
 
 
@@ -384,9 +431,9 @@ CREATE TABLE "dancelor"."user" (
     "password_reset_token_max_date" timestamp without time zone,
     "created_at" timestamp without time zone NOT NULL,
     "modified_at" timestamp without time zone NOT NULL,
-    "role" smallint NOT NULL,
     "omniscience" boolean NOT NULL,
-    "person_id" character varying(14)
+    "person_id" character varying(14),
+    "role" "dancelor"."role" NOT NULL
 );
 
 
@@ -459,7 +506,7 @@ CREATE TABLE "dancelor"."version_sources" (
 -- Data for Name: book; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."book" ("id", "name", "date", "remark", "scddb_id", "created_at", "modified_at", "visibility") VALUES ('0fi3-1iot-6tbq', 'The Tam Lin Book', NULL, 'this is a remark', 298374872, '2026-05-14 14:40:42', '2026-05-14 14:40:42', 1);
+INSERT INTO "dancelor"."book" ("id", "name", "date", "remark", "scddb_id", "created_at", "modified_at", "visibility") VALUES ('0fi3-1iot-6tbq', 'The Tam Lin Book', NULL, 'this is a remark', 298374872, '2026-05-14 14:40:42', '2026-05-14 14:40:42', 'Everyone');
 
 
 --
@@ -473,12 +520,12 @@ INSERT INTO "dancelor"."book_authors" ("book_id", "author_id") VALUES ('0fi3-1io
 -- Data for Name: book_content; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."book_content" ("book_id", "index", "page_type", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 0, 4, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO "dancelor"."book_content" ("book_id", "index", "page_type", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 1, 5, NULL, NULL, 'ului-yd9x-o35w', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO "dancelor"."book_content" ("book_id", "index", "page_type", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 2, 0, 'Dance-based stuff', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO "dancelor"."book_content" ("book_id", "index", "page_type", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 3, 1, NULL, 'cy5n-qvpl-k0yl', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO "dancelor"."book_content" ("book_id", "index", "page_type", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 4, 2, NULL, '0xf7-xwz9-1fhj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO "dancelor"."book_content" ("book_id", "index", "page_type", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer") VALUES ('0fi3-1iot-6tbq', 5, 3, NULL, 'l02q-i1j0-qpoi', 'ului-yd9x-o35w', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO "dancelor"."book_content" ("book_id", "index", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer", "page_type") VALUES ('0fi3-1iot-6tbq', 2, 'Dance-based stuff', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Part');
+INSERT INTO "dancelor"."book_content" ("book_id", "index", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer", "page_type") VALUES ('0fi3-1iot-6tbq', 3, NULL, 'cy5n-qvpl-k0yl', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Dance_only');
+INSERT INTO "dancelor"."book_content" ("book_id", "index", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer", "page_type") VALUES ('0fi3-1iot-6tbq', 4, NULL, '0xf7-xwz9-1fhj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Dance_versions');
+INSERT INTO "dancelor"."book_content" ("book_id", "index", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer", "page_type") VALUES ('0fi3-1iot-6tbq', 5, NULL, 'l02q-i1j0-qpoi', 'ului-yd9x-o35w', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Dance_set');
+INSERT INTO "dancelor"."book_content" ("book_id", "index", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer", "page_type") VALUES ('0fi3-1iot-6tbq', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Versions');
+INSERT INTO "dancelor"."book_content" ("book_id", "index", "part_title", "dance_id", "set_id", "set_parameter_display_name", "set_parameter_display_conceptor", "set_parameter_display_kind", "set_parameter_version_parameter_transposition_semitones", "set_parameter_version_parameter_first_bar", "set_parameter_version_parameter_clef", "set_parameter_version_parameter_structure", "set_parameter_version_parameter_trivia", "set_parameter_version_parameter_display_name", "set_parameter_version_parameter_display_composer", "page_type") VALUES ('0fi3-1iot-6tbq', 1, NULL, NULL, 'ului-yd9x-o35w', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Set');
 
 
 --
@@ -515,9 +562,9 @@ INSERT INTO "dancelor"."book_sources" ("book_id", "source_id") VALUES ('0fi3-1io
 -- Data for Name: dance; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('cy5n-qvpl-k0yl', 'Test dance', '8 x 32 R', 2, 1234, 'sdlfkj', '2188', '2026-05-09 14:11:26', '2026-05-09 14:11:26');
-INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('l02q-i1j0-qpoi', 'The Architect', '8 x 32 R', 0, NULL, NULL, NULL, '2023-12-21 18:11:33', '2023-12-21 18:11:33');
-INSERT INTO "dancelor"."dance" ("id", "name", "kind", "two_chords", "scddb_id", "disambiguation", "date", "created_at", "modified_at") VALUES ('0xf7-xwz9-1fhj', 'Test dance A439', '16 x 32 S', 2, 123199, NULL, '3088', '2026-05-10 11:36:21.52889', '2026-05-10 11:36:21.52889');
+INSERT INTO "dancelor"."dance" ("id", "name", "kind", "scddb_id", "disambiguation", "date", "created_at", "modified_at", "two_chords") VALUES ('l02q-i1j0-qpoi', 'The Architect', '8 x 32 R', NULL, NULL, NULL, '2023-12-21 18:11:33', '2023-12-21 18:11:33', 'Dont_know');
+INSERT INTO "dancelor"."dance" ("id", "name", "kind", "scddb_id", "disambiguation", "date", "created_at", "modified_at", "two_chords") VALUES ('cy5n-qvpl-k0yl', 'Test dance', '8 x 32 R', 1234, 'sdlfkj', '2188', '2026-05-09 14:11:26', '2026-05-09 14:11:26', 'Two_chords');
+INSERT INTO "dancelor"."dance" ("id", "name", "kind", "scddb_id", "disambiguation", "date", "created_at", "modified_at", "two_chords") VALUES ('0xf7-xwz9-1fhj', 'Test dance A439', '16 x 32 S', 123199, NULL, '3088', '2026-05-10 11:36:21.52889', '2026-05-10 11:36:21.52889', 'Two_chords');
 
 
 --
@@ -631,6 +678,10 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m057_2026_05
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m058_2026_05_add_unique_constraint_book_owners_book_id_owner_id', '2026-05-15 10:17:27.622578+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m059_2026_05_string_to_nestring_option', '2026-05-29 14:34:07.211399+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m060_2026_06_create_extension_pg_trgm', '2026-06-09 16:38:11.371022+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m061_2026_06_use_enum_for_user_role', '2026-06-10 00:04:50.866526+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m062_2026_06_use_enum_for_two_chords', '2026-06-10 00:04:50.870731+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m063_2026_06_use_enum_for_visibility', '2026-06-10 00:04:50.874698+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m064_2026_06_use_enum_for_page_type', '2026-06-10 00:04:50.878206+00');
 
 
 --
@@ -663,8 +714,8 @@ INSERT INTO "dancelor"."remember_me_tokens" ("user_id", "key", "hash", "max_date
 -- Data for Name: set; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "remark", "created_at", "modified_at", "visibility") VALUES ('ului-yd9x-o35w', 'Tam Lin Thrice', '3x32R', '1,2,3', NULL, '2023-05-02 12:16:55', '2023-06-25 15:51:15', 1);
-INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "remark", "created_at", "modified_at", "visibility") VALUES ('wrwk-cz9g-g3wi', 'A Private Set', '3x32R', '1', NULL, '2023-05-02 12:16:55', '2023-06-25 15:51:15', 0);
+INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "remark", "created_at", "modified_at", "visibility") VALUES ('wrwk-cz9g-g3wi', 'A Private Set', '3x32R', '1', NULL, '2023-05-02 12:16:55', '2023-06-25 15:51:15', 'Owners_only');
+INSERT INTO "dancelor"."set" ("id", "name", "kind", "order", "remark", "created_at", "modified_at", "visibility") VALUES ('ului-yd9x-o35w', 'Tam Lin Thrice', '3x32R', '1,2,3', NULL, '2023-05-02 12:16:55', '2023-06-25 15:51:15', 'Everyone');
 
 
 --
@@ -742,7 +793,7 @@ INSERT INTO "dancelor"."tune_composers" ("tune_id", "index", "composer_id", "det
 -- Data for Name: user; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_token_hash", "password_reset_token_max_date", "created_at", "modified_at", "role", "omniscience", "person_id") VALUES ('lt3h-edgt-ac97', 'Niols', '$argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w', NULL, NULL, '2025-04-13 16:48:00', '2025-04-13 16:48:00', 2, false, 'uwoe-u6ij-ikgp');
+INSERT INTO "dancelor"."user" ("id", "username", "password", "password_reset_token_hash", "password_reset_token_max_date", "created_at", "modified_at", "omniscience", "person_id", "role") VALUES ('lt3h-edgt-ac97', 'Niols', '$argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w', NULL, NULL, '2025-04-13 16:48:00', '2025-04-13 16:48:00', false, 'uwoe-u6ij-ikgp', 'Administrator');
 
 
 --

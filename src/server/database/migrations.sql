@@ -1251,10 +1251,10 @@ UPDATE "set" SET "visibility_new" = 'Everyone' WHERE "visibility" = 1;
 UPDATE "book" SET "visibility_new" = 'Everyone' WHERE "visibility" = 1;
 
 -- @m063_2026_06_use_enum_for_visibility__set_convert_select_viewers
-UPDATE "set" SET "visibility_new" = 'Select_viewers' WHERE "visibility" = 1;
+UPDATE "set" SET "visibility_new" = 'Select_viewers' WHERE "visibility" = 2;
 
 -- @m063_2026_06_use_enum_for_visibility__book_convert_select_viewers
-UPDATE "book" SET "visibility_new" = 'Select_viewers' WHERE "visibility" = 1;
+UPDATE "book" SET "visibility_new" = 'Select_viewers' WHERE "visibility" = 2;
 
 -- @m063_2026_06_use_enum_for_visibility__set_cleanup_columns_1
 ALTER TABLE "set"
