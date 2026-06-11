@@ -86,6 +86,22 @@ CREATE TYPE "dancelor"."two_chords" AS ENUM (
 
 
 --
+-- Name: type; Type: TYPE; Schema: dancelor; Owner: -
+--
+
+CREATE TYPE "dancelor"."type" AS ENUM (
+    'Person',
+    'User',
+    'Dance',
+    'Source',
+    'Tune',
+    'Version',
+    'Set',
+    'Book'
+);
+
+
+--
 -- Name: visibility; Type: TYPE; Schema: dancelor; Owner: -
 --
 
@@ -239,7 +255,7 @@ CREATE TABLE "dancelor"."dance_extra_names" (
 
 CREATE TABLE "dancelor"."globally_unique_id" (
     "id" character varying(14) NOT NULL,
-    "type" "dancelor"."globally_unique_id_type" NOT NULL
+    "type" "dancelor"."type" NOT NULL
 );
 
 
@@ -592,26 +608,26 @@ INSERT INTO "dancelor"."dance_extra_names" ("dance_id", "extra_name") VALUES ('c
 -- Data for Name: globally_unique_id; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('0fi3-1iot-6tbq', 'Book');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('2f8s-90v8-33do', 'Source');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('4plf-srss-ihav', 'Person');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('8h62-3eis-xfem', 'Person');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('l02q-i1j0-qpoi', 'Dance');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('lt3h-edgt-ac97', 'User');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('qdod-ad7l-8gr2', 'Tune');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('ului-yd9x-o35w', 'Set');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('uwoe-u6ij-ikgp', 'Person');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('wrwk-cz9g-g3wi', 'Set');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xzzb-wasm-babe', 'Version');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('9fdg-glrm-0zoi', 'Person');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('lt3h-edgt-ac97', 'User');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('l02q-i1j0-qpoi', 'Dance');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('cy5n-qvpl-k0yl', 'Dance');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('0xf7-xwz9-1fhj', 'Dance');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('rifw-ul36-3uq5', 'Tune');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xsbz-vqy7-xj3s', 'Version');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('2f8s-90v8-33do', 'Source');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('2wrv-25yu-yc07', 'Source');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('qdod-ad7l-8gr2', 'Tune');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('rifw-ul36-3uq5', 'Tune');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('gm7o-khcu-8faz', 'Tune');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xzzb-wasm-babe', 'Version');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('xsbz-vqy7-xj3s', 'Version');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('jyot-ypt9-caxu', 'Version');
 INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('or5b-64lk-hlj5', 'Version');
-INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('gm7o-khcu-8faz', 'Tune');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('ului-yd9x-o35w', 'Set');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('wrwk-cz9g-g3wi', 'Set');
+INSERT INTO "dancelor"."globally_unique_id" ("id", "type") VALUES ('0fi3-1iot-6tbq', 'Book');
 
 
 --
@@ -682,6 +698,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m061_2026_06
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m062_2026_06_use_enum_for_two_chords', '2026-06-10 00:04:50.870731+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m063_2026_06_use_enum_for_visibility', '2026-06-10 00:04:50.874698+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m064_2026_06_use_enum_for_page_type', '2026-06-10 00:04:50.878206+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m065_2026_06_use_enum_for_type', '2026-06-10 08:14:11.873705+00');
 
 
 --

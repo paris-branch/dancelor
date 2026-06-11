@@ -130,7 +130,7 @@ let get_all () =
 
 let create tune =
   Connection.with_ @@ fun db ->
-  let%lwt id = Globally_unique_id.make db Tune in
+  let%lwt id = Globally_unique_id.make db `Tune in
   tune_to_sql ~create_or_update: Tune_sql.create db id tune;%lwt
   lwt id
 

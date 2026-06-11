@@ -916,6 +916,20 @@ let migrations : migration list = [
     Migrations_sql.m064_2026_06_use_enum_for_page_type__cleanup_columns_1;
     Migrations_sql.m064_2026_06_use_enum_for_page_type__cleanup_columns_2;
   ];
+  make_ddls "m065_2026_06_use_enum_for_type" [
+    Migrations_sql.m065_2026_06_use_enum_for_type__create_type_type;
+    Migrations_sql.m065_2026_06_use_enum_for_type__add_column_type_new;
+    Migrations_sql.m065_2026_06_use_enum_for_type__convert_person;
+    Migrations_sql.m065_2026_06_use_enum_for_type__convert_user;
+    Migrations_sql.m065_2026_06_use_enum_for_type__convert_dance;
+    Migrations_sql.m065_2026_06_use_enum_for_type__convert_source;
+    Migrations_sql.m065_2026_06_use_enum_for_type__convert_tune;
+    Migrations_sql.m065_2026_06_use_enum_for_type__convert_version;
+    Migrations_sql.m065_2026_06_use_enum_for_type__convert_set;
+    Migrations_sql.m065_2026_06_use_enum_for_type__convert_book;
+    Migrations_sql.m065_2026_06_use_enum_for_type__cleanup_columns_1;
+    Migrations_sql.m065_2026_06_use_enum_for_type__cleanup_columns_2;
+  ];
 ]
 
 exception Migration_failed of string * exn

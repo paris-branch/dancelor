@@ -344,7 +344,7 @@ let get_all_for_tune tune_id =
 
 let create version =
   Connection.with_ @@ fun db ->
-  let%lwt id = Globally_unique_id.make db Version in
+  let%lwt id = Globally_unique_id.make db `Version in
   version_to_sql ~create_or_update: Version_sql.create db id version;%lwt
   lwt id
 
