@@ -36,7 +36,7 @@ let cohttp_code_meth_to_meth = function
   | `OPTIONS -> OPTIONS
   | `TRACE -> TRACE
   | `CONNECT -> CONNECT
-  | `Other _ -> assert false (* FIXME *)
+  | `Other x -> failwithf "cohttp_code_meth_to_meth: unsupported Cohttp.Code.meth: `Other %s" x
 
 let is_safe = function
   | GET | HEAD | OPTIONS | TRACE -> true
