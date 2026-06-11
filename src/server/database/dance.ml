@@ -28,11 +28,11 @@ let sql_to_row ~id ~name ~kind ~devisers ~disambiguation ~(k : Dance_row.t -> 'w
 
 let search needle : (Dance_row.t * float) list Lwt.t =
   Connection.with_ @@ fun db ->
-  let%lwt devisers = Utils.fold_to_hashtbl Dance_sql.Fold.get_all_devisers_new db (fun k ~dance_id -> Person.sql_to_name ~k: (k dance_id)) in
+  let%lwt devisers = Utils.fold_to_tbl Dance_sql.Fold.get_all_devisers_new db (fun k ~dance_id -> Person.sql_to_name ~k: (k dance_id)) in
   Dance_sql.List.search
     db
     ~needle
-    (fun ~score ~id -> sql_to_row ~id ~devisers: (Hashtbl.find_all devisers id) ~k: (Pair.snoc score))
+    (fun ~score ~id -> sql_to_row ~id ~devisers: (Utils.tbl_get devisers id) ~k: (Pair.snoc score))
 
 let sql_to_dance
     ~id

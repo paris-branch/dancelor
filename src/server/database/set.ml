@@ -20,8 +20,8 @@ let sql_to_row ~id ~name ~kind ~conceptors ~tunes ~permission ~(k : Set_row.t ->
 
 let search ~user needle : (Set_row.t * float) list Lwt.t =
   Connection.with_ @@ fun db ->
-  let%lwt tunes = Utils.fold_to_hashtbl Set_sql.Fold.get_all_tunes_new db (fun k ~set_id -> Version.sql_to_name ~k: (k set_id)) in
-  let%lwt conceptors = Utils.fold_to_hashtbl Set_sql.Fold.get_all_conceptors_new db (fun k ~set_id -> Person.sql_to_name ~k: (k set_id)) in
+  let%lwt tunes = Utils.fold_to_tbl Set_sql.Fold.get_all_tunes_new db (fun k ~set_id -> Version.sql_to_name ~k: (k set_id)) in
+  let%lwt conceptors = Utils.fold_to_tbl Set_sql.Fold.get_all_conceptors_new db (fun k ~set_id -> Person.sql_to_name ~k: (k set_id)) in
   Set_sql.List.search
     db
     ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
@@ -29,8 +29,8 @@ let search ~user needle : (Set_row.t * float) list Lwt.t =
     (fun ~score ~id ->
       sql_to_row
         ~id
-        ~tunes: (Hashtbl.find_all tunes id)
-        ~conceptors: (Hashtbl.find_all conceptors id)
+        ~tunes: (Utils.tbl_get tunes id)
+        ~conceptors: (Utils.tbl_get conceptors id)
         ~k: (Pair.snoc score)
     )
 
