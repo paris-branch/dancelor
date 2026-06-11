@@ -67,11 +67,10 @@ let create person =
 
 let update id person =
   Connection.with_ @@ fun db ->
+  Entry_new.touch db id;%lwt
   ignore <$> person_to_sql ~create_or_update: (fun ~id -> Person_sql.update db ~id) id person
 
 let delete id =
-  let%lwt _ =
-    Connection.with_ @@ fun db ->
-    Person_sql.delete db ~id: (Entry.Id.to_string id)
-  in
-  lwt_unit
+  Connection.with_ @@ fun db ->
+  ignore <$> Person_sql.delete db ~id: (Entry.Id.to_string id);%lwt
+  Entry_new.delete db id

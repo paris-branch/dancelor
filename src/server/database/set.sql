@@ -8,11 +8,13 @@ SELECT
     "modified_at",
     "visibility"
 FROM "set"
-WHERE "id" = @id;
+JOIN "entry" ON "set"."id" = "entry"."id"
+WHERE "set"."id" = @id
+LIMIT 1; -- NOTE: to help sqlgg
 
 -- @get_all
 SELECT
-    "id",
+    "set"."id",
     "name",
     "kind",
     "order",
@@ -20,7 +22,8 @@ SELECT
     "created_at",
     "modified_at",
     "visibility"
-FROM "set";
+FROM "set"
+JOIN "entry" ON "set"."id" = "entry"."id";
 
 -- @create
 INSERT INTO "set" (
@@ -29,8 +32,6 @@ INSERT INTO "set" (
     "kind",
     "order",
     "remark",
-    "created_at",
-    "modified_at",
     "visibility"
 ) VALUES (
     @id,
@@ -38,8 +39,6 @@ INSERT INTO "set" (
     @kind,
     @order,
     @remark,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP,
     @visibility
 );
 
@@ -50,7 +49,6 @@ SET
     "kind" = @kind,
     "order" = @order,
     "remark" = @remark,
-    "modified_at" = CURRENT_TIMESTAMP,
     "visibility" = @visibility
 WHERE "id" = @id;
 

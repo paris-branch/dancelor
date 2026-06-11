@@ -8,11 +8,13 @@ SELECT
     "created_at",
     "modified_at"
 FROM "source"
-WHERE "id" = @id;
+JOIN "entry" ON "source"."id" = "entry"."id"
+WHERE "source"."id" = @id
+LIMIT 1; -- NOTE: to help sqlgg
 
 -- @get_all
 SELECT
-    "id",
+    "source"."id",
     "name",
     "short_name",
     "scddb_id",
@@ -20,7 +22,8 @@ SELECT
     "date",
     "created_at",
     "modified_at"
-FROM "source";
+FROM "source"
+JOIN "entry" ON "source"."id" = "entry"."id";
 
 -- @create
 INSERT INTO "source" (
@@ -29,18 +32,14 @@ INSERT INTO "source" (
     "short_name",
     "scddb_id",
     "description",
-    "date",
-    "created_at",
-    "modified_at"
+    "date"
 ) VALUES (
     @id,
     @name,
     @short_name,
     @scddb_id,
     @description,
-    @date,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP
+    @date
 );
 
 -- @get_editors
@@ -75,8 +74,7 @@ SET
     "short_name" = @short_name,
     "scddb_id" = @scddb_id,
     "description" = @description,
-    "date" = @date,
-    "modified_at" = CURRENT_TIMESTAMP
+    "date" = @date
 WHERE "id" = @id;
 
 -- @delete

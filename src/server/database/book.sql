@@ -8,11 +8,13 @@ SELECT
     "modified_at",
     "visibility"
 FROM "book"
-WHERE "id" = @id;
+JOIN "entry" ON "book"."id" = "entry"."id"
+WHERE "book"."id" = @id
+LIMIT 1; -- NOTE: to help sqlgg
 
 -- @get_all
 SELECT
-    "id",
+    "book"."id",
     "name",
     "date",
     "remark",
@@ -20,7 +22,8 @@ SELECT
     "created_at",
     "modified_at",
     "visibility"
-FROM "book";
+FROM "book"
+JOIN "entry" ON "book"."id" = "entry"."id";
 
 -- @create
 INSERT INTO "book" (
@@ -29,8 +32,6 @@ INSERT INTO "book" (
     "date",
     "remark",
     "scddb_id",
-    "created_at",
-    "modified_at",
     "visibility"
 ) VALUES (
     @id,
@@ -38,8 +39,6 @@ INSERT INTO "book" (
     @date,
     @remark,
     @scddb_id,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP,
     @visibility
 );
 
@@ -50,7 +49,6 @@ SET
     "date" = @date,
     "remark" = @remark,
     "scddb_id" = @scddb_id,
-    "modified_at" = CURRENT_TIMESTAMP,
     "visibility" = @visibility
 WHERE "id" = @id;
 

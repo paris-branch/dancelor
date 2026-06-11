@@ -91,6 +91,7 @@ let create source =
 
 let update id source =
   Connection.with_ @@ fun db ->
+  Entry_new.touch db id;%lwt
   source_to_sql
     ~create_or_update: (fun ~id -> Source_sql.update db ~id)
     ~delete_all_editors: (Source_sql.delete_all_editors db)
@@ -101,7 +102,8 @@ let update id source =
 let delete id =
   Connection.with_ @@ fun db ->
   ignore <$> Source_sql.delete_all_editors ~source_id: (Entry.Id.to_string id) db;%lwt
-  ignore <$> Source_sql.delete db ~id: (Entry.Id.to_string id)
+  ignore <$> Source_sql.delete db ~id: (Entry.Id.to_string id);%lwt
+  Entry_new.delete db id
 
 let with_cover id f =
   let%lwt cover =

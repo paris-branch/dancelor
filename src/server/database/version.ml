@@ -350,6 +350,7 @@ let create version =
 
 let update id version =
   Connection.with_ @@ fun db ->
+  Entry_new.touch db id;%lwt
   version_to_sql ~create_or_update: (fun db ~id -> Version_sql.update db ~id) db id version
 
 let delete id =
@@ -359,4 +360,5 @@ let delete id =
   ignore <$> Version_sql.delete_all_sources db ~version_id;%lwt
   ignore <$> Version_sql.delete_all_destructured_parts db ~version_id;%lwt
   ignore <$> Version_sql.delete_all_destructured_transitions db ~version_id;%lwt
-  ignore <$> Version_sql.delete db ~id: version_id
+  ignore <$> Version_sql.delete db ~id: version_id;%lwt
+  Entry_new.delete db id

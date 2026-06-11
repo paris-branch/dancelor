@@ -7,18 +7,21 @@ SELECT
     "created_at",
     "modified_at"
 FROM "person"
-WHERE "id" = @id;
+JOIN "entry" ON "person"."id" = "entry"."id"
+WHERE "person"."id" = @id
+LIMIT 1; -- NOTE: to help sqlgg
 
 -- @get_all
 SELECT
-    "id",
+    "person"."id",
     "name",
     "scddb_id",
     "composed_tunes_are_public",
     "published_tunes_are_public",
     "created_at",
     "modified_at"
-FROM "person";
+FROM "person"
+JOIN "entry" ON "person"."id" = "entry"."id";
 
 -- @create
 INSERT INTO "person" (
@@ -26,18 +29,14 @@ INSERT INTO "person" (
     "name",
     "scddb_id",
     "composed_tunes_are_public",
-    "published_tunes_are_public",
-    "created_at",
-    "modified_at"
+    "published_tunes_are_public"
 )
 VALUES (
     @id,
     @name,
     @scddb_id,
     @composed_tunes_are_public,
-    @published_tunes_are_public,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP
+    @published_tunes_are_public
 );
 
 -- @update
@@ -46,8 +45,7 @@ SET
     "name" = @name,
     "scddb_id" = @scddb_id,
     "composed_tunes_are_public" = @composed_tunes_are_public,
-    "published_tunes_are_public" = @published_tunes_are_public,
-    "modified_at" = CURRENT_TIMESTAMP
+    "published_tunes_are_public" = @published_tunes_are_public
 WHERE "id" = @id;
 
 -- @delete

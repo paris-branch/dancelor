@@ -27,3 +27,13 @@ let make db type_ =
     | Some _ ->
       make () (* extremely unlikely *)
   in make ()
+
+let touch db id =
+  ignore <$> Entry_sql.touch db ~id: (Entry.Id.to_string id)
+
+let delete _db _id =
+  (* FIXME: delete? soft delete? *)
+  (* NOTE: Keeping all the entries because we have more than enough
+     ids, and this way we avoid reusing the same one after another one
+     was deleted, and in doing so making links exist again. *)
+  lwt_unit

@@ -6,33 +6,40 @@ SELECT
     "created_at",
     "modified_at"
 FROM "user"
-WHERE "id" = @id;
+JOIN "entry" ON "user"."id" = "entry"."id"
+WHERE "user"."id" = @id
+LIMIT 1; -- NOTE: to help sqlgg
 
 -- @get_person
 SELECT
     "person_id"
 FROM "user"
-WHERE "id" = @id;
+JOIN "entry" ON "user"."id" = "entry"."id"
+WHERE "user"."id" = @id
+LIMIT 1; -- NOTE: to help sqlgg
 
 -- @get_all
 SELECT
-    "id",
+    "entry"."id",
     "username",
     "role",
     "omniscience",
     "created_at",
     "modified_at"
-FROM "user";
+FROM "user"
+JOIN "entry" ON "user"."id" = "entry"."id";
 
 -- @get_from_username
 SELECT
-    "id",
+    "user"."id",
     "role",
     "omniscience",
     "created_at",
     "modified_at"
 FROM "user"
-WHERE "username" = @username;
+JOIN "entry" ON "user"."id" = "entry"."id"
+WHERE "username" = @username
+LIMIT 1; -- NOTE: to help sqlgg
 
 -- @get_password_from_username
 SELECT
@@ -54,9 +61,7 @@ INSERT INTO "user" (
     "password_reset_token_hash",
     "password_reset_token_max_date",
     "role",
-    "omniscience",
-    "created_at",
-    "modified_at"
+    "omniscience"
 )
 VALUES (
     @id,
@@ -64,9 +69,7 @@ VALUES (
     @password_reset_token_hash,
     @password_reset_token_max_date,
     @role,
-    @omniscience,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP
+    @omniscience
 );
 
 -- @set_password_reset_token

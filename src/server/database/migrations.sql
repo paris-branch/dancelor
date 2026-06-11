@@ -1354,3 +1354,66 @@ ALTER TABLE "entry" DROP PRIMARY KEY;
 
 -- @m066_2026_06_rename_table_globally_unique_id__add_primary_key__for_sqlgg
 ALTER TABLE "entry" ADD CONSTRAINT "pk_entry" PRIMARY KEY ("id");
+
+-- @m067_2026_06_move_created_update_at_to_entry_table__add_columns_to_entry
+ALTER TABLE "entry"
+  ADD COLUMN "created_at" TIMESTAMP,
+  ADD COLUMN "modified_at" TIMESTAMP;
+
+-- @m067_2026_06_move_created_update_at_to_entry_table__copy_from_person
+-- @m067_2026_06_move_created_update_at_to_entry_table__copy_from_user
+-- @m067_2026_06_move_created_update_at_to_entry_table__copy_from_source
+-- @m067_2026_06_move_created_update_at_to_entry_table__copy_from_dance
+-- @m067_2026_06_move_created_update_at_to_entry_table__copy_from_tune
+-- @m067_2026_06_move_created_update_at_to_entry_table__copy_from_version
+-- @m067_2026_06_move_created_update_at_to_entry_table__copy_from_set
+-- @m067_2026_06_move_created_update_at_to_entry_table__copy_from_book
+
+-- @m067_2026_06_move_created_update_at_to_entry_table__drop_person_columns
+ALTER TABLE "person"
+  DROP COLUMN "created_at",
+  DROP COLUMN "modified_at";
+
+-- @m067_2026_06_move_created_update_at_to_entry_table__drop_user_columns
+ALTER TABLE "user"
+  DROP COLUMN "created_at",
+  DROP COLUMN "modified_at";
+
+-- @m067_2026_06_move_created_update_at_to_entry_table__drop_source_columns
+ALTER TABLE "source"
+  DROP COLUMN "created_at",
+  DROP COLUMN "modified_at";
+
+-- @m067_2026_06_move_created_update_at_to_entry_table__drop_dance_columns
+ALTER TABLE "dance"
+  DROP COLUMN "created_at",
+  DROP COLUMN "modified_at";
+
+-- @m067_2026_06_move_created_update_at_to_entry_table__drop_tune_columns
+ALTER TABLE "tune"
+  DROP COLUMN "created_at",
+  DROP COLUMN "modified_at";
+
+-- @m067_2026_06_move_created_update_at_to_entry_table__drop_version_columns
+ALTER TABLE "version"
+  DROP COLUMN "created_at",
+  DROP COLUMN "modified_at";
+
+-- @m067_2026_06_move_created_update_at_to_entry_table__drop_set_columns
+ALTER TABLE "set"
+  DROP COLUMN "created_at",
+  DROP COLUMN "modified_at";
+
+-- @m067_2026_06_move_created_update_at_to_entry_table__drop_book_columns
+ALTER TABLE "book"
+  DROP COLUMN "created_at",
+  DROP COLUMN "modified_at";
+
+-- @m067_2026_06_move_created_update_at_to_entry_table__cleanup_null
+DELETE FROM "entry"
+  WHERE "created_at" IS NULL;
+  
+-- @m067_2026_06_move_created_update_at_to_entry_table__make_columns_not_null
+ALTER TABLE "entry"
+  ALTER COLUMN "created_at" SET NOT NULL,
+  ALTER COLUMN "modified_at" SET NOT NULL;
