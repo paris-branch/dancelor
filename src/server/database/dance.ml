@@ -126,7 +126,7 @@ let get_all () =
 
 let create dance =
   Connection.with_ @@ fun db ->
-  let%lwt id = Globally_unique_id.make db `Dance in
+  let%lwt id = Entry_new.make db `Dance in
   dance_to_sql ~create_or_update: Dance_sql.create db id dance;%lwt
   lwt id
 

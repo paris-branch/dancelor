@@ -1,8 +1,9 @@
 CREATE TYPE "type" AS ENUM ('Person', 'User', 'Dance', 'Source', 'Tune', 'Version', 'Set', 'Book');
 
-CREATE TABLE "globally_unique_id" (
-    "id" VARCHAR(14) NOT NULL PRIMARY KEY,
-    "type" "type" NOT NULL
+CREATE TABLE "entry" (
+    "id" VARCHAR(14) NOT NULL,
+    "type" "type" NOT NULL,
+    CONSTRAINT "pk_entry" PRIMARY KEY ("id")
 );
 
 CREATE TABLE "person" (
@@ -13,7 +14,7 @@ CREATE TABLE "person" (
     "published_tunes_are_public" BOOLEAN NOT NULL,
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
-    CONSTRAINT "fk_person_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+    CONSTRAINT "fk_person_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
 CREATE TYPE "role" AS ENUM ('Normal_user', 'Maintainer', 'Administrator');
@@ -29,7 +30,7 @@ CREATE TABLE "user" (
     "omniscience" BOOLEAN NOT NULL,
     "person_id" VARCHAR(14) NULL,
     "role" "role" NOT NULL,
-    CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id"),
+    CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "entry" ("id"),
     CONSTRAINT "fk_user_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
 );
 
@@ -52,7 +53,7 @@ CREATE TABLE "source" (
     "date" VARCHAR(32),
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
-    CONSTRAINT "fk_source_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+    CONSTRAINT "fk_source_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
 CREATE TABLE "source_editors" (
@@ -75,7 +76,7 @@ CREATE TABLE "dance" (
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
     "two_chords" "two_chords" NOT NULL,
-    CONSTRAINT "fk_dance_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+    CONSTRAINT "fk_dance_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
 CREATE TABLE "dance_devisers" (
@@ -103,7 +104,7 @@ CREATE TABLE "tune" (
     "date" VARCHAR(32),
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
-    CONSTRAINT "fk_tune_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+    CONSTRAINT "fk_tune_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
 CREATE TABLE "tune_extra_names" (
@@ -142,7 +143,7 @@ CREATE TABLE "version" (
     "monolithic_or_default_structure" VARCHAR(32),
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
-    CONSTRAINT "fk_version_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id"),
+    CONSTRAINT "fk_version_id" FOREIGN KEY ("id") REFERENCES "entry" ("id"),
     CONSTRAINT "fk_version_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id")
 );
 
@@ -194,7 +195,7 @@ CREATE TABLE "set" (
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
     "visibility" "visibility" NOT NULL,
-    CONSTRAINT "fk_set_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+    CONSTRAINT "fk_set_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
 CREATE TABLE "set_conceptors" (
@@ -246,7 +247,7 @@ CREATE TABLE "book" (
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
     "visibility" "visibility" NOT NULL,
-    CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "globally_unique_id" ("id")
+    CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
 CREATE TABLE "book_authors" (

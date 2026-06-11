@@ -291,7 +291,7 @@ let get_all () =
 
 let create book access =
   Connection.with_ @@ fun db ->
-  let%lwt id = Globally_unique_id.make db `Book in
+  let%lwt id = Entry_new.make db `Book in
   book_to_sql ~create_or_update: Book_sql.create db id book access;%lwt
   lwt id
 

@@ -23,6 +23,9 @@ let catchall ~place ~die fun_ =
     try%lwt
       fun_ ()
     with
+      | Database.Migrations.Migration_failed (name, _exn) ->
+        Log.err (fun m -> m "Migration %S failed" name);
+        die ()
       | exn ->
         log_exn ~msg: ("Uncaught Lwt exception in " ^ place) exn;
         die ()

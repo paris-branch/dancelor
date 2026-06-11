@@ -10,7 +10,5 @@ module Version = Version
 
 type t = Connection.t
 
-(* let open_ = Connection.open_ *)
-(* let close = Connection.close *)
-(* let with_ = Connection.with_ *)
+module Migrations = Migrations
 let apply_migrations = Migrations.apply_migrations

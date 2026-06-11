@@ -11,8 +11,8 @@
 ;; TABLE` etc. may take place.
 
 (rule
- (target globally_unique_id_sql.ml)
- (deps schema.sql globally_unique_id.sql)
+ (target entry_sql.ml)
+ (deps schema.sql entry.sql)
  (action
   (with-stdout-to
    %{target}

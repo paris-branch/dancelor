@@ -1,7 +1,7 @@
 open Nes
 open Dancelor_common
 
-module Globally_unique_id_sql = Globally_unique_id_sql.Sqlgg(Sqlgg_postgresql)
+module Entry_sql = Entry_sql.Sqlgg(Sqlgg_postgresql)
 
 type type_ = [
   | `Book
@@ -15,14 +15,14 @@ type type_ = [
 ]
 
 let get db id =
-  Globally_unique_id_sql.get db ~id: (Entry.Id.to_string id)
+  Entry_sql.get db ~id: (Entry.Id.to_string id)
 
 let make db type_ =
   let rec make () =
     let id = Entry.Id.make () in
     match%lwt get db id with
     | None ->
-      let%lwt _ = Globally_unique_id_sql.register db ~id: (Entry.Id.to_string id) ~type_ in
+      let%lwt _ = Entry_sql.register db ~id: (Entry.Id.to_string id) ~type_ in
       lwt @@ Entry.Id.unsafe_coerce id
     | Some _ ->
       make () (* extremely unlikely *)
