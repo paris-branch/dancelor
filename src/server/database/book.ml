@@ -2,6 +2,7 @@ open Nes
 open Dancelor_common
 open Model_new
 
+module Entry_sql = Entry_sql.Sqlgg(Sqlgg_postgresql)
 module Book_sql = Book_sql.Sqlgg(Sqlgg_postgresql)
 
 type t = Model_builder.Core.Book.t
@@ -47,9 +48,9 @@ let sql_to_book
   =
   let visibility : Entry.Access.Private.visibility =
     match (visibility, viewers) with
-    | (`Owners_only, []) -> Owners_only
-    | (`Everyone, []) -> Everyone
-    | (`Select_viewers, _) ->
+    | (Some `Owners_only, []) -> Owners_only
+    | (Some `Everyone, []) -> Everyone
+    | (Some `Select_viewers, _) ->
       (
         match viewers with
         | [] -> assert false
@@ -73,13 +74,7 @@ let sql_to_book
         ()
     )
 
-let book_to_sql ~create_or_update db id book access =
-  let (visibility, viewers) =
-    match Entry.Access.Private.visibility access with
-    | Owners_only -> (`Owners_only, [])
-    | Everyone -> (`Everyone, [])
-    | Select_viewers viewers -> (`Select_viewers, NEList.to_list viewers)
-  in
+let book_to_sql ~create_or_update db id book =
   (* FIXME: transaction, maybe [Connection.with_transaction] *)
   let id = Entry.Id.to_string id in
   ignore
@@ -89,8 +84,7 @@ let book_to_sql ~create_or_update db id book access =
       ~name: (NEString.to_string @@ Model_builder.Core.Book.name book)
       ~date: (Option.map PartialDate.to_string @@ Model_builder.Core.Book.date book)
       ~remark: (Option.map NEString.to_string @@ Model_builder.Core.Book.remark book)
-      ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Book.scddb_id book)
-      ~visibility;%lwt
+      ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Book.scddb_id book);%lwt
   ignore <$> Book_sql.delete_all_authors db ~book_id: id;%lwt
   Lwt_list.iter_s
     (fun author ->
@@ -163,27 +157,7 @@ let book_to_sql ~create_or_update db id book access =
         )
         versions_and_params
     )
-    (Model_builder.Core.Book.contents book);%lwt
-  ignore <$> Book_sql.delete_all_viewers db ~book_id: id;%lwt
-  Lwt_list.iter_s
-    (fun viewer ->
-      ignore
-      <$> Book_sql.add_one_viewer
-          db
-          ~book_id: id
-          ~viewer_id: (Entry.Id.to_string viewer)
-    )
-    viewers;%lwt
-  ignore <$> Book_sql.delete_all_owners db ~book_id: id;%lwt
-  Lwt_list.iter_s
-    (fun owner ->
-      ignore
-      <$> Book_sql.add_one_owner
-          db
-          ~book_id: id
-          ~owner_id: (Entry.Id.to_string owner)
-    )
-    (NEList.to_list @@ Entry.Access.Private.owners access)
+    (Model_builder.Core.Book.contents book)
 
 let sql_to_content_version ~k = fun
     ~version_id
@@ -258,8 +232,8 @@ let get id : Model_builder.Core.Book.entry option Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt authors = Book_sql.List.get_authors db ~book_id: id (fun ~author_id -> Entry.Id.of_string_exn author_id) in
   let%lwt sources = Book_sql.List.get_sources db ~book_id: id (fun ~source_id -> Entry.Id.of_string_exn source_id) in
-  let%lwt owners = Book_sql.List.get_owners db ~book_id: id (fun ~owner_id -> Entry.Id.of_string_exn owner_id) in
-  let%lwt viewers = Book_sql.List.get_viewers db ~book_id: id (fun ~viewer_id -> Entry.Id.of_string_exn viewer_id) in
+  let%lwt owners = Entry_sql.List.get_owners db ~entry_id: id (fun ~owner_id -> Entry.Id.of_string_exn owner_id) in
+  let%lwt viewers = Entry_sql.List.get_viewers db ~entry_id: id (fun ~viewer_id -> Entry.Id.of_string_exn viewer_id) in
   let content_versions = Hashtbl.create 8 in
   Book_sql.Fold.get_content_versions db ~book_id: id (fun ~content_index -> sql_to_content_version ~k: (fun v () -> Hashtbl.add content_versions content_index v)) ();%lwt
   let%lwt content = Book_sql.List.get_content db ~book_id: id (fun ~index -> sql_to_content_item ~versions_and_params: (List.rev @@ Hashtbl.find_all content_versions index) ~k: Fun.id) in
@@ -275,8 +249,8 @@ let get_all () =
   let content_versions = Hashtbl.create 8 in
   Book_sql.Fold.get_all_authors db (fun ~book_id ~author_id () -> Hashtbl.add authors book_id @@ Entry.Id.of_string_exn author_id) ();%lwt
   Book_sql.Fold.get_all_sources db (fun ~book_id ~source_id () -> Hashtbl.add sources book_id @@ Entry.Id.of_string_exn source_id) ();%lwt
-  Book_sql.Fold.get_all_owners db (fun ~book_id ~owner_id () -> Hashtbl.add owners book_id @@ Entry.Id.of_string_exn owner_id) ();%lwt
-  Book_sql.Fold.get_all_viewers db (fun ~book_id ~viewer_id () -> Hashtbl.add viewers book_id @@ Entry.Id.of_string_exn viewer_id) ();%lwt
+  Entry_sql.Fold.get_all_owners db ~type_: `Book (fun ~entry_id ~owner_id () -> Hashtbl.add owners entry_id @@ Entry.Id.of_string_exn owner_id) ();%lwt
+  Entry_sql.Fold.get_all_viewers db ~type_: `Book (fun ~entry_id ~viewer_id () -> Hashtbl.add viewers entry_id @@ Entry.Id.of_string_exn viewer_id) ();%lwt
   Book_sql.Fold.get_all_content_versions db (fun ~book_id ~content_index -> sql_to_content_version ~k: (fun v () -> Hashtbl.add content_versions (book_id, content_index) v)) ();%lwt
   Book_sql.Fold.get_all_content db (fun ~book_id ~index -> sql_to_content_item ~versions_and_params: (List.rev @@ Hashtbl.find_all content_versions (book_id, index)) ~k: (fun v () -> Hashtbl.add content book_id v)) ();%lwt
   Book_sql.List.get_all db (fun ~id ->
@@ -291,14 +265,15 @@ let get_all () =
 
 let create book access =
   Connection.with_ @@ fun db ->
-  let%lwt id = Entry_new.make db `Book in
-  book_to_sql ~create_or_update: Book_sql.create db id book access;%lwt
+  let%lwt id = Entry_new.make_private db `Book access in
+  book_to_sql ~create_or_update: Book_sql.create db id book;%lwt
   lwt id
 
 let update id book access =
   Connection.with_ @@ fun db ->
   Entry_new.touch db id;%lwt
-  book_to_sql ~create_or_update: (fun db ~id -> Book_sql.update db ~id) db id book access
+  Entry_new.update_private_access db id access;%lwt
+  book_to_sql ~create_or_update: (fun db ~id -> Book_sql.update db ~id) db id book
 
 let delete id =
   Connection.with_ @@ fun db ->
@@ -307,7 +282,5 @@ let delete id =
   ignore <$> Book_sql.delete_all_content_versions db ~book_id;%lwt
   ignore <$> Book_sql.delete_all_content db ~book_id;%lwt
   ignore <$> Book_sql.delete_all_sources db ~book_id;%lwt
-  ignore <$> Book_sql.delete_all_owners db ~book_id;%lwt
-  ignore <$> Book_sql.delete_all_viewers db ~book_id;%lwt
   ignore <$> Book_sql.delete db ~id: book_id;%lwt
   Entry_new.delete db id

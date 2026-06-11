@@ -959,6 +959,23 @@ let migrations : migration list = [
     Migrations_sql.m067_2026_06_move_created_update_at_to_entry_table__cleanup_null;
     Migrations_sql.m067_2026_06_move_created_update_at_to_entry_table__make_columns_not_null;
   ];
+  make_ddls "m068_2026_06_move_access_to_entry_table" [
+    Migrations_sql.m068_2026_06_move_access_to_entry_table__add_visibility_to_entry;
+    Migrations_sql.m068_2026_06_move_access_to_entry_table__create_table_entry_viewers;
+    Migrations_sql.m068_2026_06_move_access_to_entry_table__create_table_entry_owners;
+    bypass "UPDATE \"entry\" SET \"visibility\" = \"set\".\"visibility\" FROM \"set\" WHERE \"entry\".\"id\" = \"set\".\"id\"";
+    bypass "UPDATE \"entry\" SET \"visibility\" = \"book\".\"visibility\" FROM \"book\" WHERE \"entry\".\"id\" = \"book\".\"id\"";
+    Migrations_sql.m068_2026_06_move_access_to_entry_table__copy_set_viewers;
+    Migrations_sql.m068_2026_06_move_access_to_entry_table__copy_set_owners;
+    Migrations_sql.m068_2026_06_move_access_to_entry_table__copy_book_viewers;
+    Migrations_sql.m068_2026_06_move_access_to_entry_table__copy_book_owners;
+    Migrations_sql.m068_2026_06_move_access_to_entry_table__set_drop_column_visibility;
+    Migrations_sql.m068_2026_06_move_access_to_entry_table__book_drop_column_visibility;
+    Migrations_sql.m068_2026_06_move_access_to_entry_table__drop_table_set_viewers;
+    Migrations_sql.m068_2026_06_move_access_to_entry_table__drop_table_set_owners;
+    Migrations_sql.m068_2026_06_move_access_to_entry_table__drop_table_book_viewers;
+    Migrations_sql.m068_2026_06_move_access_to_entry_table__drop_table_book_owners;
+  ];
 ]
 
 exception Migration_failed of string * exn
