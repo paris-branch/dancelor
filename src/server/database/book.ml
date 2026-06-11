@@ -297,6 +297,7 @@ let create book access =
 
 let update id book access =
   Connection.with_ @@ fun db ->
+  Entry_new.touch db id;%lwt
   book_to_sql ~create_or_update: (fun db ~id -> Book_sql.update db ~id) db id book access
 
 let delete id =
@@ -308,4 +309,5 @@ let delete id =
   ignore <$> Book_sql.delete_all_sources db ~book_id;%lwt
   ignore <$> Book_sql.delete_all_owners db ~book_id;%lwt
   ignore <$> Book_sql.delete_all_viewers db ~book_id;%lwt
-  ignore <$> Book_sql.delete db ~id: book_id
+  ignore <$> Book_sql.delete db ~id: book_id;%lwt
+  Entry_new.delete db id

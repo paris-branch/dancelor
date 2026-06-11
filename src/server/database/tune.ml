@@ -136,6 +136,7 @@ let create tune =
 
 let update id tune =
   Connection.with_ @@ fun db ->
+  Entry_new.touch db id;%lwt
   tune_to_sql ~create_or_update: (fun db ~id -> Tune_sql.update db ~id) db id tune
 
 let delete id =
@@ -144,4 +145,5 @@ let delete id =
   ignore <$> Tune_sql.delete_all_extra_names db ~tune_id;%lwt
   ignore <$> Tune_sql.delete_all_composers db ~tune_id;%lwt
   ignore <$> Tune_sql.delete_all_dances db ~tune_id;%lwt
-  ignore <$> Tune_sql.delete db ~id: tune_id
+  ignore <$> Tune_sql.delete db ~id: tune_id;%lwt
+  Entry_new.delete db id

@@ -228,6 +228,7 @@ let create set access =
 
 let update id set access =
   Connection.with_ @@ fun db ->
+  Entry_new.touch db id;%lwt
   set_to_sql ~create_or_update: (fun db ~id -> Set_sql.update db ~id) db id set access
 
 let delete id =
@@ -237,4 +238,5 @@ let delete id =
   ignore <$> Set_sql.delete_all_content db ~set_id;%lwt
   ignore <$> Set_sql.delete_all_owners db ~set_id;%lwt
   ignore <$> Set_sql.delete_all_viewers db ~set_id;%lwt
-  ignore <$> Set_sql.delete db ~id: set_id
+  ignore <$> Set_sql.delete db ~id: set_id;%lwt
+  Entry_new.delete db id

@@ -3,6 +3,8 @@ CREATE TYPE "type" AS ENUM ('Person', 'User', 'Dance', 'Source', 'Tune', 'Versio
 CREATE TABLE "entry" (
     "id" VARCHAR(14) NOT NULL,
     "type" "type" NOT NULL,
+    "created_at" TIMESTAMP NOT NULL,
+    "modified_at" TIMESTAMP NOT NULL,
     CONSTRAINT "pk_entry" PRIMARY KEY ("id")
 );
 
@@ -12,8 +14,6 @@ CREATE TABLE "person" (
     "scddb_id" INT,
     "composed_tunes_are_public" BOOLEAN NOT NULL,
     "published_tunes_are_public" BOOLEAN NOT NULL,
-    "created_at" TIMESTAMP NOT NULL,
-    "modified_at" TIMESTAMP NOT NULL,
     CONSTRAINT "fk_person_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
@@ -25,8 +25,6 @@ CREATE TABLE "user" (
     "password" VARCHAR(256),
     "password_reset_token_hash" VARCHAR(256),
     "password_reset_token_max_date" TIMESTAMP,
-    "created_at" TIMESTAMP NOT NULL,
-    "modified_at" TIMESTAMP NOT NULL,
     "omniscience" BOOLEAN NOT NULL,
     "person_id" VARCHAR(14) NULL,
     "role" "role" NOT NULL,
@@ -51,8 +49,6 @@ CREATE TABLE "source" (
     "scddb_id" INT,
     "description" TEXT,
     "date" VARCHAR(32),
-    "created_at" TIMESTAMP NOT NULL,
-    "modified_at" TIMESTAMP NOT NULL,
     CONSTRAINT "fk_source_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
@@ -73,8 +69,6 @@ CREATE TABLE "dance" (
     "scddb_id" INT,
     "disambiguation" VARCHAR(256),
     "date" VARCHAR(32),
-    "created_at" TIMESTAMP NOT NULL,
-    "modified_at" TIMESTAMP NOT NULL,
     "two_chords" "two_chords" NOT NULL,
     CONSTRAINT "fk_dance_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
@@ -102,8 +96,6 @@ CREATE TABLE "tune" (
     "remark" VARCHAR,
     "scddb_id" INT,
     "date" VARCHAR(32),
-    "created_at" TIMESTAMP NOT NULL,
-    "modified_at" TIMESTAMP NOT NULL,
     CONSTRAINT "fk_tune_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
@@ -141,8 +133,6 @@ CREATE TABLE "version" (
     "monolithic_lilypond" TEXT,
     "monolithic_bars" INT,
     "monolithic_or_default_structure" VARCHAR(32),
-    "created_at" TIMESTAMP NOT NULL,
-    "modified_at" TIMESTAMP NOT NULL,
     CONSTRAINT "fk_version_id" FOREIGN KEY ("id") REFERENCES "entry" ("id"),
     CONSTRAINT "fk_version_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id")
 );
@@ -192,8 +182,6 @@ CREATE TABLE "set" (
     "kind" VARCHAR NOT NULL,
     "order" VARCHAR NOT NULL,
     "remark" VARCHAR,
-    "created_at" TIMESTAMP NOT NULL,
-    "modified_at" TIMESTAMP NOT NULL,
     "visibility" "visibility" NOT NULL,
     CONSTRAINT "fk_set_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
@@ -244,8 +232,6 @@ CREATE TABLE "book" (
     "date" VARCHAR,
     "remark" VARCHAR,
     "scddb_id" INT,
-    "created_at" TIMESTAMP NOT NULL,
-    "modified_at" TIMESTAMP NOT NULL,
     "visibility" "visibility" NOT NULL,
     CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );

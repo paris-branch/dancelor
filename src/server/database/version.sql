@@ -10,11 +10,13 @@ SELECT
     "created_at",
     "modified_at"
 FROM "version"
-WHERE "id" = @id;
+JOIN "entry" ON "version"."id" = "entry"."id"
+WHERE "version"."id" = @id
+LIMIT 1; -- NOTE: to help sqlgg
 
 -- @get_all
 SELECT
-    "id",
+    "version"."id",
     "tune_id",
     "key",
     "remark",
@@ -24,11 +26,12 @@ SELECT
     "monolithic_or_default_structure",
     "created_at",
     "modified_at"
-FROM "version";
+FROM "version"
+JOIN "entry" ON "version"."id" = "entry"."id";
 
 -- @get_all_for_tune
 SELECT
-    "id",
+    "version"."id",
     "key",
     "remark",
     "disambiguation",
@@ -38,6 +41,7 @@ SELECT
     "created_at",
     "modified_at"
 FROM "version"
+JOIN "entry" ON "version"."id" = "entry"."id"
 WHERE "tune_id" = @tune_id;
 
 -- @create
@@ -49,9 +53,7 @@ INSERT INTO "version" (
     "disambiguation",
     "monolithic_lilypond",
     "monolithic_bars",
-    "monolithic_or_default_structure",
-    "created_at",
-    "modified_at"
+    "monolithic_or_default_structure"
 ) VALUES (
     @id,
     @tune_id,
@@ -60,9 +62,7 @@ INSERT INTO "version" (
     @disambiguation,
     @monolithic_lilypond,
     @monolithic_bars,
-    @monolithic_or_default_structure,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP
+    @monolithic_or_default_structure
 );
 
 -- @update
@@ -74,8 +74,7 @@ SET
     "disambiguation" = @disambiguation,
     "monolithic_lilypond" = @monolithic_lilypond,
     "monolithic_bars" = @monolithic_bars,
-    "monolithic_or_default_structure" = @monolithic_or_default_structure,
-    "modified_at" = CURRENT_TIMESTAMP
+    "monolithic_or_default_structure" = @monolithic_or_default_structure
 WHERE "id" = @id;
 
 -- @delete

@@ -9,11 +9,13 @@ SELECT
     "created_at",
     "modified_at"
 FROM "dance"
-WHERE "id" = @id;
+JOIN "entry" ON "dance"."id" = "entry"."id"
+WHERE "dance"."id" = @id
+LIMIT 1; -- NOTE: to help sqlgg
 
 -- @get_all
 SELECT
-    "id",
+    "dance"."id",
     "name",
     "kind",
     "two_chords",
@@ -22,7 +24,8 @@ SELECT
     "date",
     "created_at",
     "modified_at"
-FROM "dance";
+FROM "dance"
+JOIN "entry" ON "dance"."id" = "entry"."id";
 
 -- @create
 INSERT INTO "dance" (
@@ -32,9 +35,7 @@ INSERT INTO "dance" (
     "two_chords",
     "scddb_id",
     "disambiguation",
-    "date",
-    "created_at",
-    "modified_at"
+    "date"
 ) VALUES (
     @id,
     @name,
@@ -42,9 +43,7 @@ INSERT INTO "dance" (
     @two_chords,
     @scddb_id,
     @disambiguation,
-    @date,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP
+    @date
 );
 
 -- @update
@@ -55,8 +54,7 @@ SET
     "two_chords" = @two_chords,
     "scddb_id" = @scddb_id,
     "disambiguation" = @disambiguation,
-    "date" = @date,
-    "modified_at" = CURRENT_TIMESTAMP
+    "date" = @date
 WHERE "id" = @id;
 
 -- @delete

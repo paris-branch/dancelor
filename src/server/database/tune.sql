@@ -8,11 +8,13 @@ SELECT
     "created_at",
     "modified_at"
 FROM "tune"
-WHERE "id" = @id;
+JOIN "entry" ON "tune"."id" = "entry"."id"
+WHERE "tune"."id" = @id
+LIMIT 1; -- NOTE: to help sqlgg
 
 -- @get_all
 SELECT
-    "id",
+    "tune"."id",
     "name",
     "kind",
     "remark",
@@ -20,7 +22,8 @@ SELECT
     "date",
     "created_at",
     "modified_at"
-FROM "tune";
+FROM "tune"
+JOIN "entry" ON "tune"."id" = "entry"."id";
 
 -- @create
 INSERT INTO "tune" (
@@ -29,18 +32,14 @@ INSERT INTO "tune" (
     "kind",
     "remark",
     "scddb_id",
-    "date",
-    "created_at",
-    "modified_at"
+    "date"
 ) VALUES (
     @id,
     @name,
     @kind,
     @remark,
     @scddb_id,
-    @date,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP
+    @date
 );
 
 -- @update
@@ -50,8 +49,7 @@ SET
     "kind" = @kind,
     "remark" = @remark,
     "scddb_id" = @scddb_id,
-    "date" = @date,
-    "modified_at" = CURRENT_TIMESTAMP
+    "date" = @date
 WHERE "id" = @id;
 
 -- @delete

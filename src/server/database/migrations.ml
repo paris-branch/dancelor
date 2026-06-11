@@ -938,6 +938,27 @@ let migrations : migration list = [
     Migrations_sql.m066_2026_06_rename_table_globally_unique_id__table;
     bypass "ALTER TABLE \"entry\" RENAME CONSTRAINT \"globally_unique_id_pkey\" TO \"pk_entry\"";
   ];
+  make_ddls "m067_2026_06_move_created_update_at_to_entry_table" [
+    Migrations_sql.m067_2026_06_move_created_update_at_to_entry_table__add_columns_to_entry;
+    bypass "UPDATE \"entry\" SET \"created_at\" = \"person\".\"created_at\", \"modified_at\" = \"person\".\"modified_at\" FROM \"person\" WHERE \"entry\".\"id\" = \"person\".\"id\"";
+    bypass "UPDATE \"entry\" SET \"created_at\" = \"user\".\"created_at\", \"modified_at\" = \"user\".\"modified_at\" FROM \"user\" WHERE \"entry\".\"id\" = \"user\".\"id\"";
+    bypass "UPDATE \"entry\" SET \"created_at\" = \"source\".\"created_at\", \"modified_at\" = \"source\".\"modified_at\" FROM \"source\" WHERE \"entry\".\"id\" = \"source\".\"id\"";
+    bypass "UPDATE \"entry\" SET \"created_at\" = \"dance\".\"created_at\", \"modified_at\" = \"dance\".\"modified_at\" FROM \"dance\" WHERE \"entry\".\"id\" = \"dance\".\"id\"";
+    bypass "UPDATE \"entry\" SET \"created_at\" = \"tune\".\"created_at\", \"modified_at\" = \"tune\".\"modified_at\" FROM \"tune\" WHERE \"entry\".\"id\" = \"tune\".\"id\"";
+    bypass "UPDATE \"entry\" SET \"created_at\" = \"version\".\"created_at\", \"modified_at\" = \"version\".\"modified_at\" FROM \"version\" WHERE \"entry\".\"id\" = \"version\".\"id\"";
+    bypass "UPDATE \"entry\" SET \"created_at\" = \"set\".\"created_at\", \"modified_at\" = \"set\".\"modified_at\" FROM \"set\" WHERE \"entry\".\"id\" = \"set\".\"id\"";
+    bypass "UPDATE \"entry\" SET \"created_at\" = \"book\".\"created_at\", \"modified_at\" = \"book\".\"modified_at\" FROM \"book\" WHERE \"entry\".\"id\" = \"book\".\"id\"";
+    Migrations_sql.m067_2026_06_move_created_update_at_to_entry_table__drop_person_columns;
+    Migrations_sql.m067_2026_06_move_created_update_at_to_entry_table__drop_user_columns;
+    Migrations_sql.m067_2026_06_move_created_update_at_to_entry_table__drop_source_columns;
+    Migrations_sql.m067_2026_06_move_created_update_at_to_entry_table__drop_dance_columns;
+    Migrations_sql.m067_2026_06_move_created_update_at_to_entry_table__drop_tune_columns;
+    Migrations_sql.m067_2026_06_move_created_update_at_to_entry_table__drop_version_columns;
+    Migrations_sql.m067_2026_06_move_created_update_at_to_entry_table__drop_set_columns;
+    Migrations_sql.m067_2026_06_move_created_update_at_to_entry_table__drop_book_columns;
+    Migrations_sql.m067_2026_06_move_created_update_at_to_entry_table__cleanup_null;
+    Migrations_sql.m067_2026_06_move_created_update_at_to_entry_table__make_columns_not_null;
+  ];
 ]
 
 exception Migration_failed of string * exn
