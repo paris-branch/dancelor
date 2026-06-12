@@ -43,19 +43,23 @@ let callback _ request body =
     ~place: "the callback"
     ~die: Madge_server.respond_internal_server_error
     @@ fun () ->
-    let meth = Madge.Request.cohttp_code_meth_to_meth @@ Request.meth request in
-    let uri = Request.uri request in
-    let path = Uri.path uri in
-    Log.debug (fun m -> m "%s %s" (Madge.Request.meth_to_string meth) path);
-    Environment.with_ request @@ fun env ->
-    if String.starts_with ~needle: "/api/" path then
-      (
-        Log.debug (fun m -> m "Looking for an API controller for %s." path);
-        let%lwt body = Cohttp_lwt.Body.to_string body in
-        apply_controller env (Madge.Request.make ~meth ~uri ~body)
-      )
-    else
-      Static.serve env path
+    match Madge.Request.cohttp_code_meth_to_meth @@ Request.meth request with
+    | Error meth ->
+      Log.info (fun m -> m "Ignoring unknown/unsupported method %S" meth);
+      Cohttp_lwt_unix.Server.respond_string ~status: `Not_implemented ~body: (spf "unknown/unsupported method %S" meth) ()
+    | Ok meth ->
+      let uri = Request.uri request in
+      let path = Uri.path uri in
+      Log.debug (fun m -> m "%s %s" (Madge.Request.meth_to_string meth) path);
+      Environment.with_ request @@ fun env ->
+      if String.starts_with ~needle: "/api/" path then
+        (
+          Log.debug (fun m -> m "Looking for an API controller for %s." path);
+          let%lwt body = Cohttp_lwt.Body.to_string body in
+          apply_controller env (Madge.Request.make ~meth ~uri ~body)
+        )
+      else
+        Static.serve env path
 
   let () =
     Lwt.async_exception_hook :=
