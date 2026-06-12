@@ -345,7 +345,7 @@ let view context tune_or_version_id =
             match versions with
             | [] ->
               Alert.make ~level: Info [
-                txt "There are no versions for this tune. ";
+                txtf "There are no %sversions for this tune. " (if Option.is_some version then "other " else "");
                 R.span (
                   S.from_lwt [] @@
                     if%lwt Environment.is_connected then
