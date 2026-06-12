@@ -12,3 +12,5 @@ let get id =
   | Some `Tune -> Option.map Model_builder.Core.Any.tune <$> (Tune.get @@ Entry.Id.unsafe_coerce id)
   | Some `User -> Option.map Model_builder.Core.Any.user <$> (User.get @@ Entry.Id.unsafe_coerce id)
   | Some `Version -> Option.map Model_builder.Core.Any.version <$> (Version.get @@ Entry.Id.unsafe_coerce id)
+
+let get_newest = Entry_new.get_newest

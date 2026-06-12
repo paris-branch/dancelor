@@ -52,6 +52,11 @@ let get_rows env ids =
       )
       ids
 
+let newest env limit =
+  let user = Environment.user env in
+  let%lwt ids = Database.Any.get_newest ~user: (Option.map Entry.id user) ~limit in
+  get_rows env ids
+
 (** Given two streams sorted according to the comparison function, produce one
     sorted stream of all the values. In case of equality, the left stream wins. *)
 let lwt_stream_merge_sorted cmp xs ys =
@@ -190,6 +195,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Any.t -> a =
   match endpoint with
   | Get -> get env
   | Get_rows -> get_rows env
+  | Newest -> newest env
   | Search -> search env
   | Search_context -> search_context env
   | Search_new -> search_new env

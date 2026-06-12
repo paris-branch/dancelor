@@ -85,3 +85,20 @@ INSERT INTO "entry_owners" (
     @entry_id,
     @owner_id
 );
+
+-- @get_newest
+SELECT
+    "entry"."id",
+    "entry"."type"
+FROM "entry"
+LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
+LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
+LEFT JOIN "user" ON "user"."id" = @user_id
+WHERE
+    ("entry"."type" IN ('Person', 'Dance', 'Source', 'Tune', 'Version', 'User'))
+    OR ("entry"."visibility" = 'Everyone')
+    OR ("entry_owners"."owner_id" IS NOT NULL)
+    OR ("entry"."visibility" = 'Select_viewers' AND "entry_viewers"."viewer_id" IS NOT NULL)
+    OR ("user"."role" = 'Administrator' AND "user"."omniscience")
+ORDER BY "created_at" DESC
+LIMIT @limit;
