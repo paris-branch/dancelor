@@ -7,7 +7,11 @@ type meth = GET | POST | HEAD | DELETE | PATCH | PUT | OPTIONS | TRACE | CONNECT
 
 val meth_to_string : meth -> string
 val meth_to_cohttp_code_meth : meth -> Cohttp.Code.meth
-val cohttp_code_meth_to_meth : Cohttp.Code.meth -> meth
+
+(** Convert a CoHTTP method to a Madge method. Madge only supports
+    plain HTTP and will return an error on HTTP extensions, eg. [Error
+    "PROPFIND"]. *)
+val cohttp_code_meth_to_meth : Cohttp.Code.meth -> (meth, string) result
 
 (** Whether the method is safe, according to the HTTP specification. Safe
     methods are not supposed to have any side-effect on the server and can
