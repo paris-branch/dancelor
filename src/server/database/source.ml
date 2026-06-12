@@ -16,11 +16,11 @@ let sql_to_row ~id ~name ~date ~editors ~(k : Source_row.t -> 'w) : 'w =
 
 let search needle : (Source_row.t * float) list Lwt.t =
   Connection.with_ @@ fun db ->
-  let%lwt editors = Utils.fold_to_hashtbl Source_sql.Fold.get_all_editors_new db (fun k ~source_id -> Person.sql_to_name ~k: (k source_id)) in
+  let%lwt editors = Utils.fold_to_tbl Source_sql.Fold.get_all_editors_new db (fun k ~source_id -> Person.sql_to_name ~k: (k source_id)) in
   Source_sql.List.search
     db
     ~needle
-    (fun ~score ~id -> sql_to_row ~id ~editors: (Hashtbl.find_all editors id) ~k: (Pair.snoc score))
+    (fun ~score ~id -> sql_to_row ~id ~editors: (Utils.tbl_get editors id) ~k: (Pair.snoc score))
 
 let sql_to_source
     ~id

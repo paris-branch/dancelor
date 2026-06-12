@@ -1,6 +1,11 @@
 open Nes
 
-let fold_to_hashtbl fold db k =
-  let tbl = Hashtbl.create 8 in
-  fold db (k (fun key value () -> Hashtbl.add tbl key value)) ();%lwt
-  lwt tbl
+type ('k, 'v) tbl = Tbl of ('k, 'v) Hashtbl.t
+
+let fold_to_tbl fold db k =
+  let t = Hashtbl.create 8 in
+  fold db (k (fun key value () -> Hashtbl.add t key value)) ();%lwt
+  lwt @@ Tbl t
+
+let tbl_get (Tbl t) k =
+  List.rev @@ Hashtbl.find_all t k

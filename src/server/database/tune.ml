@@ -17,11 +17,11 @@ let sql_to_row ~id ~name ~kind ~composers ~(k : Tune_row.t -> 'w) : 'w =
 
 let search needle : (Tune_row.t * float) list Lwt.t =
   Connection.with_ @@ fun db ->
-  let%lwt composers = Utils.fold_to_hashtbl Tune_sql.Fold.get_all_composers_new db (fun k ~tune_id -> Person.sql_to_name ~k: (k tune_id)) in
+  let%lwt composers = Utils.fold_to_tbl Tune_sql.Fold.get_all_composers_new db (fun k ~tune_id -> Person.sql_to_name ~k: (k tune_id)) in
   Tune_sql.List.search
     db
     ~needle
-    (fun ~score ~id -> sql_to_row ~id ~composers: (Hashtbl.find_all composers id) ~k: (Pair.snoc score))
+    (fun ~score ~id -> sql_to_row ~id ~composers: (Utils.tbl_get composers id) ~k: (Pair.snoc score))
 
 let sql_to_tune
     ~id
