@@ -23,21 +23,17 @@ type visibility = [
 
 type visibility_or_public = [visibility | `Public]
 
-let check_visibility (visibility : visibility_or_public) (type_ : type_) : visibility option =
-  match type_ with
-  | `Dance | `Person | `Source | `Tune | `User | `Version ->
-    assert (visibility = `Public);
-    None
-  | `Set | `Book ->
-    match visibility with
-    | `Public -> assert false
-    | `Owners_only | `Everyone | `Select_viewers as visibility -> Some visibility
+let classify_type : type_ -> [`Public | `Private] = function
+  | `Dance | `Person | `Source | `Tune | `User | `Version -> `Public
+  | `Set | `Book -> `Private
 
 let get_type db id =
   Entry_sql.get_type db ~id: (Entry.Id.to_string id)
 
-let make_gen db ~visibility type_ =
-  let visibility = check_visibility visibility type_ in
+(** Handles only the insertion into the ["entry"] table. In
+    particular, this function does not handle the ["entry_viewers"]
+    and ["entry_owners"] tables; see {!insert_or_update_private}. *)
+let insert_to_entry_table db ~visibility type_ =
   let rec make () =
     let id = Entry.Id.make () in
     match%lwt get_type db id with
@@ -48,6 +44,56 @@ let make_gen db ~visibility type_ =
       make () (* extremely unlikely *)
   in make ()
 
+(** Takes a function [f] that handles inserting/updating to the
+    ["entry"] table and handles everything else that has to do with
+    private access. *)
+let insert_or_update_private db access f =
+  let (visibility, viewers) =
+    match Entry.Access.Private.visibility access with
+    | Owners_only -> (`Owners_only, [])
+    | Everyone -> (`Everyone, [])
+    | Select_viewers viewers -> (`Select_viewers, NEList.to_list viewers)
+  in
+  let%lwt id = f visibility in
+  ignore <$> Entry_sql.delete_all_viewers db ~entry_id: (Entry.Id.to_string id);%lwt
+  Lwt_list.iter_s
+    (fun viewer ->
+      ignore
+      <$> Entry_sql.add_one_viewer
+          db
+          ~entry_id: (Entry.Id.to_string id)
+          ~viewer_id: (Entry.Id.to_string viewer)
+    )
+    viewers;%lwt
+  ignore <$> Entry_sql.delete_all_owners db ~entry_id: (Entry.Id.to_string id);%lwt
+  Lwt_list.iter_s
+    (fun owner ->
+      ignore
+      <$> Entry_sql.add_one_owner
+          db
+          ~entry_id: (Entry.Id.to_string id)
+          ~owner_id: (Entry.Id.to_string owner)
+    )
+    (NEList.to_list @@ Entry.Access.Private.owners access);%lwt
+  lwt id
+
+let make_public db type_ =
+  assert (classify_type type_ = `Public);
+  (* Public objects only need the ["entry"] table in which they have
+     no visibility field. *)
+  insert_to_entry_table db type_ ~visibility: None
+
+let make_private db type_ access =
+  assert (classify_type type_ = `Private);
+  insert_or_update_private db access @@ fun visibility ->
+  insert_to_entry_table db type_ ~visibility: (Some visibility)
+
+let update_private_access db id access =
+  ignore
+  <$> insert_or_update_private db access @@ fun visibility ->
+    ignore <$> Entry_sql.update_visibility db ~id: (Entry.Id.to_string id) ~visibility: (Some visibility);%lwt
+    lwt id
+
 let touch db id =
   ignore <$> Entry_sql.touch db ~id: (Entry.Id.to_string id)
 
@@ -56,45 +102,6 @@ let delete db id =
   ignore <$> Entry_sql.delete_all_owners db ~entry_id: id;%lwt
   ignore <$> Entry_sql.delete_all_viewers db ~entry_id: id;%lwt
   ignore <$> Entry_sql.delete db ~id
-
-let update_private_access db id access =
-  let id = Entry.Id.to_string id in
-  let (visibility, viewers) =
-    match Entry.Access.Private.visibility access with
-    | Owners_only -> (`Owners_only, [])
-    | Everyone -> (`Everyone, [])
-    | Select_viewers viewers -> (`Select_viewers, NEList.to_list viewers)
-  in
-  ignore <$> Entry_sql.update_visibility db ~id ~visibility: (Some visibility);%lwt
-  ignore <$> Entry_sql.delete_all_viewers db ~entry_id: id;%lwt
-  Lwt_list.iter_s
-    (fun viewer ->
-      ignore
-      <$> Entry_sql.add_one_viewer
-          db
-          ~entry_id: id
-          ~viewer_id: (Entry.Id.to_string viewer)
-    )
-    viewers;%lwt
-  ignore <$> Entry_sql.delete_all_owners db ~entry_id: id;%lwt
-  Lwt_list.iter_s
-    (fun owner ->
-      ignore
-      <$> Entry_sql.add_one_owner
-          db
-          ~entry_id: id
-          ~owner_id: (Entry.Id.to_string owner)
-    )
-    (NEList.to_list @@ Entry.Access.Private.owners access)
-
-let make_public db type_ = make_gen db type_ ~visibility: `Public
-
-let make_private db type_ access =
-  (* NOTE: The first query leaves the DB in an inconsistent state, so
-     this should be run in a transactional context. *)
-  let%lwt id = make_gen db type_ ~visibility: `Public in
-  update_private_access db id access;%lwt
-  lwt id
 
 let get_newest ~user ~limit =
   assert (limit <= 1000);
