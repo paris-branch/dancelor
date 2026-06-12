@@ -1,4 +1,5 @@
 open Dancelor_common
+open Model_new
 
 type type_ = [
   | `Book
@@ -36,3 +37,7 @@ val get_type : Connection.t -> 'any Entry.Id.t -> type_ option Lwt.t
 
 val delete : Connection.t -> 'any Entry.Id.t -> unit Lwt.t
 (** Deletes the given entry. *)
+
+val get_newest : user: User_id.t option -> limit: int -> Any_id.t list Lwt.t
+(** Return the [~limit] newest elements in the database that the user
+    has access to. *)

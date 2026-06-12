@@ -31,13 +31,14 @@ let get_rows env ids =
       ([], [], [], [], [], [], [])
       ids
   in
-  let%lwt person_rows = Person.get_rows_table env person_ids in
-  let%lwt dance_rows = Dance.get_rows_table env dance_ids in
-  let%lwt source_rows = Source.get_rows_table env source_ids in
-  let%lwt tune_rows = Tune.get_rows_table env tune_ids in
-  let%lwt version_rows = Version.get_rows_table env version_ids in
-  let%lwt set_rows = Set.get_rows_table env set_ids in
-  let%lwt book_rows = Book.get_rows_table env book_ids in
+  let%lwt person_rows = Person.get_rows_table env person_ids
+  and dance_rows = Dance.get_rows_table env dance_ids
+  and source_rows = Source.get_rows_table env source_ids
+  and tune_rows = Tune.get_rows_table env tune_ids
+  and version_rows = Version.get_rows_table env version_ids
+  and set_rows = Set.get_rows_table env set_ids
+  and book_rows = Book.get_rows_table env book_ids
+  in
   lwt @@
     List.filter_map
       (function
@@ -50,6 +51,11 @@ let get_rows env ids =
         | Book id -> Option.map Any_row.book @@ Hashtbl.find_opt book_rows id
       )
       ids
+
+let newest env limit =
+  let user = Environment.user env in
+  let%lwt ids = Database.Any.get_newest ~user: (Option.map Entry.id user) ~limit in
+  get_rows env ids
 
 (** Given two streams sorted according to the comparison function, produce one
     sorted stream of all the values. In case of equality, the left stream wins. *)
@@ -112,13 +118,14 @@ let cache : (Environment.cache_key * Filter.Any.t, (int * (Model_new.Any_row.t *
 let search' env filter =
   Cache.use ~cache ~key: (Environment.cache_key env, filter) @@ fun () ->
   let (book_f, dance_f, person_f, set_f, source_f, tune_f, version_f) = Filter.Any.specialise filter in
-  let%lwt persons_result = Person.search' env person_f in
-  let%lwt dances_result = Dance.search' env dance_f in
-  let%lwt sources_result = Source.search' env source_f in
-  let%lwt books_result = Book.search' env book_f in
-  let%lwt sets_result = Set.search' env set_f in
-  let%lwt tunes_result = Tune.search' env tune_f in
-  let%lwt versions_result = Version.search' env version_f in
+  let%lwt persons_result = Person.search' env person_f
+  and dances_result = Dance.search' env dance_f
+  and sources_result = Source.search' env source_f
+  and books_result = Book.search' env book_f
+  and sets_result = Set.search' env set_f
+  and tunes_result = Tune.search' env tune_f
+  and versions_result = Version.search' env version_f
+  in
   let count = sources_result.total + persons_result.total + dances_result.total + books_result.total + sets_result.total + tunes_result.total + versions_result.total in
   let results =
     let stream_to_row to_row =
@@ -153,13 +160,14 @@ let search_context env filter element =
   | Some List.{total; previous; index; next; _} -> lwt {Model_new.index; total; previous_item = previous; next_item = next}
 
 let search_new env slice filter =
-  let%lwt persons_result = Person.search'_new env filter in
-  let%lwt dances_result = Dance.search'_new env filter in
-  let%lwt sources_result = Source.search'_new env filter in
-  let%lwt tunes_result = Tune.search'_new env filter in
-  let%lwt versions_result = Version.search'_new env filter in
-  let%lwt sets_result = Set.search'_new env filter in
-  let%lwt books_result = Book.search'_new env filter in
+  let%lwt persons_result = Person.search'_new env filter
+  and dances_result = Dance.search'_new env filter
+  and sources_result = Source.search'_new env filter
+  and tunes_result = Tune.search'_new env filter
+  and versions_result = Version.search'_new env filter
+  and sets_result = Set.search'_new env filter
+  and books_result = Book.search'_new env filter
+  in
   let total =
     persons_result.total +
       dances_result.total +
@@ -187,6 +195,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Any.t -> a =
   match endpoint with
   | Get -> get env
   | Get_rows -> get_rows env
+  | Newest -> newest env
   | Search -> search env
   | Search_context -> search_context env
   | Search_new -> search_new env

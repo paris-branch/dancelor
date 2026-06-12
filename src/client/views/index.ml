@@ -55,22 +55,8 @@ let create () =
         R.div ~a: [a_class ["mb-3"]] (
           let length = 15 in
           S.from_lwt (Utils.Tables.placeholder ~rows: length ()) @@
-            let filter =
-              (* FIXME: There should be a more direct way to do this *)
-              let newest () = Dancelor_common.Formula_entry.(meta' newest') in
-              Dancelor_common.Formula.or_l
-                Filter.Any.[source' (newest ());
-                person' (newest ());
-                dance' (newest ());
-                book' (newest ());
-                set' (newest ());
-                tune' (newest ());
-                version' (newest ());
-                ]
-            in
-            let slice = Slice.make ~length () in
-            let%lwt results = Model_new.items <$> Madge_client.call_exn Dancelor_common.Endpoints.Api.(route @@ Any Search) slice filter in
-            lwt [Utils.Tables.any results]
+            let%lwt newest = Madge_client.call_exn Endpoints.Api.(route @@ Any Newest) length in
+            lwt [Utils.Tables.any newest]
         );
       ];
       section [

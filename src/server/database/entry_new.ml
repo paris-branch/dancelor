@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 
 module Entry_sql = Entry_sql.Sqlgg(Sqlgg_postgresql)
 
@@ -94,3 +95,22 @@ let make_private db type_ access =
   let%lwt id = make_gen db type_ ~visibility: `Public in
   update_private_access db id access;%lwt
   lwt id
+
+let get_newest ~user ~limit =
+  assert (limit <= 1000);
+  Connection.with_ @@ fun db ->
+  (* FIXME: some gymnastics just because users aren't handled so well yet *)
+  let%lwt newest =
+    Entry_sql.List.get_newest db ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "") ~limit: (Int64.of_int limit) (fun ~id ~type_ ->
+      match type_ with
+      | `Book -> some @@ Any_id.Book (Entry.Id.of_string_exn id)
+      | `Dance -> some @@ Any_id.Dance (Entry.Id.of_string_exn id)
+      | `Person -> some @@ Any_id.Person (Entry.Id.of_string_exn id)
+      | `Set -> some @@ Any_id.Set (Entry.Id.of_string_exn id)
+      | `Source -> some @@ Any_id.Source (Entry.Id.of_string_exn id)
+      | `Tune -> some @@ Any_id.Tune (Entry.Id.of_string_exn id)
+      | `User -> None (* FIXME: we should handle users too *)
+      | `Version -> some @@ Any_id.Version (Entry.Id.of_string_exn id)
+    )
+  in
+  lwt @@ List.filter_map Fun.id newest
