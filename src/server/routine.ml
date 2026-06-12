@@ -9,53 +9,57 @@ let all_versions =
   Lwt_stream.concat @@
   Lwt_stream.from @@ fun () ->
   Lwt_unix.sleep 600.;%lwt
+  Log.debug (fun m -> m "Generating the list of all versions for pre-rendering");
   (some % Lwt_stream.of_list) <$> Database.Version.get_all ()
 
+(** A stream of prerendering jobs for versions in the database. This
+    contains only pending and failed jobs, the others do not need to
+    run again. *)
 let all_versions_prerendering_job =
-  Lwt_stream.map_s
+  Lwt_stream.filter_map_s
     (fun version ->
-      let%lwt name = Model.Version.one_name' version in
-      Log.debug (fun m -> m "Prerendering snippets for version %s" (NEString.to_string name));
-      let%lwt render_snippets_expr = Controller.Version.render_snippets (Entry.value version) in
-      lwt
-        Controller.Job.{
-          expr = render_snippets_expr;
-          state = ref Pending
-        }
+      let run_with_params =
+        match Model.Version.content' version with
+        | No_content -> `No_need_to_run
+        | Monolithic _ -> `Run_with_params None
+        | Destructured {default_structure; _} -> `Run_with_params (some @@ Model.Version_parameters.make ~structure: default_structure ()) (* FIXME: at the moment, this requires us to keep this in sync with the client, when this should be the default *)
+      in
+      match run_with_params with
+      | `No_need_to_run -> lwt_none
+      | `Run_with_params params ->
+        let%lwt job =
+          Controller.Job.register_job ~add_pending: false
+          <$> Controller.Version.render_snippets ?version_params: params (Entry.value version)
+        in
+        match !(job.state) with
+        | Failed _ | Pending -> lwt_some job
+        | _ -> lwt_none
     )
     all_versions
 
-let run_jobs_from ~max_concurrency =
+let run_jobs_from ~tag ~max_concurrency =
   Lwt_stream.iter_n
     ~max_concurrency
     (fun job ->
       try%lwt
+        Log.debug (fun m -> m "run_jobs_from %s: %s" tag Controller.Job.(expr_val job.expr));
         Controller.Job.run_job job
       with
         | exn -> !(Lwt.async_exception_hook) exn; lwt_unit
     )
 
 let initialiase_job_runners ~threads =
-  assert (threads >= 2);
+  (* NOTE: There used to be something fancy where we had exactly
+     [threads] threads, and one would pick up pre-rendering jobs when
+     there was no pending job. As it turns out, reading in several
+     places from the same stream is not safe and can lead to
+     duplicates. There are ways around it, but the amount of code that
+     it produces is not worth the trouble. *)
   Lwt.async (fun () ->
-    (* Have one thread pick jobs from the version prerendering queue when
-       there is nothing in the pending jobs queue. *)
-    run_jobs_from
-      ~max_concurrency: 1
-      (
-        Lwt_stream.choose_biased [
-          Controller.Job.pending_jobs;
-          all_versions_prerendering_job;
-        ]
-      )
-  );
-  Lwt.async (fun () ->
-    (* The others (at least one) are fully dedicated to user jobs,
-       even when there are none, so they are ready to start
-       immediately when a new job is created. *)
-    run_jobs_from
-      ~max_concurrency: (threads - 1)
-      Controller.Job.pending_jobs
+    Lwt.join [
+      run_jobs_from ~tag: "prerender" ~max_concurrency: 1 all_versions_prerendering_job;
+      run_jobs_from ~tag: "pending" ~max_concurrency: threads Controller.Job.pending_jobs;
+    ]
   )
 
 let initialise () =

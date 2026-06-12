@@ -11,13 +11,6 @@ val get_available_1 : 'a t -> 'a option
     [None], in this case, represents the absence of elements, not the end of the
     stream. *)
 
-val choose_biased : 'a t list -> 'a t
-(** Given a list of stream, produce a stream that reads from all of
-    them. When several streams have available values, prefer the ones
-    earlier in the list. When no streams have available values, pick
-    the first value that gets available. The stream closes when all
-    the streams from the list have closed. *)
-
 val return_lwt : 'a Lwt.t -> 'a t [@@alert unsafe "Lwt_stream.return_lwt has the bad practice of ignoring its argument; use NesLwt_stream.return_lwt' instead"]
 
 val return_lwt' : 'a Lwt.t -> 'a t

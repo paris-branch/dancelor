@@ -138,7 +138,7 @@ let build_pdf env id set_params rendering_params =
   in
   let%lwt set = Model_to_renderer.set_to_renderer_set' (Entry.id set) set_params in
   let%lwt book_pdf_arg = Model_to_renderer.renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata in
-  uncurry Job.register_job <$> Renderer.make_book_pdf book_pdf_arg
+  uncurry Job.register_job_and_file <$> Renderer.make_book_pdf book_pdf_arg
 
 let search env slice filter =
   let%lwt result = search env slice filter in

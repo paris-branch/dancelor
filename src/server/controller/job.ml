@@ -41,24 +41,27 @@ type job_and_file = {
     registered in {!job_of_expr}. *)
 let job_and_file_of_id : (Job_id.t, job_and_file) Hashtbl.t = Hashtbl.create 8
 
-let register_job (expr : expr) (file : string) : Job_id.t Endpoints.Job.registration_response =
-  let job_and_file =
-    match Hashtbl.find_opt job_of_expr expr with
-    | Some job when not (is_failed !(job.state)) ->
-      (*  if there is a job for the same expression, but not necessarily the
-          same file, we can just return without starting an actual job; we do
-          not do so for failed job in case the failure was transient *)
-      {id = Job_id.create (); job; file}
-    | _ ->
-      (* otherwise, we really do have to register a new job *)
-      let id = Job_id.create () in
-      let job = {expr; state = ref Pending} in
-      (* NOTE: we use {!Hashtbl.replace} because {!Hashtbl.add} might keep failed jobs *)
-      Hashtbl.replace job_of_expr expr job;
-      add_pending_job (Some job);
-      Log.debug (fun m -> m "Registered new job: %s" (expr_val expr));
-      {id; job; file}
-  in
+let register_job ~add_pending (expr : expr) : job =
+  match Hashtbl.find_opt job_of_expr expr with
+  | Some job when not (is_failed !(job.state)) ->
+    (*  if there is a job for the same expression, but not necessarily the
+        same file, we can just return without starting an actual job; we do
+        not do so for failed job in case the failure was transient *)
+    Log.debug (fun m -> m "Found existing and non-failed job");
+    job
+  | _ ->
+    (* otherwise, we really do have to register a new job *)
+    let job = {expr; state = ref Pending} in
+    (* NOTE: we use {!Hashtbl.replace} because {!Hashtbl.add} might keep failed jobs *)
+    Hashtbl.replace job_of_expr expr job;
+    if add_pending then add_pending_job (Some job);
+    Log.debug (fun m -> m "Registered new job: %s" (expr_val expr));
+    job
+
+let register_job_and_file (expr : expr) (file : string) : Job_id.t Endpoints.Job.registration_response =
+  Log.debug (fun m -> m "register_job");
+  let job = register_job ~add_pending: true expr in
+  let job_and_file = {id = Job_id.create (); job; file} in
   Hashtbl.add job_and_file_of_id job_and_file.id job_and_file;
   (* shortcut for when the job is already successful. this is not possible with
      new job, but will often happen with cache hits. it saves one network call
