@@ -247,7 +247,7 @@ let build_pdf env id version_params rendering_params =
   let version_params = Model.Version_parameters.set_display_name (NEString.of_string_exn " ") version_params in
   let%lwt set = Model_to_renderer.versions_to_renderer_set' (NEList.singleton (Entry.id version, version_params)) set_params in
   let%lwt book_pdf_arg = Model_to_renderer.renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata in
-  uncurry Job.register_job <$> Renderer.make_book_pdf book_pdf_arg
+  uncurry Job.register_job_and_file <$> Renderer.make_book_pdf book_pdf_arg
 
 (** For use in {!Routine}. *)
 let render_snippets ?version_params version =
@@ -259,7 +259,7 @@ let register_snippets_job ?version_params version =
   let%lwt svg_job = Renderer.make_tune_svg tune in
   let%lwt ogg_job = Renderer.make_tune_ogg tune in
   lwt @@
-    match (uncurry Job.register_job svg_job, uncurry Job.register_job ogg_job) with
+    match (uncurry Job.register_job_and_file svg_job, uncurry Job.register_job_and_file ogg_job) with
     | Already_succeeded svg_job_id, Already_succeeded ogg_job_id -> Endpoints.Job.Already_succeeded Endpoints.Version.Snippet_ids.{svg_job_id; ogg_job_id}
     | Registered svg_job_id, Already_succeeded ogg_job_id -> Registered {svg_job_id; ogg_job_id}
     | Already_succeeded svg_job_id, Registered ogg_job_id -> Registered {svg_job_id; ogg_job_id}
