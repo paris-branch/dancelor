@@ -1412,8 +1412,62 @@ ALTER TABLE "book"
 -- @m067_2026_06_move_created_update_at_to_entry_table__cleanup_null
 DELETE FROM "entry"
   WHERE "created_at" IS NULL;
-  
+
 -- @m067_2026_06_move_created_update_at_to_entry_table__make_columns_not_null
 ALTER TABLE "entry"
   ALTER COLUMN "created_at" SET NOT NULL,
   ALTER COLUMN "modified_at" SET NOT NULL;
+
+-- @m068_2026_06_move_access_to_entry_table__add_visibility_to_entry
+ALTER TABLE "entry"
+  ADD COLUMN "visibility" "visibility";
+
+-- @m068_2026_06_move_access_to_entry_table__create_table_entry_viewers
+CREATE TABLE "entry_viewers" (
+    "entry_id" VARCHAR(14) NOT NULL,
+    "viewer_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_entry_viewers_entry_id" FOREIGN KEY ("entry_id") REFERENCES "entry" ("id"),
+    CONSTRAINT "fk_entry_viewers_viewer_id" FOREIGN KEY ("viewer_id") REFERENCES "user" ("id"),
+    CONSTRAINT "uq_entry_viewers_entry_id_viewer_id" UNIQUE ("entry_id", "viewer_id")
+);
+
+-- @m068_2026_06_move_access_to_entry_table__create_table_entry_owners
+CREATE TABLE "entry_owners" (
+    "entry_id" VARCHAR(14) NOT NULL,
+    "owner_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_entry_owners_entry_id" FOREIGN KEY ("entry_id") REFERENCES "entry" ("id"),
+    CONSTRAINT "fk_entry_owners_owner_id" FOREIGN KEY ("owner_id") REFERENCES "user" ("id"),
+    CONSTRAINT "uq_entry_owners_entry_id_owner_id" UNIQUE ("entry_id", "owner_id")
+);
+
+-- @m068_2026_06_move_access_to_entry_table__copy_set_viewers
+INSERT INTO "entry_viewers" ("entry_id", "viewer_id") SELECT "set_id", "viewer_id" FROM "set_viewers";
+
+-- @m068_2026_06_move_access_to_entry_table__copy_set_owners
+INSERT INTO "entry_owners" ("entry_id", "owner_id") SELECT "set_id", "owner_id" FROM "set_owners";
+
+-- @m068_2026_06_move_access_to_entry_table__copy_book_viewers
+INSERT INTO "entry_viewers" ("entry_id", "viewer_id") SELECT "book_id", "viewer_id" FROM "book_viewers";
+
+-- @m068_2026_06_move_access_to_entry_table__copy_book_owners
+INSERT INTO "entry_owners" ("entry_id", "owner_id") SELECT "book_id", "owner_id" FROM "book_owners";
+
+-- @m068_2026_06_move_access_to_entry_table__set_drop_column_visibility
+ALTER TABLE "set"
+  DROP COLUMN "visibility";
+
+-- @m068_2026_06_move_access_to_entry_table__book_drop_column_visibility
+ALTER TABLE "book"
+  DROP COLUMN "visibility";
+
+-- @m068_2026_06_move_access_to_entry_table__drop_table_set_viewers
+DROP TABLE "set_viewers";
+
+-- @m068_2026_06_move_access_to_entry_table__drop_table_set_owners
+DROP TABLE "set_owners";
+
+-- @m068_2026_06_move_access_to_entry_table__drop_table_book_viewers
+DROP TABLE "book_viewers";
+
+-- @m068_2026_06_move_access_to_entry_table__drop_table_book_owners
+DROP TABLE "book_owners";

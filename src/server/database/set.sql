@@ -31,15 +31,13 @@ INSERT INTO "set" (
     "name",
     "kind",
     "order",
-    "remark",
-    "visibility"
+    "remark"
 ) VALUES (
     @id,
     @name,
     @kind,
     @order,
-    @remark,
-    @visibility
+    @remark
 );
 
 -- @update
@@ -48,8 +46,7 @@ SET
     "name" = @name,
     "kind" = @kind,
     "order" = @order,
-    "remark" = @remark,
-    "visibility" = @visibility
+    "remark" = @remark
 WHERE "id" = @id;
 
 -- @delete
@@ -78,54 +75,6 @@ INSERT INTO "set_conceptors" (
 ) VALUES (
     @set_id,
     @conceptor_id
-);
-
--- @get_viewers
-SELECT "viewer_id"
-FROM "set_viewers"
-WHERE "set_id" = @set_id;
-
--- @get_all_viewers
-SELECT
-    "set_id",
-    "viewer_id"
-FROM "set_viewers";
-
--- @delete_all_viewers
-DELETE FROM "set_viewers"
-WHERE "set_id" = @set_id;
-
--- @add_one_viewer
-INSERT INTO "set_viewers" (
-    "set_id",
-    "viewer_id"
-) VALUES (
-    @set_id,
-    @viewer_id
-);
-
--- @get_owners
-SELECT "owner_id"
-FROM "set_owners"
-WHERE "set_id" = @set_id;
-
--- @get_all_owners
-SELECT
-    "set_id",
-    "owner_id"
-FROM "set_owners";
-
--- @delete_all_owners
-DELETE FROM "set_owners"
-WHERE "set_id" = @set_id;
-
--- @add_one_owner
-INSERT INTO "set_owners" (
-    "set_id",
-    "owner_id"
-) VALUES (
-    @set_id,
-    @owner_id
 );
 
 -- @get_content
@@ -193,15 +142,16 @@ SELECT * FROM (
         "set"."name",
         "set"."kind",
         CASE
-            WHEN "set"."visibility" = 'Everyone' THEN 'Everyone'
-            WHEN "set_owners"."owner_id" IS NOT NULL THEN 'Owner'
-            WHEN "set"."visibility" = 'Select_viewers' AND "set_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
+            WHEN "entry"."visibility" = 'Everyone' THEN 'Everyone'
+            WHEN "entry_owners"."owner_id" IS NOT NULL THEN 'Owner'
+            WHEN "entry"."visibility" = 'Select_viewers' AND "entry_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
             WHEN "user"."role" = 'Administrator' AND "user"."omniscience" THEN 'Omniscient_administrator'
             ELSE NULL
         END AS "permission"
     FROM "set"
-    LEFT JOIN "set_owners" ON "set_owners"."set_id" = "set"."id" AND "set_owners"."owner_id" = @user_id
-    LEFT JOIN "set_viewers" ON "set_viewers"."set_id" = "set"."id" AND "set_viewers"."viewer_id" = @user_id
+    JOIN "entry" ON "entry"."id" = "set"."id"
+    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
+    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
     LEFT JOIN "user" ON "user"."id" = @user_id
     WHERE (@needle = '' OR @needle <% "name")
 ) AS "set+"

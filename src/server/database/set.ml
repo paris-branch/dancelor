@@ -2,6 +2,7 @@ open Nes
 open Dancelor_common
 open Model_new
 
+module Entry_sql = Entry_sql.Sqlgg(Sqlgg_postgresql)
 module Set_sql = Set_sql.Sqlgg(Sqlgg_postgresql)
 
 type t = Model_builder.Core.Set.t
@@ -49,9 +50,9 @@ let sql_to_set
   =
   let visibility : Entry.Access.Private.visibility =
     match (visibility, viewers) with
-    | (`Owners_only, []) -> Owners_only
-    | (`Everyone, []) -> Everyone
-    | (`Select_viewers, _) ->
+    | (Some `Owners_only, []) -> Owners_only
+    | (Some `Everyone, []) -> Everyone
+    | (Some `Select_viewers, _) ->
       (
         match viewers with
         | [] -> assert false
@@ -74,14 +75,7 @@ let sql_to_set
         ()
     )
 
-let set_to_sql ~create_or_update db id set access =
-  let (visibility, viewers) =
-    match Entry.Access.Private.visibility access with
-    | Owners_only -> (`Owners_only, [])
-    | Everyone -> (`Everyone, [])
-    | Select_viewers viewers -> (`Select_viewers, NEList.to_list viewers)
-  in
-  (* FIXME: transaction, maybe [Connection.with_transaction] *)
+let set_to_sql ~create_or_update db id set =
   let id = Entry.Id.to_string id in
   ignore
   <$> create_or_update
@@ -90,8 +84,7 @@ let set_to_sql ~create_or_update db id set access =
       ~name: (NEString.to_string @@ Model_builder.Core.Set.name set)
       ~kind: (Kind_dance.to_string @@ Model_builder.Core.Set.kind set)
       ~order: (Model_builder.Core.Set_order.to_string @@ Model_builder.Core.Set.order set)
-      ~remark: (Option.map NEString.to_string @@ Model_builder.Core.Set.remark set)
-      ~visibility;%lwt
+      ~remark: (Option.map NEString.to_string @@ Model_builder.Core.Set.remark set);%lwt
   ignore <$> Set_sql.delete_all_conceptors db ~set_id: id;%lwt
   Lwt_list.iter_s
     (fun conceptor ->
@@ -119,34 +112,14 @@ let set_to_sql ~create_or_update db id set access =
           ~version_parameter_display_name: (Option.map NEString.to_string @@ Model_builder.Core.Version_parameters.display_name params)
           ~version_parameter_display_composer: (Option.map NEString.to_string @@ Model_builder.Core.Version_parameters.display_composer params)
     )
-    (Model_builder.Core.Set.contents set);%lwt
-  ignore <$> Set_sql.delete_all_viewers db ~set_id: id;%lwt
-  Lwt_list.iter_s
-    (fun viewer ->
-      ignore
-      <$> Set_sql.add_one_viewer
-          db
-          ~set_id: id
-          ~viewer_id: (Entry.Id.to_string viewer)
-    )
-    viewers;%lwt
-  ignore <$> Set_sql.delete_all_owners db ~set_id: id;%lwt
-  Lwt_list.iter_s
-    (fun owner ->
-      ignore
-      <$> Set_sql.add_one_owner
-          db
-          ~set_id: id
-          ~owner_id: (Entry.Id.to_string owner)
-    )
-    (NEList.to_list @@ Entry.Access.Private.owners access)
+    (Model_builder.Core.Set.contents set)
 
 let get id : Model_builder.Core.Set.entry option Lwt.t =
   let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   let%lwt conceptors = Set_sql.List.get_conceptors db ~set_id: id (fun ~conceptor_id -> Entry.Id.of_string_exn conceptor_id) in
-  let%lwt owners = Set_sql.List.get_owners db ~set_id: id (fun ~owner_id -> Entry.Id.of_string_exn owner_id) in
-  let%lwt viewers = Set_sql.List.get_viewers db ~set_id: id (fun ~viewer_id -> Entry.Id.of_string_exn viewer_id) in
+  let%lwt owners = Entry_sql.List.get_owners db ~entry_id: id (fun ~owner_id -> Entry.Id.of_string_exn owner_id) in
+  let%lwt viewers = Entry_sql.List.get_viewers db ~entry_id: id (fun ~viewer_id -> Entry.Id.of_string_exn viewer_id) in
   let%lwt content =
     Set_sql.List.get_content db ~set_id: id (fun
         ~version_id
@@ -181,8 +154,8 @@ let get_all () =
   let viewers = Hashtbl.create 8 in
   let content = Hashtbl.create 8 in
   Set_sql.Fold.get_all_conceptors db (fun ~set_id ~conceptor_id () -> Hashtbl.add conceptors set_id @@ Entry.Id.of_string_exn conceptor_id) ();%lwt
-  Set_sql.Fold.get_all_owners db (fun ~set_id ~owner_id () -> Hashtbl.add owners set_id @@ Entry.Id.of_string_exn owner_id) ();%lwt
-  Set_sql.Fold.get_all_viewers db (fun ~set_id ~viewer_id () -> Hashtbl.add viewers set_id @@ Entry.Id.of_string_exn viewer_id) ();%lwt
+  Entry_sql.Fold.get_all_owners db ~type_: `Set (fun ~entry_id ~owner_id () -> Hashtbl.add owners entry_id @@ Entry.Id.of_string_exn owner_id) ();%lwt
+  Entry_sql.Fold.get_all_viewers db ~type_: `Set (fun ~entry_id ~viewer_id () -> Hashtbl.add viewers entry_id @@ Entry.Id.of_string_exn viewer_id) ();%lwt
   Set_sql.Fold.get_all_content
     db
     (fun
@@ -222,21 +195,20 @@ let get_all () =
 
 let create set access =
   Connection.with_ @@ fun db ->
-  let%lwt id = Entry_new.make db `Set in
-  set_to_sql ~create_or_update: Set_sql.create db id set access;%lwt
+  let%lwt id = Entry_new.make_private db `Set access in
+  set_to_sql ~create_or_update: Set_sql.create db id set;%lwt
   lwt id
 
 let update id set access =
   Connection.with_ @@ fun db ->
   Entry_new.touch db id;%lwt
-  set_to_sql ~create_or_update: (fun db ~id -> Set_sql.update db ~id) db id set access
+  Entry_new.update_private_access db id access;%lwt
+  set_to_sql ~create_or_update: (fun db ~id -> Set_sql.update db ~id) db id set
 
 let delete id =
   Connection.with_ @@ fun db ->
   let set_id = Entry.Id.to_string id in
   ignore <$> Set_sql.delete_all_conceptors db ~set_id;%lwt
   ignore <$> Set_sql.delete_all_content db ~set_id;%lwt
-  ignore <$> Set_sql.delete_all_owners db ~set_id;%lwt
-  ignore <$> Set_sql.delete_all_viewers db ~set_id;%lwt
   ignore <$> Set_sql.delete db ~id: set_id;%lwt
   Entry_new.delete db id

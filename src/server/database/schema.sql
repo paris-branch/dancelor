@@ -1,10 +1,12 @@
 CREATE TYPE "type" AS ENUM ('Person', 'User', 'Dance', 'Source', 'Tune', 'Version', 'Set', 'Book');
+CREATE TYPE "visibility" AS ENUM ('Owners_only', 'Everyone', 'Select_viewers');
 
 CREATE TABLE "entry" (
     "id" VARCHAR(14) NOT NULL,
     "type" "type" NOT NULL,
     "created_at" TIMESTAMP NOT NULL,
     "modified_at" TIMESTAMP NOT NULL,
+    "visibility" "visibility",
     CONSTRAINT "pk_entry" PRIMARY KEY ("id")
 );
 
@@ -30,6 +32,22 @@ CREATE TABLE "user" (
     "role" "role" NOT NULL,
     CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "entry" ("id"),
     CONSTRAINT "fk_user_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
+);
+
+CREATE TABLE "entry_viewers" (
+    "entry_id" VARCHAR(14) NOT NULL,
+    "viewer_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_entry_viewers_entry_id" FOREIGN KEY ("entry_id") REFERENCES "entry" ("id"),
+    CONSTRAINT "fk_entry_viewers_viewer_id" FOREIGN KEY ("viewer_id") REFERENCES "user" ("id"),
+    CONSTRAINT "uq_entry_viewers_entry_id_viewer_id" UNIQUE ("entry_id", "viewer_id")
+);
+
+CREATE TABLE "entry_owners" (
+    "entry_id" VARCHAR(14) NOT NULL,
+    "owner_id" VARCHAR(14) NOT NULL,
+    CONSTRAINT "fk_entry_owners_entry_id" FOREIGN KEY ("entry_id") REFERENCES "entry" ("id"),
+    CONSTRAINT "fk_entry_owners_owner_id" FOREIGN KEY ("owner_id") REFERENCES "user" ("id"),
+    CONSTRAINT "uq_entry_owners_entry_id_owner_id" UNIQUE ("entry_id", "owner_id")
 );
 
 CREATE TABLE "remember_me_tokens" (
@@ -174,15 +192,12 @@ CREATE TABLE "version_destructured_transitions" (
     CONSTRAINT "uq_version_destructured_transitions_version_id_from_parts_to_parts" UNIQUE ("version_id", "from_parts", "to_parts")
 );
 
-CREATE TYPE "visibility" AS ENUM ('Owners_only', 'Everyone', 'Select_viewers');
-
 CREATE TABLE "set" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
     "name" VARCHAR NOT NULL,
     "kind" VARCHAR NOT NULL,
     "order" VARCHAR NOT NULL,
     "remark" VARCHAR,
-    "visibility" "visibility" NOT NULL,
     CONSTRAINT "fk_set_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
@@ -210,29 +225,12 @@ CREATE TABLE "set_content" (
     CONSTRAINT "uq_set_content_set_id_index" UNIQUE ("set_id", "index")
 );
 
-CREATE TABLE "set_viewers" (
-    "set_id" VARCHAR(14) NOT NULL,
-    "viewer_id" VARCHAR(14) NOT NULL,
-    CONSTRAINT "fk_set_viewers_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
-    CONSTRAINT "fk_set_viewers_viewer_id" FOREIGN KEY ("viewer_id") REFERENCES "user" ("id"),
-    CONSTRAINT "uq_set_viewers_set_id_viewer_id" UNIQUE ("set_id", "viewer_id")
-);
-
-CREATE TABLE "set_owners" (
-    "set_id" VARCHAR(14) NOT NULL,
-    "owner_id" VARCHAR(14) NOT NULL,
-    CONSTRAINT "fk_set_owners_set_id" FOREIGN KEY ("set_id") REFERENCES "set" ("id"),
-    CONSTRAINT "fk_set_owners_owner_id" FOREIGN KEY ("owner_id") REFERENCES "user" ("id"),
-    CONSTRAINT "uq_set_owners_set_id_owner_id" UNIQUE ("set_id", "owner_id")
-);
-
 CREATE TABLE "book" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
     "name" VARCHAR NOT NULL,
     "date" VARCHAR,
     "remark" VARCHAR,
     "scddb_id" INT,
-    "visibility" "visibility" NOT NULL,
     CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
@@ -292,20 +290,4 @@ CREATE TABLE "book_content_versions" ( -- standalone or within dance
     CONSTRAINT "fk_book_content_versions_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
     CONSTRAINT "fk_book_content_versions_version_id" FOREIGN KEY ("version_id") REFERENCES "version" ("id"),
     CONSTRAINT "uq_book_content_versions_book_id_content_index_index" UNIQUE ("book_id", "content_index", "index")
-);
-
-CREATE TABLE "book_viewers" (
-    "book_id" VARCHAR(14) NOT NULL,
-    "viewer_id" VARCHAR(14) NOT NULL,
-    CONSTRAINT "fk_book_viewers_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
-    CONSTRAINT "fk_book_viewers_viewer_id" FOREIGN KEY ("viewer_id") REFERENCES "user" ("id"),
-    CONSTRAINT "uq_book_viewers_book_id_viewer_id" UNIQUE ("book_id", "viewer_id")
-);
-
-CREATE TABLE "book_owners" (
-    "book_id" VARCHAR(14) NOT NULL,
-    "owner_id" VARCHAR(14) NOT NULL,
-    CONSTRAINT "fk_book_owners_book_id" FOREIGN KEY ("book_id") REFERENCES "book" ("id"),
-    CONSTRAINT "fk_book_owners_owner_id" FOREIGN KEY ("owner_id") REFERENCES "user" ("id"),
-    CONSTRAINT "uq_book_owners_book_id_owner_id" UNIQUE ("book_id", "owner_id")
 );

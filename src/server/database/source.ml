@@ -80,7 +80,7 @@ let get_all () =
 
 let create source =
   Connection.with_ @@ fun db ->
-  let%lwt id = Entry_new.make db `Source in
+  let%lwt id = Entry_new.make_public db `Source in
   source_to_sql
     ~create_or_update: (Source_sql.create db)
     ~delete_all_editors: (fun ~source_id: _ -> lwt_unit)

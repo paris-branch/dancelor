@@ -31,15 +31,13 @@ INSERT INTO "book" (
     "name",
     "date",
     "remark",
-    "scddb_id",
-    "visibility"
+    "scddb_id"
 ) VALUES (
     @id,
     @name,
     @date,
     @remark,
-    @scddb_id,
-    @visibility
+    @scddb_id
 );
 
 -- @update
@@ -48,8 +46,7 @@ SET
     "name" = @name,
     "date" = @date,
     "remark" = @remark,
-    "scddb_id" = @scddb_id,
-    "visibility" = @visibility
+    "scddb_id" = @scddb_id
 WHERE "id" = @id;
 
 -- @delete
@@ -102,54 +99,6 @@ INSERT INTO "book_sources" (
 ) VALUES (
     @book_id,
     @source_id
-);
-
--- @get_viewers
-SELECT "viewer_id"
-FROM "book_viewers"
-WHERE "book_id" = @book_id;
-
--- @get_all_viewers
-SELECT
-    "book_id",
-    "viewer_id"
-FROM "book_viewers";
-
--- @delete_all_viewers
-DELETE FROM "book_viewers"
-WHERE "book_id" = @book_id;
-
--- @add_one_viewer
-INSERT INTO "book_viewers" (
-    "book_id",
-    "viewer_id"
-) VALUES (
-    @book_id,
-    @viewer_id
-);
-
--- @get_owners
-SELECT "owner_id"
-FROM "book_owners"
-WHERE "book_id" = @book_id;
-
--- @get_all_owners
-SELECT
-    "book_id",
-    "owner_id"
-FROM "book_owners";
-
--- @delete_all_owners
-DELETE FROM "book_owners"
-WHERE "book_id" = @book_id;
-
--- @add_one_owner
-INSERT INTO "book_owners" (
-    "book_id",
-    "owner_id"
-) VALUES (
-    @book_id,
-    @owner_id
 );
 
 -- @get_content
@@ -304,15 +253,16 @@ SELECT * FROM (
         "name",
         "date",
         CASE
-            WHEN "book"."visibility" = 'Everyone' THEN 'Everyone'
-            WHEN "book_owners"."owner_id" IS NOT NULL THEN 'Owner'
-            WHEN "book"."visibility" = 'Select_viewers' AND "book_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
+            WHEN "entry"."visibility" = 'Everyone' THEN 'Everyone'
+            WHEN "entry_owners"."owner_id" IS NOT NULL THEN 'Owner'
+            WHEN "entry"."visibility" = 'Select_viewers' AND "entry_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
             WHEN "user"."role" = 'Administrator' AND "user"."omniscience" THEN 'Omniscient_administrator'
             ELSE NULL
         END AS "permission"
     FROM "book"
-    LEFT JOIN "book_owners" ON "book_owners"."book_id" = "book"."id" AND "book_owners"."owner_id" = @user_id
-    LEFT JOIN "book_viewers" ON "book_viewers"."book_id" = "book"."id" AND "book_viewers"."viewer_id" = @user_id
+    JOIN "entry" ON "entry"."id" = "book"."id"
+    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
+    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
     LEFT JOIN "user" ON "user"."id" = @user_id
     WHERE (@needle = '' OR @needle <% "name")
 ) AS "book+"
