@@ -17,6 +17,8 @@ val update : t Entry.id -> t -> unit Lwt.t
 
 val delete : t Entry.id -> unit Lwt.t
 
+val for_dance : Dance_id.t -> Tune_row.t list Lwt.t
+
 val search : Tune_query.t -> (Tune_row.t * float) list Lwt.t
 
 (** {2 Utilities for other models} *)

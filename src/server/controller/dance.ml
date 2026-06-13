@@ -83,6 +83,12 @@ let delete env id =
   Permission.assert_can_delete_public env =<< get env id;%lwt
   Database.Dance.delete id
 
+let tunes env id =
+  let%lwt _ = get env id in
+  let%lwt tunes = Database.Tune.for_dance id in
+  let%lwt tunes = Lwt_list.filter_s (Permission.can_get_public_new env) tunes in
+  lwt tunes
+
 include Search.Build(struct
   type value = Model.Dance.entry
   type filter = (Model.Dance.t, Filter.Dance.t) Formula_entry.public
@@ -121,8 +127,8 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Dance.t -> a
   | Get -> get env
   | Get_row -> get_row env
   | Get_view -> get_view env
-  | Search -> search env
   | Search_new -> search_new env
   | Create -> create env
   | Update -> update env
   | Delete -> delete env
+  | Tunes -> tunes env

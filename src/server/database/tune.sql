@@ -162,3 +162,12 @@ SELECT
 FROM "tune_composers"
 JOIN "person" ON "tune_composers"."composer_id" = "person"."id"
 ORDER BY "index";
+
+-- @for_dance
+SELECT
+    "tune"."id",
+    "name",
+    "kind"
+FROM "recommended_tunes"
+JOIN "tune" ON "recommended_tunes"."tune_id" = "tune"."id"
+WHERE "dance_id" = @dance_id;

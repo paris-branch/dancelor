@@ -7,7 +7,6 @@ module Filter = Filter_builder.Core
 
 type (_, _, _) t =
   | Create : (Tune.t -> 'w, 'w, Tune_id.t) t
-  | Search : (Slice.t -> (Tune.t, Filter.Tune.t) Formula_entry.public -> 'w, 'w, Tune_row.t Search_result.t) t
   | Search_new : (Slice.t -> Tune_query.t -> 'w, 'w, Tune_row.t Search_result.t) t
   | Get : (Tune_id.t -> 'w, 'w, Tune.entry) t
   | Get_row : (Tune_id.t -> 'w, 'w, Tune_row.t) t
@@ -20,7 +19,6 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     | Create -> body "tune" (module Tune) @@ post (module Tune_id)
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(Tune)(Filter.Tune)) @@ get (module Make_search_result(Tune_row))
     | Search_new -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Tune_query) @@ get (module Make_search_result(Tune_row))
     | Get -> variable (module Tune_id) @@ get (module Entry.JPublic(Tune))
     | Get_row -> variable (module Tune_id) @@ literal "row" @@ get (module Tune_row)

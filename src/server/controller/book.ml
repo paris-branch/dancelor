@@ -138,7 +138,6 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Book.t -> a 
   | Get_row -> get_row env
   | Get_view -> get_view env
   | Get_rows -> get_rows env
-  | Search -> search env
   | Search_new -> search_new env
   | Create -> create env
   | Update -> update env

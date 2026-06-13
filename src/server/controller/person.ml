@@ -126,7 +126,6 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Person.t -> 
   | Get -> get env
   | Get_row -> get_row env
   | Get_view -> get_view env
-  | Search -> search env
   | Search_new -> search_new env
   | For_user_row -> for_user_row env
   | Create -> create env

@@ -192,8 +192,8 @@ let confirmation_dialog ~this_version ~other_version =
   (* changes to sets *)
   let%lwt sets =
     Search_result.items
-    <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) Slice.everything @@
-      Formula_entry.value' @@ Filter.Set.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
+    <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search_new) Slice.everything @@
+        Query.make ~specific: (Set_query.make_specific ~contains_version: (Some [Entry.id this_version]) ()) ()
   in
   let%lwt sets = Lwt_list.map_p (fun set -> Option.get <$> Model.Set.get set.Set_row.id) sets in
   List.iter
@@ -215,8 +215,8 @@ let confirmation_dialog ~this_version ~other_version =
   (* changes to books *)
   let%lwt books =
     Search_result.items
-    <$> Madge_client.call_exn Endpoints.Api.(route @@ Book Search) Slice.everything @@
-      Formula_entry.value' @@ Filter.Book.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
+    <$> Madge_client.call_exn Endpoints.Api.(route @@ Book Search_new) Slice.everything @@
+        Query.make ~specific: (Book_query.make_specific ~contains_version: (Some [Entry.id this_version]) ()) ()
   in
   let%lwt books = Lwt_list.map_p (fun book -> Option.get <$> Model.Book.get book.Book_row.id) books in
   List.iter
@@ -311,20 +311,7 @@ let confirmation_dialog ~this_version ~other_version =
       ];
     lwt_unit
 
-let dialog (version : Version_view.t) =
-  let%lwt other_versions =
-    Search_result.items
-    <$> Madge_client.call_exn
-        Endpoints.Api.(route @@ Version Search)
-        Slice.everything
-        Formula.(
-          and_l
-            [
-              Formula_entry.value' (Filter.(Version.tune' % Formula.pred % Formula_entry.is) version.tune.id);
-              not_ (Formula.pred @@ Formula_entry.is version.id);
-            ]
-        )
-  in
+let dialog (version : Version_view.t) (other_versions : Version_row.t list) =
   ignore
   <$> Page.open_dialog @@ fun return ->
     Page.make'

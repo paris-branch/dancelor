@@ -7,7 +7,6 @@ module Filter = Filter_builder.Core
 
 type (_, _, _) t =
   | Create : (Book.t -> Entry.Access.Private.t -> 'w, 'w, Book_id.t) t
-  | Search : (Slice.t -> (Book.t, Filter.Book.t) Formula_entry.private_ -> 'w, 'w, Book_row.t Search_result.t) t
   | Search_new : (Slice.t -> Book_query.t -> 'w, 'w, Book_row.t Search_result.t) t
   | Get : (Book_id.t -> 'w, 'w, Book.entry) t
   | Get_row : (Book_id.t -> 'w, 'w, Book_row.t) t
@@ -22,7 +21,6 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     | Create -> body "book" (module Book) @@ body "access" (module Entry.Access.Private) @@ post (module Book_id)
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPrivate(Book)(Filter.Book)) @@ get (module Make_search_result(Book_row))
     | Search_new -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Book_query) @@ get (module Make_search_result(Book_row))
     | Get -> variable (module Book_id) @@ get (module Entry.JPrivate(Book))
     | Get_row -> variable (module Book_id) @@ literal "row" @@ get (module Book_row)

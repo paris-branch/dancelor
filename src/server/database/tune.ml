@@ -36,6 +36,14 @@ let sql_to_row ~id ~name ~kind ~composers ~(k : Tune_row.t -> 'w) : 'w =
     composers;
   }
 
+let for_dance dance_id : Tune_row.t list Lwt.t =
+  Connection.with_ @@ fun db ->
+  let%lwt composers = Utils.fold_to_tbl Tune_sql.Fold.get_all_composers_new db (fun k ~tune_id -> Person.sql_to_name ~k: (k tune_id)) in
+  Tune_sql.List.for_dance
+    db
+    ~dance_id: (Entry.Id.to_string dance_id)
+    (fun ~id -> sql_to_row ~id ~composers: (Utils.tbl_get composers id) ~k: Fun.id)
+
 let search query : (Tune_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Tune_query.kind; composer}} = query in
   Connection.with_ @@ fun db ->

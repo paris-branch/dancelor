@@ -130,13 +130,15 @@ end
 
 module Query = struct
   type common = {
-    terms: string;
+    terms: string; [@default ""]
   }
-  [@@deriving yojson]
+  [@@deriving make, yojson]
 
-  type 'a t =
-    {common: common; specific: 'a}
-  [@@deriving yojson]
+  type 'a t = {
+    common: common; [@default make_common ()]
+    specific: 'a;
+  }
+  [@@deriving make, yojson]
 
   let make_parser f =
     Query_parser.make @@ fun terms {parse_operator} ->

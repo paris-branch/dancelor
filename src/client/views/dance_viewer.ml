@@ -1,6 +1,5 @@
 open Nes
 open Dancelor_common
-open Search_new
 open Model
 open Html
 open Utils
@@ -78,11 +77,7 @@ let view context id =
           R.div
             (
               S.from_lwt (Tables.placeholder ()) @@
-                let%lwt tunes =
-                  Search_result.items
-                  <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) Slice.everything @@
-                    Formula_entry.value' @@ Filter.Tune.dances' @@ Formula_list.exists' @@ Formula_entry.is' dance
-                in
+                let%lwt tunes = Madge_client.call_exn Endpoints.Api.(route @@ Dance Tunes) (Entry.id dance) in
                 lwt
                   [
                     if tunes = [] then

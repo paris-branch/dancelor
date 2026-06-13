@@ -8,7 +8,6 @@ module Filter = Filter_builder.Core
 type (_, _, _) t =
   | For_user_row : (User_id.t -> 'w, 'w, Person_row.t option) t (* FIXME: move to user endpoints *)
   | Create : (Person.t -> 'w, 'w, Person_id.t) t
-  | Search : (Slice.t -> (Person.t, Filter.Person.t) Formula_entry.public -> 'w, 'w, Person_row.t Search_result.t) t
   | Search_new : (Slice.t -> Person_query.t -> 'w, 'w, Person_row.t Search_result.t) t
   | Get : (Person_id.t -> 'w, 'w, Person.entry) t (* FIXME: remove *)
   | Get_row : (Person_id.t -> 'w, 'w, Person_row.t) t
@@ -22,7 +21,6 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   function
     | For_user_row -> literal "for-user" @@ variable (module User_id) @@ literal "row" @@ get (module JOption(Person_row))
     | Create -> body "person" (module Person) @@ post (module Person_id)
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(Person)(Filter.Person)) @@ get (module Make_search_result(Person_row))
     | Search_new -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Person_query) @@ get (module Make_search_result(Person_row))
     | Get -> variable (module Person_id) @@ get (module Entry.JPublic(Person))
     | Get_row -> variable (module Person_id) @@ literal "row" @@ get (module Person_row)
