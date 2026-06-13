@@ -57,6 +57,7 @@ let search query : (Version_row.t * float) list Lwt.t =
     ~terms
     ~key: (Option.map (List.map Music.Key.to_string) key)
     ~tune_kind: (Option.map (List.map Tune.kind_base_to_sql) tune.kind)
+    ~tune_composer: (Utils.list_option_map_to_sql Entry.Id.to_string tune.composer)
     (fun ~score ~id ~tune_id ->
       sql_to_row
         ~id

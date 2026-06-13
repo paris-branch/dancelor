@@ -76,6 +76,25 @@ let quick_explorer_links links =
 let quick_explorer_links' model_lwt links =
   quick_explorer_links @@ List.map (fun (text, mk_filter) -> (text, mk_filter <$> model_lwt)) links
 
+let quick_explorer_links_new links =
+  let open Html in
+  section ~a: [a_class ["mt-2"]] [
+    txt "Quick links to:";
+    ul ~a: [a_class ["bullet-list"]] (
+      List.map
+        (fun (text, query) ->
+          let count_lwt = Search_result.total <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) Slice.nothing query in
+          li [
+            a
+              ~a: [a_href @@ Endpoints.Page.(href Explore) @@ some @@ Any_query.print query]
+              [txt text];
+            R.txt (S.from_lwt "" (spf " (%d)" <$> count_lwt));
+          ]
+        )
+        links
+    );
+  ]
+
 let href_any_for_sharing any =
   let current = Uri.of_string (Js.to_string Dom_html.window##.location##.href) in
   let path = Endpoints.Page.(href Any) @@ Entry.id @@ Model_builder.Core.Any.to_entry any in

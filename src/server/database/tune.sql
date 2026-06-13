@@ -151,6 +151,7 @@ FROM "tune"
 WHERE
     (@terms = '' OR @terms <% "name")
     AND { "kind" IN @kind }?
+    AND @composer { Some { EXISTS (SELECT 1 FROM "tune_composers" WHERE "tune_id" = "tune"."id" AND "composer_id" IN @composer) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_composers_new

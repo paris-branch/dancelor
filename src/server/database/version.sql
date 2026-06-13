@@ -231,6 +231,7 @@ WHERE
     (@terms = '' OR @terms <% "name")
     AND { "key" IN @key }?
     AND { "tune"."kind" IN @tune_kind }?
+    AND @tune_composer { Some { EXISTS (SELECT 1 FROM "tune_composers" WHERE "tune_id" = "tune"."id" AND "composer_id" IN @tune_composer) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_arrangers_new

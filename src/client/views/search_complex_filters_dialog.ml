@@ -85,37 +85,34 @@ let type_choices (type_ : Any.Type.t option) =
 
 let make_person_specific_choices (_query : Person_query.specific option) = (S.const (), [])
 
-let make_dance_specific_choices (_query : Dance_query.specific option) = (S.const (), [])
+let make_dance_specific_choices (_query : Dance_query.specific option) = (S.const {Dance_query.deviser = None}, [])
 
-let make_source_specific_choices (_query : Source_query.specific option) = (S.const (), [])
+let make_source_specific_choices (_query : Source_query.specific option) = (S.const {Source_query.editor = None}, [])
 
-let make_book_specific_choices (_query : Book_query.specific option) = (S.const (), [])
+let make_set_specific_choices (_query : Set_query.specific option) = (S.const {Set_query.conceptor = None}, [])
 
-let make_set_specific_choices (_query : Set_query.specific option) = (S.const (), [])
+let make_book_specific_choices (_query : Book_query.specific option) = (S.const {Book_query.author = None}, [])
 
 let make_tune_specific_choices (query : Tune_query.specific option) =
   let%lwt kind_choices =
     let checked kind =
       match query with
-      | Some {kind = Some kinds} -> List.mem kind kinds
+      | Some {kind = Some kinds; _} -> List.mem kind kinds
       | _ -> false
     in
-    Choices.(
-      make_checkboxes
-        ~label: "Kind"
-        (
-          List.map
-            (fun kind ->
-              choice [txt (Kind.Base.to_long_string ~capitalised: true kind)] ~value: kind ~checked: (checked kind)
-            )
-            Kind.Base.all
+    let open Choices in
+    make_checkboxes ~label: "Kind" @@
+      List.map
+        (fun kind ->
+          choice [txt (Kind.Base.to_long_string ~capitalised: true kind)] ~value: kind ~checked: (checked kind)
         )
-    )
+        Kind.Base.all
   in
   let query =
     S.bind (S.map Result.get_ok @@ Component.signal kind_choices) @@ fun kind ->
     S.const {
       Tune_query.kind = if kind = [] then None else Some kind;
+      composer = None; (* FIXME *)
     }
   in
   let html = [

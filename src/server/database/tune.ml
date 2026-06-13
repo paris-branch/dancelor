@@ -37,13 +37,14 @@ let sql_to_row ~id ~name ~kind ~composers ~(k : Tune_row.t -> 'w) : 'w =
   }
 
 let search query : (Tune_row.t * float) list Lwt.t =
-  let {Query.common = {terms}; specific = {Tune_query.kind}} = query in
+  let {Query.common = {terms}; specific = {Tune_query.kind; composer}} = query in
   Connection.with_ @@ fun db ->
   let%lwt composers = Utils.fold_to_tbl Tune_sql.Fold.get_all_composers_new db (fun k ~tune_id -> Person.sql_to_name ~k: (k tune_id)) in
   Tune_sql.List.search
     db
     ~terms
     ~kind: (Option.map (List.map kind_base_to_sql) kind)
+    ~composer: (Utils.list_option_map_to_sql Entry.Id.to_string composer)
     (fun ~score ~id -> sql_to_row ~id ~composers: (Utils.tbl_get composers id) ~k: (Pair.snoc score))
 
 let sql_to_tune

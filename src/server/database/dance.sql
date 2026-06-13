@@ -125,7 +125,9 @@ SELECT
     "kind",
     "disambiguation"
 FROM "dance"
-WHERE (@terms = '' OR @terms <% "name")
+WHERE
+    (@terms = '' OR @terms <% "name")
+    AND @deviser { Some { EXISTS (SELECT 1 FROM "dance_devisers" WHERE "dance_id" = "dance"."id" AND "deviser_id" IN @deviser) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_devisers_new

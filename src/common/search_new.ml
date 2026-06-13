@@ -1,4 +1,5 @@
 open Nes
+open Model_new
 
 (** {2 Results} *)
 
@@ -10,7 +11,7 @@ end
 module Search_result = struct
   type 'a t = {
     total: int;
-    items: 'a list;
+    items: 'a list; [@default []]
   }
   [@@deriving yojson, fields]
 
@@ -25,9 +26,9 @@ end
 module Search_context_result = struct
   type 'a t = {
     total: int;
-    previous_item: 'a option;
+    previous_item: 'a option; [@default None]
     index: int;
-    next_item: 'a option;
+    next_item: 'a option; [@default None]
   }
   [@@deriving yojson, fields]
 end
@@ -190,41 +191,53 @@ module User_query = struct
 end
 
 module Dance_query = struct
-  type specific = unit
-  [@@deriving yojson]
+  type specific = {
+    deviser: Person_id.t list option; [@default None]
+  }
+  [@@deriving make, yojson]
 
-  let no_specific = ()
+  let no_specific = {
+    deviser = None;
+  }
 
   type t = specific Query.t
   [@@deriving yojson]
 
   let parse_operators = fun {Query_parser.parse_operator} ->
-    ignore parse_operator
+    let deviser = parse_operator "deviser" (List.map Entry.Id.of_string_exn) in
+      {deviser}
 
   let parse = Query.make_parser parse_operators
 
-  let print_operators = fun {Query_printer.print_operator} () ->
-    ignore print_operator
+  let print_operators = fun {Query_printer.print_operator} query ->
+    let {deviser} = query in
+    print_operator "deviser" (List.map Entry.Id.to_string) deviser
 
   let print = Query.make_printer print_operators
 end
 
 module Source_query = struct
-  type specific = unit
-  [@@deriving yojson]
+  type specific = {
+    editor: Person_id.t list option; [@default None]
+  }
+  [@@deriving make, yojson]
 
-  let no_specific = ()
+  let no_specific = {
+    editor = None;
+  }
 
   type t = specific Query.t
   [@@deriving yojson]
 
   let parse_operators = fun {Query_parser.parse_operator} ->
-    ignore parse_operator
+    let editor = parse_operator "editor" (List.map Entry.Id.of_string_exn) in
+      {editor}
 
   let parse = Query.make_parser parse_operators
 
-  let print_operators = fun {Query_printer.print_operator} () ->
-    ignore print_operator
+  let print_operators = fun {Query_printer.print_operator} query ->
+    let {editor} = query in
+    print_operator "editor" (List.map Entry.Id.to_string) editor
 
   let print = Query.make_printer print_operators
 end
@@ -232,11 +245,13 @@ end
 module Tune_query = struct
   type specific = {
     kind: Kind_base.t list option; [@default None]
+    composer: Person_id.t list option; [@default None]
   }
-  [@@deriving yojson]
+  [@@deriving make, yojson]
 
   let no_specific = {
     kind = None;
+    composer = None;
   }
 
   type t = specific Query.t
@@ -244,13 +259,15 @@ module Tune_query = struct
 
   let parse_operators = fun {Query_parser.parse_operator} ->
     let kind = parse_operator "kind" (List.map Kind_base.of_string) in
-      {kind}
+    let composer = parse_operator "composer" (List.map Entry.Id.of_string_exn) in
+      {kind; composer}
 
   let parse = Query.make_parser parse_operators
 
   let print_operators = fun {Query_printer.print_operator} query ->
-    let {kind} = query in
-    print_operator "kind" (List.map (Kind_base.to_long_string ~capitalised: false)) kind
+    let {kind; composer} = query in
+    print_operator "kind" (List.map (Kind_base.to_long_string ~capitalised: false)) kind;
+    print_operator "composer" (List.map Entry.Id.to_string) composer
 
   let print = Query.make_printer print_operators
 end
@@ -260,7 +277,7 @@ module Version_query = struct
     tune: Tune_query.specific;
     key: Music.Key.t list option; [@default None]
   }
-  [@@deriving yojson]
+  [@@deriving make, yojson]
 
   let no_specific = {
     tune = Tune_query.no_specific;
@@ -286,41 +303,53 @@ module Version_query = struct
 end
 
 module Set_query = struct
-  type specific = unit
-  [@@deriving yojson]
+  type specific = {
+    conceptor: Person_id.t list option; [@default None]
+  }
+  [@@deriving make, yojson]
 
-  let no_specific = ()
+  let no_specific = {
+    conceptor = None;
+  }
 
   type t = specific Query.t
   [@@deriving yojson]
 
   let parse_operators = fun {Query_parser.parse_operator} ->
-    ignore parse_operator
+    let conceptor = parse_operator "conceptor" (List.map Entry.Id.of_string_exn) in
+      {conceptor}
 
   let parse = Query.make_parser parse_operators
 
-  let print_operators = fun {Query_printer.print_operator} () ->
-    ignore print_operator
+  let print_operators = fun {Query_printer.print_operator} query ->
+    let {conceptor} = query in
+    print_operator "conceptor" (List.map Entry.Id.to_string) conceptor
 
   let print = Query.make_printer print_operators
 end
 
 module Book_query = struct
-  type specific = unit
-  [@@deriving yojson]
+  type specific = {
+    author: Person_id.t list option; [@default None]
+  }
+  [@@deriving make, yojson]
 
-  let no_specific = ()
+  let no_specific = {
+    author = None;
+  }
 
   type t = specific Query.t
   [@@deriving yojson]
 
   let parse_operators = fun {Query_parser.parse_operator} ->
-    ignore parse_operator
+    let author = parse_operator "author" (List.map Entry.Id.of_string_exn) in
+      {author}
 
   let parse = Query.make_parser parse_operators
 
-  let print_operators = fun {Query_printer.print_operator} () ->
-    ignore print_operator
+  let print_operators = fun {Query_printer.print_operator} query ->
+    let {author} = query in
+    print_operator "author" (List.map Entry.Id.to_string) author
 
   let print = Query.make_printer print_operators
 end
@@ -344,6 +373,7 @@ module Any_query = struct
   [@@deriving yojson]
 
   let empty : t = {common = {terms = ""}; specific = None}
+  let specific_only specific = {empty with specific = Some specific}
 
   let parse : string -> (t, string) result =
     Query.make_parser @@ fun {parse_operator} ->

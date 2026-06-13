@@ -93,7 +93,9 @@ SELECT
     "name",
     "date"
 FROM "source"
-WHERE (@terms = '' OR @terms <% "name")
+WHERE
+    (@terms = '' OR @terms <% "name")
+    AND @editor { Some { EXISTS (SELECT 1 FROM "source_editors" WHERE "source_id" = "source"."id" AND "person_id" IN @editor) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_editors_new

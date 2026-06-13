@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 open Html
 open Utils
 
@@ -62,14 +63,12 @@ let view context id =
           ]
         else []
       );
-      quick_explorer_links'
-        (lwt person.id)
-        [
-          ("tunes they composed", Filter.(Any.tune' % Formula_entry.value' % Tune.composers' % Formula_list.exists' % Formula.pred % Formula_entry.is));
-          ("versions of tunes they composed", Filter.(Any.version' % Formula_entry.value' % Version.tune' % Formula_entry.value' % Tune.composers' % Formula_list.exists' % Formula.pred % Formula_entry.is));
-          ("dances they devised", Filter.(Any.dance' % Formula_entry.value' % Dance.devisers' % Formula_list.exists' % Formula.pred % Formula_entry.is));
-          ("sets they conceived", Filter.(Any.set' % Formula_entry.value' % Set.conceptors' % Formula_list.exists' % Formula.pred % Formula_entry.is));
-          ("books they edited", Filter.(Any.book' % Formula_entry.value' % Book.editors' % Formula_list.exists' % Formula.pred % Formula_entry.is));
-          ("sources they edited", Filter.(Any.source' % Formula_entry.value' % Source.editors' % Formula_list.exists' % Formula.pred % Formula_entry.is));
-        ];
+      quick_explorer_links_new [
+        ("tunes they composed", Any_query.specific_only (Any_query.Tune (Tune_query.make_specific ~composer: (Some [person.id]) ())));
+        ("versions of tunes they composed", Any_query.specific_only (Any_query.Version (Version_query.make_specific ~tune: (Tune_query.make_specific ~composer: (Some [person.id]) ()) ())));
+        ("dances they devised", Any_query.specific_only (Any_query.Dance (Dance_query.make_specific ~deviser: (Some [person.id]) ())));
+        ("sets they conceived", Any_query.specific_only (Any_query.Set (Set_query.make_specific ~conceptor: (Some [person.id]) ())));
+        ("books they edited", Any_query.specific_only (Any_query.Book (Book_query.make_specific ~author: (Some [person.id]) ())));
+        ("sources they edited", Any_query.specific_only (Any_query.Source (Source_query.make_specific ~editor: (Some [person.id]) ())));
+      ];
     ]

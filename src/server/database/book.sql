@@ -264,7 +264,9 @@ SELECT * FROM (
     LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
     LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
     LEFT JOIN "user" ON "user"."id" = @user_id
-    WHERE (@terms = '' OR @terms <% "name")
+    WHERE
+	(@terms = '' OR @terms <% "name")
+        AND @author { Some { EXISTS (SELECT 1 FROM "book_authors" WHERE "book_id" = "book"."id" AND "author_id" IN @author) } | None { TRUE } }
 ) AS "book+"
 WHERE "book+"."permission" IS NOT NULL
 ORDER BY "score" DESC, "name" ASC;

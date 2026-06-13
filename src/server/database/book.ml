@@ -19,13 +19,14 @@ let sql_to_row ~id ~name ~date ~authors ~permission ~(k : Book_row.t -> 'w) : 'w
   }
 
 let search ~user query : (Book_row.t * float) list Lwt.t =
-  let {Query.common = {terms}; specific = ()} = query in
+  let {Query.common = {terms}; specific = {Book_query.author}} = query in
   Connection.with_ @@ fun db ->
   let%lwt authors = Utils.fold_to_tbl Book_sql.Fold.get_all_authors_new db (fun k ~book_id -> Person.sql_to_name ~k: (k book_id)) in
   Book_sql.List.search
     db
     ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
     ~terms
+    ~author: (Utils.list_option_map_to_sql Entry.Id.to_string author)
     (fun ~score ~id ->
       sql_to_row
         ~id
