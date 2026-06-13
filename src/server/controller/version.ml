@@ -191,24 +191,6 @@ let score_list_vs_list words needles =
       |> List.fold_left max 0.
     end
 
-include Search.Build(struct
-  type value = Model.Version.entry
-  type filter = (Model.Version.t, Filter.Version.t) Formula_entry.public
-
-  let get_all env =
-    let all = Database.Version.get_all () in
-    let stream = (Lwt_stream.filter_s (can_get_and_copyright_ok env) % Lwt_stream.of_list) <$> all in
-    Lwt_stream.flip_lwt stream
-
-  let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_public Filter.Version.converter)
-  let filter_is_empty = (=) Formula.False
-  let filter_accepts = Formula_entry.accepts_public Filter.Version.accepts
-  let score_true = Formula.interpret_true
-
-  let tiebreakers =
-    Lwt_list.[increasing (NEString.to_string <%> Model.Version.one_name') String.Sensible.compare]
-end)
-
 let content env id =
   Log.debug (fun m -> m "content %a" Entry.Id.pp' id);
   get env id >>= fun version ->
@@ -277,18 +259,13 @@ let build_snippets' env version version_params _rendering_params =
   Permission.assert_can_create_public env;%lwt
   register_snippets_job ~version_params version
 
-let search env slice filter =
-  let%lwt result = search env slice filter in
-  let%lwt items = Lwt_list.map_s to_row result.items in
-  lwt {result with items}
-
-let search'_new env query =
+let search' env query =
   let%lwt items = Database.Version.search query in
   let%lwt items = Lwt_list.filter_s (Permission.can_get_public_new env % fst) items in
   lwt {Search_result.total = List.length items; items}
 
-let search_new env slice query =
-  let%lwt {total; items} = search'_new env query in
+let search env slice query =
+  let%lwt {total; items} = search' env query in
   let items = List.map fst @@ Slice.list ~strict: false slice items in
   lwt {Search_result.total; items}
 
@@ -299,7 +276,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t ->
   | Get_view -> get_view env
   | Get_view_for_tune -> get_view_for_tune env
   | Content -> content env
-  | Search_new -> search_new env
+  | Search_new -> search env
   | Create -> create env
   | Update -> update env
   | Delete -> delete env

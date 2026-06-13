@@ -102,26 +102,6 @@ let delete env id =
   Permission.assert_can_delete_private env =<< get env id;%lwt
   Database.Set.delete id
 
-include Search.Build(struct
-  type value = Model.Set.entry
-  type filter = (Model.Set.t, Filter.Set.t) Formula_entry.private_
-
-  let get_all env =
-    let all = Database.Set.get_all () in
-    let stream = (Lwt_stream.filter_s (Permission.can_get_private env) % Lwt_stream.of_list) <$> all in
-    Lwt_stream.flip_lwt stream
-
-  let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_private Filter.Set.converter)
-  let filter_is_empty = (=) Formula.False
-  let filter_accepts = Formula_entry.accepts_private Model.User.get Filter.Set.accepts
-  let score_true = Formula.interpret_true
-
-  let tiebreakers =
-    Lwt_list.[increasing (lwt % NEString.to_string % Model.Set.name') String.Sensible.compare;
-    increasing (lwt % NEString.to_string % Model.Set.name') String.compare_lengths;
-    ]
-end)
-
 let build_pdf env id set_params rendering_params =
   get env id >>= fun set ->
   let%lwt pdf_metadata =
@@ -141,18 +121,13 @@ let build_pdf env id set_params rendering_params =
   let%lwt book_pdf_arg = Model_to_renderer.renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata in
   uncurry Job.register_job_and_file <$> Renderer.make_book_pdf book_pdf_arg
 
-let search env slice filter =
-  let%lwt result = search env slice filter in
-  let%lwt items = Lwt_list.map_s (to_row env) result.items in
-  lwt {result with items}
-
-let search'_new env query =
+let search' env query =
   let user = Environment.user env in
   let%lwt items = Database.Set.search ~user: (Option.map Entry.id user) query in
   lwt {Search_result.total = List.length items; items}
 
-let search_new env slice query =
-  let%lwt {total; items} = search'_new env query in
+let search env slice query =
+  let%lwt {total; items} = search' env query in
   let items = List.map fst @@ Slice.list ~strict: false slice items in
   lwt {Search_result.total; items}
 
@@ -162,7 +137,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Set.t -> a =
   | Get_row -> get_row env
   | Get_view -> get_view env
   | Get_rows -> get_rows env
-  | Search_new -> search_new env
+  | Search_new -> search env
   | Create -> create env
   | Update -> update env
   | Delete -> delete env

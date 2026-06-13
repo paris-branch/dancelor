@@ -114,38 +114,13 @@ let delete env id =
   Permission.assert_can_delete_public env =<< get env id;%lwt
   Database.Tune.delete id
 
-include Search.Build(struct
-  type value = Model.Tune.entry
-  type filter = (Model.Tune.t, Filter.Tune.t) Formula_entry.public
-
-  let get_all env =
-    let all = Database.Tune.get_all () in
-    let stream = (Lwt_stream.filter_s (Permission.can_get_public env) % Lwt_stream.of_list) <$> all in
-    Lwt_stream.flip_lwt stream
-
-  let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_public Filter.Tune.converter)
-  let filter_is_empty = (=) Formula.False
-  let filter_accepts = Formula_entry.accepts_public Filter.Tune.accepts
-  let score_true = Formula.interpret_true
-
-  let tiebreakers =
-    Lwt_list.[increasing (lwt % NEString.to_string % Model.Tune.one_name') String.Sensible.compare;
-    increasing (lwt % NEString.to_string % Model.Tune.one_name') String.compare_lengths;
-    ]
-end)
-
-let search env slice filter =
-  let%lwt result = search env slice filter in
-  let%lwt items = Lwt_list.map_s to_row result.items in
-  lwt {result with items}
-
-let search'_new env query =
+let search' env query =
   let%lwt items = Database.Tune.search query in
   let%lwt items = Lwt_list.filter_s (Permission.can_get_public_new env % fst) items in
   lwt {Search_result.total = List.length items; items}
 
-let search_new env slice query =
-  let%lwt {total; items} = search'_new env query in
+let search env slice query =
+  let%lwt {total; items} = search' env query in
   let items = List.map fst @@ Slice.list ~strict: false slice items in
   lwt {Search_result.total; items}
 
@@ -154,7 +129,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Tune.t -> a 
   | Get -> get env
   | Get_row -> get_row env
   | Get_view -> get_view env
-  | Search_new -> search_new env
+  | Search_new -> search env
   | Create -> create env
   | Update -> update env
   | Delete -> delete env
