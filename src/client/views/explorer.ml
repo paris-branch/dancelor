@@ -62,6 +62,8 @@ let view =
 
 let view_new =
   view_gen
-    ~search: (fun slice filter ->
-      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice (Query_string.inject filter)
+    ~search: (fun slice query ->
+      match Any_query.parse query with
+      | Error msg -> lwt_error msg
+      | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice query
     )

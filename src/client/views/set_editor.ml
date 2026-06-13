@@ -54,8 +54,10 @@ let editor user =
         ~label: "Conceptor"
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create_row
-        ~search: (fun slice filter ->
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search_new) slice (Query_string.inject filter)
+        ~search: (fun slice query ->
+          match Person_query.parse query with
+          | Error msg -> lwt_error msg
+          | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search_new) slice query
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
@@ -79,8 +81,10 @@ let editor user =
             ~label: "Version"
             ~model_name: "version"
             ~create_dialog_content: Version_editor.create_row
-            ~search: (fun slice filter ->
-              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search_new) slice (Query_string.inject filter)
+            ~search: (fun slice query ->
+              match Version_query.parse query with
+              | Error msg -> lwt_error msg
+              | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search_new) slice query
             )
             ~id_to_yojson: Entry.Id.to_yojson'
             ~id_of_yojson: Entry.Id.of_yojson'

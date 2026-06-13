@@ -230,8 +230,6 @@ let search'_new env ({common; specific}: Any_query.t) =
   | Some Book specific -> search'_new_book env {common; specific}
 
 let search_new env slice query =
-  let query = {Query.common = {name = Query_string.project query}; specific = None} in
-  (* FIXME: parsing *)
   let%lwt {total; items} = search'_new env query in
   let items = List.map fst @@ Slice.list ~strict: false slice items in
   lwt {Search_result.total; items}

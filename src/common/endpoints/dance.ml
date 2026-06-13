@@ -8,7 +8,7 @@ module Filter = Filter_builder.Core
 type (_, _, _) t =
   | Create : (Dance.t -> 'w, 'w, Dance_id.t) t
   | Search : (Slice.t -> (Dance.t, Filter.Dance.t) Formula_entry.public -> 'w, 'w, Dance_row.t Search_result.t) t
-  | Search_new : (Slice.t -> Query_string.t -> 'w, 'w, Dance_row.t Search_result.t) t
+  | Search_new : (Slice.t -> Dance_query.t -> 'w, 'w, Dance_row.t Search_result.t) t
   | Get : (Dance_id.t -> 'w, 'w, Dance.entry) t
   | Get_row : (Dance_id.t -> 'w, 'w, Dance_row.t) t
   | Get_view : (Dance_id.t -> 'w, 'w, Dance_view.t) t
@@ -21,7 +21,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   function
     | Create -> body "dance" (module Dance) @@ post (module Dance_id)
     | Search -> query "slice" (module Slice) @@ query "filter" (module Formula_entry.JPublic(Dance)(Filter.Dance)) @@ get (module Make_search_result(Dance_row))
-    | Search_new -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Query_string) @@ get (module Make_search_result(Dance_row))
+    | Search_new -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Dance_query) @@ get (module Make_search_result(Dance_row))
     | Get -> variable (module Dance_id) @@ get (module Entry.JPublic(Dance))
     | Get_row -> variable (module Dance_id) @@ literal "row" @@ get (module Dance_row)
     | Get_view -> variable (module Dance_id) @@ literal "view" @@ get (module Dance_view)

@@ -80,8 +80,10 @@ let versions_and_parameters ?(label = "Versions") () =
             ~label
             ~model_name: "version"
             ~create_dialog_content: Version_editor.create_row
-            ~search: (fun slice filter ->
-              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search_new) slice (Query_string.inject filter)
+            ~search: (fun slice query ->
+              match Version_query.parse query with
+              | Error msg -> lwt_error msg
+              | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search_new) slice query
             )
             ~id_to_yojson: Entry.Id.to_yojson'
             ~id_of_yojson: Entry.Id.of_yojson'
@@ -106,8 +108,10 @@ let set_and_parameters ?(label = "Set") () =
         ~label
         ~model_name: "set"
         ~create_dialog_content: Set_editor.create_row
-        ~search: (fun slice filter ->
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search_new) slice (Query_string.inject filter)
+        ~search: (fun slice query ->
+          match Set_query.parse query with
+          | Error msg -> lwt_error msg
+          | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search_new) slice query
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
@@ -140,8 +144,10 @@ let dance_and_dance_page =
         ~label: "Dance"
         ~model_name: "dance"
         ~create_dialog_content: Dance_editor.create_row
-        ~search: (fun slice filter ->
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search_new) slice (Query_string.inject filter)
+        ~search: (fun slice query ->
+          match Dance_query.parse query with
+          | Error msg -> lwt_error msg
+          | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search_new) slice query
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
@@ -185,8 +191,10 @@ let editor user =
     (
       Selector.prepare
         ~label: "Editor"
-        ~search: (fun slice filter ->
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search_new) slice (Query_string.inject filter)
+        ~search: (fun slice query ->
+          match Person_query.parse query with
+          | Error msg -> lwt_error msg
+          | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search_new) slice query
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
@@ -276,8 +284,10 @@ let editor user =
         ~label: "Source"
         ~model_name: "source"
         ~create_dialog_content: Source_editor.create_row
-        ~search: (fun slice filter ->
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search_new) slice (Query_string.inject filter)
+        ~search: (fun slice query ->
+          match Source_query.parse query with
+          | Error msg -> lwt_error msg
+          | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search_new) slice query
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'

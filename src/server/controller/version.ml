@@ -288,8 +288,6 @@ let search'_new env query =
   lwt {Search_result.total = List.length items; items}
 
 let search_new env slice query =
-  let query = {Query.common = {name = Query_string.project query}; specific = {Version_query.tune = {kind = None}; key = None}} in
-  (* FIXME: parsing *)
   let%lwt {total; items} = search'_new env query in
   let items = List.map fst @@ Slice.list ~strict: false slice items in
   lwt {Search_result.total; items}
