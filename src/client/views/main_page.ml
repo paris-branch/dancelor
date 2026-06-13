@@ -15,7 +15,7 @@ let set_title title =
 let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 
 let quick_search_to_explorer value =
-  let href = Endpoints.Page.(href Explore_new) (Some value) in
+  let href = Endpoints.Page.(href Explore) (Some value) in
   Dom_html.window##.location##.href := Js.string (Uri.to_string href);
   Js_of_ocaml_lwt.Lwt_js.sleep 10.
 
@@ -60,12 +60,11 @@ let nav_item_explore =
         ~a: [a_class ["dropdown-menu"]]
         (
           [li [Button.make_a ~label: "All" ~href: (S.const @@ Endpoints.Page.(href Explore) None) ~dropdown: true ()];
-          li [Button.make_a ~label: "All (new)" ~href: (S.const @@ Endpoints.Page.(href Explore_new) None) ~dropdown: true ()];
           li [hr ~a: [a_class ["dropdown-divider"]] ()];
           ] @
             List.map
               (fun (icon, key, label) ->
-                let href = S.const @@ Endpoints.Page.(href Explore) @@ some @@ Text_formula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
+                let href = S.const @@ Endpoints.Page.(href Explore) @@ Some (spf "type:%s" key) in
                 li [Button.make_a ~label ~icon: (Model icon) ~href ~dropdown: true ()]
               )
               [

@@ -63,7 +63,7 @@ module Query_parser = struct
         )
         components
     in
-    let terms = String.concat " " terms in
+    let terms = String.concat " " @@ List.filter ((<>) "") terms in
     let operators =
       List.fold_left
         (fun map (operator, arguments) ->
@@ -103,6 +103,30 @@ module Query_parser = struct
       | exn -> Error (spf "unexpected exception while parsing: %s" @@ Printexc.to_string exn)
 end
 
+module Query_printer = struct
+  type operators = (string * string list) list
+
+  type print_operator = {
+    print_operator: 'x. string -> ('x -> string list) -> 'x option -> unit;
+  }
+
+  let make print_operators query =
+    let operators : operators ref = ref [] in
+    let print_operator = {
+      print_operator = fun op f xo ->
+        Option.iter
+          (fun x ->
+            operators := (op, f x) :: !operators
+          )
+          xo
+    }
+    in
+    let terms = print_operators print_operator query in
+    let components = List.map (fun (op, vs) -> op ^ ":" ^ String.concat "," vs) (List.rev !operators) in
+    let components = components @ (if terms = "" then [] else [terms]) in
+    String.concat " " components
+end
+
 module Query = struct
   type common = {
     terms: string;
@@ -117,6 +141,12 @@ module Query = struct
     Query_parser.make @@ fun terms {parse_operator} ->
     let specific = f {Query_parser.parse_operator} in
       {common = {terms}; specific}
+
+  let make_printer f =
+    Query_printer.make @@ fun {print_operator} query ->
+    let {common = {terms}; specific} = query in
+    f {Query_printer.print_operator} specific;
+    terms
 end
 
 module Person_query = struct
@@ -132,6 +162,11 @@ module Person_query = struct
     ignore parse_operator
 
   let parse = Query.make_parser parse_operators
+
+  let print_operators = fun {Query_printer.print_operator} () ->
+    ignore print_operator
+
+  let print = Query.make_printer print_operators
 end
 
 module User_query = struct
@@ -147,6 +182,11 @@ module User_query = struct
     ignore parse_operator
 
   let parse = Query.make_parser parse_operators
+
+  let print_operators = fun {Query_printer.print_operator} () ->
+    ignore print_operator
+
+  let print = Query.make_printer print_operators
 end
 
 module Dance_query = struct
@@ -162,6 +202,11 @@ module Dance_query = struct
     ignore parse_operator
 
   let parse = Query.make_parser parse_operators
+
+  let print_operators = fun {Query_printer.print_operator} () ->
+    ignore print_operator
+
+  let print = Query.make_printer print_operators
 end
 
 module Source_query = struct
@@ -177,6 +222,11 @@ module Source_query = struct
     ignore parse_operator
 
   let parse = Query.make_parser parse_operators
+
+  let print_operators = fun {Query_printer.print_operator} () ->
+    ignore print_operator
+
+  let print = Query.make_printer print_operators
 end
 
 module Tune_query = struct
@@ -197,6 +247,12 @@ module Tune_query = struct
       {kind}
 
   let parse = Query.make_parser parse_operators
+
+  let print_operators = fun {Query_printer.print_operator} query ->
+    let {kind} = query in
+    print_operator "kind" (List.map (Kind_base.to_long_string ~capitalised: false)) kind
+
+  let print = Query.make_printer print_operators
 end
 
 module Version_query = struct
@@ -220,6 +276,13 @@ module Version_query = struct
       {tune; key}
 
   let parse = Query.make_parser parse_operators
+
+  let print_operators = fun {Query_printer.print_operator} query ->
+    let {tune; key} = query in
+    Tune_query.print_operators {print_operator} tune;
+    print_operator "key" (List.map Music.Key.to_string) key
+
+  let print = Query.make_printer print_operators
 end
 
 module Set_query = struct
@@ -235,6 +298,11 @@ module Set_query = struct
     ignore parse_operator
 
   let parse = Query.make_parser parse_operators
+
+  let print_operators = fun {Query_printer.print_operator} () ->
+    ignore print_operator
+
+  let print = Query.make_printer print_operators
 end
 
 module Book_query = struct
@@ -250,6 +318,11 @@ module Book_query = struct
     ignore parse_operator
 
   let parse = Query.make_parser parse_operators
+
+  let print_operators = fun {Query_printer.print_operator} () ->
+    ignore print_operator
+
+  let print = Query.make_printer print_operators
 end
 
 module Any_query = struct
@@ -262,13 +335,15 @@ module Any_query = struct
     | Version of Version_query.specific
     | Set of Set_query.specific
     | Book of Book_query.specific
-  [@@deriving yojson]
+  [@@deriving yojson, variants]
 
   type specific = model_specific option
   [@@deriving yojson]
 
   type t = specific Query.t
   [@@deriving yojson]
+
+  let empty : t = {common = {terms = ""}; specific = None}
 
   let parse : string -> (t, string) result =
     Query.make_parser @@ fun {parse_operator} ->
@@ -286,4 +361,17 @@ module Any_query = struct
         | ["set"] -> Set (Set_query.parse_operators {parse_operator})
         | ["book"] -> Book (Book_query.parse_operators {parse_operator})
         | _ -> Query_parser.parse_errorf "unexpected type %S" (String.concat "," type_)
+
+  let print : t -> string =
+    Query.make_printer @@ fun {print_operator} query ->
+    match query with
+    | None -> ()
+    | Some Person query -> print_operator "type" Fun.id (Some ["person"]); Person_query.print_operators {print_operator} query
+    | Some User query -> print_operator "type" Fun.id (Some ["user"]); User_query.print_operators {print_operator} query
+    | Some Dance query -> print_operator "type" Fun.id (Some ["dance"]); Dance_query.print_operators {print_operator} query
+    | Some Source query -> print_operator "type" Fun.id (Some ["source"]); Source_query.print_operators {print_operator} query
+    | Some Tune query -> print_operator "type" Fun.id (Some ["tune"]); Tune_query.print_operators {print_operator} query
+    | Some Version query -> print_operator "type" Fun.id (Some ["version"]); Version_query.print_operators {print_operator} query
+    | Some Set query -> print_operator "type" Fun.id (Some ["set"]); Set_query.print_operators {print_operator} query
+    | Some Book query -> print_operator "type" Fun.id (Some ["book"]); Book_query.print_operators {print_operator} query
 end
