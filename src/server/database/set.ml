@@ -20,7 +20,7 @@ let sql_to_row ~id ~name ~kind ~conceptors ~tunes ~permission ~(k : Set_row.t ->
   }
 
 let search ~user query : (Set_row.t * float) list Lwt.t =
-  let {Query.common = {terms}; specific = {Set_query.conceptor}} = query in
+  let {Query.common = {terms}; specific = {Set_query.conceptor; contains_version; contains_tune}} = query in
   Connection.with_ @@ fun db ->
   let%lwt tunes = Utils.fold_to_tbl Set_sql.Fold.get_all_tunes_new db (fun k ~set_id -> Version.sql_to_name ~k: (k set_id)) in
   let%lwt conceptors = Utils.fold_to_tbl Set_sql.Fold.get_all_conceptors_new db (fun k ~set_id -> Person.sql_to_name ~k: (k set_id)) in
@@ -29,6 +29,8 @@ let search ~user query : (Set_row.t * float) list Lwt.t =
     ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
     ~terms
     ~conceptor: (Utils.list_option_map_to_sql Entry.Id.to_string conceptor)
+    ~contains_version: (Utils.list_option_map_to_sql Entry.Id.to_string contains_version)
+    ~contains_tune: (Utils.list_option_map_to_sql Entry.Id.to_string contains_tune)
     (fun ~score ~id ->
       sql_to_row
         ~id

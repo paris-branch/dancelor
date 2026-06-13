@@ -48,40 +48,6 @@ let quick_explorer_links links =
     txt "Quick links to:";
     ul ~a: [a_class ["bullet-list"]] (
       List.map
-        (fun (text, filter_lwt) ->
-          let count_lwt =
-            Search_result.total
-            <$> (
-                Madge_client.call_exn Endpoints.Api.(route @@ Any Search) Slice.nothing
-                =<< filter_lwt
-              )
-          in
-          li [
-            a
-              ~a: [
-                R.a_href @@
-                  S.from_lwt Uri.empty (
-                    (Endpoints.Page.(href Explore) % some % Text_formula.formula_to_string Filter.Any.converter)
-                    <$> filter_lwt
-                  )
-              ]
-              [txt text];
-            R.txt (S.from_lwt "" (spf " (%d)" <$> count_lwt));
-          ]
-        )
-        links
-    );
-  ]
-
-let quick_explorer_links' model_lwt links =
-  quick_explorer_links @@ List.map (fun (text, mk_filter) -> (text, mk_filter <$> model_lwt)) links
-
-let quick_explorer_links_new links =
-  let open Html in
-  section ~a: [a_class ["mt-2"]] [
-    txt "Quick links to:";
-    ul ~a: [a_class ["bullet-list"]] (
-      List.map
         (fun (text, query) ->
           let count_lwt = Search_result.total <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) Slice.nothing query in
           li [

@@ -63,7 +63,7 @@ let view context id =
           ]
         else []
       );
-      quick_explorer_links_new [
+      quick_explorer_links [
         ("tunes they composed", Any_query.specific_only (Any_query.Tune (Tune_query.make_specific ~composer: (Some [person.id]) ())));
         ("versions of tunes they composed", Any_query.specific_only (Any_query.Version (Version_query.make_specific ~tune: (Tune_query.make_specific ~composer: (Some [person.id]) ()) ())));
         ("dances they devised", Any_query.specific_only (Any_query.Dance (Dance_query.make_specific ~deviser: (Some [person.id]) ())));

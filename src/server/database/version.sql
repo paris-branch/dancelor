@@ -230,6 +230,7 @@ JOIN "tune" ON "version"."tune_id" = "tune"."id"
 WHERE
     (@terms = '' OR @terms <% "name")
     AND { "key" IN @key }?
+    AND @source { Some { EXISTS (SELECT 1 FROM "version_sources" WHERE "version_id" = "version"."id" AND "source_id" IN @source) } | None { TRUE } }
     AND { "tune"."kind" IN @tune_kind }?
     AND @tune_composer { Some { EXISTS (SELECT 1 FROM "tune_composers" WHERE "tune_id" = "tune"."id" AND "composer_id" IN @tune_composer) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;

@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Search_new
 open Model
 open Html
 open Utils
@@ -59,7 +60,7 @@ let view context id =
               | None -> p [txt "no description available"]
             );
             quick_explorer_links [
-              ("versions from this source", lwt @@ Filter.(Any.version' % Formula_entry.value' % Version.sources' % Formula_list.exists' % Formula_entry.is') source);
+              ("versions from this source", Any_query.specific_only (Any_query.Version (Version_query.make_specific ~source: (Some [Entry.id source]) ())));
             ];
           ];
         ];

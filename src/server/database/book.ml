@@ -19,7 +19,7 @@ let sql_to_row ~id ~name ~date ~authors ~permission ~(k : Book_row.t -> 'w) : 'w
   }
 
 let search ~user query : (Book_row.t * float) list Lwt.t =
-  let {Query.common = {terms}; specific = {Book_query.author}} = query in
+  let {Query.common = {terms}; specific = {Book_query.author; contains_version; contains_tune; contains_set}} = query in
   Connection.with_ @@ fun db ->
   let%lwt authors = Utils.fold_to_tbl Book_sql.Fold.get_all_authors_new db (fun k ~book_id -> Person.sql_to_name ~k: (k book_id)) in
   Book_sql.List.search
@@ -27,6 +27,9 @@ let search ~user query : (Book_row.t * float) list Lwt.t =
     ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
     ~terms
     ~author: (Utils.list_option_map_to_sql Entry.Id.to_string author)
+    ~contains_version: (Utils.list_option_map_to_sql Entry.Id.to_string contains_version)
+    ~contains_tune: (Utils.list_option_map_to_sql Entry.Id.to_string contains_tune)
+    ~contains_set: (Utils.list_option_map_to_sql Entry.Id.to_string contains_set)
     (fun ~score ~id ->
       sql_to_row
         ~id

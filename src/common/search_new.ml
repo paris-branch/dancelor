@@ -154,7 +154,7 @@ module Person_query = struct
   type specific = unit
   [@@deriving yojson]
 
-  let no_specific = ()
+  let make_specific () = ()
 
   type t = specific Query.t
   [@@deriving yojson]
@@ -174,7 +174,7 @@ module User_query = struct
   type specific = unit
   [@@deriving yojson]
 
-  let no_specific = ()
+  let make_specific () = ()
 
   type t = specific Query.t
   [@@deriving yojson]
@@ -195,10 +195,6 @@ module Dance_query = struct
     deviser: Person_id.t list option; [@default None]
   }
   [@@deriving make, yojson]
-
-  let no_specific = {
-    deviser = None;
-  }
 
   type t = specific Query.t
   [@@deriving yojson]
@@ -221,10 +217,6 @@ module Source_query = struct
     editor: Person_id.t list option; [@default None]
   }
   [@@deriving make, yojson]
-
-  let no_specific = {
-    editor = None;
-  }
 
   type t = specific Query.t
   [@@deriving yojson]
@@ -249,11 +241,6 @@ module Tune_query = struct
   }
   [@@deriving make, yojson]
 
-  let no_specific = {
-    kind = None;
-    composer = None;
-  }
-
   type t = specific Query.t
   [@@deriving yojson]
 
@@ -274,30 +261,28 @@ end
 
 module Version_query = struct
   type specific = {
-    tune: Tune_query.specific;
+    tune: Tune_query.specific; [@default Tune_query.make_specific ()]
     key: Music.Key.t list option; [@default None]
+    source: Source_id.t list option; [@default None]
   }
   [@@deriving make, yojson]
-
-  let no_specific = {
-    tune = Tune_query.no_specific;
-    key = None;
-  }
 
   type t = specific Query.t
   [@@deriving yojson]
 
   let parse_operators = fun {Query_parser.parse_operator} ->
-    let key = parse_operator "key" (List.map Music.Key.of_string) in
     let tune = Tune_query.parse_operators {parse_operator} in
-      {tune; key}
+    let key = parse_operator "key" (List.map Music.Key.of_string) in
+    let source = parse_operator "source" (List.map Entry.Id.of_string_exn) in
+      {tune; key; source}
 
   let parse = Query.make_parser parse_operators
 
   let print_operators = fun {Query_printer.print_operator} query ->
-    let {tune; key} = query in
+    let {tune; key; source} = query in
     Tune_query.print_operators {print_operator} tune;
-    print_operator "key" (List.map Music.Key.to_string) key
+    print_operator "key" (List.map Music.Key.to_string) key;
+    print_operator "source" (List.map Entry.Id.to_string) source
 
   let print = Query.make_printer print_operators
 end
@@ -305,25 +290,27 @@ end
 module Set_query = struct
   type specific = {
     conceptor: Person_id.t list option; [@default None]
+    contains_version: Version_id.t list option; [@default None]
+    contains_tune: Tune_id.t list option; [@default None]
   }
   [@@deriving make, yojson]
-
-  let no_specific = {
-    conceptor = None;
-  }
 
   type t = specific Query.t
   [@@deriving yojson]
 
   let parse_operators = fun {Query_parser.parse_operator} ->
     let conceptor = parse_operator "conceptor" (List.map Entry.Id.of_string_exn) in
-      {conceptor}
+    let contains_version = parse_operator "contains-version" (List.map Entry.Id.of_string_exn) in
+    let contains_tune = parse_operator "contains-tune" (List.map Entry.Id.of_string_exn) in
+      {conceptor; contains_version; contains_tune}
 
   let parse = Query.make_parser parse_operators
 
   let print_operators = fun {Query_printer.print_operator} query ->
-    let {conceptor} = query in
-    print_operator "conceptor" (List.map Entry.Id.to_string) conceptor
+    let {conceptor; contains_version; contains_tune} = query in
+    print_operator "conceptor" (List.map Entry.Id.to_string) conceptor;
+    print_operator "contains-version" (List.map Entry.Id.to_string) contains_version;
+    print_operator "contains-tune" (List.map Entry.Id.to_string) contains_tune
 
   let print = Query.make_printer print_operators
 end
@@ -331,25 +318,30 @@ end
 module Book_query = struct
   type specific = {
     author: Person_id.t list option; [@default None]
+    contains_version: Version_id.t list option; [@default None]
+    contains_tune: Tune_id.t list option; [@default None]
+    contains_set: Set_id.t list option; [@default None]
   }
   [@@deriving make, yojson]
-
-  let no_specific = {
-    author = None;
-  }
 
   type t = specific Query.t
   [@@deriving yojson]
 
   let parse_operators = fun {Query_parser.parse_operator} ->
     let author = parse_operator "author" (List.map Entry.Id.of_string_exn) in
-      {author}
+    let contains_version = parse_operator "contains-version" (List.map Entry.Id.of_string_exn) in
+    let contains_tune = parse_operator "contains-tune" (List.map Entry.Id.of_string_exn) in
+    let contains_set = parse_operator "contains-set" (List.map Entry.Id.of_string_exn) in
+      {author; contains_version; contains_tune; contains_set}
 
   let parse = Query.make_parser parse_operators
 
   let print_operators = fun {Query_printer.print_operator} query ->
-    let {author} = query in
-    print_operator "author" (List.map Entry.Id.to_string) author
+    let {author; contains_version; contains_tune; contains_set} = query in
+    print_operator "author" (List.map Entry.Id.to_string) author;
+    print_operator "contains-version" (List.map Entry.Id.to_string) contains_version;
+    print_operator "contains-tune" (List.map Entry.Id.to_string) contains_tune;
+    print_operator "contains-set" (List.map Entry.Id.to_string) contains_set
 
   let print = Query.make_printer print_operators
 end

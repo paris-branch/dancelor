@@ -2,6 +2,7 @@ open Nes
 open Dancelor_common
 open Model
 open Model_new
+open Search_new
 open Html
 open Utils
 
@@ -327,10 +328,10 @@ let view context tune_or_version_id =
       );
       quick_explorer_links @@
         List.filter_map Fun.id [
-          Option.flip_map version (fun version -> ("sets containing this version", lwt @@ Filter.(Any.set' % Formula_entry.value' % Set.versions' % Formula_list.exists' % Formula.pred % Formula_entry.is) version.id));
-          Some ("sets containing this tune", lwt @@ Filter.(Any.set' % Formula_entry.value' % Set.versions' % Formula_list.exists' % Formula_entry.value' % Version.tune' % Formula.pred % Formula_entry.is) tune.id);
-          Option.flip_map version (fun version -> ("books containing this version", lwt @@ Filter.(Any.book' % Formula_entry.value' % Book.versions_deep' % Formula_list.exists' % Formula.pred % Formula_entry.is) version.id));
-          Some ("books containing this tune", lwt @@ Filter.(Any.book' % Formula_entry.value' % Book.versions_deep' % Formula_list.exists' % Formula_entry.value' % Version.tune' % Formula.pred % Formula_entry.is) tune.id);
+          Option.flip_map version (fun version -> ("sets containing this version", Any_query.specific_only (Any_query.Set (Set_query.make_specific ~contains_version: (Some [version.id]) ()))));
+          Some ("sets containing this tune", Any_query.specific_only (Any_query.Set (Set_query.make_specific ~contains_tune: (Some [tune.id]) ())));
+          Option.flip_map version (fun version -> ("books containing this version", Any_query.specific_only (Any_query.Book (Book_query.make_specific ~contains_version: (Some [version.id]) ()))));
+          Some ("books containing this tune", Any_query.specific_only (Any_query.Book (Book_query.make_specific ~contains_tune: (Some [tune.id]) ())));
         ];
       div (
         let (title, versions) =

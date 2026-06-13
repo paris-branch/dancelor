@@ -186,13 +186,13 @@ let search'_new_book env query =
   Search_result.map (Pair.map_fst Any_row.book) <$> Book.search'_new env query
 
 let search'_new_any env query =
-  let%lwt persons_result = search'_new_person env {common = query; specific = Person_query.no_specific}
-  and dances_result = search'_new_dance env {common = query; specific = Dance_query.no_specific}
-  and sources_result = search'_new_source env {common = query; specific = Source_query.no_specific}
-  and tunes_result = search'_new_tune env {common = query; specific = Tune_query.no_specific}
-  and versions_result = search'_new_version env {common = query; specific = Version_query.no_specific}
-  and sets_result = search'_new_set env {common = query; specific = Set_query.no_specific}
-  and books_result = search'_new_book env {common = query; specific = Book_query.no_specific}
+  let%lwt persons_result = search'_new_person env {common = query; specific = Person_query.make_specific ()}
+  and dances_result = search'_new_dance env {common = query; specific = Dance_query.make_specific ()}
+  and sources_result = search'_new_source env {common = query; specific = Source_query.make_specific ()}
+  and tunes_result = search'_new_tune env {common = query; specific = Tune_query.make_specific ()}
+  and versions_result = search'_new_version env {common = query; specific = Version_query.make_specific ()}
+  and sets_result = search'_new_set env {common = query; specific = Set_query.make_specific ()}
+  and books_result = search'_new_book env {common = query; specific = Book_query.make_specific ()}
   in
   let total =
     persons_result.total +

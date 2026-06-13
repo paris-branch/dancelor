@@ -89,9 +89,9 @@ let make_dance_specific_choices (_query : Dance_query.specific option) = (S.cons
 
 let make_source_specific_choices (_query : Source_query.specific option) = (S.const {Source_query.editor = None}, [])
 
-let make_set_specific_choices (_query : Set_query.specific option) = (S.const {Set_query.conceptor = None}, [])
+let make_set_specific_choices (_query : Set_query.specific option) = (S.const {Set_query.conceptor = None; contains_version = None; contains_tune = None}, [])
 
-let make_book_specific_choices (_query : Book_query.specific option) = (S.const {Book_query.author = None}, [])
+let make_book_specific_choices (_query : Book_query.specific option) = (S.const {Book_query.author = None; contains_version = None; contains_tune = None; contains_set = None}, [])
 
 let make_tune_specific_choices (query : Tune_query.specific option) =
   let%lwt kind_choices =
@@ -212,6 +212,7 @@ let make_version_specific_choices ~tune_query ~tune_html (query : Version_query.
     S.const {
       Version_query.tune;
       key = if key = [] then None else Some key;
+      source = None; (* FIXME *)
     }
   in
   let html =
