@@ -431,19 +431,3 @@ module Any_row = struct
 
   let equal a1 a2 = Any_id.equal (to_id a1) (to_id a2)
 end
-
-(** {2 Other} *)
-
-type 'a search_context_result = {
-  total: int;
-  previous_item: 'a option;
-  index: int;
-  next_item: 'a option;
-}
-[@@deriving yojson, fields]
-
-type 'a search_result = {
-  total: int;
-  items: 'a list;
-}
-[@@deriving yojson, fields]

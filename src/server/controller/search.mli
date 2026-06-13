@@ -2,7 +2,7 @@
 
 open Nes
 open Dancelor_common
-open Model_new
+open Search_new
 
 module type Searchable = sig
   type value
@@ -22,9 +22,9 @@ module type S = sig
   type value
   type filter
 
-  val search : Environment.t -> Slice.t -> filter -> value search_result Lwt.t
+  val search : Environment.t -> Slice.t -> filter -> value Search_result.t Lwt.t
 
-  val search' : Environment.t -> filter -> (value * float) search_result Lwt.t
+  val search' : Environment.t -> filter -> (value * float) Search_result.t Lwt.t
   (** Variant of {!search} that exposes the whole sequence of values, sorted,
       with their scores, before slicing. *)
 

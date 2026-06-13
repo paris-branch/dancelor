@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 open Components
 open Html
 open Utils
@@ -80,7 +81,7 @@ let versions_and_parameters ?(label = "Versions") () =
             ~model_name: "version"
             ~create_dialog_content: Version_editor.create_row
             ~search: (fun slice filter ->
-              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search_new) slice filter
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search_new) slice (Query_string.inject filter)
             )
             ~id_to_yojson: Entry.Id.to_yojson'
             ~id_of_yojson: Entry.Id.of_yojson'
@@ -106,7 +107,7 @@ let set_and_parameters ?(label = "Set") () =
         ~model_name: "set"
         ~create_dialog_content: Set_editor.create_row
         ~search: (fun slice filter ->
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search_new) slice filter
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search_new) slice (Query_string.inject filter)
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
@@ -140,7 +141,7 @@ let dance_and_dance_page =
         ~model_name: "dance"
         ~create_dialog_content: Dance_editor.create_row
         ~search: (fun slice filter ->
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search_new) slice filter
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search_new) slice (Query_string.inject filter)
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
@@ -185,7 +186,7 @@ let editor user =
       Selector.prepare
         ~label: "Editor"
         ~search: (fun slice filter ->
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search_new) slice filter
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search_new) slice (Query_string.inject filter)
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
@@ -276,7 +277,7 @@ let editor user =
         ~model_name: "source"
         ~create_dialog_content: Source_editor.create_row
         ~search: (fun slice filter ->
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search_new) slice filter
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search_new) slice (Query_string.inject filter)
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'

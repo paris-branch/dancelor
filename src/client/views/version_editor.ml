@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 open Components
 open Html
 open Utils
@@ -192,7 +193,7 @@ let editor =
     ~model_name: "tune"
     ~create_dialog_content: Tune_editor.create_row
     ~search: (fun slice filter ->
-      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search_new) slice filter
+      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search_new) slice (Query_string.inject filter)
     )
     ~id_to_yojson: Entry.Id.to_yojson'
     ~id_of_yojson: Entry.Id.of_yojson'
@@ -221,7 +222,7 @@ let editor =
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create_row
         ~search: (fun slice filter ->
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search_new) slice filter
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search_new) slice (Query_string.inject filter)
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
@@ -249,7 +250,7 @@ let editor =
             ~model_name: "source"
             ~create_dialog_content: Source_editor.create_row
             ~search: (fun slice filter ->
-              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search_new) slice filter
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search_new) slice (Query_string.inject filter)
             )
             ~id_to_yojson: Entry.Id.to_yojson'
             ~id_of_yojson: Entry.Id.of_yojson'

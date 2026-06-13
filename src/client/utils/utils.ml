@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 open Js_of_ocaml
 
 module Any_result = Any_result
@@ -49,7 +50,7 @@ let quick_explorer_links links =
       List.map
         (fun (text, filter_lwt) ->
           let count_lwt =
-            Model_new.total
+            Search_result.total
             <$> (
                 Madge_client.call_exn Endpoints.Api.(route @@ Any Search) Slice.nothing
                 =<< filter_lwt

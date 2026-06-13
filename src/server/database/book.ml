@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 
 module Entry_sql = Entry_sql.Sqlgg(Sqlgg_postgresql)
 module Book_sql = Book_sql.Sqlgg(Sqlgg_postgresql)
@@ -17,13 +18,14 @@ let sql_to_row ~id ~name ~date ~authors ~permission ~(k : Book_row.t -> 'w) : 'w
     permission = (match permission with `Everyone -> Everyone | `Owner -> Owner | `Viewer -> Viewer | `Omniscient_administrator -> Omniscient_administrator);
   }
 
-let search ~user needle : (Book_row.t * float) list Lwt.t =
+let search ~user query : (Book_row.t * float) list Lwt.t =
+  let {Query.common = {name}; specific = ()} = query in
   Connection.with_ @@ fun db ->
   let%lwt authors = Utils.fold_to_tbl Book_sql.Fold.get_all_authors_new db (fun k ~book_id -> Person.sql_to_name ~k: (k book_id)) in
   Book_sql.List.search
     db
     ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
-    ~needle
+    ~needle: name
     (fun ~score ~id ->
       sql_to_row
         ~id

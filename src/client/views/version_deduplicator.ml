@@ -2,6 +2,7 @@ open Nes
 open Dancelor_common
 open Model
 open Model_new
+open Search_new
 open Html
 open Utils
 
@@ -190,7 +191,7 @@ let confirmation_dialog ~this_version ~other_version =
 
   (* changes to sets *)
   let%lwt sets =
-    Model_new.items
+    Search_result.items
     <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) Slice.everything @@
       Formula_entry.value' @@ Filter.Set.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
   in
@@ -213,7 +214,7 @@ let confirmation_dialog ~this_version ~other_version =
 
   (* changes to books *)
   let%lwt books =
-    Model_new.items
+    Search_result.items
     <$> Madge_client.call_exn Endpoints.Api.(route @@ Book Search) Slice.everything @@
       Formula_entry.value' @@ Filter.Book.versions' @@ Formula_list.exists' @@ Formula_entry.is' this_version
   in
@@ -312,7 +313,7 @@ let confirmation_dialog ~this_version ~other_version =
 
 let dialog (version : Version_view.t) =
   let%lwt other_versions =
-    Model_new.items
+    Search_result.items
     <$> Madge_client.call_exn
         Endpoints.Api.(route @@ Version Search)
         Slice.everything

@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 
 type t = Model_builder.Core.Tune.t
 type entry = Model_builder.Core.Tune.entry
@@ -16,7 +17,7 @@ val update : t Entry.id -> t -> unit Lwt.t
 
 val delete : t Entry.id -> unit Lwt.t
 
-val search : string -> (Tune_row.t * float) list Lwt.t
+val search : Tune_query.t -> (Tune_row.t * float) list Lwt.t
 
 (** {2 Utilities for other models} *)
 

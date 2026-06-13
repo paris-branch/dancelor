@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 
 (* FIXME: The following conversion functions are temporary. We will
    save some network by having them happen on the server, but they
@@ -145,15 +146,17 @@ let search env slice filter =
   let%lwt items = Lwt_list.map_s (to_row env) result.items in
   lwt {result with items}
 
-let search'_new env filter =
+let search'_new env query =
   let user = Environment.user env in
-  let%lwt items = Database.Set.search ~user: (Option.map Entry.id user) filter in
-  lwt {total = List.length items; items}
+  let%lwt items = Database.Set.search ~user: (Option.map Entry.id user) query in
+  lwt {Search_result.total = List.length items; items}
 
-let search_new env slice filter =
-  let%lwt {total; items} = search'_new env filter in
+let search_new env slice query =
+  let query = {Query.common = {name = Query_string.project query}; specific = {Set_query.kind = None}} in
+  (* FIXME: parsing *)
+  let%lwt {total; items} = search'_new env query in
   let items = List.map fst @@ Slice.list ~strict: false slice items in
-  lwt {total; items}
+  lwt {Search_result.total; items}
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Set.t -> a = fun env endpoint ->
   match endpoint with

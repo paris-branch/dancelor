@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 
 module Tune_sql = Tune_sql.Sqlgg(Sqlgg_postgresql)
 
@@ -15,12 +16,14 @@ let sql_to_row ~id ~name ~kind ~composers ~(k : Tune_row.t -> 'w) : 'w =
     composers;
   }
 
-let search needle : (Tune_row.t * float) list Lwt.t =
+let search query : (Tune_row.t * float) list Lwt.t =
+  let {Query.common = {name}; specific = {Tune_query.kind = _}} = query in
+  (* FIXME *)
   Connection.with_ @@ fun db ->
   let%lwt composers = Utils.fold_to_tbl Tune_sql.Fold.get_all_composers_new db (fun k ~tune_id -> Person.sql_to_name ~k: (k tune_id)) in
   Tune_sql.List.search
     db
-    ~needle
+    ~needle: name
     (fun ~score ~id -> sql_to_row ~id ~composers: (Utils.tbl_get composers id) ~k: (Pair.snoc score))
 
 let sql_to_tune

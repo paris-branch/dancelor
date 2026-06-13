@@ -1,6 +1,7 @@
 open Tyxml.Html
 open Nes
 open Dancelor_common
+open Search_new
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server.static": Logs.LOG)
 
@@ -54,7 +55,7 @@ let serve_index path =
 let static_pages = List.map Uri.of_string ["/"; "/explore"]
 
 let serve_sitemap env =
-  let%lwt anys = Model_new.items <$> Controller.Any.search env Slice.everything Formula.true_ in
+  let%lwt anys = Search_result.items <$> Controller.Any.search env Slice.everything Formula.true_ in
   let urls = static_pages @ List.map (Endpoints.Page.href_any_full_new % Model_new.Any_row.to_id) anys in
   let urls = List.map (fun url -> Uri.with_path base_url (Uri.path url)) urls in
   let%lwt sitemap =

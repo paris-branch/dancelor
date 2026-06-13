@@ -2,11 +2,12 @@
 
 open Nes
 open Dancelor_common
+open Search_new
 open Html
 
 val make :
   label: string ->
-  search: (Slice.t -> string -> ('model Model_new.search_result, string) Result.t Lwt.t) ->
+  search: (Slice.t -> string -> ('model Search_result.t, string) Result.t Lwt.t) ->
   id_to_yojson: ('id -> Yojson.Safe.t) ->
   id_of_yojson: (Yojson.Safe.t -> ('id, string) result) ->
   serialise: ('model -> 'id) ->
@@ -34,7 +35,7 @@ val make :
 
 val prepare :
   label: string ->
-  search: (Slice.t -> string -> ('model Model_new.search_result, string) Result.t Lwt.t) ->
+  search: (Slice.t -> string -> ('model Search_result.t, string) Result.t Lwt.t) ->
   id_to_yojson: ('id -> Yojson.Safe.t) ->
   id_of_yojson: (Yojson.Safe.t -> ('id, string) result) ->
   serialise: ('model -> 'id) ->

@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Search_new
 open Html
 
 type 'p pagination_mode =
@@ -12,7 +13,7 @@ val search_bar : 'result t -> 'result Search_bar.t
 
 val make :
   ?initial_input: string ->
-  search: (Slice.t -> string -> ('result Model_new.search_result, string) result Lwt.t) ->
+  search: (Slice.t -> string -> ('result Search_result.t, string) result Lwt.t) ->
   pagination_mode: unit pagination_mode ->
   ?min_characters: int ->
   ?on_input: (string -> unit) ->
@@ -36,7 +37,7 @@ module Quick : sig
   val search_bar : 'result t -> 'result Search_bar.t
 
   val make :
-    search: (Slice.t -> string -> ('result Model_new.search_result, string) result Lwt.t) ->
+    search: (Slice.t -> string -> ('result Search_result.t, string) result Lwt.t) ->
     ?on_enter: (string -> unit) ->
     unit ->
     'result t

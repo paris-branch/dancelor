@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Search_new
 open Js_of_ocaml
 open Components
 open Html
@@ -62,5 +63,5 @@ let view =
 let view_new =
   view_gen
     ~search: (fun slice filter ->
-      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice filter
+      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice (Query_string.inject filter)
     )

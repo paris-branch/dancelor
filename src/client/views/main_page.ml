@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Search_new
 open Js_of_ocaml
 open Html
 open Utils
@@ -21,7 +22,7 @@ let quick_search_to_explorer value =
 let quick_search =
   Components.Search.Quick.make
     ~search: (fun slice filter ->
-      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice filter
+      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice (Query_string.inject filter)
     )
     ~on_enter: (fun value -> Lwt.async (fun () -> quick_search_to_explorer value))
     ()
