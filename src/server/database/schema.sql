@@ -107,13 +107,15 @@ CREATE TABLE "dance_extra_names" (
     CONSTRAINT "fk_dance_extra_names_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id")
 );
 
+CREATE TYPE "kind" AS ENUM ('Jig', 'Reel', 'Strathspey', 'Waltz', 'Polka', 'Jig_9_8', 'Other');
+
 CREATE TABLE "tune" (
     "id" VARCHAR(14) NOT NULL PRIMARY KEY,
     "name" VARCHAR NOT NULL,
-    "kind" VARCHAR(32) NOT NULL,
     "remark" VARCHAR,
     "scddb_id" INT,
     "date" VARCHAR(32),
+    "kind" "kind" NOT NULL,
     CONSTRAINT "fk_tune_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
