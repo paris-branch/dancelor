@@ -105,7 +105,7 @@ end
 
 module Query = struct
   type common = {
-    name: string;
+    terms: string;
   }
   [@@deriving yojson]
 
@@ -116,7 +116,7 @@ module Query = struct
   let make_parser f =
     Query_parser.make @@ fun terms {parse_operator} ->
     let specific = f {Query_parser.parse_operator} in
-      {common = {name = terms}; specific}
+      {common = {terms}; specific}
 end
 
 module Person_query = struct
@@ -150,21 +150,16 @@ module User_query = struct
 end
 
 module Dance_query = struct
-  type specific = {
-    kind: Kind_base.t list option; [@default None]
-  }
+  type specific = unit
   [@@deriving yojson]
 
-  let no_specific = {
-    kind = None;
-  }
+  let no_specific = ()
 
   type t = specific Query.t
   [@@deriving yojson]
 
   let parse_operators = fun {Query_parser.parse_operator} ->
-    let kind = parse_operator "kind" (List.map Kind_base.of_string) in
-      {kind}
+    ignore parse_operator
 
   let parse = Query.make_parser parse_operators
 end
@@ -228,21 +223,16 @@ module Version_query = struct
 end
 
 module Set_query = struct
-  type specific = {
-    kind: Kind_base.t list option; [@default None]
-  }
+  type specific = unit
   [@@deriving yojson]
 
-  let no_specific = {
-    kind = None;
-  }
+  let no_specific = ()
 
   type t = specific Query.t
   [@@deriving yojson]
 
   let parse_operators = fun {Query_parser.parse_operator} ->
-    let kind = parse_operator "kind" (List.map Kind_base.of_string) in
-      {kind}
+    ignore parse_operator
 
   let parse = Query.make_parser parse_operators
 end

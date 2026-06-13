@@ -143,12 +143,14 @@ INSERT INTO "recommended_tunes" (
 
 -- @search
 SELECT
-    CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
     "tune"."id",
     "name",
     "kind"
 FROM "tune"
-WHERE (@needle = '' OR @needle <% "name")
+WHERE
+    (@terms = '' OR @terms <% "name")
+    AND { "kind" IN @kind }?
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_composers_new

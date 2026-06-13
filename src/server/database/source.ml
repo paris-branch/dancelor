@@ -16,12 +16,12 @@ let sql_to_row ~id ~name ~date ~editors ~(k : Source_row.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name; date = Option.map (Option.get % PartialDate.from_string) date; editors}
 
 let search query : (Source_row.t * float) list Lwt.t =
-  let {Query.common = {name}; specific = ()} = query in
+  let {Query.common = {terms}; specific = ()} = query in
   Connection.with_ @@ fun db ->
   let%lwt editors = Utils.fold_to_tbl Source_sql.Fold.get_all_editors_new db (fun k ~source_id -> Person.sql_to_name ~k: (k source_id)) in
   Source_sql.List.search
     db
-    ~needle: name
+    ~terms
     (fun ~score ~id -> sql_to_row ~id ~editors: (Utils.tbl_get editors id) ~k: (Pair.snoc score))
 
 let sql_to_source

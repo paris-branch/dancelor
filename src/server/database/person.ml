@@ -15,11 +15,11 @@ let sql_to_row ~id ~name (k : Person_row.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name}
 
 let search query : (Person_row.t * float) list Lwt.t =
-  let {Query.common = {name}; specific = ()} = query in
+  let {Query.common = {terms}; specific = ()} = query in
   Connection.with_ @@ fun db ->
   Person_sql.List.search
     db
-    ~needle: name
+    ~terms
     (fun ~score -> sql_to_row (Pair.snoc score))
 
 let sql_to_person

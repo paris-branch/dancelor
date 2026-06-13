@@ -248,7 +248,7 @@ INSERT INTO "book_content_versions" (
 -- @search
 SELECT * FROM (
     SELECT
-        CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+        CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
         "book"."id",
         "name",
         "date",
@@ -264,7 +264,7 @@ SELECT * FROM (
     LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
     LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
     LEFT JOIN "user" ON "user"."id" = @user_id
-    WHERE (@needle = '' OR @needle <% "name")
+    WHERE (@terms = '' OR @terms <% "name")
 ) AS "book+"
 WHERE "book+"."permission" IS NOT NULL
 ORDER BY "score" DESC, "name" ASC;

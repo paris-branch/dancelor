@@ -20,15 +20,14 @@ let sql_to_row ~id ~name ~kind ~conceptors ~tunes ~permission ~(k : Set_row.t ->
   }
 
 let search ~user query : (Set_row.t * float) list Lwt.t =
-  let {Query.common = {name}; specific = {Set_query.kind = _}} = query in
-  (* FIXME *)
+  let {Query.common = {terms}; specific = ()} = query in
   Connection.with_ @@ fun db ->
   let%lwt tunes = Utils.fold_to_tbl Set_sql.Fold.get_all_tunes_new db (fun k ~set_id -> Version.sql_to_name ~k: (k set_id)) in
   let%lwt conceptors = Utils.fold_to_tbl Set_sql.Fold.get_all_conceptors_new db (fun k ~set_id -> Person.sql_to_name ~k: (k set_id)) in
   Set_sql.List.search
     db
     ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
-    ~needle: name
+    ~terms
     (fun ~score ~id ->
       sql_to_row
         ~id
