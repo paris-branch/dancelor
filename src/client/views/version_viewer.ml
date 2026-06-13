@@ -88,7 +88,7 @@ let view context tune_or_version_id =
         (match tune_or_version_id with `Tune _ -> Any_id.Tune tune.id | `Version id -> Any_id.Version id)
     ]
     ~title: (lwt tune.name)
-    ~subtitles: (Formatters_new.Tune.description tune)
+    ~subtitles: [span (Formatters_new.Tune.description tune)]
     ~share_new: (Option.fold version ~none: (Any_id.tune tune.id) ~some: (fun version -> Any_id.Version version.Version_view.id))
     ~actions: [
       (
@@ -345,7 +345,7 @@ let view context tune_or_version_id =
             match versions with
             | [] ->
               Alert.make ~level: Info [
-                txt "There are no versions for this tune. ";
+                txtf "There are no %sversions for this tune. " (if Option.is_some version then "other " else "");
                 R.span (
                   S.from_lwt [] @@
                     if%lwt Environment.is_connected then
