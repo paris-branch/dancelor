@@ -137,7 +137,7 @@ INSERT INTO "set_content" (
 -- @search
 SELECT * FROM (
     SELECT
-        CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+        CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
         "set"."id",
         "set"."name",
         "set"."kind",
@@ -153,7 +153,11 @@ SELECT * FROM (
     LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
     LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
     LEFT JOIN "user" ON "user"."id" = @user_id
-    WHERE (@needle = '' OR @needle <% "name")
+    WHERE
+        (@terms = '' OR @terms <% "name")
+        AND @conceptor { Some { EXISTS (SELECT 1 FROM "set_conceptors" WHERE "set_id" = "set"."id" AND "conceptor_id" IN @conceptor) } | None { TRUE } }
+	AND @contains_version { Some { EXISTS (SELECT 1 FROM "set_content" WHERE "set_id" = "set"."id" AND "version_id" IN @contains_version ) } | None { TRUE } }
+	AND @contains_tune { Some { EXISTS (SELECT 1 FROM "set_content" JOIN "version" ON "set_content"."version_id" = "version"."id" WHERE "set_content"."set_id" = "set"."id" AND "version"."tune_id" IN @contains_tune ) } | None { TRUE } }
 ) AS "set+"
 WHERE "set+"."permission" IS NOT NULL
 ORDER BY "score" DESC, "name" ASC;

@@ -2,6 +2,8 @@
 
 open Nes
 open Dancelor_common
+open Model_new
+open Search_new
 
 (** {2 Components} *)
 
@@ -18,7 +20,8 @@ type entry = t Entry.public
 
 (** {2 Queries} *)
 
-val get : t Entry.id -> entry option Lwt.t
+val get : User_id.t -> entry option Lwt.t
+val get_row : User_id.t -> User_row.t option Lwt.t
 
 (* FIXME: we should really rather provide a fold function, or directly an Lwt_stream or something *)
 val get_all : unit -> entry list Lwt.t
@@ -34,21 +37,23 @@ val create :
   role: Entry.User.role ->
   password_reset_token_hash: Password_reset_token_hashed.t ->
   password_reset_token_max_date: Datetime.t ->
-  t Entry.id Lwt.t
+  User_id.t Lwt.t
 
-val set_password_reset_token : t Entry.id -> Password_reset_token_hashed.t -> Datetime.t -> unit Lwt.t
+val set_password_reset_token : User_id.t -> Password_reset_token_hashed.t -> Datetime.t -> unit Lwt.t
 (** For the given user, set the password reset token and max date, and clear the
     password and remember me tokens. *)
 
-val set_password : t Entry.id -> Password_hashed.t -> unit Lwt.t
+val set_password : User_id.t -> Password_hashed.t -> unit Lwt.t
 (** For the given user, set the password and clear the password reset token. *)
 
-val find_remember_me_token : t Entry.id -> Remember_me_key.t -> (Remember_me_token_hashed.t * Datetime.t) option Lwt.t
-val add_remember_me_token : t Entry.id -> Remember_me_key.t -> Remember_me_token_hashed.t -> Datetime.t -> unit Lwt.t
-val remove_one_remember_me_token : t Entry.id -> Remember_me_key.t -> unit Lwt.t
-val remove_all_remember_me_tokens : t Entry.id -> unit Lwt.t
+val find_remember_me_token : User_id.t -> Remember_me_key.t -> (Remember_me_token_hashed.t * Datetime.t) option Lwt.t
+val add_remember_me_token : User_id.t -> Remember_me_key.t -> Remember_me_token_hashed.t -> Datetime.t -> unit Lwt.t
+val remove_one_remember_me_token : User_id.t -> Remember_me_key.t -> unit Lwt.t
+val remove_all_remember_me_tokens : User_id.t -> unit Lwt.t
 
-val set_omniscience : t Entry.id -> bool -> unit Lwt.t
+val set_omniscience : User_id.t -> bool -> unit Lwt.t
 (** For the given user, set omniscience to the given boolean. *)
 
-val get_person : t Entry.id -> Model_builder.Core.Person.t Entry.id option Lwt.t
+val get_person : User_id.t -> Model_builder.Core.Person.t Entry.id option Lwt.t
+
+val search : User_query.t -> (User_row.t * float) list Lwt.t

@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 open Js_of_ocaml
 
 module Any_result = Any_result
@@ -47,23 +48,11 @@ let quick_explorer_links links =
     txt "Quick links to:";
     ul ~a: [a_class ["bullet-list"]] (
       List.map
-        (fun (text, filter_lwt) ->
-          let count_lwt =
-            Model_new.total
-            <$> (
-                Madge_client.call_exn Endpoints.Api.(route @@ Any Search) Slice.nothing
-                =<< filter_lwt
-              )
-          in
+        (fun (text, query) ->
+          let count_lwt = Search_result.total <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) Slice.nothing query in
           li [
             a
-              ~a: [
-                R.a_href @@
-                  S.from_lwt Uri.empty (
-                    (Endpoints.Page.(href Explore) % some % Text_formula.formula_to_string Filter.Any.converter)
-                    <$> filter_lwt
-                  )
-              ]
+              ~a: [a_href @@ Endpoints.Page.(href Explore) @@ some @@ Any_query.print query]
               [txt text];
             R.txt (S.from_lwt "" (spf " (%d)" <$> count_lwt));
           ]
@@ -71,9 +60,6 @@ let quick_explorer_links links =
         links
     );
   ]
-
-let quick_explorer_links' model_lwt links =
-  quick_explorer_links @@ List.map (fun (text, mk_filter) -> (text, mk_filter <$> model_lwt)) links
 
 let href_any_for_sharing any =
   let current = Uri.of_string (Js.to_string Dom_html.window##.location##.href) in
@@ -109,3 +95,4 @@ let any_id_to_old_any : Any_id.t -> Model.Any.t Lwt.t = function
   | Set id -> (fun s -> Model.Any.Set (Option.get s)) <$> Model.Set.get id
   | Tune id -> (fun t -> Model.Any.Tune (Option.get t)) <$> Model.Tune.get id
   | Version id -> (fun v -> Model.Any.Version (Option.get v)) <$> Model.Version.get id
+  | User id -> (fun u -> Model.Any.User (Option.get u)) <$> Model.User.get id

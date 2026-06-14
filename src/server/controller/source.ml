@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 
 (* FIXME: The following conversion functions are temporary. We will
    save some network by having them happen on the server, but they
@@ -92,44 +93,21 @@ let delete env id =
   Permission.assert_can_delete_public env =<< get env id;%lwt
   Database.Source.delete id
 
-include Search.Build(struct
-  type value = Model.Source.entry
-  type filter = (Model.Source.t, Filter.Source.t) Formula_entry.public
-
-  let get_all env =
-    let all = Database.Source.get_all () in
-    let stream = (Lwt_stream.filter_s (Permission.can_get_public env) % Lwt_stream.of_list) <$> all in
-    Lwt_stream.flip_lwt stream
-
-  let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_public Filter.Source.converter)
-  let filter_is_empty = (=) Formula.False
-  let filter_accepts = Formula_entry.accepts_public Filter.Source.accepts
-  let score_true = Formula.interpret_true
-
-  let tiebreakers =
-    Lwt_list.[increasing (lwt % NEString.to_string % Model.Source.name') String.Sensible.compare]
-end)
-
-let search env slice filter =
-  let%lwt result = search env slice filter in
-  let%lwt items = Lwt_list.map_s to_row result.items in
-  lwt {result with items}
-
 let get_cover env id =
   Permission.assert_can_get_public env =<< get env id;%lwt
   Database.Source.with_cover id @@ fun fname ->
   let fname = Option.value fname ~default: (Filename.concat (Config.get ()).share "no-cover.webp") in
   Madge_server.respond_file ~fname
 
-let search'_new env filter =
-  let%lwt items = Database.Source.search filter in
+let search' env query =
+  let%lwt items = Database.Source.search query in
   let%lwt items = Lwt_list.filter_s (Permission.can_get_public_new env % fst) items in
-  lwt {total = List.length items; items}
+  lwt {Search_result.total = List.length items; items}
 
-let search_new env slice filter =
-  let%lwt {total; items} = search'_new env filter in
+let search env slice query =
+  let%lwt {total; items} = search' env query in
   let items = List.map fst @@ Slice.list ~strict: false slice items in
-  lwt {total; items}
+  lwt {Search_result.total; items}
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Source.t -> a = fun env endpoint ->
   match endpoint with
@@ -137,7 +115,6 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Source.t -> 
   | Get_row -> get_row env
   | Get_view -> get_view env
   | Search -> search env
-  | Search_new -> search_new env
   | Create -> create env
   | Update -> update env
   | Delete -> delete env

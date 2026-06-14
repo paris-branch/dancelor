@@ -2,6 +2,7 @@ open Nes
 open Dancelor_common
 open Model
 open Model_new
+open Search_new
 open Html
 open Utils
 
@@ -39,9 +40,8 @@ let show_lilypond_dialog (version : Version_view.t) =
           ()
       ]
 
-let add_to_set_dialog (version : Version_name.t) user =
+let add_to_set_dialog (version : Version_name.t) =
   Add_to.dialog
-    user
     version
     ~source_type: "version"
     ~source_format: (txt % Version_name.name)
@@ -49,13 +49,14 @@ let add_to_set_dialog (version : Version_name.t) user =
     ~target_icon: Icon.(Model Set)
     ~target_format: Formatters.Set.name'
     ~target_href: Endpoints.Page.href_set
-    ~target_converter: (Formula_entry.converter_private Filter.Set.converter)
-    ~target_filter_owners': Formula_entry.(access' % owners')
     ~target_result: (Any_result.make_set_result ?classes: None ?prefix: None ?suffix: None ?params: None)
-    ~target_search: (fun slice filter ->
-      let%lwt sets = Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter in
-      let%lwt items = Lwt_list.map_p (fun set -> Option.get <$> Model.Set.get set.Set_row.id) sets.items in
-      lwt {sets with items}
+    ~target_search: (fun slice query ->
+      match Set_query.parse query with
+      | Error msg -> lwt_error msg
+      | Ok query ->
+        let%lwt sets = Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice query in
+        let%lwt items = Lwt_list.map_p (fun set -> Option.get <$> Model.Set.get set.Set_row.id) sets.items in
+        lwt_ok {sets with items}
     )
     ~target_update: (Madge_client.call_exn Endpoints.Api.(route @@ Set Update))
     ~target_history: (fun () ->
@@ -128,7 +129,7 @@ let view context tune_or_version_id =
         | Some version ->
           Lwt.l2
             (@)
-            (Add_to.button ~target_type: "set" (add_to_set_dialog @@ Version_view.to_name version))
+            (Add_to.button ~target_type: "set" (fun _user -> add_to_set_dialog @@ Version_view.to_name version))
             (
               Add_to.button_to_book
                 ~source_type: "version"
@@ -205,13 +206,15 @@ let view context tune_or_version_id =
             match%lwt Permission.can_administrate () with
             | false -> lwt_nil
             | true ->
+              let other_versions = List.filter (fun (v : Tune_view.version_row_without_tune) -> not @@ Entry.Id.equal' v.id version.Version_view.id) tune.versions in
+              let other_versions = List.map (Tune_view.version_row_without_tune_to_version_row tune) other_versions in
               lwt [
                 Button.make
                   ~label: "De-duplicate"
                   ~icon: (Action Deduplicate)
                   ~dropdown: true
                   ~classes: ["btn-warning"]
-                  ~onclick: (fun () -> Version_deduplicator.dialog version)
+                  ~onclick: (fun () -> Version_deduplicator.dialog version other_versions)
                   ()
               ]
           )
@@ -327,10 +330,10 @@ let view context tune_or_version_id =
       );
       quick_explorer_links @@
         List.filter_map Fun.id [
-          Option.flip_map version (fun version -> ("sets containing this version", lwt @@ Filter.(Any.set' % Formula_entry.value' % Set.versions' % Formula_list.exists' % Formula.pred % Formula_entry.is) version.id));
-          Some ("sets containing this tune", lwt @@ Filter.(Any.set' % Formula_entry.value' % Set.versions' % Formula_list.exists' % Formula_entry.value' % Version.tune' % Formula.pred % Formula_entry.is) tune.id);
-          Option.flip_map version (fun version -> ("books containing this version", lwt @@ Filter.(Any.book' % Formula_entry.value' % Book.versions_deep' % Formula_list.exists' % Formula.pred % Formula_entry.is) version.id));
-          Some ("books containing this tune", lwt @@ Filter.(Any.book' % Formula_entry.value' % Book.versions_deep' % Formula_list.exists' % Formula_entry.value' % Version.tune' % Formula.pred % Formula_entry.is) tune.id);
+          Option.flip_map version (fun version -> ("sets containing this version", Any_query.specific_only (Any_query.Set (Set_query.make_specific ~contains_version: (Some [version.id]) ()))));
+          Some ("sets containing this tune", Any_query.specific_only (Any_query.Set (Set_query.make_specific ~contains_tune: (Some [tune.id]) ())));
+          Option.flip_map version (fun version -> ("books containing this version", Any_query.specific_only (Any_query.Book (Book_query.make_specific ~contains_version: (Some [version.id]) ()))));
+          Some ("books containing this tune", Any_query.specific_only (Any_query.Book (Book_query.make_specific ~contains_tune: (Some [tune.id]) ())));
         ];
       div (
         let (title, versions) =

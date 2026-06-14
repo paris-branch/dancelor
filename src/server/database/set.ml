@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 
 module Entry_sql = Entry_sql.Sqlgg(Sqlgg_postgresql)
 module Set_sql = Set_sql.Sqlgg(Sqlgg_postgresql)
@@ -18,14 +19,18 @@ let sql_to_row ~id ~name ~kind ~conceptors ~tunes ~permission ~(k : Set_row.t ->
     permission = (match permission with `Everyone -> Everyone | `Owner -> Owner | `Viewer -> Viewer | `Omniscient_administrator -> Omniscient_administrator);
   }
 
-let search ~user needle : (Set_row.t * float) list Lwt.t =
+let search ~user query : (Set_row.t * float) list Lwt.t =
+  let {Query.common = {terms}; specific = {Set_query.conceptor; contains_version; contains_tune}} = query in
   Connection.with_ @@ fun db ->
   let%lwt tunes = Utils.fold_to_tbl Set_sql.Fold.get_all_tunes_new db (fun k ~set_id -> Version.sql_to_name ~k: (k set_id)) in
   let%lwt conceptors = Utils.fold_to_tbl Set_sql.Fold.get_all_conceptors_new db (fun k ~set_id -> Person.sql_to_name ~k: (k set_id)) in
   Set_sql.List.search
     db
     ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
-    ~needle
+    ~terms
+    ~conceptor: (Utils.list_option_map_to_sql Entry.Id.to_string conceptor)
+    ~contains_version: (Utils.list_option_map_to_sql Entry.Id.to_string contains_version)
+    ~contains_tune: (Utils.list_option_map_to_sql Entry.Id.to_string contains_tune)
     (fun ~score ~id ->
       sql_to_row
         ~id

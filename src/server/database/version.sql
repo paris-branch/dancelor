@@ -214,7 +214,7 @@ INSERT INTO "version_destructured_transitions" (
 
 -- @search
 SELECT
-    CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
     -- ids
     "version"."id",
     "tune"."id" AS "tune_id",
@@ -227,7 +227,12 @@ SELECT
     "kind" AS "tune_kind"
 FROM "version"
 JOIN "tune" ON "version"."tune_id" = "tune"."id"
-WHERE (@needle = '' OR @needle <% "name")
+WHERE
+    (@terms = '' OR @terms <% "name")
+    AND { "key" IN @key }?
+    AND @source { Some { EXISTS (SELECT 1 FROM "version_sources" WHERE "version_id" = "version"."id" AND "source_id" IN @source) } | None { TRUE } }
+    AND { "tune"."kind" IN @tune_kind }?
+    AND @tune_composer { Some { EXISTS (SELECT 1 FROM "tune_composers" WHERE "tune_id" = "tune"."id" AND "composer_id" IN @tune_composer) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_arrangers_new

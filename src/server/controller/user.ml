@@ -1,5 +1,6 @@
 open NesUnix
 open Dancelor_common
+open Search_new
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server.controller.user": Logs.LOG)
 
@@ -10,7 +11,41 @@ let get env id =
     Permission.assert_can_get_public env user;%lwt
     lwt user
 
+let get_row _env id =
+  match%lwt Database.User.get_row id with
+  | None -> Permission.reject_can_get ()
+  | Some user -> (* FIXME: Permission.assert_can_get_public env user *) lwt user
+
+(** Returns a hash table containing as many of the ids as possible. *)
+let get_rows_table env ids =
+  (* FIXME: This (and same for the other models) is extremely wasteful. *)
+  let table = Hashtbl.create 8 in
+  Lwt_list.iter_s
+    (fun id ->
+      let%lwt user = Database.User.get_row id in
+      Monadise_lwt.lift_1_1
+        Option.iter
+        (fun user ->
+          if%lwt Permission.can_get_public_new env user then
+            lwt @@ Hashtbl.add table id user
+          else
+            lwt_unit
+        )
+        user
+    )
+    ids;%lwt
+  lwt table
+
+let get_rows env ids =
+  let%lwt table = get_rows_table env ids in
+  lwt @@ List.filter_map (Hashtbl.find_opt table) ids
+
 let status = lwt % Environment.user
+
+let status_new env =
+  match Environment.user env with
+  | None -> lwt_none
+  | Some user -> some <$> get_row env (Entry.id user)
 
 let sign_in env username password remember_me =
   Log.info (fun m -> m "Attempt to sign in with username `%s`." (Username.to_string username));
@@ -114,28 +149,22 @@ let set_omniscience env value =
   Permission.assert_can_administrate env @@ fun user ->
   Database.User.set_omniscience (Entry.id user) value
 
-include Search.Build(struct
-  type value = Model.User.entry
-  type filter = (Model.User.t, Filter.User.t) Formula_entry.public
+let search' env query =
+  let%lwt items = Database.User.search query in
+  let%lwt items = Lwt_list.filter_s (Permission.can_get_public_new env % fst) items in
+  lwt {Search_result.total = List.length items; items}
 
-  let get_all env =
-    let all = Database.User.get_all () in
-    let stream = (Lwt_stream.filter_s (Permission.can_get_public env) % Lwt_stream.of_list) <$> all in
-    Lwt_stream.flip_lwt stream
-
-  let optimise_filter = Text_formula_converter.optimise (Formula_entry.converter_public Filter.User.converter)
-  let filter_is_empty = (=) Formula.False
-  let filter_accepts = Formula_entry.accepts_public Filter.User.accepts
-  let score_true = Formula.interpret_true
-
-  let tiebreakers =
-    Lwt_list.[increasing (lwt % Username.to_string % Model.User.username') String.Sensible.compare]
-end)
+let search env slice query =
+  let%lwt {total; items} = search' env query in
+  let items = List.map fst @@ Slice.list ~strict: false slice items in
+  lwt {Search_result.total; items}
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
+  | Get_row -> get_row env
   | Status -> status env
+  | Status_new -> status_new env
   | Sign_in -> sign_in env
   | Sign_out -> sign_out env
   | Create -> create env

@@ -88,12 +88,14 @@ WHERE "id" = @id;
 
 -- @search
 SELECT
-    CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
     "source"."id",
     "name",
     "date"
 FROM "source"
-WHERE (@needle = '' OR @needle <% "name")
+WHERE
+    (@terms = '' OR @terms <% "name")
+    AND @editor { Some { EXISTS (SELECT 1 FROM "source_editors" WHERE "source_id" = "source"."id" AND "person_id" IN @editor) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_editors_new

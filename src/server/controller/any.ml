@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 
 let get env id =
   match%lwt Database.Any.get id with
@@ -13,22 +14,23 @@ let get env id =
     lwt any
 
 let get_rows env ids =
-  let (person_ids, dance_ids, source_ids, tune_ids, version_ids, set_ids, book_ids) =
+  let (person_ids, dance_ids, source_ids, tune_ids, version_ids, set_ids, book_ids, user_ids) =
     List.fold_left
       (fun
-          (person_ids, dance_ids, source_ids, tune_ids, version_ids, set_ids, book_ids)
+          (person_ids, dance_ids, source_ids, tune_ids, version_ids, set_ids, book_ids, user_ids)
           id
         ->
         match id with
-        | Any_id.Person id -> (id :: person_ids, dance_ids, source_ids, tune_ids, version_ids, set_ids, book_ids)
-        | Dance id -> (person_ids, id :: dance_ids, source_ids, tune_ids, version_ids, set_ids, book_ids)
-        | Source id -> (person_ids, dance_ids, id :: source_ids, tune_ids, version_ids, set_ids, book_ids)
-        | Tune id -> (person_ids, dance_ids, source_ids, id :: tune_ids, version_ids, set_ids, book_ids)
-        | Version id -> (person_ids, dance_ids, source_ids, tune_ids, id :: version_ids, set_ids, book_ids)
-        | Set id -> (person_ids, dance_ids, source_ids, tune_ids, version_ids, id :: set_ids, book_ids)
-        | Book id -> (person_ids, dance_ids, source_ids, tune_ids, version_ids, set_ids, id :: book_ids)
+        | Any_id.Person id -> (id :: person_ids, dance_ids, source_ids, tune_ids, version_ids, set_ids, book_ids, user_ids)
+        | Dance id -> (person_ids, id :: dance_ids, source_ids, tune_ids, version_ids, set_ids, book_ids, user_ids)
+        | Source id -> (person_ids, dance_ids, id :: source_ids, tune_ids, version_ids, set_ids, book_ids, user_ids)
+        | Tune id -> (person_ids, dance_ids, source_ids, id :: tune_ids, version_ids, set_ids, book_ids, user_ids)
+        | Version id -> (person_ids, dance_ids, source_ids, tune_ids, id :: version_ids, set_ids, book_ids, user_ids)
+        | Set id -> (person_ids, dance_ids, source_ids, tune_ids, version_ids, id :: set_ids, book_ids, user_ids)
+        | Book id -> (person_ids, dance_ids, source_ids, tune_ids, version_ids, set_ids, id :: book_ids, user_ids)
+        | User id -> (person_ids, dance_ids, source_ids, tune_ids, version_ids, set_ids, book_ids, id :: user_ids)
       )
-      ([], [], [], [], [], [], [])
+      ([], [], [], [], [], [], [], [])
       ids
   in
   let%lwt person_rows = Person.get_rows_table env person_ids
@@ -38,6 +40,7 @@ let get_rows env ids =
   and version_rows = Version.get_rows_table env version_ids
   and set_rows = Set.get_rows_table env set_ids
   and book_rows = Book.get_rows_table env book_ids
+  and user_rows = User.get_rows_table env user_ids
   in
   lwt @@
     List.filter_map
@@ -49,6 +52,7 @@ let get_rows env ids =
         | Version id -> Option.map Any_row.version @@ Hashtbl.find_opt version_rows id
         | Set id -> Option.map Any_row.set @@ Hashtbl.find_opt set_rows id
         | Book id -> Option.map Any_row.book @@ Hashtbl.find_opt book_rows id
+        | User id -> Option.map Any_row.user @@ Hashtbl.find_opt user_rows id
       )
       ids
 
@@ -113,60 +117,41 @@ let slice_lwt_stream = fun ?(strict = true) slice xs ->
   in
   Lwt_stream.from next
 
-let cache : (Environment.cache_key * Filter.Any.t, (int * (Model_new.Any_row.t * float) list) Lwt.t) Cache.t = Cache.create ~lifetime: 600 ()
+let cache : (Environment.cache_key * Any_query.t, (Any_row.t * float) Search_result.t Lwt.t) Cache.t = Cache.create ~lifetime: 600 ()
 
-let search' env filter =
-  Cache.use ~cache ~key: (Environment.cache_key env, filter) @@ fun () ->
-  let (book_f, dance_f, person_f, set_f, source_f, tune_f, version_f) = Filter.Any.specialise filter in
-  let%lwt persons_result = Person.search' env person_f
-  and dances_result = Dance.search' env dance_f
-  and sources_result = Source.search' env source_f
-  and books_result = Book.search' env book_f
-  and sets_result = Set.search' env set_f
-  and tunes_result = Tune.search' env tune_f
-  and versions_result = Version.search' env version_f
-  in
-  let count = sources_result.total + persons_result.total + dances_result.total + books_result.total + sets_result.total + tunes_result.total + versions_result.total in
-  let results =
-    let stream_to_row to_row =
-      Lwt_stream.map (Pair.map_fst to_row)
-    in
-    let stream_to_row_s to_row =
-      Lwt_stream.map_s (Monadise_lwt.lift_1_1 Pair.map_fst to_row)
-    in
-    lwt_stream_merge_sorted_l (fun (_, s1) (_, s2) -> Float.compare s2 s1) [
-      (* NOTE: keep this list's order in sync with Model.Any.Type.compare *)
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.person) (stream_to_row Person.to_row (Lwt_stream.of_list persons_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.dance) (stream_to_row_s Dance.to_row (Lwt_stream.of_list dances_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.source) (stream_to_row_s Source.to_row (Lwt_stream.of_list sources_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.tune) (stream_to_row_s Tune.to_row (Lwt_stream.of_list tunes_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.version) (stream_to_row_s Version.to_row (Lwt_stream.of_list versions_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.set) (stream_to_row_s (Set.to_row env) (Lwt_stream.of_list sets_result.items));
-      Lwt_stream.map (Pair.map_fst Model_new.Any_row.book) (stream_to_row_s (Book.to_row env) (Lwt_stream.of_list books_result.items));
-    ]
-  in
-  let%lwt results = Lwt_stream.to_list results in
-  lwt (count, results)
+let search'_person env query =
+  Search_result.map (Pair.map_fst Any_row.person) <$> Person.search' env query
 
-let search env slice filter =
-  let%lwt (total, items) = search' env filter in
-  let items = Slice.list ~strict: false slice @@ List.map fst items in
-  lwt {Model_new.total; items}
+let search'_user env query =
+  Search_result.map (Pair.map_fst Any_row.user) <$> User.search' env query
 
-let search_context env filter element =
-  let%lwt results = items <$> search env Slice.everything filter in
-  match List.find_context (Any_id.equal element) (List.map Any_row.to_id results) with
-  | None -> Madge_server.shortcut_not_found "Could not find the given element in the search results."
-  | Some List.{total; previous; index; next; _} -> lwt {Model_new.index; total; previous_item = previous; next_item = next}
+let search'_dance env query =
+  Search_result.map (Pair.map_fst Any_row.dance) <$> Dance.search' env query
 
-let search_new env slice filter =
-  let%lwt persons_result = Person.search'_new env filter
-  and dances_result = Dance.search'_new env filter
-  and sources_result = Source.search'_new env filter
-  and tunes_result = Tune.search'_new env filter
-  and versions_result = Version.search'_new env filter
-  and sets_result = Set.search'_new env filter
-  and books_result = Book.search'_new env filter
+let search'_source env query =
+  Search_result.map (Pair.map_fst Any_row.source) <$> Source.search' env query
+
+let search'_tune env query =
+  Search_result.map (Pair.map_fst Any_row.tune) <$> Tune.search' env query
+
+let search'_version env query =
+  Search_result.map (Pair.map_fst Any_row.version) <$> Version.search' env query
+
+let search'_set env query =
+  Search_result.map (Pair.map_fst Any_row.set) <$> Set.search' env query
+
+let search'_book env query =
+  Search_result.map (Pair.map_fst Any_row.book) <$> Book.search' env query
+
+let search'_any env query =
+  let%lwt persons_result = search'_person env {common = query; specific = Person_query.make_specific ()}
+  and dances_result = search'_dance env {common = query; specific = Dance_query.make_specific ()}
+  and sources_result = search'_source env {common = query; specific = Source_query.make_specific ()}
+  and tunes_result = search'_tune env {common = query; specific = Tune_query.make_specific ()}
+  and versions_result = search'_version env {common = query; specific = Version_query.make_specific ()}
+  and sets_result = search'_set env {common = query; specific = Set_query.make_specific ()}
+  and books_result = search'_book env {common = query; specific = Book_query.make_specific ()}
+  and users_result = search'_user env {common = query; specific = User_query.make_specific ()}
   in
   let total =
     persons_result.total +
@@ -175,21 +160,47 @@ let search_new env slice filter =
       tunes_result.total +
       versions_result.total +
       sets_result.total +
-      books_result.total
+      books_result.total +
+      users_result.total
   in
   let items =
+    (* NOTE: Mind the order of [s1] and [s2]: we sort scores descending *)
     list_merge_sorted_l_on (fun (_, s1) (_, s2) -> Float.compare s2 s1) [
-      List.map (Pair.map_fst Any_row.person) persons_result.items;
-      List.map (Pair.map_fst Any_row.dance) dances_result.items;
-      List.map (Pair.map_fst Any_row.source) sources_result.items;
-      List.map (Pair.map_fst Any_row.tune) tunes_result.items;
-      List.map (Pair.map_fst Any_row.version) versions_result.items;
-      List.map (Pair.map_fst Any_row.set) sets_result.items;
-      List.map (Pair.map_fst Any_row.book) books_result.items;
+      persons_result.items;
+      dances_result.items;
+      sources_result.items;
+      tunes_result.items;
+      versions_result.items;
+      sets_result.items;
+      books_result.items;
+      users_result.items;
     ]
   in
+  lwt {Search_result.total; items}
+
+let search' env ({common; specific}: Any_query.t) =
+  Cache.use ~cache ~key: (Environment.cache_key env, {common; specific}) @@ fun () ->
+  match specific with
+  | None -> search'_any env common
+  | Some Person specific -> search'_person env {common; specific}
+  | Some User specific -> search'_user env {common; specific}
+  | Some Dance specific -> search'_dance env {common; specific}
+  | Some Source specific -> search'_source env {common; specific}
+  | Some Tune specific -> search'_tune env {common; specific}
+  | Some Version specific -> search'_version env {common; specific}
+  | Some Set specific -> search'_set env {common; specific}
+  | Some Book specific -> search'_book env {common; specific}
+
+let search env slice query =
+  let%lwt {total; items} = search' env query in
   let items = List.map fst @@ Slice.list ~strict: false slice items in
-  lwt {Model_new.total; items}
+  lwt {Search_result.total; items}
+
+let search_context env query element =
+  let%lwt results = Search_result.items <$> search env Slice.everything query in
+  match List.find_context (Any_id.equal element) (List.map Any_row.to_id results) with
+  | None -> Madge_server.shortcut_not_found "Could not find the given element in the search results."
+  | Some List.{total; previous; index; next; _} -> lwt {Search_context_result.index; total; previous_item = previous; next_item = next}
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Any.t -> a = fun env endpoint ->
   match endpoint with
@@ -198,4 +209,3 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Any.t -> a =
   | Newest -> newest env
   | Search -> search env
   | Search_context -> search_context env
-  | Search_new -> search_new env

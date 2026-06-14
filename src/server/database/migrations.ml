@@ -976,6 +976,29 @@ let migrations : migration list = [
     Migrations_sql.m068_2026_06_move_access_to_entry_table__drop_table_book_viewers;
     Migrations_sql.m068_2026_06_move_access_to_entry_table__drop_table_book_owners;
   ];
+  make_custom "m069_2026_06_use_enum_for_tune_kind" (fun db ->
+    ignore <$> Migrations_sql.m069_2026_06_use_enum_for_tune_kind__create_kind_role db;%lwt
+    ignore <$> Migrations_sql.m069_2026_06_use_enum_for_tune_kind__add_column_kind_new db;%lwt
+    let%lwt all_kinds = Migrations_sql.List.m069_2026_06_use_enum_for_tune_kind__get_all_kinds db (fun ~id ~kind -> (id, kind)) in
+    Lwt_list.iter_s
+      (fun (id, kind) ->
+        let kind_new =
+          match String.lowercase_ascii kind with
+          | "j" | "jig" -> `Jig
+          | "r" | "reel" -> `Reel
+          | "s" | "strathspey" -> `Strathspey
+          | "w" | "waltz" -> `Waltz
+          | "p" | "polka" -> `Polka
+          | "j98" | "jig[9/8]" -> `Jig_9_8
+          | "o" | "other" -> `Other
+          | _ -> assert false
+        in
+        ignore <$> Migrations_sql.m069_2026_06_use_enum_for_tune_kind__update_one_kind_new db ~id ~kind_new: (Some kind_new)
+      )
+      all_kinds;%lwt
+    ignore <$> Migrations_sql.m069_2026_06_use_enum_for_tune_kind__cleanup_columns db;%lwt
+    ignore <$> Migrations_sql.m069_2026_06_use_enum_for_tune_kind__rename_column db
+  );
 ]
 
 exception Migration_failed of string * exn

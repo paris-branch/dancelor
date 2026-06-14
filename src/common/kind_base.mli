@@ -1,5 +1,3 @@
-open Nes
-
 (** {1 Base Kind} *)
 
 type t =
@@ -21,20 +19,3 @@ val of_string_opt : string -> t option
 val tempo : t -> string * int
 (** Returns the base lilypond unit and the associated tempo. eg. [("2", 108)]
     for reels. *)
-
-(** {2 Filters} *)
-
-type base_kind = t
-(** Alias for {!t} needed for the type interface of {!Filter}. *)
-
-module Filter : sig
-  type predicate = Is of t
-  type t = predicate Formula.t
-  [@@deriving eq, ord, show, yojson]
-
-  val is : base_kind -> predicate
-  val is' : base_kind -> t
-
-  val converter : predicate Text_formula_converter.t
-  val accepts : t -> base_kind -> float Lwt.t
-end

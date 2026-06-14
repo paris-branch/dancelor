@@ -2,6 +2,7 @@ open Nes
 open Dancelor_common
 open Model
 open Model_new
+open Search_new
 open Html
 open Utils
 
@@ -115,9 +116,7 @@ let view context id =
               )
               (Set.contents' set)
         );
-      quick_explorer_links'
-        (lwt set)
-        [
-          ("books containing this set", Filter.(Any.book' % Formula_entry.value' % Book.sets' % Formula_list.exists' % Formula_entry.is'));
-        ];
+      quick_explorer_links [
+        ("books containing this set", Any_query.specific_only (Any_query.Book (Book_query.make_specific ~contains_set: (Some [Entry.id set]) ())));
+      ];
     ]

@@ -1471,3 +1471,24 @@ DROP TABLE "book_viewers";
 
 -- @m068_2026_06_move_access_to_entry_table__drop_table_book_owners
 DROP TABLE "book_owners";
+
+-- @m069_2026_06_use_enum_for_tune_kind__create_kind_role
+CREATE TYPE "kind" AS ENUM ('Jig', 'Reel', 'Strathspey', 'Waltz', 'Polka', 'Jig_9_8', 'Other');
+
+-- @m069_2026_06_use_enum_for_tune_kind__add_column_kind_new
+ALTER TABLE "tune" ADD COLUMN "kind_new" "kind";
+
+-- @m069_2026_06_use_enum_for_tune_kind__get_all_kinds
+SELECT "id", "kind" FROM "tune";
+
+-- @m069_2026_06_use_enum_for_tune_kind__update_one_kind_new
+UPDATE "tune" SET "kind_new" = @kind_new WHERE "id" = @id;
+
+-- @m069_2026_06_use_enum_for_tune_kind__cleanup_columns
+ALTER TABLE "tune"
+  ALTER COLUMN "kind_new" SET NOT NULL,
+  DROP COLUMN "kind";
+
+-- @m069_2026_06_use_enum_for_tune_kind__rename_column
+ALTER TABLE "tune"
+  RENAME COLUMN "kind_new" TO "kind";

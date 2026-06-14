@@ -67,6 +67,14 @@ module User_id = struct
   let of_string = Entry.Id.of_string
 end
 
+module User_row = struct
+  type t = {
+    id: User_id.t;
+    username: Username.t;
+  }
+  [@@deriving yojson, fields]
+end
+
 (** {2 Dance} *)
 
 module Dance_id = struct
@@ -386,6 +394,7 @@ module Any_id = struct
     | Version of Version_id.t
     | Set of Set_id.t
     | Book of Book_id.t
+    | User of User_id.t
   [@@deriving yojson, variants]
 
   let equal any1 any2 =
@@ -397,6 +406,7 @@ module Any_id = struct
     | Version id1, Version id2 -> Entry.Id.equal' id1 id2
     | Set id1, Set id2 -> Entry.Id.equal' id1 id2
     | Book id1, Book id2 -> Entry.Id.equal' id1 id2
+    | User id1, User id2 -> Entry.Id.equal' id1 id2
     | _ -> false
 
   let to_entry_id = function
@@ -407,6 +417,7 @@ module Any_id = struct
     | Version x -> Entry.Id.unsafe_coerce x
     | Set x -> Entry.Id.unsafe_coerce x
     | Book x -> Entry.Id.unsafe_coerce x
+    | User x -> Entry.Id.unsafe_coerce x
 end
 
 module Any_row = struct
@@ -418,6 +429,7 @@ module Any_row = struct
     | Version of Version_row.t
     | Set of Set_row.t
     | Book of Book_row.t
+    | User of User_row.t
   [@@deriving yojson, variants]
 
   let to_id : t -> Any_id.t = function
@@ -428,22 +440,7 @@ module Any_row = struct
     | Version v -> Version v.id
     | Set s -> Set s.id
     | Book b -> Book b.id
+    | User u -> User u.id
 
   let equal a1 a2 = Any_id.equal (to_id a1) (to_id a2)
 end
-
-(** {2 Other} *)
-
-type 'a search_context_result = {
-  total: int;
-  previous_item: 'a option;
-  index: int;
-  next_item: 'a option;
-}
-[@@deriving yojson, fields]
-
-type 'a search_result = {
-  total: int;
-  items: 'a list;
-}
-[@@deriving yojson, fields]

@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Search_new
 open Html
 open Utils
 open Model
@@ -22,8 +23,8 @@ let book_page_to_any = function
 let get_neighbours any = function
   | Endpoints.Page.In_search query ->
     (* TODO: Unify with [Explorer.search]. *)
-    let%olwt filter = lwt @@ Result.to_option @@ Text_formula.string_to_formula Filter.Any.converter query in
-    let%olwt {total; previous_item; index; next_item} = Result.to_option <$> Madge_client.call Endpoints.Api.(route @@ Any Search_context) filter (old_any_to_any_id any) in
+    let%olwt query = lwt @@ Result.to_option @@ Any_query.parse query in
+    let%olwt {total; previous_item; index; next_item} = Result.to_option <$> Madge_client.call Endpoints.Api.(route @@ Any Search_context) query (old_any_to_any_id any) in
     lwt_some (total, previous_item, index, next_item)
   | Endpoints.Page.In_set (set, index) ->
     let%olwt set = Set.get set in

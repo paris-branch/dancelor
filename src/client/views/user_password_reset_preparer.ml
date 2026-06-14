@@ -1,5 +1,7 @@
 open Nes
 open Dancelor_common
+open Model_new
+open Search_new
 open Components
 open Html
 open Utils
@@ -11,11 +13,11 @@ let open_token_result_dialog user token =
       ~title: (lwt "Password reset link generated")
       [p [
         txt "Password reset link for user ";
-        txt (Username.to_string @@ Model.User.username' user);
+        txt (Username.to_string user.User_row.username);
         txt " has been generated. Pass them the following link: ";
       ];
       p [
-        let href = Endpoints.Page.(href User_password_reset) (Model.User.username' user) token in
+        let href = Endpoints.Page.(href User_password_reset) user.username token in
         a ~a: [a_href href] [txt @@ Uri.to_string href]
       ];
       p [
@@ -30,17 +32,18 @@ let create () =
     Selector.make
       ~label: "User"
       ~model_name: "user"
-      ~make_descr: (lwt % Username.to_string % Model.User.username')
-      ~make_result: (Any_result.make_user_result ?context: None)
+      ~make_descr: (fun user -> lwt @@ Username.to_string user.username)
+      ~make_result: (Any_result_new.make_user_result ?context: None)
       ~results_when_no_search: lwt_nil
       ~search: (fun slice input ->
-        let%rlwt filter = lwt (Text_formula.string_to_formula (Formula_entry.converter_public Filter.User.converter) input) in
-        ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice filter
+        match User_query.parse input with
+        | Error msg -> lwt_error msg
+        | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ User Search) slice query
       )
       ~id_to_yojson: Entry.Id.to_yojson'
       ~id_of_yojson: Entry.Id.of_yojson'
-      ~serialise: Entry.id
-      ~unserialise: Model.User.get
+      ~serialise: User_row.id
+      ~unserialise: (madge_call_or_option @@ User Get_row)
       None
   in
   let signal = Component.signal user_selector in
@@ -56,8 +59,7 @@ let create () =
         ~disabled: (S.map Result.is_error signal)
         ~onclick: (fun () ->
           let user = Result.get_ok @@ S.value signal in
-          let username = Model.User.username' user in
-          let%lwt token = Madge_client.call_exn Endpoints.Api.(route @@ User Prepare_reset_password) username in
+          let%lwt token = Madge_client.call_exn Endpoints.Api.(route @@ User Prepare_reset_password) user.username in
           open_token_result_dialog user token
         )
         ();

@@ -1,26 +1,58 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 
 module Tune_sql = Tune_sql.Sqlgg(Sqlgg_postgresql)
 
 type t = Model_builder.Core.Tune.t
 type entry = Model_builder.Core.Tune.entry
 
+type sql_kind_base = [`Jig | `Reel | `Strathspey | `Waltz | `Polka | `Jig_9_8 | `Other]
+
+let sql_to_kind_base : sql_kind_base -> Kind_base.t = function
+  | `Jig -> Jig
+  | `Reel -> Reel
+  | `Strathspey -> Strathspey
+  | `Waltz -> Waltz
+  | `Polka -> Polka
+  | `Jig_9_8 -> Jig_9_8
+  | `Other -> Other
+
+let kind_base_to_sql : Kind_base.t -> sql_kind_base = function
+  | Jig -> `Jig
+  | Reel -> `Reel
+  | Strathspey -> `Strathspey
+  | Waltz -> `Waltz
+  | Polka -> `Polka
+  | Jig_9_8 -> `Jig_9_8
+  | Other -> `Other
+
 let sql_to_row ~id ~name ~kind ~composers ~(k : Tune_row.t -> 'w) : 'w =
   k {
     id = Entry.Id.of_string_exn id;
     name;
-    kind = Kind_base.of_string kind;
+    kind = sql_to_kind_base kind;
     composers;
   }
 
-let search needle : (Tune_row.t * float) list Lwt.t =
+let for_dance dance_id : Tune_row.t list Lwt.t =
+  Connection.with_ @@ fun db ->
+  let%lwt composers = Utils.fold_to_tbl Tune_sql.Fold.get_all_composers_new db (fun k ~tune_id -> Person.sql_to_name ~k: (k tune_id)) in
+  Tune_sql.List.for_dance
+    db
+    ~dance_id: (Entry.Id.to_string dance_id)
+    (fun ~id -> sql_to_row ~id ~composers: (Utils.tbl_get composers id) ~k: Fun.id)
+
+let search query : (Tune_row.t * float) list Lwt.t =
+  let {Query.common = {terms}; specific = {Tune_query.kind; composer}} = query in
   Connection.with_ @@ fun db ->
   let%lwt composers = Utils.fold_to_tbl Tune_sql.Fold.get_all_composers_new db (fun k ~tune_id -> Person.sql_to_name ~k: (k tune_id)) in
   Tune_sql.List.search
     db
-    ~needle
+    ~terms
+    ~kind: (Option.map (List.map kind_base_to_sql) kind)
+    ~composer: (Utils.list_option_map_to_sql Entry.Id.to_string composer)
     (fun ~score ~id -> sql_to_row ~id ~composers: (Utils.tbl_get composers id) ~k: (Pair.snoc score))
 
 let sql_to_tune
@@ -43,7 +75,7 @@ let sql_to_tune
     (
       Model_builder.Core.Tune.make
         ~names: (NEList.cons (NEString.of_string_exn name) extra_names)
-        ~kind: (Kind_base.of_string kind)
+        ~kind: (sql_to_kind_base kind)
         ~remark: (Option.map NEString.of_string_exn remark)
         ~scddb_id: (Option.map Int64.to_int scddb_id)
         ~date: (Option.map (Option.get % PartialDate.from_string) date)
@@ -60,7 +92,7 @@ let tune_to_sql ~create_or_update db id tune =
       db
       ~id
       ~name: (NEString.to_string @@ NEList.hd @@ Model_builder.Core.Tune.names tune)
-      ~kind: (Kind_base.to_long_string ~capitalised: true @@ Model_builder.Core.Tune.kind tune)
+      ~kind: (kind_base_to_sql @@ Model_builder.Core.Tune.kind tune)
       ~remark: (Option.map NEString.to_string @@ Model_builder.Core.Tune.remark tune)
       ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Tune.scddb_id tune)
       ~date: (Option.map PartialDate.to_string @@ Model_builder.Core.Tune.date tune);%lwt

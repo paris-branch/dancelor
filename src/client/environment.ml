@@ -30,6 +30,7 @@ let start_ping_routine () =
   Lwt.async ping
 
 let user = Madge_client.call_exn Endpoints.Api.(route @@ User Status)
+let user_new = Madge_client.call_exn Endpoints.Api.(route @@ User Status_new)
 
 let is_connected = Lwt.map Option.is_some user
 

@@ -1,6 +1,8 @@
 open Nes
 open Sqlgg_trait_types
 
+module Log = (val Logs.src_log @@ Logs.Src.create "server.database.sqlgg-postgresql": Logs.LOG)
+
 exception Oops of string
 
 (* ---- Core types ---- *)
@@ -60,6 +62,7 @@ let set_param p s =
 (* ---- Async query execution ---- *)
 
 let async_exec {conn; fd} ?params sql =
+  Log.debug (fun m -> m "Executing: %s" sql);
   (
     match params with
     | Some params -> conn#send_query ~params sql

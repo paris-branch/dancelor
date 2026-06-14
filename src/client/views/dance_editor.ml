@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 
 open Components
 open Html
@@ -33,8 +34,10 @@ let editor =
     (
       Selector.prepare
         ~label: "Deviser"
-        ~search: (fun slice filter ->
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search_new) slice filter
+        ~search: (fun slice query ->
+          match Person_query.parse query with
+          | Error msg -> lwt_error msg
+          | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice query
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'

@@ -50,6 +50,21 @@ CREATE TYPE "dancelor"."globally_unique_id_type" AS ENUM (
 
 
 --
+-- Name: kind; Type: TYPE; Schema: dancelor; Owner: -
+--
+
+CREATE TYPE "dancelor"."kind" AS ENUM (
+    'Jig',
+    'Reel',
+    'Strathspey',
+    'Waltz',
+    'Polka',
+    'Jig_9_8',
+    'Other'
+);
+
+
+--
 -- Name: page_type; Type: TYPE; Schema: dancelor; Owner: -
 --
 
@@ -375,10 +390,10 @@ CREATE TABLE "dancelor"."source_editors" (
 CREATE TABLE "dancelor"."tune" (
     "id" character varying(14) NOT NULL,
     "name" character varying NOT NULL,
-    "kind" character varying(32) NOT NULL,
     "remark" character varying,
     "scddb_id" integer,
-    "date" character varying(32)
+    "date" character varying(32),
+    "kind" "dancelor"."kind" NOT NULL
 );
 
 
@@ -669,6 +684,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m065_2026_06
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m066_2026_06_rename_table_globally_unique_id', '2026-06-10 15:31:35.92784+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m067_2026_06_move_created_update_at_to_entry_table', '2026-06-12 06:56:48.092879+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m068_2026_06_move_access_to_entry_table', '2026-06-12 06:59:06.504884+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m069_2026_06_use_enum_for_tune_kind', '2026-06-13 15:45:51.895098+00');
 
 
 --
@@ -743,9 +759,9 @@ INSERT INTO "dancelor"."source_editors" ("source_id", "person_id") VALUES ('2wrv
 -- Data for Name: tune; Type: TABLE DATA; Schema: dancelor; Owner: -
 --
 
-INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date") VALUES ('qdod-ad7l-8gr2', 'Tam Lin', 'R', NULL, NULL, NULL);
-INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date") VALUES ('rifw-ul36-3uq5', 'A439', 'strathspey', NULL, 2398472, NULL);
-INSERT INTO "dancelor"."tune" ("id", "name", "kind", "remark", "scddb_id", "date") VALUES ('gm7o-khcu-8faz', 'The Glasgow Reel', 'Reel', NULL, NULL, NULL);
+INSERT INTO "dancelor"."tune" ("id", "name", "remark", "scddb_id", "date", "kind") VALUES ('qdod-ad7l-8gr2', 'Tam Lin', NULL, NULL, NULL, 'Reel');
+INSERT INTO "dancelor"."tune" ("id", "name", "remark", "scddb_id", "date", "kind") VALUES ('rifw-ul36-3uq5', 'A439', NULL, 2398472, NULL, 'Strathspey');
+INSERT INTO "dancelor"."tune" ("id", "name", "remark", "scddb_id", "date", "kind") VALUES ('gm7o-khcu-8faz', 'The Glasgow Reel', NULL, NULL, NULL, 'Reel');
 
 
 --

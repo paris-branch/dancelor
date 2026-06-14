@@ -19,6 +19,7 @@ val start_ping_routine : unit -> unit
 (** The user that is currently logged in. This queries the server the first time
     it is needed, hence the promise. *)
 val user : Model.User.entry option Lwt.t
+val user_new : User_row.t option Lwt.t
 
 (** For places where we don't want to wait for the promise to resolve, we can
     use {!user_now}. This might however answer [None] even though we are

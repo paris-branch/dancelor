@@ -77,11 +77,7 @@ let view context id =
           R.div
             (
               S.from_lwt (Tables.placeholder ()) @@
-                let%lwt tunes =
-                  Model_new.items
-                  <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) Slice.everything @@
-                    Formula_entry.value' @@ Filter.Tune.dances' @@ Formula_list.exists' @@ Formula_entry.is' dance
-                in
+                let%lwt tunes = Madge_client.call_exn Endpoints.Api.(route @@ Dance Tunes) (Entry.id dance) in
                 lwt
                   [
                     if tunes = [] then

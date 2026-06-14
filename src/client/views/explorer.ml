@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Search_new
 open Js_of_ocaml
 open Components
 open Html
@@ -12,10 +13,14 @@ let update_uri input =
     (Js.string "")
     (Js.some (Js.string (Uri.to_string uri)))
 
-let view_gen ~search query =
+let view query =
   let search =
     Search.make
-      ~search
+      ~search: (fun slice query ->
+        match Any_query.parse query with
+        | Error msg -> lwt_error msg
+        | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice query
+      )
       ?initial_input: query
       ~pagination_mode: (Pagination ())
       ~on_input: update_uri
@@ -36,31 +41,18 @@ let view_gen ~search query =
             ~classes: ["btn-primary"]
             ~onclick: (fun () ->
               let search_text = S.value @@ Search_bar.text @@ Search.search_bar search in
-              let%lwt text = Search_complex_filters_dialog.open_ search_text in
+              let%lwt query = Search_complex_filters_dialog.open_ search_text in
               Option.iter
-                (fun text ->
-                  let text = text ^ " " in
+                (fun query ->
+                  let text = Any_query.print query ^ " " in
                   let bar = Search.search_bar search in
                   Search_bar.set_text bar text;
                   update_uri text;
                   Search_bar.focus bar
                 )
-                text;
+                query;
               lwt_unit
             )
             ();
         ]
     ]
-
-let view =
-  view_gen
-    ~search: (fun slice input ->
-      let%rlwt filter = lwt @@ Text_formula.string_to_formula Filter.Any.converter input in
-      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice filter
-    )
-
-let view_new =
-  view_gen
-    ~search: (fun slice filter ->
-      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice filter
-    )

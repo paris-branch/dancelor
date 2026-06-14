@@ -73,37 +73,3 @@ let tempo = function
   | Polka -> ("2", 108)
   | Jig_9_8 -> ("4.", 104)
   | Other -> ("2", 108)
-
-type base_kind = t (* needed for the interface of filters *)
-
-module Filter = struct
-  type predicate =
-    | Is of t
-  [@@deriving eq, ord, show {with_path = false}, yojson, variants]
-
-  type t = predicate Formula.t
-  [@@deriving eq, ord, show {with_path = false}, yojson]
-
-  let is' = Formula.pred % is
-
-  let accepts filter kind =
-    Formula.interpret filter @@ function
-      | Is kind' ->
-        lwt (Formula.interpret_bool (kind = kind'))
-
-  let converter =
-    Text_formula_converter.(
-      make
-        ~debug_name: "kind base"
-        ~debug_print: pp_predicate
-        ~raw: (fun string ->
-          Option.fold
-            ~some: (ok % is')
-            ~none: (kspf error "could not interpret \"%s\" as a base kind" string)
-            (of_string_opt string)
-        )
-        [unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_long_string ~capitalised: true) ~type_: "base kind";
-        ]
-        ~compare_predicate
-    )
-end

@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 open Html
 open Utils
 
@@ -11,14 +12,11 @@ let dialog
     ~source_format
     ~target_format
     ~target_href
-    ~target_converter
-    ~target_filter_owners'
     ~(target_result : ?onclick: 'a -> ?context: 'b -> 'c -> 'd)
     ~target_search
     ~target_update
     ~target_history
     ~target_add_source_to_content
-    user
     source
   =
   let make_result ?context ~return target =
@@ -49,16 +47,8 @@ let dialog
       )
   in
   let quick_search =
-    Components.Search.Quick.make
-      ~search: (fun slice input ->
-        let%rlwt filter = lwt (Text_formula.string_to_formula target_converter input) in
-        (* FIXME: Rather than the entries owned by the user, we should filter
-           on the entries that the user is allowed to edit, that is we should
-           have filters for permissions. *)
-        let filter = Formula.and_ filter (target_filter_owners' @@ Formula_list.exists' @@ Formula_entry.is' user) in
-        ok <$> target_search slice filter
-      )
-      ()
+    (* FIXME: filter only on the items that the user owns / is allowed to edit *)
+    Components.Search.Quick.make ~search: target_search ()
   in
   let%lwt results_when_no_search =
     let%lwt targets = target_history () in
@@ -74,9 +64,8 @@ let dialog
       quick_search
 
 (** {!dialog} specialised for when the target is a book. *)
-let dialog_to_book ~source_type ~source_format user source source_page =
+let dialog_to_book ~source_type ~source_format source source_page =
   dialog
-    user
     source
     ~source_type
     ~source_format
@@ -84,13 +73,14 @@ let dialog_to_book ~source_type ~source_format user source source_page =
     ~target_icon: Icon.(Model Book)
     ~target_format: Formatters.Book.name'
     ~target_href: Endpoints.Page.href_book
-    ~target_converter: (Formula_entry.converter_private Filter.Book.converter)
-    ~target_filter_owners': Formula_entry.(access' % owners')
     ~target_result: (Any_result.make_book_result ?classes: None ?prefix: None ?suffix: None)
-    ~target_search: (fun slice filter ->
-      let%lwt books = Madge_client.call_exn Endpoints.Api.(route @@ Book Search) slice filter in
-      let%lwt items = Lwt_list.map_p (fun book -> Option.get <$> Model.Book.get book.Book_row.id) books.items in
-      lwt {books with items}
+    ~target_search: (fun slice query ->
+      match Book_query.parse query with
+      | Error msg -> lwt_error msg
+      | Ok query ->
+        let%lwt books = Madge_client.call_exn Endpoints.Api.(route @@ Book Search) slice query in
+        let%lwt items = Lwt_list.map_p (fun book -> Option.get <$> Model.Book.get book.Book_row.id) books.items in
+        lwt_ok {books with items}
     )
     ~target_update: (Madge_client.call_exn Endpoints.Api.(route @@ Book Update))
     ~target_history: (fun () ->
@@ -117,4 +107,4 @@ let button ~target_type create_dialog =
     ]
 
 let button_to_book ~source_type ~source_format source source_page =
-  button ~target_type: "book" (fun user -> dialog_to_book ~source_type ~source_format user source source_page)
+  button ~target_type: "book" (fun _user -> dialog_to_book ~source_type ~source_format source source_page)

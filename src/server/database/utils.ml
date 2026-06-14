@@ -9,3 +9,7 @@ let fold_to_tbl fold db k =
 
 let tbl_get (Tbl t) k =
   List.rev @@ Hashtbl.find_all t k
+
+let list_option_map_to_sql f = function
+  | None -> `None
+  | Some x -> `Some (List.map f x)

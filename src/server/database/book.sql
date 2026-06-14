@@ -248,7 +248,7 @@ INSERT INTO "book_content_versions" (
 -- @search
 SELECT * FROM (
     SELECT
-        CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+        CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
         "book"."id",
         "name",
         "date",
@@ -264,7 +264,18 @@ SELECT * FROM (
     LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
     LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
     LEFT JOIN "user" ON "user"."id" = @user_id
-    WHERE (@needle = '' OR @needle <% "name")
+    WHERE
+	(@terms = '' OR @terms <% "name")
+        AND @author { Some { EXISTS (SELECT 1 FROM "book_authors" WHERE "book_id" = "book"."id" AND "author_id" IN @author) } | None { TRUE } }
+	AND @contains_version { Some {
+	        EXISTS (SELECT 1 FROM "book_content" JOIN "set_content" ON "book_content"."set_id" = "set_content"."set_id" WHERE "book_content"."book_id" = "book"."id" AND "set_content"."version_id" IN @contains_version )
+	        OR EXISTS (SELECT 1 FROM "book_content_versions" WHERE "book_id" = "book"."id" AND "version_id" IN @contains_version)
+	    } | None { TRUE } }
+	AND @contains_tune { Some {
+	        EXISTS (SELECT 1 FROM "book_content" JOIN "set_content" ON "book_content"."set_id" = "set_content"."set_id" JOIN "version" ON "set_content"."version_id" = "version"."id" WHERE "book_content"."book_id" = "book"."id" AND "version"."tune_id" IN @contains_tune )
+	        OR EXISTS (SELECT 1 FROM "book_content_versions" JOIN "version" ON "book_content_versions"."version_id" = "version"."id" WHERE "book_content_versions"."book_id" = "book"."id" AND "version"."tune_id" IN @contains_tune)
+	    } | None { TRUE } }
+	AND @contains_set { Some { EXISTS (SELECT 1 FROM "book_content" WHERE "book_id" = "book"."id" AND "set_id" IN @contains_set ) } | None { TRUE } }
 ) AS "book+"
 WHERE "book+"."permission" IS NOT NULL
 ORDER BY "score" DESC, "name" ASC;

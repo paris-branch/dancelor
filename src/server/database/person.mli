@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 
 type t = Model_builder.Core.Person.t
 type entry = Model_builder.Core.Person.entry
@@ -16,7 +17,7 @@ val update : Person_id.t -> t -> unit Lwt.t
 
 val delete : Person_id.t -> unit Lwt.t
 
-val search : string -> (Person_row.t * float) list Lwt.t
+val search : Person_query.t -> (Person_row.t * float) list Lwt.t
 
 (** {2 Utilities for other models} *)
 

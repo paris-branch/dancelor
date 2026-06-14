@@ -143,12 +143,15 @@ INSERT INTO "recommended_tunes" (
 
 -- @search
 SELECT
-    CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
     "tune"."id",
     "name",
     "kind"
 FROM "tune"
-WHERE (@needle = '' OR @needle <% "name")
+WHERE
+    (@terms = '' OR @terms <% "name")
+    AND { "kind" IN @kind }?
+    AND @composer { Some { EXISTS (SELECT 1 FROM "tune_composers" WHERE "tune_id" = "tune"."id" AND "composer_id" IN @composer) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_composers_new
@@ -159,3 +162,12 @@ SELECT
 FROM "tune_composers"
 JOIN "person" ON "tune_composers"."composer_id" = "person"."id"
 ORDER BY "index";
+
+-- @for_dance
+SELECT
+    "tune"."id",
+    "name",
+    "kind"
+FROM "recommended_tunes"
+JOIN "tune" ON "recommended_tunes"."tune_id" = "tune"."id"
+WHERE "dance_id" = @dance_id;

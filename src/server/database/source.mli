@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 
 type t = Model_builder.Core.Source.t
 type entry = Model_builder.Core.Source.entry
@@ -20,7 +21,7 @@ val with_cover : Source_id.t -> (string option -> 'a Lwt.t) -> 'a Lwt.t
 (** Given a source id, produce a file containing the cover and pass its path to
     the callback. [None] means that there is no cover for this source. *)
 
-val search : string -> (Source_row.t * float) list Lwt.t
+val search : Source_query.t -> (Source_row.t * float) list Lwt.t
 
 (** {2 Utilities for other models} *)
 

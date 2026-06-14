@@ -119,13 +119,15 @@ INSERT INTO "dance_devisers" (
 
 -- @search
 SELECT
-    CASE WHEN @needle = '' THEN 1.0 ELSE word_similarity(@needle, "name") END AS "score",
+    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
     "dance"."id",
     "name",
     "kind",
     "disambiguation"
 FROM "dance"
-WHERE (@needle = '' OR @needle <% "name")
+WHERE
+    (@terms = '' OR @terms <% "name")
+    AND @deviser { Some { EXISTS (SELECT 1 FROM "dance_devisers" WHERE "dance_id" = "dance"."id" AND "deviser_id" IN @deviser) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_all_devisers_new

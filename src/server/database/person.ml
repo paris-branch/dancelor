@@ -1,6 +1,7 @@
 open Nes
 open Dancelor_common
 open Model_new
+open Search_new
 
 module Person_sql = Person_sql.Sqlgg(Sqlgg_postgresql)
 
@@ -10,15 +11,16 @@ type entry = Model_builder.Core.Person.entry
 let sql_to_name ~id ~name ~(k : Person_name.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name}
 
-let sql_to_row ~id ~name (k : Person_row.t -> 'w) : 'w =
+let sql_to_row ~id ~name ~(k : Person_row.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name}
 
-let search needle : (Person_row.t * float) list Lwt.t =
+let search query : (Person_row.t * float) list Lwt.t =
+  let {Query.common = {terms}; specific = ()} = query in
   Connection.with_ @@ fun db ->
   Person_sql.List.search
     db
-    ~needle
-    (fun ~score -> sql_to_row (Pair.snoc score))
+    ~terms
+    (fun ~score -> sql_to_row ~k: (Pair.snoc score))
 
 let sql_to_person
     ~id

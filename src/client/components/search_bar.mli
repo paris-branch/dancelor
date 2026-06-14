@@ -2,6 +2,7 @@
 
 open Nes
 open Dancelor_common
+open Search_new
 open Js_of_ocaml_tyxml.Tyxml_js
 
 (** Abstraction of the possible states of the search bar. *)
@@ -33,7 +34,7 @@ val focus : 'result t -> unit
 (** Imperatively focus the search bar. *)
 
 val make :
-  search: (Slice.t -> string -> ('result Model_new.search_result, string) result Lwt.t) ->
+  search: (Slice.t -> string -> ('result Search_result.t, string) result Lwt.t) ->
   ?min_characters: int ->
   slice: (Slice.t React.signal * (unit -> unit)) ->
   ?on_number_of_entries: (int -> unit) ->
