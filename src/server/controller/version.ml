@@ -276,7 +276,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t ->
   | Get_view -> get_view env
   | Get_view_for_tune -> get_view_for_tune env
   | Content -> content env
-  | Search_new -> search env
+  | Search -> search env
   | Create -> create env
   | Update -> update env
   | Delete -> delete env

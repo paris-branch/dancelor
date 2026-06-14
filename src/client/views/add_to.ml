@@ -78,7 +78,7 @@ let dialog_to_book ~source_type ~source_format source source_page =
       match Book_query.parse query with
       | Error msg -> lwt_error msg
       | Ok query ->
-        let%lwt books = Madge_client.call_exn Endpoints.Api.(route @@ Book Search_new) slice query in
+        let%lwt books = Madge_client.call_exn Endpoints.Api.(route @@ Book Search) slice query in
         let%lwt items = Lwt_list.map_p (fun book -> Option.get <$> Model.Book.get book.Book_row.id) books.items in
         lwt_ok {books with items}
     )

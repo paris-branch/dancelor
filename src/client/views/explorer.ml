@@ -19,7 +19,7 @@ let view query =
       ~search: (fun slice query ->
         match Any_query.parse query with
         | Error msg -> lwt_error msg
-        | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice query
+        | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice query
       )
       ?initial_input: query
       ~pagination_mode: (Pagination ())

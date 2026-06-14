@@ -195,7 +195,7 @@ let editor =
     ~search: (fun slice query ->
       match Tune_query.parse query with
       | Error msg -> lwt_error msg
-      | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search_new) slice query
+      | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) slice query
     )
     ~id_to_yojson: Entry.Id.to_yojson'
     ~id_of_yojson: Entry.Id.of_yojson'
@@ -226,7 +226,7 @@ let editor =
         ~search: (fun slice query ->
           match Person_query.parse query with
           | Error msg -> lwt_error msg
-          | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search_new) slice query
+          | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice query
         )
         ~id_to_yojson: Entry.Id.to_yojson'
         ~id_of_yojson: Entry.Id.of_yojson'
@@ -256,7 +256,7 @@ let editor =
             ~search: (fun slice query ->
               match Source_query.parse query with
               | Error msg -> lwt_error msg
-              | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search_new) slice query
+              | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice query
             )
             ~id_to_yojson: Entry.Id.to_yojson'
             ~id_of_yojson: Entry.Id.of_yojson'

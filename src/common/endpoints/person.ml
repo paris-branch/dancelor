@@ -3,12 +3,11 @@ open Madge
 open Model_new
 open Search_new
 open Model_builder.Core
-module Filter = Filter_builder.Core
 
 type (_, _, _) t =
   | For_user_row : (User_id.t -> 'w, 'w, Person_row.t option) t (* FIXME: move to user endpoints *)
   | Create : (Person.t -> 'w, 'w, Person_id.t) t
-  | Search_new : (Slice.t -> Person_query.t -> 'w, 'w, Person_row.t Search_result.t) t
+  | Search : (Slice.t -> Person_query.t -> 'w, 'w, Person_row.t Search_result.t) t
   | Get : (Person_id.t -> 'w, 'w, Person.entry) t (* FIXME: remove *)
   | Get_row : (Person_id.t -> 'w, 'w, Person_row.t) t
   | Get_view : (Person_id.t -> 'w, 'w, Person_view.t) t
@@ -21,7 +20,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   function
     | For_user_row -> literal "for-user" @@ variable (module User_id) @@ literal "row" @@ get (module JOption(Person_row))
     | Create -> body "person" (module Person) @@ post (module Person_id)
-    | Search_new -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Person_query) @@ get (module Make_search_result(Person_row))
+    | Search -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Person_query) @@ get (module Make_search_result(Person_row))
     | Get -> variable (module Person_id) @@ get (module Entry.JPublic(Person))
     | Get_row -> variable (module Person_id) @@ literal "row" @@ get (module Person_row)
     | Get_view -> variable (module Person_id) @@ literal "view" @@ get (module Person_view)

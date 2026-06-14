@@ -49,7 +49,7 @@ let quick_explorer_links links =
     ul ~a: [a_class ["bullet-list"]] (
       List.map
         (fun (text, query) ->
-          let count_lwt = Search_result.total <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) Slice.nothing query in
+          let count_lwt = Search_result.total <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) Slice.nothing query in
           li [
             a
               ~a: [a_href @@ Endpoints.Page.(href Explore) @@ some @@ Any_query.print query]

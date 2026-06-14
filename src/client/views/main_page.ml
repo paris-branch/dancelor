@@ -24,7 +24,7 @@ let quick_search =
     ~search: (fun slice query ->
       match Any_query.parse query with
       | Error msg -> lwt_error msg
-      | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search_new) slice query
+      | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice query
     )
     ~on_enter: (fun value -> Lwt.async (fun () -> quick_search_to_explorer value))
     ()

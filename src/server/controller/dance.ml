@@ -104,7 +104,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Dance.t -> a
   | Get -> get env
   | Get_row -> get_row env
   | Get_view -> get_view env
-  | Search_new -> search env
+  | Search -> search env
   | Create -> create env
   | Update -> update env
   | Delete -> delete env

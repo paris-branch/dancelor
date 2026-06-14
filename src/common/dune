@@ -31,8 +31,8 @@
    ppx_variants_conv))
  (inline_tests))
 
-(ocamllex kind_dance_lexer text_formula_lexer)
+(ocamllex kind_dance_lexer)
 
 (menhir
- (modules kind_dance_parser text_formula_parser)
+ (modules kind_dance_parser)
  (flags --table))

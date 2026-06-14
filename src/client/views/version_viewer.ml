@@ -54,7 +54,7 @@ let add_to_set_dialog (version : Version_name.t) =
       match Set_query.parse query with
       | Error msg -> lwt_error msg
       | Ok query ->
-        let%lwt sets = Madge_client.call_exn Endpoints.Api.(route @@ Set Search_new) slice query in
+        let%lwt sets = Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice query in
         let%lwt items = Lwt_list.map_p (fun set -> Option.get <$> Model.Set.get set.Set_row.id) sets.items in
         lwt_ok {sets with items}
     )

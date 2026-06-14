@@ -207,5 +207,5 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Any.t -> a =
   | Get -> get env
   | Get_rows -> get_rows env
   | Newest -> newest env
-  | Search_new -> search env
+  | Search -> search env
   | Search_context -> search_context env

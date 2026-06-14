@@ -192,7 +192,7 @@ let confirmation_dialog ~this_version ~other_version =
   (* changes to sets *)
   let%lwt sets =
     Search_result.items
-    <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search_new) Slice.everything @@
+    <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) Slice.everything @@
         Query.make ~specific: (Set_query.make_specific ~contains_version: (Some [Entry.id this_version]) ()) ()
   in
   let%lwt sets = Lwt_list.map_p (fun set -> Option.get <$> Model.Set.get set.Set_row.id) sets in
@@ -215,7 +215,7 @@ let confirmation_dialog ~this_version ~other_version =
   (* changes to books *)
   let%lwt books =
     Search_result.items
-    <$> Madge_client.call_exn Endpoints.Api.(route @@ Book Search_new) Slice.everything @@
+    <$> Madge_client.call_exn Endpoints.Api.(route @@ Book Search) Slice.everything @@
         Query.make ~specific: (Book_query.make_specific ~contains_version: (Some [Entry.id this_version]) ()) ()
   in
   let%lwt books = Lwt_list.map_p (fun book -> Option.get <$> Model.Book.get book.Book_row.id) books in

@@ -55,11 +55,6 @@ let rec to_pretty_string = function
       n
       (to_pretty_string kind)
 
-let rec version_kinds = function
-  | Version vkind -> [vkind]
-  | Add (kind1, kind2) -> version_kinds kind1 @ version_kinds kind2
-  | Mul (_n, kind) -> version_kinds kind
-
 let rec to_simple = function
   | Version (bars, base) -> Some (1, bars, base)
   | Add (kind1, kind2) ->
@@ -74,59 +69,3 @@ let rec to_simple = function
       None
   | Mul (n, kind) ->
     Option.map (fun (n', bars, base) -> (n * n', bars, base)) (to_simple kind)
-
-(* Filters *)
-
-module Filter = struct
-  type predicate =
-    | Is of t
-    | Simple
-    | Version of Kind_version.Filter.t
-  [@@deriving eq, ord, show {with_path = false}, yojson, variants]
-
-  let base = version % Kind_version.Filter.base'
-  let base_is = version % Kind_version.Filter.base_is'
-
-  type t = predicate Formula.t
-  [@@deriving eq, ord, show {with_path = false}, yojson]
-
-  let is' = Formula.pred % is
-  let base' = Formula.pred % base
-  let base_is' = Formula.pred % base_is
-
-  let accepts filter kind =
-    Formula.interpret filter @@ function
-      | Is kind' ->
-        lwt (Formula.interpret_bool (kind = kind'))
-      | Simple ->
-        (
-          match kind with
-          | Mul (_, Version _) -> lwt Formula.interpret_true
-          | _ -> lwt Formula.interpret_false
-        )
-      | Version vfilter ->
-        Formula.interpret_and_l
-        <$> Lwt_list.map_s
-            (Kind_version.Filter.accepts vfilter)
-            (version_kinds kind)
-
-  let converter =
-    Text_formula_converter.(
-      make
-        ~debug_name: "dance kind"
-        ~debug_print: pp_predicate
-        ~raw: (fun string ->
-          Option.fold
-            ~some: (ok % is')
-            ~none: (kspf error "could not interpret \"%s\" as a dance kind" string)
-            (of_string_opt string)
-        )
-        ~lifters: [
-          lifter ~name: "version" (version, version_val) Kind_version.Filter.converter;
-        ]
-        [nullary ~name: "simple" Simple;
-        unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "dance kind";
-        ]
-        ~compare_predicate
-    )
-end

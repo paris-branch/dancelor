@@ -6,66 +6,6 @@ open Html
 open Utils
 open Components
 
-(** Restricted predicates supported by the complex filter dialog. They are
-    always of the form of a conjunction of disjunctions. *)
-type restricted_predicate =
-  | Person of (Person.t, Filter.Person.t) Formula_entry.predicate_public list list
-  | Dance of (Dance.t, Filter.Dance.t) Formula_entry.predicate_public list list
-  | Source of (Source.t, Filter.Source.t) Formula_entry.predicate_public list list
-  | Book of (Book.t, Filter.Book.t) Formula_entry.predicate_private list list
-  | Set of (Set.t, Filter.Set.t) Formula_entry.predicate_private list list
-  | Tune of (Tune.t, Filter.Tune.t) Formula_entry.predicate_public list list
-  | Version of (Version.t, Filter.Version.t) Formula_entry.predicate_public list list
-[@@deriving variants]
-
-(** Restricted formulas supported by the complex filter dialog. This is a bunch
-    of raw strings and zero or one {!restricted_predicate}. *)
-type restricted_formula = string list * restricted_predicate option
-
-(** From a filter, return a {!restricted_formula}, or [None] if not possible. *)
-let restrict_formula (text : string) : restricted_formula option =
-  (* in the {!Option} monad, [None] being a failure to restrict the formula *)
-  let%opt filter = Result.to_option @@ Text_formula.string_to_formula Filter.Any.converter text in
-  let filter = Text_formula_converter.optimise Filter.Any.converter filter in
-  (* special case for the formula that is just true *)
-  if filter = Formula.True then
-    Some ([], None)
-  else
-    (
-      (* we only support conjunctions of predicates (after optimisation) *)
-      let (preds, non_preds) =
-        List.partition_map
-          (function Formula.Pred p -> Left p | f -> Right f)
-          (Formula.conjuncts filter)
-      in
-      (* assert%opt (non_preds = []);%opt *)
-      let%opt () = if non_preds = [] then Some () else None in
-      (* we separate the predicates between raw ones and non-raw ones *)
-      let (raws, non_raws) =
-        List.partition_map (function Filter.Any.Raw s -> Left s | p -> Right p) preds
-      in
-      (* there can be at most one non-raw predicate which must lift a model CNF *)
-      let%opt pred =
-        match non_raws with
-        | [] -> Some None
-        | [Person filter] -> Some (Option.map person (Formula.cnf_val filter))
-        | [Dance filter] -> Some (Option.map dance (Formula.cnf_val filter))
-        | [Source filter] -> Some (Option.map source (Formula.cnf_val filter))
-        | [Book filter] -> Some (Option.map book (Formula.cnf_val filter))
-        | [Set filter] -> Some (Option.map set (Formula.cnf_val filter))
-        | [Tune filter] -> Some (Option.map tune (Formula.cnf_val filter))
-        | [Version filter] -> Some (Option.map version (Formula.cnf_val filter))
-        | _ -> None
-      in
-      (* return the raw predicates and the restricted lifted one *)
-      Option.return (raws, pred)
-    )
-
-(** Takes a [~s]ignal to elements and a [~f]unction to map on those and return a
-    signal to a filter representing those elements. *)
-let choices_formula ~s ~f =
-  S.flip_map s @@ function [] -> Formula.true_ | cs -> Formula.or_l (List.map f cs)
-
 let type_choices (type_ : Any.Type.t option) =
   Choices.(
     make_radios

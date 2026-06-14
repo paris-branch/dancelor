@@ -3,7 +3,6 @@ open Madge
 open Model_new
 open Search_new
 open Model_builder.Core
-module Filter = Filter_builder.Core
 
 type copyright_response_reason =
   | Connected
@@ -37,7 +36,7 @@ end
 
 type (_, _, _) t =
   | Create : (Version.t -> 'w, 'w, Version_id.t) t
-  | Search_new : (Slice.t -> Version_query.t -> 'w, 'w, Version_row.t Search_result.t) t
+  | Search : (Slice.t -> Version_query.t -> 'w, 'w, Version_row.t Search_result.t) t
   | Get : (Version_id.t -> 'w, 'w, Version.entry) t
   | Get_row : (Version_id.t -> 'w, 'w, Version_row.t) t
   | Get_view : (Version_id.t -> 'w, 'w, Version_view.t) t
@@ -72,7 +71,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     | Create -> body "version" (module Version) @@ post (module Version_id)
-    | Search_new -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Version_query) @@ get (module Make_search_result(Version_row))
+    | Search -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Version_query) @@ get (module Make_search_result(Version_row))
     | Get -> variable (module Version_id) @@ get (module Entry.JPublic(Version_no_lilypond))
     | Get_row -> variable (module Version_id) @@ literal "row" @@ get (module Version_row)
     | Get_view -> variable (module Version_id) @@ literal "view" @@ get (module Version_view)

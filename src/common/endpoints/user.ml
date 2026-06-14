@@ -3,7 +3,6 @@ open Madge
 open Model_new
 open Search_new
 open Model_builder.Core
-module Filter = Filter_builder.Core
 
 type (_, _, _) t =
   | Get : ((User.t Entry.Id.t -> 'w), 'w, User.entry) t
@@ -15,7 +14,7 @@ type (_, _, _) t =
   | Create : ((User.t -> 'w), 'w, User.entry * User.Password_reset_token_clear.t) t
   | Prepare_reset_password : ((Username.t -> 'w), 'w, User.Password_reset_token_clear.t) t
   | Reset_password : ((Username.t -> User.Password_reset_token_clear.t -> User.Password_clear.t -> 'w), 'w, unit) t
-  | Search_new : (Slice.t -> User_query.t -> 'w, 'w, User_row.t Search_result.t) t
+  | Search : (Slice.t -> User_query.t -> 'w, 'w, User_row.t Search_result.t) t
   | Set_omniscience : ((bool -> 'w), 'w, unit) t
 [@@deriving madge_wrapped_endpoints]
 
@@ -31,5 +30,5 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Create -> literal "create" @@ body "user" (module User) @@ post (module JPair(Entry.JPublic(User))(User.Password_reset_token_clear))
     | Prepare_reset_password -> literal "prepare-reset-password" @@ body "username" (module Username) @@ post (module User.Password_reset_token_clear)
     | Reset_password -> literal "reset-password" @@ body "username" (module Username) @@ body "token" (module User.Password_reset_token_clear) @@ body "password" (module User.Password_clear) @@ post (module JUnit)
-    | Search_new -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module User_query) @@ get (module Make_search_result(User_row))
+    | Search -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module User_query) @@ get (module Make_search_result(User_row))
     | Set_omniscience -> literal "set-omniscience" @@ body "value" (module JBool) @@ put (module JUnit)

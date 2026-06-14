@@ -170,5 +170,5 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a 
   | Create -> create env
   | Prepare_reset_password -> prepare_reset_password env
   | Reset_password -> reset_password
-  | Search_new -> search env
+  | Search -> search env
   | Set_omniscience -> set_omniscience env
