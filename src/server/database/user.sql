@@ -10,14 +10,6 @@ JOIN "entry" ON "user"."id" = "entry"."id"
 WHERE "user"."id" = @id
 LIMIT 1; -- NOTE: to help sqlgg
 
--- @get_person
-SELECT
-    "person_id"
-FROM "user"
-JOIN "entry" ON "user"."id" = "entry"."id"
-WHERE "user"."id" = @id
-LIMIT 1; -- NOTE: to help sqlgg
-
 -- @get_all
 SELECT
     "entry"."id",

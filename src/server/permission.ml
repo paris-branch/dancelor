@@ -53,6 +53,14 @@ let assert_can_get_public env entry =
     ~shortcut_forbidden: Madge_server.shortcut_not_found
     ~forbidden_message: "This entry does not exist, or you do not have access to it."
 
+let assert_can_get_public_new env entry =
+  assert_
+    (flip can_get_public_new entry)
+    env
+    ~access_type: "public get"
+    ~shortcut_forbidden: Madge_server.shortcut_not_found
+    ~forbidden_message: "This entry does not exist, or you do not have access to it."
+
 (** The rejection of {!assert_can_get_public}. This may be used by external code
     to behave in the exact same way and avoid leaking information. *)
 let reject_can_get () =

@@ -5,7 +5,7 @@ open Search_new
 open Model_builder.Core
 
 type (_, _, _) t =
-  | For_user_row : (User_id.t -> 'w, 'w, Person_row.t option) t (* FIXME: move to user endpoints *)
+  | For_user : (User_id.t -> 'w, 'w, Person_row.t option) t
   | Create : (Person.t -> 'w, 'w, Person_id.t) t
   | Search : (Slice.t -> Person_query.t -> 'w, 'w, Person_row.t Search_result.t) t
   | Get : (Person_id.t -> 'w, 'w, Person.entry) t (* FIXME: remove *)
@@ -18,7 +18,7 @@ type (_, _, _) t =
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
-    | For_user_row -> literal "for-user" @@ variable (module User_id) @@ literal "row" @@ get (module JOption(Person_row))
+    | For_user -> literal "for-user" @@ variable (module User_id) @@ literal "row" @@ get (module JOption(Person_row))
     | Create -> body "person" (module Person) @@ post (module Person_id)
     | Search -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Person_query) @@ get (module Make_search_result(Person_row))
     | Get -> variable (module Person_id) @@ get (module Entry.JPublic(Person))
