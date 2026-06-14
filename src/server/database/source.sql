@@ -12,19 +12,6 @@ JOIN "entry" ON "source"."id" = "entry"."id"
 WHERE "source"."id" = @id
 LIMIT 1; -- NOTE: to help sqlgg
 
--- @get_all
-SELECT
-    "source"."id",
-    "name",
-    "short_name",
-    "scddb_id",
-    "description",
-    "date",
-    "created_at",
-    "modified_at"
-FROM "source"
-JOIN "entry" ON "source"."id" = "entry"."id";
-
 -- @create
 INSERT INTO "source" (
     "id",
@@ -86,6 +73,33 @@ SELECT "cover"
 FROM "source"
 WHERE "id" = @id;
 
+-- NEW MODELS
+
+-- @get_row
+SELECT
+    "name",
+    "date"
+FROM "source"
+WHERE "id" = @id;
+
+-- @get_rows
+SELECT
+    "id",
+    "name",
+    "date"
+FROM "source"
+WHERE "id" IN @ids;
+
+-- @get_view
+SELECT
+    "name",
+     "short_name",
+     "scddb_id",
+     "description",
+     "date"
+FROM "source"
+WHERE "id" = @id;
+
 -- @search
 SELECT
     CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
@@ -98,10 +112,11 @@ WHERE
     AND @editor { Some { EXISTS (SELECT 1 FROM "source_editors" WHERE "source_id" = "source"."id" AND "person_id" IN @editor) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
--- @get_all_editors_new
+-- @get_editors_for
 SELECT
     "source_id",
     "person"."id",
     "person"."name"
 FROM "source_editors"
-JOIN "person" ON "source_editors"."person_id" = "person"."id";
+JOIN "person" ON "source_editors"."person_id" = "person"."id"
+WHERE @source_ids { One_of { "source_id" IN @source_ids } | All { TRUE } };

@@ -7,7 +7,6 @@ open Search_new
    save some network by having them happen on the server, but they
    should be pushed into individual controllers in a first place, and
    then even all the way to the respective databases. *)
-
 let to_name (source : Model.Source.entry) : Source_name.t = {
   Source_name.id = Entry.id source;
   name = NEString.to_string @@ Model.Source.name' source;
@@ -22,29 +21,6 @@ let to_short_name (source : Model.Source.entry) : Source_short_name.t = {
   );
 }
 
-let to_row (source : Model.Source.entry) : Source_row.t Lwt.t =
-  let%lwt editors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Source.editors' source in
-  let editors = List.map Person.to_name editors in
-  lwt {
-    Source_row.id = Entry.id source;
-    name = NEString.to_string @@ Model.Source.name' source;
-    date = Model.Source.date' source;
-    editors;
-  }
-
-let to_view (source : Model.Source.entry) : Source_view.t Lwt.t =
-  let%lwt editors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Source.editors' source in
-  let editors = List.map Person.to_name editors in
-  lwt {
-    Source_view.id = Entry.id source;
-    name = NEString.to_string @@ Model.Source.name' source;
-    short_name = Option.map NEString.to_string @@ Model.Source.short_name' source;
-    date = Model.Source.date' source;
-    editors;
-    scddb_id = Model.Source.scddb_id' source;
-    description = Model.Source.description' source;
-  }
-
 let get env id =
   match%lwt Database.Source.get id with
   | None -> Permission.reject_can_get ()
@@ -53,29 +29,24 @@ let get env id =
     lwt source
 
 let get_row env id =
-  to_row =<< get env id
+  match%lwt Database.Source.get_row id with
+  | None -> Permission.reject_can_get ()
+  | Some source ->
+    Permission.assert_can_get_public_new env source;%lwt
+    lwt source
 
 let get_view env id =
-  to_view =<< get env id
+  match%lwt Database.Source.get_view id with
+  | None -> Permission.reject_can_get ()
+  | Some source ->
+    Permission.assert_can_get_public_new env source;%lwt
+    lwt source
 
 (** Returns a hash table containing as many of the ids as possible. *)
 let get_rows_table env ids =
-  let table = Hashtbl.create 8 in
-  Lwt_list.iter_s
-    (fun id ->
-      let%lwt source = Database.Source.get id in
-      Monadise_lwt.lift_1_1
-        Option.iter
-        (fun source ->
-          if%lwt Permission.can_get_public env source then
-            Hashtbl.add table id <$> to_row source
-          else
-            lwt_unit
-        )
-        source
-    )
-    ids;%lwt
-  lwt table
+  let%lwt Tbl tbl = Database.Source.get_rows ids in
+  Monadise_lwt.lift_2_1 Hashtbl.filter_map_inplace (fun _id source -> if%lwt Permission.can_get_public_new env source then lwt_some source else lwt_none) tbl;%lwt
+  lwt tbl
 
 let get_rows env ids =
   let%lwt table = get_rows_table env ids in

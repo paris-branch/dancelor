@@ -5,9 +5,6 @@ open Search_new
 
 module Source_sql = Source_sql.Sqlgg(Sqlgg_postgresql)
 
-type t = Model_builder.Core.Source.t
-type entry = Model_builder.Core.Source.entry
-
 let sql_to_short_name ~id ~name ~short_name ~(k : Source_short_name.t -> 'w) : 'w =
   let short_name = Option.value short_name ~default: name in
   k {id = Entry.Id.of_string_exn id; short_name}
@@ -15,15 +12,52 @@ let sql_to_short_name ~id ~name ~short_name ~(k : Source_short_name.t -> 'w) : '
 let sql_to_row ~id ~name ~date ~editors ~(k : Source_row.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name; date = Option.map (Option.get % PartialDate.from_string) date; editors}
 
+let sql_to_view ~id ~name ~short_name ~editors ~scddb_id ~description ~date ~(k : Source_view.t -> 'w) : 'w =
+  k {
+    id = Entry.Id.of_string_exn id;
+    name;
+    short_name;
+    editors;
+    scddb_id = Option.map Int64.to_int scddb_id;
+    description;
+    date = Option.map (Option.get % PartialDate.from_string) date;
+  }
+
+let get_editors_for db source_ids =
+  Utils.fold_to_tbl (Source_sql.Fold.get_editors_for ~source_ids) db (fun k ~source_id -> Person.sql_to_name ~k: (k source_id))
+
+let get_row id : Source_row.t option Lwt.t =
+  let id = Entry.Id.to_string id in
+  Connection.with_ @@ fun db ->
+  let%lwt editors = flip Utils.tbl_get id <$> get_editors_for db (`One_of [id]) in
+  Source_sql.Single.get_row db ~id (sql_to_row ~id ~editors ~k: Fun.id)
+
+let get_rows ids : (Source_id.t, Source_row.t) Utils.tbl Lwt.t =
+  let ids = List.map Entry.Id.to_string ids in
+  Connection.with_ @@ fun db ->
+  let%lwt editors_for = get_editors_for db (`One_of ids) in
+  Utils.fold_to_tbl (Source_sql.Fold.get_rows ~ids) db (fun k ~id -> sql_to_row ~id ~editors: (Utils.tbl_get editors_for id) ~k: (k @@ Entry.Id.of_string_exn id))
+
+let get_view id : Source_view.t option Lwt.t =
+  let id = Entry.Id.to_string id in
+  Connection.with_ @@ fun db ->
+  let%lwt editors = flip Utils.tbl_get id <$> get_editors_for db (`One_of [id]) in
+  Source_sql.Single.get_view db ~id (sql_to_view ~editors ~id ~k: Fun.id)
+
 let search query : (Source_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Source_query.editor}} = query in
   Connection.with_ @@ fun db ->
-  let%lwt editors = Utils.fold_to_tbl Source_sql.Fold.get_all_editors_new db (fun k ~source_id -> Person.sql_to_name ~k: (k source_id)) in
+  let%lwt editors_for = get_editors_for db `All in
   Source_sql.List.search
     db
     ~terms
     ~editor: (Utils.list_option_map_to_sql Entry.Id.to_string editor)
-    (fun ~score ~id -> sql_to_row ~id ~editors: (Utils.tbl_get editors id) ~k: (Pair.snoc score))
+    (fun ~score ~id -> sql_to_row ~id ~editors: (Utils.tbl_get editors_for id) ~k: (Pair.snoc score))
+
+(* Legacy *)
+
+type t = Model_builder.Core.Source.t
+type entry = Model_builder.Core.Source.entry
 
 let sql_to_source
     ~id
@@ -74,12 +108,6 @@ let get id : Model_builder.Core.Source.entry option Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt editors = Source_sql.List.get_editors db ~source_id: id (fun ~person_id -> Entry.Id.of_string_exn person_id) in
   Source_sql.Single.get db ~id (sql_to_source ~id ~editors)
-
-let get_all () =
-  Connection.with_ @@ fun db ->
-  let editors = Hashtbl.create 8 in
-  Source_sql.Fold.get_all_editors db (fun ~source_id ~person_id () -> Hashtbl.add editors source_id (Entry.Id.of_string_exn person_id)) ();%lwt
-  Source_sql.List.get_all db (fun ~id -> sql_to_source ~id ~editors: (List.rev @@ Hashtbl.find_all editors id))
 
 let create source =
   Connection.with_ @@ fun db ->
