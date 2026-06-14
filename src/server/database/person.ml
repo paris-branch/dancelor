@@ -11,7 +11,7 @@ type entry = Model_builder.Core.Person.entry
 let sql_to_name ~id ~name ~(k : Person_name.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name}
 
-let sql_to_row ~id ~name (k : Person_row.t -> 'w) : 'w =
+let sql_to_row ~id ~name ~(k : Person_row.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name}
 
 let search query : (Person_row.t * float) list Lwt.t =
@@ -20,7 +20,7 @@ let search query : (Person_row.t * float) list Lwt.t =
   Person_sql.List.search
     db
     ~terms
-    (fun ~score -> sql_to_row (Pair.snoc score))
+    (fun ~score -> sql_to_row ~k: (Pair.snoc score))
 
 let sql_to_person
     ~id

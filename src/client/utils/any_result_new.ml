@@ -45,6 +45,19 @@ let make_person_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) 
       suffix
     )
 
+let make_user_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (user : User_row.t) =
+  ignore context;
+  (* FIXME *)
+  row
+    ?classes
+    ?onclick
+    (
+      prefix @
+      [td ~a: [a_colspan 3] [txt @@ Username.to_string user.username];
+      ] @
+      suffix
+    )
+
 let make_dance_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (dance : Dance_row.t) =
   row
     ?classes
@@ -143,6 +156,7 @@ let any_to_icon_and_string any =
   | Version _ -> (Icon.Version, "Version")
   | Set _ -> (Icon.Set, "Set")
   | Book _ -> (Icon.Book, "Book")
+  | User _ -> (Icon.User, "User")
 
 let make_result ?classes ?context (any : Any_row.t) =
   let prefix =
@@ -167,6 +181,7 @@ let make_result ?classes ?context (any : Any_row.t) =
         | Version _ -> None
         | Set set -> Some set.permission
         | Book book -> Some book.permission
+        | User _ -> None
       in
       match permission with
       | None -> Icon.html Icon.(Access Everyone) ~tooltip: "You can see this entry because it is an always-public entry (eg. a person or a tune)" ~classes: ["opacity-25"]
@@ -190,3 +205,4 @@ let make_result ?classes ?context (any : Any_row.t) =
   | Set set -> make_set_result ?classes ?context ~prefix ~suffix set
   | Tune tune -> make_tune_result ?classes ?context ~prefix ~suffix tune
   | Version version -> make_version_result ?classes ?context ~prefix ~suffix version
+  | User user -> make_user_result ?classes ?context ~prefix ~suffix user

@@ -122,3 +122,17 @@ UPDATE "user"
 SET
     "omniscience" = @omniscience
 WHERE "id" = @id;
+
+-- @get_row
+SELECT "username"
+FROM "user"
+WHERE "id" = @id;
+
+-- @search
+SELECT
+    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "username") END AS "score",
+    "id",
+    "username"
+FROM "user"
+WHERE (@terms = '' OR @terms <% "username")
+ORDER BY "score" DESC, "username" ASC;

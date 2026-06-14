@@ -95,3 +95,4 @@ let any_id_to_old_any : Any_id.t -> Model.Any.t Lwt.t = function
   | Set id -> (fun s -> Model.Any.Set (Option.get s)) <$> Model.Set.get id
   | Tune id -> (fun t -> Model.Any.Tune (Option.get t)) <$> Model.Tune.get id
   | Version id -> (fun v -> Model.Any.Version (Option.get v)) <$> Model.Version.get id
+  | User id -> (fun u -> Model.Any.User (Option.get u)) <$> Model.User.get id

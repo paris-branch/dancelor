@@ -122,6 +122,7 @@ let href_any_full_new ?context (any : Any_id.t) =
   | Dance dance -> href_dance ?context dance
   | Book book -> href_book ?context book
   | Tune tune -> href_tune ?context tune
+  | User _user -> assert false (* FIXME: user visualisation page *)
 
 (** Function that consumes all endpoints and returns nothing. It is meant to be
     used in the catch-all case of a pattern matching. *)
