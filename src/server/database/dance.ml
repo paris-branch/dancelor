@@ -5,9 +5,6 @@ open Search_new
 
 module Dance_sql = Dance_sql.Sqlgg(Sqlgg_postgresql)
 
-type t = Model_builder.Core.Dance.t
-type entry = Model_builder.Core.Dance.entry
-
 let two_chords_to_common = function
   | `Dont_know -> Model_builder.Core.Dance.Dont_know
   | `One_chord -> One_chord
@@ -27,15 +24,57 @@ let sql_to_row ~id ~name ~kind ~devisers ~disambiguation ~(k : Dance_row.t -> 'w
     disambiguation;
   }
 
+let sql_to_view ~id ~name ~extra_names ~kind ~devisers ~scddb_id ~disambiguation ~date ~(k : Dance_view.t -> 'w) : 'w =
+  k {
+    id = Entry.Id.of_string_exn id;
+    name;
+    extra_names;
+    kind = Kind_dance.of_string kind;
+    devisers;
+    scddb_id = Option.map Int64.to_int scddb_id;
+    disambiguation;
+    date = Option.map (Option.get % PartialDate.from_string) date;
+  }
+
+let get_extra_names_for db dance_ids =
+  Utils.fold_to_tbl (Dance_sql.Fold.get_extra_names_for ~dance_ids) db (fun k ~dance_id ~extra_name -> k dance_id extra_name)
+
+let get_devisers_for db dance_ids =
+  Utils.fold_to_tbl (Dance_sql.Fold.get_devisers_for ~dance_ids) db (fun k ~dance_id -> Person.sql_to_name ~k: (k dance_id))
+
+let get_row id : Dance_row.t option Lwt.t =
+  let id = Entry.Id.to_string id in
+  Connection.with_ @@ fun db ->
+  let%lwt devisers = flip Utils.tbl_get id <$> get_devisers_for db (`One_of [id]) in
+  Dance_sql.Single.get_row db ~id (sql_to_row ~id ~devisers ~k: Fun.id)
+
+let get_rows ids : (Dance_id.t, Dance_row.t) Utils.tbl Lwt.t =
+  let ids = List.map Entry.Id.to_string ids in
+  Connection.with_ @@ fun db ->
+  let%lwt devisers_for = get_devisers_for db (`One_of ids) in
+  Utils.fold_to_tbl (Dance_sql.Fold.get_rows ~ids) db (fun k ~id -> sql_to_row ~id ~devisers: (Utils.tbl_get devisers_for id) ~k: (k @@ Entry.Id.of_string_exn id))
+
+let get_view id : Dance_view.t option Lwt.t =
+  let id = Entry.Id.to_string id in
+  Connection.with_ @@ fun db ->
+  let%lwt extra_names = flip Utils.tbl_get id <$> get_extra_names_for db (`One_of [id]) in
+  let%lwt devisers = flip Utils.tbl_get id <$> get_devisers_for db (`One_of [id]) in
+  Dance_sql.Single.get_view db ~id (sql_to_view ~extra_names ~devisers ~id ~k: Fun.id)
+
 let search query : (Dance_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Dance_query.deviser}} = query in
   Connection.with_ @@ fun db ->
-  let%lwt devisers = Utils.fold_to_tbl Dance_sql.Fold.get_all_devisers_new db (fun k ~dance_id -> Person.sql_to_name ~k: (k dance_id)) in
+  let%lwt devisers = get_devisers_for db `All in
   Dance_sql.List.search
     db
     ~terms
     ~deviser: (Utils.list_option_map_to_sql Entry.Id.to_string deviser)
     (fun ~score ~id -> sql_to_row ~id ~devisers: (Utils.tbl_get devisers id) ~k: (Pair.snoc score))
+
+(* Legacy *)
+
+type t = Model_builder.Core.Dance.t
+type entry = Model_builder.Core.Dance.entry
 
 let sql_to_dance
     ~id
@@ -103,29 +142,6 @@ let get id : Model_builder.Core.Dance.entry option Lwt.t =
   let%lwt extra_names = Dance_sql.List.get_extra_names db ~dance_id: id (fun ~extra_name -> NEString.of_string_exn extra_name) in
   let%lwt devisers = Dance_sql.List.get_devisers db ~dance_id: id (fun ~deviser_id -> Entry.Id.of_string_exn deviser_id) in
   Dance_sql.Single.get db ~id (sql_to_dance ~id ~extra_names ~devisers)
-
-let get_all () =
-  Connection.with_ @@ fun db ->
-  let extra_names = Hashtbl.create 8 in
-  let devisers = Hashtbl.create 8 in
-  Dance_sql.Fold.get_all_extra_names
-    db
-    (fun ~dance_id ~extra_name () ->
-      Hashtbl.add extra_names dance_id (NEString.of_string_exn extra_name)
-    )
-    ();%lwt
-  Dance_sql.Fold.get_all_devisers
-    db
-    (fun ~dance_id ~deviser_id () ->
-      Hashtbl.add devisers dance_id (Entry.Id.of_string_exn deviser_id)
-    )
-    ();%lwt
-  Dance_sql.List.get_all db (fun ~id ->
-    sql_to_dance
-      ~id
-      ~extra_names: (List.rev @@ Hashtbl.find_all extra_names id)
-      ~devisers: (List.rev @@ Hashtbl.find_all devisers id)
-  )
 
 let create dance =
   Connection.with_ @@ fun db ->
