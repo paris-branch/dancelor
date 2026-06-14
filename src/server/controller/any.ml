@@ -117,8 +117,6 @@ let slice_lwt_stream = fun ?(strict = true) slice xs ->
   in
   Lwt_stream.from next
 
-let cache : (Environment.cache_key * Any_query.t, (Any_row.t * float) Search_result.t Lwt.t) Cache.t = Cache.create ~lifetime: 600 ()
-
 let search'_person env query =
   Search_result.map (Pair.map_fst Any_row.person) <$> Person.search' env query
 
@@ -177,6 +175,9 @@ let search'_any env query =
     ]
   in
   lwt {Search_result.total; items}
+
+let cache : (Environment.cache_key * Any_query.t, (Any_row.t * float) Search_result.t Lwt.t) Cache.t =
+  Cache.create ~lifetime: 60 ()
 
 let search' env ({common; specific}: Any_query.t) =
   Cache.use ~cache ~key: (Environment.cache_key env, {common; specific}) @@ fun () ->

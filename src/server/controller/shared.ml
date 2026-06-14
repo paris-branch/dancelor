@@ -44,7 +44,11 @@ module Make (Db : Db) = struct
     let%lwt table = get_rows_table env ids in
     lwt @@ List.filter_map (Hashtbl.find_opt table) ids
 
+  let cache : (Environment.cache_key * Db.query, (Db.row * float) Search_result.t Lwt.t) Cache.t =
+    Cache.create ~lifetime: 60 ()
+
   let search' env query =
+    Cache.use ~cache ~key: (Environment.cache_key env, query) @@ fun () ->
     let%lwt items = Db.search query in
     let%lwt items = Lwt_list.filter_s (Permission.can_get_public_new env % fst) items in
     lwt {Search_result.total = List.length items; items}
