@@ -3,6 +3,16 @@ open Dancelor_common
 open Model_new
 open Search_new
 
+include Shared.Make(struct
+  type id = Source_id.t
+  type row = Source_row.t
+  type view = Source_view.t
+  type query = Source_query.t
+  include Database.Source
+end)
+
+(* Legacy *)
+
 (* FIXME: The following conversion functions are temporary. We will
    save some network by having them happen on the server, but they
    should be pushed into individual controllers in a first place, and
@@ -28,30 +38,6 @@ let get env id =
     Permission.assert_can_get_public env source;%lwt
     lwt source
 
-let get_row env id =
-  match%lwt Database.Source.get_row id with
-  | None -> Permission.reject_can_get ()
-  | Some source ->
-    Permission.assert_can_get_public_new env source;%lwt
-    lwt source
-
-let get_view env id =
-  match%lwt Database.Source.get_view id with
-  | None -> Permission.reject_can_get ()
-  | Some source ->
-    Permission.assert_can_get_public_new env source;%lwt
-    lwt source
-
-(** Returns a hash table containing as many of the ids as possible. *)
-let get_rows_table env ids =
-  let%lwt Tbl tbl = Database.Source.get_rows ids in
-  Monadise_lwt.lift_2_1 Hashtbl.filter_map_inplace (fun _id source -> if%lwt Permission.can_get_public_new env source then lwt_some source else lwt_none) tbl;%lwt
-  lwt tbl
-
-let get_rows env ids =
-  let%lwt table = get_rows_table env ids in
-  lwt @@ List.filter_map (Hashtbl.find_opt table) ids
-
 let create env source =
   Permission.assert_can_create_public env;%lwt
   Database.Source.create source
@@ -70,15 +56,7 @@ let get_cover env id =
   let fname = Option.value fname ~default: (Filename.concat (Config.get ()).share "no-cover.webp") in
   Madge_server.respond_file ~fname
 
-let search' env query =
-  let%lwt items = Database.Source.search query in
-  let%lwt items = Lwt_list.filter_s (Permission.can_get_public_new env % fst) items in
-  lwt {Search_result.total = List.length items; items}
-
-let search env slice query =
-  let%lwt {total; items} = search' env query in
-  let items = List.map fst @@ Slice.list ~strict: false slice items in
-  lwt {Search_result.total; items}
+(* Dispatch *)
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Source.t -> a = fun env endpoint ->
   match endpoint with
