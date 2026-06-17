@@ -5,9 +5,6 @@ open Search_new
 
 module Tune_sql = Tune_sql.Sqlgg(Sqlgg_postgresql)
 
-type t = Model_builder.Core.Tune.t
-type entry = Model_builder.Core.Tune.entry
-
 type sql_kind_base = [`Jig | `Reel | `Strathspey | `Waltz | `Polka | `Jig_9_8 | `Other]
 
 let sql_to_kind_base : sql_kind_base -> Kind_base.t = function
@@ -36,24 +33,102 @@ let sql_to_row ~id ~name ~kind ~composers ~(k : Tune_row.t -> 'w) : 'w =
     composers;
   }
 
-let for_dance dance_id : Tune_row.t list Lwt.t =
+let sql_to_version_row_without_tune ~id ~sources ~disambiguation ~arrangers ~monolithic_bars ~monolithic_or_default_structure ~(k : Tune_view.version_row_without_tune -> 'w) : 'w =
+  let content : Version_row.content =
+    match (monolithic_bars, monolithic_or_default_structure) with
+    | (None, None) -> No_content
+    | (None, Some _default_structure) -> Destructured
+    | (Some bars, Some structure) ->
+      Monolithic {
+        bars = Int64.to_int bars;
+        structure = Option.get (Model_builder.Core.Version.Structure.of_string (NEString.of_string_exn structure));
+      }
+    | _ -> assert false
+  in
+  k {
+    id = Entry.Id.of_string_exn id;
+    sources;
+    disambiguation;
+    arrangers;
+    content;
+  }
+
+let sql_to_view ~id ~name ~extra_names ~kind ~composers ~dances ~remark ~scddb_id ~date ~versions ~(k : Tune_view.t -> 'w) : 'w =
+  k {
+    id = Entry.Id.of_string_exn id;
+    name;
+    extra_names;
+    kind = sql_to_kind_base kind;
+    composers;
+    dances;
+    remark;
+    scddb_id = Option.map Int64.to_int scddb_id;
+    date = Option.map (Option.get % PartialDate.from_string) date;
+    versions;
+  }
+
+let get_extra_names_for db tune_ids =
+  Utils.fold_to_get (Tune_sql.Fold.get_extra_names_for ~tune_ids) db (fun k ~tune_id ~extra_name -> k tune_id extra_name)
+
+let get_dances_for db tune_ids =
+  let%lwt devisers_for = Utils.fold_to_get (Tune_sql.Fold.get_devisers_for_dances_of ~tune_ids) db (fun k ~dance_id -> Person.sql_to_name ~k: (k dance_id)) in
+  Utils.fold_to_get (Tune_sql.Fold.get_dances_for ~tune_ids) db (fun k ~tune_id ~id -> Dance.sql_to_row ~id ~devisers: (devisers_for id) ~k: (k tune_id))
+
+let get_versions_for db tune_ids =
+  let%lwt sources_for = Utils.fold_to_get (Tune_sql.Fold.get_sources_for_versions_of ~tune_ids) db (fun k ~version_id -> Source.sql_to_short_name ~k: (k version_id)) in
+  let%lwt arrangers_for = Utils.fold_to_get (Tune_sql.Fold.get_arrangers_for_versions_of ~tune_ids) db (fun k ~version_id -> Person.sql_to_name ~k: (k version_id)) in
+  Utils.fold_to_get (Tune_sql.Fold.get_versions_for ~tune_ids) db (fun k ~id ~tune_id -> sql_to_version_row_without_tune ~id ~arrangers: (arrangers_for id) ~sources: (sources_for id) ~k: (k tune_id))
+
+let get_composers_for db tune_ids =
+  Utils.fold_to_get (Tune_sql.Fold.get_composers_for ~tune_ids) db (fun k ~tune_id -> Person.sql_to_name ~k: (k tune_id))
+
+let get_composers_with_details_for db tune_ids =
+  Utils.fold_to_get (Tune_sql.Fold.get_composers_with_details_for ~tune_ids) db (fun k ~tune_id -> Person.sql_to_name_with_details ~k: (k tune_id))
+
+let get_row id : Tune_row.t option Lwt.t =
+  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
-  let%lwt composers = Utils.fold_to_tbl Tune_sql.Fold.get_all_composers_new db (fun k ~tune_id -> Person.sql_to_name ~k: (k tune_id)) in
-  Tune_sql.List.for_dance
+  let%lwt composers = (fun f -> f id) <$> get_composers_for db (`One_of [id]) in
+  Tune_sql.Single.get_row db ~id (sql_to_row ~id ~composers ~k: Fun.id)
+
+let get_rows ids : (Tune_id.t, Tune_row.t) Utils.tbl Lwt.t =
+  let ids = List.map Entry.Id.to_string ids in
+  Connection.with_ @@ fun db ->
+  let%lwt composers_for = get_composers_for db (`One_of ids) in
+  Utils.fold_to_tbl (Tune_sql.Fold.get_rows ~ids) db (fun k ~id -> sql_to_row ~id ~composers: (composers_for id) ~k: (k @@ Entry.Id.of_string_exn id))
+
+let get_rows_for_dance dance_id : Tune_row.t list Lwt.t =
+  Connection.with_ @@ fun db ->
+  let%lwt composers_for = get_composers_for db `All in
+  Tune_sql.List.get_rows_for_dance
     db
     ~dance_id: (Entry.Id.to_string dance_id)
-    (fun ~id -> sql_to_row ~id ~composers: (Utils.tbl_get composers id) ~k: Fun.id)
+    (fun ~id -> sql_to_row ~id ~composers: (composers_for id) ~k: Fun.id)
+
+let get_view id : Tune_view.t option Lwt.t =
+  let id = Entry.Id.to_string id in
+  Connection.with_ @@ fun db ->
+  let%lwt extra_names = (fun f -> f id) <$> get_extra_names_for db (`One_of [id]) in
+  let%lwt dances = (fun f -> f id) <$> get_dances_for db (`One_of [id]) in
+  let%lwt versions = (fun f -> f id) <$> get_versions_for db (`One_of [id]) in
+  let%lwt composers = (fun f -> f id) <$> get_composers_with_details_for db (`One_of [id]) in
+  Tune_sql.Single.get_view db ~id (sql_to_view ~extra_names ~dances ~composers ~versions ~id ~k: Fun.id)
 
 let search query : (Tune_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Tune_query.kind; composer}} = query in
   Connection.with_ @@ fun db ->
-  let%lwt composers = Utils.fold_to_tbl Tune_sql.Fold.get_all_composers_new db (fun k ~tune_id -> Person.sql_to_name ~k: (k tune_id)) in
+  let%lwt composers_for = get_composers_for db `All in
   Tune_sql.List.search
     db
     ~terms
     ~kind: (Option.map (List.map kind_base_to_sql) kind)
     ~composer: (Utils.list_option_map_to_sql Entry.Id.to_string composer)
-    (fun ~score ~id -> sql_to_row ~id ~composers: (Utils.tbl_get composers id) ~k: (Pair.snoc score))
+    (fun ~score ~id -> sql_to_row ~id ~composers: (composers_for id) ~k: (Pair.snoc score))
+
+(* Legacy *)
+
+type t = Model_builder.Core.Tune.t
+type entry = Model_builder.Core.Tune.entry
 
 let sql_to_tune
     ~id
@@ -128,37 +203,6 @@ let get id : Model_builder.Core.Tune.entry option Lwt.t =
   let%lwt composers = Tune_sql.List.get_composers db ~tune_id: id (fun ~composer_id ~details -> (Entry.Id.of_string_exn composer_id, Option.map NEString.of_string_exn details)) in
   let%lwt dances = Tune_sql.List.get_dances db ~tune_id: id (fun ~dance_id -> Entry.Id.of_string_exn dance_id) in
   Tune_sql.Single.get db ~id (sql_to_tune ~id ~extra_names ~composers ~dances)
-
-let get_all () =
-  Connection.with_ @@ fun db ->
-  let extra_names = Hashtbl.create 8 in
-  let composers = Hashtbl.create 8 in
-  let dances = Hashtbl.create 8 in
-  Tune_sql.Fold.get_all_extra_names
-    db
-    (fun ~tune_id ~extra_name () ->
-      Hashtbl.add extra_names tune_id (NEString.of_string_exn extra_name)
-    )
-    ();%lwt
-  Tune_sql.Fold.get_all_composers
-    db
-    (fun ~tune_id ~composer_id ~details () ->
-      Hashtbl.add composers tune_id (Entry.Id.of_string_exn composer_id, Option.map NEString.of_string_exn details)
-    )
-    ();%lwt
-  Tune_sql.Fold.get_all_dances
-    db
-    (fun ~tune_id ~dance_id () ->
-      Hashtbl.add dances tune_id (Entry.Id.of_string_exn dance_id)
-    )
-    ();%lwt
-  Tune_sql.List.get_all db (fun ~id ->
-    sql_to_tune
-      ~id
-      ~extra_names: (List.rev @@ Hashtbl.find_all extra_names id)
-      ~composers: (List.rev @@ Hashtbl.find_all composers id)
-      ~dances: (List.rev @@ Hashtbl.find_all dances id)
-  )
 
 let create tune =
   Connection.with_ @@ fun db ->

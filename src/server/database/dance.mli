@@ -11,6 +11,17 @@ val get_view : Dance_id.t -> Dance_view.t option Lwt.t
 
 val search : Dance_query.t -> (Dance_row.t * float) list Lwt.t
 
+(** {2 Utilities for other models} *)
+
+val sql_to_row :
+  id: string ->
+  name: string ->
+  kind: string ->
+  devisers: Person_name.t list ->
+  disambiguation: string option ->
+  k: (Dance_row.t -> 'w) ->
+  'w
+
 (** {2 Legacy} *)
 
 type t = Model_builder.Core.Dance.t

@@ -21,6 +21,13 @@ val sql_to_name :
   k: (Person_name.t -> 'w) ->
   'w
 
+val sql_to_name_with_details :
+  id: string ->
+  name: string ->
+  details: string option ->
+  k: (Person_name_with_details.t -> 'w) ->
+  'w
+
 val sql_to_row :
   id: string ->
   name: string ->

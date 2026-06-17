@@ -49,7 +49,7 @@ let delete env id =
 
 let tunes env id =
   let%lwt _ = get env id in
-  let%lwt tunes = Database.Tune.for_dance id in
+  let%lwt tunes = Database.Tune.get_rows_for_dance id in
   let%lwt tunes = Lwt_list.filter_s (Permission.can_get_public_new env) tunes in
   lwt tunes
 

@@ -46,10 +46,13 @@ let sql_to_row
     content;
   }
 
+let get_tune_composers_for db tune_ids =
+  Utils.fold_to_get (Tune_sql.Fold.get_composers_for ~tune_ids) db (fun k ~tune_id -> Person.sql_to_name ~k: (k tune_id))
+
 let search query : (Version_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Version_query.tune; key; source}} = query in
   Connection.with_ @@ fun db ->
-  let%lwt tune_composers = Utils.fold_to_tbl Tune_sql.Fold.get_all_composers_new db (fun k ~tune_id -> Person.sql_to_name ~k: (k tune_id)) in
+  let%lwt tune_composers_for = get_tune_composers_for db `All in
   let%lwt sources = Utils.fold_to_tbl Version_sql.Fold.get_all_sources_new db (fun k ~version_id -> Source.sql_to_short_name ~k: (k version_id)) in
   let%lwt arrangers = Utils.fold_to_tbl Version_sql.Fold.get_all_arrangers_new db (fun k ~version_id -> Person.sql_to_name ~k: (k version_id)) in
   Version_sql.List.search
@@ -63,7 +66,7 @@ let search query : (Version_row.t * float) list Lwt.t =
       sql_to_row
         ~id
         ~tune_id
-        ~tune_composers: (Utils.tbl_get tune_composers tune_id)
+        ~tune_composers: (tune_composers_for tune_id)
         ~sources: (Utils.tbl_get sources id)
         ~arrangers: (Utils.tbl_get arrangers id)
         ~k: (Pair.snoc score)

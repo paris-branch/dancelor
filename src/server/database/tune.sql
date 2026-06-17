@@ -12,19 +12,6 @@ JOIN "entry" ON "tune"."id" = "entry"."id"
 WHERE "tune"."id" = @id
 LIMIT 1; -- NOTE: to help sqlgg
 
--- @get_all
-SELECT
-    "tune"."id",
-    "name",
-    "kind",
-    "remark",
-    "scddb_id",
-    "date",
-    "created_at",
-    "modified_at"
-FROM "tune"
-JOIN "entry" ON "tune"."id" = "entry"."id";
-
 -- @create
 INSERT INTO "tune" (
     "id",
@@ -141,6 +128,33 @@ INSERT INTO "recommended_tunes" (
     @dance_id
 );
 
+-- NEW MODELS
+
+-- @get_row
+SELECT
+    "name",
+    "kind"
+FROM "tune"
+WHERE "id" = @id;
+
+-- @get_rows
+SELECT
+    "id",
+    "name",
+    "kind"
+FROM "tune"
+WHERE "id" IN @ids;
+
+-- @get_view
+SELECT
+    "name",
+    "kind",
+    "remark",
+    "scddb_id",
+    "date"
+FROM "tune"
+WHERE "id" = @id;
+
 -- @search
 SELECT
     CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
@@ -154,16 +168,88 @@ WHERE
     AND @composer { Some { EXISTS (SELECT 1 FROM "tune_composers" WHERE "tune_id" = "tune"."id" AND "composer_id" IN @composer) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
--- @get_all_composers_new
+-- @get_extra_names_for
+SELECT
+    "tune_id",
+    "extra_name"
+FROM "tune_extra_names"
+WHERE @tune_ids { One_of { "tune_id" IN @tune_ids } | All { TRUE } }
+ORDER BY "extra_name";
+
+-- @get_composers_for
 SELECT
     "tune_id",
     "person"."id",
     "person"."name"
 FROM "tune_composers"
 JOIN "person" ON "tune_composers"."composer_id" = "person"."id"
+WHERE @tune_ids { One_of { "tune_id" IN @tune_ids } | All { TRUE } }
 ORDER BY "index";
 
--- @for_dance
+-- @get_composers_with_details_for
+SELECT
+    "tune_id",
+    "person"."id",
+    "person"."name",
+    "tune_composers"."details"
+FROM "tune_composers"
+JOIN "person" ON "tune_composers"."composer_id" = "person"."id"
+WHERE @tune_ids { One_of { "tune_id" IN @tune_ids } | All { TRUE } }
+ORDER BY "index";
+
+-- @get_dances_for
+SELECT
+    "tune_id",
+    "dance"."id",
+    "dance"."name",
+    "dance"."kind",
+    "dance"."disambiguation"
+FROM "recommended_tunes"
+JOIN "dance" ON "recommended_tunes"."dance_id" = "dance"."id"
+WHERE @tune_ids { One_of { "recommended_tunes"."tune_id" IN @tune_ids } | All { TRUE } };
+
+-- @get_devisers_for_dances_of
+SELECT
+    "recommended_tunes"."dance_id",
+    "person"."id",
+    "person"."name"
+FROM "recommended_tunes"
+JOIN "dance_devisers" ON "recommended_tunes"."dance_id" = "dance_devisers"."dance_id"
+JOIN "person" ON "dance_devisers"."deviser_id" = "person"."id"
+WHERE @tune_ids { One_of { "recommended_tunes"."tune_id" IN @tune_ids } | All { TRUE } };
+
+-- @get_versions_for
+SELECT
+    "id",
+    "tune_id",
+    "disambiguation",
+    "monolithic_bars",
+    "monolithic_or_default_structure"
+FROM "version"
+WHERE @tune_ids { One_of { "tune_id" IN @tune_ids } | All { TRUE } };
+
+-- @get_sources_for_versions_of
+SELECT
+    "version_id",
+    "source"."id",
+    "source"."name",
+    "source"."short_name"
+FROM "version_sources"
+JOIN "version" ON "version_sources"."version_id" = "version"."id"
+JOIN "source" ON "version_sources"."source_id" = "source"."id"
+WHERE @tune_ids { One_of { "version"."tune_id" IN @tune_ids } | All { TRUE } };
+
+-- @get_arrangers_for_versions_of
+SELECT
+    "version_id",
+    "person"."id",
+    "person"."name"
+FROM "version_arrangers"
+JOIN "version" ON "version_arrangers"."version_id" = "version"."id"
+JOIN "person" ON "version_arrangers"."arranger_id" = "person"."id"
+WHERE @tune_ids { One_of { "version"."tune_id" IN @tune_ids } | All { TRUE } };
+
+-- @get_rows_for_dance
 SELECT
     "tune"."id",
     "name",

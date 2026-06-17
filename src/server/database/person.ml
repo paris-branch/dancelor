@@ -8,6 +8,9 @@ module Person_sql = Person_sql.Sqlgg(Sqlgg_postgresql)
 let sql_to_name ~id ~name ~(k : Person_name.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name}
 
+let sql_to_name_with_details ~id ~name ~details ~(k : Person_name_with_details.t -> 'w) : 'w =
+  k {id = Entry.Id.of_string_exn id; name; details}
+
 let sql_to_row ~id ~name ~(k : Person_row.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name}
 
