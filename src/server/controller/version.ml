@@ -5,11 +5,20 @@ open Search_new
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server.controller.version": Logs.LOG)
 
-(* FIXME: The following conversion functions are temporary. We will
+include Shared.Make(struct
+  type id = Version_id.t
+  type row = Version_row.t
+  type view = Version_view.t
+  type query = Version_query.t
+  include Database.Version
+end)
+
+(* Legacy *)
+
+(* FIXME: The following conversion function is temporary. We will
    save some network by having them happen on the server, but they
    should be pushed into individual controllers in a first place, and
    then even all the way to the respective databases. *)
-
 let to_row (version : Model.Version.entry) : Version_row.t Lwt.t =
   let content_to_content = function
     | Model.Version.Content.No_content -> Version_row.No_content
@@ -29,70 +38,12 @@ let to_row (version : Model.Version.entry) : Version_row.t Lwt.t =
     content = content_to_content @@ Model.Version.content' version;
   }
 
-let to_view env (version : Model.Version.entry) : Version_view.t Lwt.t =
-  let source_to_source {Model.Version.source; structure; details} =
-    let%lwt source = Option.get <$> Model.Source.get source in
-    lwt ({
-      id = Entry.id source;
-      name = NEString.to_string @@ Model.Source.name' source;
-      structure;
-      details = Option.map NEString.to_string details;
-    }: Version_view.source)
-  in
-  let content_to_content = function
-    | Model.Version.Content.No_content -> Version_view.No_content
-    | Destructured {default_structure; _} -> Destructured {default_structure}
-    | Monolithic {bars; structure; _} -> Monolithic {bars; structure}
-  in
-  let%lwt tune = Tune.to_view env =<< Model.Version.tune' version in
-  let%lwt sources = Lwt_list.map_s source_to_source @@ Model.Version.sources' version in
-  let%lwt arrangers = Lwt_list.map_s (Person.to_name % Option.get <%> Model.Person.get) (Model.Version.arrangers' version) in
-  lwt {
-    Version_view.id = Entry.id version;
-    tune;
-    sources;
-    disambiguation = Option.map NEString.to_string @@ Model.Version.disambiguation' version;
-    arrangers;
-    content = content_to_content @@ Model.Version.content' version;
-    key = Model.Version.key' version;
-    remark = Option.map NEString.to_string @@ Model.Version.remark' version;
-  }
-
 let get env id =
   match%lwt Database.Version.get id with
   | None -> Permission.reject_can_get ()
   | Some version ->
     Permission.assert_can_get_public env version;%lwt
     lwt version
-
-let get_row env id =
-  to_row =<< get env id
-
-let get_view env id =
-  to_view env =<< get env id
-
-(** Returns a hash table containing as many of the ids as possible. *)
-let get_rows_table env ids =
-  let table = Hashtbl.create 8 in
-  Lwt_list.iter_s
-    (fun id ->
-      let%lwt version = Database.Version.get id in
-      Monadise_lwt.lift_1_1
-        Option.iter
-        (fun version ->
-          if%lwt Permission.can_get_public env version then
-            Hashtbl.add table id <$> to_row version
-          else
-            lwt_unit
-        )
-        version
-    )
-    ids;%lwt
-  lwt table
-
-let get_rows env ids =
-  let%lwt table = get_rows_table env ids in
-  lwt @@ List.filter_map (Hashtbl.find_opt table) ids
 
 let create env version =
   Permission.assert_can_create_public env;%lwt
@@ -161,7 +112,7 @@ let get_view_for_tune env id =
   let stream = Lwt_stream.flip_lwt stream in
   (* FIXME: some logic to choose a “good” version? *)
   match%lwt Lwt_stream.get stream with
-  | Some version -> (fun v -> Endpoints.Version.Version_view_fallback.Found v) <$> to_view env version
+  | Some version -> (fun v -> Endpoints.Version.Version_view_fallback.Found v) <$> get_view env (Entry.id version)
   | None -> (fun t -> Endpoints.Version.Version_view_fallback.Fallback t) <$> Tune.get_view env id
 
 let rec search_and_extract acc s regexp =
@@ -259,15 +210,7 @@ let build_snippets' env version version_params _rendering_params =
   Permission.assert_can_create_public env;%lwt
   register_snippets_job ~version_params version
 
-let search' env query =
-  let%lwt items = Database.Version.search query in
-  let%lwt items = Lwt_list.filter_s (Permission.can_get_public_new env % fst) items in
-  lwt {Search_result.total = List.length items; items}
-
-let search env slice query =
-  let%lwt {total; items} = search' env query in
-  let items = List.map fst @@ Slice.list ~strict: false slice items in
-  lwt {Search_result.total; items}
+(* Dispatch *)
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun env endpoint ->
   match endpoint with

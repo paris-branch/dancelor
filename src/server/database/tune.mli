@@ -40,3 +40,27 @@ val sql_to_row :
   composers: Person_name.t list ->
   k: (Tune_row.t -> 'w) ->
   'w
+
+val sql_to_view :
+  id: string ->
+  name: string ->
+  extra_names: string list ->
+  kind: sql_kind_base ->
+  composers: Person_name_with_details.t list ->
+  dances: Dance_row.t list ->
+  remark: string option ->
+  scddb_id: int64 option ->
+  date: string option ->
+  versions: Tune_view.version_row_without_tune list ->
+  k: (Tune_view.t -> 'w) ->
+  'w
+
+val sql_to_version_row_without_tune :
+  id: string ->
+  sources: Source_short_name.t list ->
+  disambiguation: string option ->
+  arrangers: Person_name.t list ->
+  monolithic_bars: int64 option ->
+  monolithic_or_default_structure: string option ->
+  k: (Tune_view.version_row_without_tune -> 'w) ->
+  'w
