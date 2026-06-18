@@ -12,19 +12,6 @@ JOIN "entry" ON "book"."id" = "entry"."id"
 WHERE "book"."id" = @id
 LIMIT 1; -- NOTE: to help sqlgg
 
--- @get_all
-SELECT
-    "book"."id",
-    "name",
-    "date",
-    "remark",
-    "scddb_id",
-    "created_at",
-    "modified_at",
-    "visibility"
-FROM "book"
-JOIN "entry" ON "book"."id" = "entry"."id";
-
 -- @create
 INSERT INTO "book" (
     "id",
@@ -245,6 +232,76 @@ INSERT INTO "book_content_versions" (
     @version_parameter_display_composer
 );
 
+-- NEW MODELS
+
+-- @get_row
+SELECT * FROM (
+    SELECT
+        "name",
+        "date",
+        CASE
+            WHEN "entry"."visibility" = 'Everyone' THEN 'Everyone'
+            WHEN "entry_owners"."owner_id" IS NOT NULL THEN 'Owner'
+            WHEN "entry"."visibility" = 'Select_viewers' AND "entry_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
+            WHEN "user"."role" = 'Administrator' AND "user"."omniscience" THEN 'Omniscient_administrator'
+            ELSE NULL
+        END AS "permission"
+    FROM "book"
+    JOIN "entry" ON "entry"."id" = "book"."id"
+    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
+    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
+    LEFT JOIN "user" ON "user"."id" = @user_id
+    WHERE "book"."id" = @id
+) AS "book+"
+WHERE "book+"."permission" IS NOT NULL
+LIMIT 1; -- NOTE: to help sqlgg
+
+-- @get_rows
+SELECT * FROM (
+    SELECT
+        "book"."id",
+        "name",
+        "date",
+        CASE
+            WHEN "entry"."visibility" = 'Everyone' THEN 'Everyone'
+            WHEN "entry_owners"."owner_id" IS NOT NULL THEN 'Owner'
+            WHEN "entry"."visibility" = 'Select_viewers' AND "entry_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
+            WHEN "user"."role" = 'Administrator' AND "user"."omniscience" THEN 'Omniscient_administrator'
+            ELSE NULL
+        END AS "permission"
+    FROM "book"
+    JOIN "entry" ON "entry"."id" = "book"."id"
+    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
+    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
+    LEFT JOIN "user" ON "user"."id" = @user_id
+    WHERE "book"."id" IN @ids
+) AS "book+"
+WHERE "book+"."permission" IS NOT NULL;
+
+-- @get_view
+SELECT * FROM (
+    SELECT
+        "name",
+        "date",
+	"remark",
+	"scddb_id",
+        CASE
+            WHEN "entry"."visibility" = 'Everyone' THEN 'Everyone'
+            WHEN "entry_owners"."owner_id" IS NOT NULL THEN 'Owner'
+            WHEN "entry"."visibility" = 'Select_viewers' AND "entry_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
+            WHEN "user"."role" = 'Administrator' AND "user"."omniscience" THEN 'Omniscient_administrator'
+            ELSE NULL
+        END AS "permission"
+    FROM "book"
+    JOIN "entry" ON "entry"."id" = "book"."id"
+    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
+    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
+    LEFT JOIN "user" ON "user"."id" = @user_id
+    WHERE "book"."id" = @id
+) AS "book+"
+WHERE "book+"."permission" IS NOT NULL
+LIMIT 1; -- NOTE: to help sqlgg
+
 -- @search
 SELECT * FROM (
     SELECT
@@ -280,10 +337,63 @@ SELECT * FROM (
 WHERE "book+"."permission" IS NOT NULL
 ORDER BY "score" DESC, "name" ASC;
 
--- @get_all_authors_new
+-- @get_authors_for
 SELECT
     "book_id",
     "person"."id",
     "person"."name"
 FROM "book_authors"
-JOIN "person" ON "book_authors"."author_id" = "person"."id";
+JOIN "person" ON "book_authors"."author_id" = "person"."id"
+WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } };
+
+-- @get_sources_for
+SELECT
+    "book_id",
+    "source"."id",
+    "source"."name"
+FROM "book_sources"
+JOIN "source" ON "book_sources"."source_id" = "source"."id"
+WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } };
+
+-- @get_content_for
+SELECT
+    "book_id",
+    "page_type",
+    "index",
+    -- part
+    "part_title",
+    -- dance
+    "dance_id",
+    -- set
+    "set_id",
+    -- set parameters
+    "set_parameter_display_name",
+    "set_parameter_display_conceptor",
+    "set_parameter_display_kind",
+    "set_parameter_version_parameter_transposition_semitones",
+    "set_parameter_version_parameter_first_bar",
+    "set_parameter_version_parameter_clef",
+    "set_parameter_version_parameter_structure",
+    "set_parameter_version_parameter_trivia",
+    "set_parameter_version_parameter_display_name",
+    "set_parameter_version_parameter_display_composer"
+FROM "book_content"
+WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } };
+
+-- @get_content_versions_for
+SELECT
+    "book_id",
+    "content_index",
+    -- version
+    "version_id",
+    -- version parameters
+    "version_parameter_transposition_semitones",
+    "version_parameter_first_bar",
+    "version_parameter_clef",
+    "version_parameter_structure",
+    "version_parameter_trivia",
+    "version_parameter_display_name",
+    "version_parameter_display_composer"
+FROM "book_content_versions"
+WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } }
+ORDER BY "index";

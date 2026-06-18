@@ -5,6 +5,9 @@ open Search_new
 
 module Source_sql = Source_sql.Sqlgg(Sqlgg_postgresql)
 
+let sql_to_name ~id ~name ~(k : Source_name.t -> 'w) : 'w =
+  k {id = Entry.Id.of_string_exn id; name}
+
 let sql_to_short_name ~id ~name ~short_name ~(k : Source_short_name.t -> 'w) : 'w =
   let short_name = Option.value short_name ~default: name in
   k {id = Entry.Id.of_string_exn id; short_name}

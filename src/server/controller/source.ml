@@ -13,15 +13,6 @@ end)
 
 (* Legacy *)
 
-(* FIXME: The following conversion functions are temporary. We will
-   save some network by having them happen on the server, but they
-   should be pushed into individual controllers in a first place, and
-   then even all the way to the respective databases. *)
-let to_name (source : Model.Source.entry) : Source_name.t = {
-  Source_name.id = Entry.id source;
-  name = NEString.to_string @@ Model.Source.name' source;
-}
-
 let get env id =
   match%lwt Database.Source.get id with
   | None -> Permission.reject_can_get ()

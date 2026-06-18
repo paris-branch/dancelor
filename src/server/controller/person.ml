@@ -20,15 +20,6 @@ let for_user env id =
 
 (* Legacy *)
 
-(* FIXME: The following conversion functions is temporary. We will
-   save some network by having them happen on the server, but they
-   should be pushed into individual controllers in a first place, and
-   then even all the way to the respective databases. *)
-let to_name (person : Model.Person.entry) : Person_name.t = {
-  Person_name.id = Entry.id person;
-  name = NEString.to_string @@ Model.Person.name' person;
-}
-
 let get env id =
   match%lwt Database.Person.get id with
   | None -> Permission.reject_can_get ()

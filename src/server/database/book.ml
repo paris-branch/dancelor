@@ -6,9 +6,6 @@ open Search_new
 module Entry_sql = Entry_sql.Sqlgg(Sqlgg_postgresql)
 module Book_sql = Book_sql.Sqlgg(Sqlgg_postgresql)
 
-type t = Model_builder.Core.Book.t
-type entry = Model_builder.Core.Book.entry
-
 let sql_to_row ~id ~name ~date ~authors ~permission ~(k : Book_row.t -> 'w) : 'w =
   k {
     id = Entry.Id.of_string_exn id;
@@ -18,10 +15,139 @@ let sql_to_row ~id ~name ~date ~authors ~permission ~(k : Book_row.t -> 'w) : 'w
     permission = (match permission with `Everyone -> Everyone | `Owner -> Owner | `Viewer -> Viewer | `Omniscient_administrator -> Omniscient_administrator);
   }
 
+let sql_to_view ~id ~name ~date ~authors ~content ~remark ~sources ~scddb_id ~permission ~(k : Book_view.t -> 'w) : 'w =
+  k {
+    id = Entry.Id.of_string_exn id;
+    name;
+    date = Option.map (Option.get % PartialDate.from_string) date;
+    authors;
+    content; (* Model_builder.Core.Book.page list *)
+    remark;
+    sources; (* Source_name.t list *)
+    scddb_id = Option.map Int64.to_int scddb_id;
+    permission = (match permission with `Everyone -> Everyone | `Owner -> Owner | `Viewer -> Viewer | `Omniscient_administrator -> Omniscient_administrator);
+  }
+
+let get_authors_for db book_ids =
+  Utils.fold_to_get (Book_sql.Fold.get_authors_for ~book_ids) db (fun k ~book_id -> Person.sql_to_name ~k: (k book_id))
+
+let get_sources_for db book_ids =
+  Utils.fold_to_get (Book_sql.Fold.get_sources_for ~book_ids) db (fun k ~book_id -> Source.sql_to_name ~k: (k book_id))
+
+let get_content_versions_for db book_ids =
+  Utils.fold_to_get (Book_sql.Fold.get_content_versions_for ~book_ids) db (fun
+      k
+      ~book_id
+      ~content_index
+      ~version_id
+      ~version_parameter_transposition_semitones
+      ~version_parameter_first_bar
+      ~version_parameter_clef
+      ~version_parameter_structure
+      ~version_parameter_trivia
+      ~version_parameter_display_name
+      ~version_parameter_display_composer
+    ->
+    let version_params =
+      Model_builder.Core.Version_parameters.make
+        ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) version_parameter_transposition_semitones)
+        ?first_bar: (Option.map Int64.to_int version_parameter_first_bar)
+        ?clef: (Option.map Music.Clef.of_string version_parameter_clef)
+        ?structure: (Option.map (Option.get % Model_builder.Core.Version.Structure.of_string % NEString.of_string_exn) version_parameter_structure)
+        ?trivia: version_parameter_trivia
+        ?display_name: (Option.map NEString.of_string_exn version_parameter_display_name)
+        ?display_composer: (Option.map NEString.of_string_exn version_parameter_display_composer)
+        ()
+    in
+    k (book_id, content_index) (Entry.Id.of_string_exn version_id, version_params)
+  )
+
+let get_content_for db book_ids =
+  let%lwt content_versions_for = get_content_versions_for db book_ids in
+  Utils.fold_to_get (Book_sql.Fold.get_content_for ~book_ids) db (fun
+      k
+      ~book_id
+      ~page_type
+      ~index
+      ~part_title
+      ~dance_id
+      ~set_id
+      ~set_parameter_display_name
+      ~set_parameter_display_conceptor
+      ~set_parameter_display_kind
+      ~set_parameter_version_parameter_transposition_semitones
+      ~set_parameter_version_parameter_first_bar
+      ~set_parameter_version_parameter_clef
+      ~set_parameter_version_parameter_structure
+      ~set_parameter_version_parameter_trivia
+      ~set_parameter_version_parameter_display_name
+      ~set_parameter_version_parameter_display_composer
+    ->
+    let set_params =
+      Model_builder.Core.Set_parameters.make
+        ?display_name: (Option.map NEString.of_string_exn set_parameter_display_name)
+        ?display_conceptor: (Option.map NEString.of_string_exn set_parameter_display_conceptor)
+        ?display_kind: (Option.map NEString.of_string_exn set_parameter_display_kind)
+        ~every_version: (
+          Model_builder.Core.Version_parameters.make
+            ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) set_parameter_version_parameter_transposition_semitones)
+            ?first_bar: (Option.map Int64.to_int set_parameter_version_parameter_first_bar)
+            ?clef: (Option.map Music.Clef.of_string set_parameter_version_parameter_clef)
+            ?structure: (Option.map (Option.get % Model_builder.Core.Version.Structure.of_string % NEString.of_string_exn) set_parameter_version_parameter_structure)
+            ?trivia: set_parameter_version_parameter_trivia
+            ?display_name: (Option.map NEString.of_string_exn set_parameter_version_parameter_display_name)
+            ?display_composer: (Option.map NEString.of_string_exn set_parameter_version_parameter_display_composer)
+            ()
+        )
+        ()
+    in
+    let page =
+      match page_type with
+      | `Part -> Model_builder.Core.Book.Part (NEString.of_string_exn @@ Option.get part_title)
+      | `Dance_only -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_only)
+      | `Dance_versions -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_versions (NEList.of_list_exn @@ content_versions_for (book_id, index)))
+      | `Dance_set -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_set (Entry.Id.of_string_exn (Option.get set_id), set_params))
+      | `Versions -> Versions (NEList.of_list_exn @@ content_versions_for (book_id, index))
+      | `Set -> Set (Entry.Id.of_string_exn (Option.get set_id), set_params)
+    in
+    k book_id page
+  )
+
+let get_row ~user id : Book_row.t option Lwt.t =
+  let id = Entry.Id.to_string id in
+  Connection.with_ @@ fun db ->
+  let%lwt authors = (fun f -> f id) <$> get_authors_for db (`One_of [id]) in
+  Book_sql.Single.get_row
+    db
+    ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
+    ~id
+    (sql_to_row ~id ~authors ~k: Fun.id)
+
+let get_rows ~user ids : (Book_id.t, Book_row.t) Utils.tbl Lwt.t =
+  let ids = List.map Entry.Id.to_string ids in
+  Connection.with_ @@ fun db ->
+  let%lwt authors_for = get_authors_for db (`One_of ids) in
+  Utils.fold_to_tbl
+    (Book_sql.Fold.get_rows ~ids ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: ""))
+    db
+    (fun k ~id -> sql_to_row ~id ~authors: (authors_for id) ~k: (k @@ Entry.Id.of_string_exn id))
+
+let get_view ~user id : Book_view.t option Lwt.t =
+  let id = Entry.Id.to_string id in
+  Connection.with_ @@ fun db ->
+  let%lwt authors = (fun f -> f id) <$> get_authors_for db (`One_of [id]) in
+  let%lwt sources = (fun f -> f id) <$> get_sources_for db (`One_of [id]) in
+  let%lwt content = (fun f -> f id) <$> get_content_for db (`One_of [id]) in
+  Book_sql.Single.get_view
+    db
+    ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
+    ~id
+    (sql_to_view ~id ~authors ~sources ~content ~k: Fun.id)
+
 let search ~user query : (Book_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Book_query.author; contains_version; contains_tune; contains_set}} = query in
   Connection.with_ @@ fun db ->
-  let%lwt authors = Utils.fold_to_tbl Book_sql.Fold.get_all_authors_new db (fun k ~book_id -> Person.sql_to_name ~k: (k book_id)) in
+  let%lwt authors_for = get_authors_for db `All in
   Book_sql.List.search
     db
     ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
@@ -33,9 +159,14 @@ let search ~user query : (Book_row.t * float) list Lwt.t =
     (fun ~score ~id ->
       sql_to_row
         ~id
-        ~authors: (Utils.tbl_get authors id)
+        ~authors: (authors_for id)
         ~k: (Pair.snoc score)
     )
+
+(* Legacy *)
+
+type t = Model_builder.Core.Book.t
+type entry = Model_builder.Core.Book.entry
 
 let sql_to_book
     ~id
@@ -244,30 +375,6 @@ let get id : Model_builder.Core.Book.entry option Lwt.t =
   Book_sql.Fold.get_content_versions db ~book_id: id (fun ~content_index -> sql_to_content_version ~k: (fun v () -> Hashtbl.add content_versions content_index v)) ();%lwt
   let%lwt content = Book_sql.List.get_content db ~book_id: id (fun ~index -> sql_to_content_item ~versions_and_params: (List.rev @@ Hashtbl.find_all content_versions index) ~k: Fun.id) in
   Book_sql.Single.get db ~id (sql_to_book ~id ~authors ~sources ~viewers ~owners ~content)
-
-let get_all () =
-  Connection.with_ @@ fun db ->
-  let authors = Hashtbl.create 8 in
-  let sources = Hashtbl.create 8 in
-  let owners = Hashtbl.create 8 in
-  let viewers = Hashtbl.create 8 in
-  let content = Hashtbl.create 8 in
-  let content_versions = Hashtbl.create 8 in
-  Book_sql.Fold.get_all_authors db (fun ~book_id ~author_id () -> Hashtbl.add authors book_id @@ Entry.Id.of_string_exn author_id) ();%lwt
-  Book_sql.Fold.get_all_sources db (fun ~book_id ~source_id () -> Hashtbl.add sources book_id @@ Entry.Id.of_string_exn source_id) ();%lwt
-  Entry_sql.Fold.get_all_owners db ~type_: `Book (fun ~entry_id ~owner_id () -> Hashtbl.add owners entry_id @@ Entry.Id.of_string_exn owner_id) ();%lwt
-  Entry_sql.Fold.get_all_viewers db ~type_: `Book (fun ~entry_id ~viewer_id () -> Hashtbl.add viewers entry_id @@ Entry.Id.of_string_exn viewer_id) ();%lwt
-  Book_sql.Fold.get_all_content_versions db (fun ~book_id ~content_index -> sql_to_content_version ~k: (fun v () -> Hashtbl.add content_versions (book_id, content_index) v)) ();%lwt
-  Book_sql.Fold.get_all_content db (fun ~book_id ~index -> sql_to_content_item ~versions_and_params: (List.rev @@ Hashtbl.find_all content_versions (book_id, index)) ~k: (fun v () -> Hashtbl.add content book_id v)) ();%lwt
-  Book_sql.List.get_all db (fun ~id ->
-    sql_to_book
-      ~id
-      ~authors: (List.rev @@ Hashtbl.find_all authors id)
-      ~sources: (List.rev @@ Hashtbl.find_all sources id)
-      ~viewers: (List.rev @@ Hashtbl.find_all viewers id)
-      ~owners: (List.rev @@ Hashtbl.find_all owners id)
-      ~content: (List.rev @@ Hashtbl.find_all content id)
-  )
 
 let create book access =
   Connection.with_ @@ fun db ->

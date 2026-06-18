@@ -30,6 +30,12 @@ val with_cover : Source_id.t -> (string option -> 'a Lwt.t) -> 'a Lwt.t
 
 (** {2 Utilities for other models} *)
 
+val sql_to_name :
+  id: string ->
+  name: string ->
+  k: (Source_name.t -> 'w) ->
+  'w
+
 val sql_to_short_name :
   id: string ->
   name: string ->
