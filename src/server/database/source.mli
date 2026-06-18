@@ -3,13 +3,20 @@ open Dancelor_common
 open Model_new
 open Search_new
 
+val get_row : Source_id.t -> Source_row.t option Lwt.t
+
+val get_rows : Source_id.t list -> (Source_id.t, Source_row.t) Utils.tbl Lwt.t
+
+val get_view : Source_id.t -> Source_view.t option Lwt.t
+
+val search : Source_query.t -> (Source_row.t * float) list Lwt.t
+
+(** {2 Legacy} *)
+
 type t = Model_builder.Core.Source.t
 type entry = Model_builder.Core.Source.entry
 
 val get : Source_id.t -> entry option Lwt.t
-
-(* FIXME: we should really rather provide a fold function, or directly an Lwt_stream or something *)
-val get_all : unit -> entry list Lwt.t
 
 val create : t -> Source_id.t Lwt.t
 
@@ -21,9 +28,13 @@ val with_cover : Source_id.t -> (string option -> 'a Lwt.t) -> 'a Lwt.t
 (** Given a source id, produce a file containing the cover and pass its path to
     the callback. [None] means that there is no cover for this source. *)
 
-val search : Source_query.t -> (Source_row.t * float) list Lwt.t
-
 (** {2 Utilities for other models} *)
+
+val sql_to_name :
+  id: string ->
+  name: string ->
+  k: (Source_name.t -> 'w) ->
+  'w
 
 val sql_to_short_name :
   id: string ->

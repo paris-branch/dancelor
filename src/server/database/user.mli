@@ -54,6 +54,4 @@ val remove_all_remember_me_tokens : User_id.t -> unit Lwt.t
 val set_omniscience : User_id.t -> bool -> unit Lwt.t
 (** For the given user, set omniscience to the given boolean. *)
 
-val get_person : User_id.t -> Model_builder.Core.Person.t Entry.id option Lwt.t
-
 val search : User_query.t -> (User_row.t * float) list Lwt.t

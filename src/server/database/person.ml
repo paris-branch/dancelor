@@ -5,14 +5,43 @@ open Search_new
 
 module Person_sql = Person_sql.Sqlgg(Sqlgg_postgresql)
 
-type t = Model_builder.Core.Person.t
-type entry = Model_builder.Core.Person.entry
-
 let sql_to_name ~id ~name ~(k : Person_name.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name}
 
+let sql_to_name_with_details ~id ~name ~details ~(k : Person_name_with_details.t -> 'w) : 'w =
+  k {id = Entry.Id.of_string_exn id; name; details}
+
 let sql_to_row ~id ~name ~(k : Person_row.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name}
+
+let sql_to_view ~id ~name ~scddb_id ~composed_tunes_are_public ~published_tunes_are_public ~(k : Person_view.t -> 'w) : 'w =
+  k {
+    id = Entry.Id.of_string_exn id;
+    name;
+    scddb_id = Option.map Int64.to_int scddb_id;
+    composed_tunes_are_public;
+    published_tunes_are_public;
+  }
+
+let get_row id : Person_row.t option Lwt.t =
+  let id = Entry.Id.to_string id in
+  Connection.with_ @@ fun db ->
+  Person_sql.Single.get_row db ~id (sql_to_row ~id ~k: Fun.id)
+
+let get_rows ids : (Person_id.t, Person_row.t) Utils.tbl Lwt.t =
+  let ids = List.map Entry.Id.to_string ids in
+  Connection.with_ @@ fun db ->
+  Utils.fold_to_tbl (Person_sql.Fold.get_rows ~ids) db (fun k ~id -> sql_to_row ~id ~k: (k @@ Entry.Id.of_string_exn id))
+
+let get_view id : Person_view.t option Lwt.t =
+  let id = Entry.Id.to_string id in
+  Connection.with_ @@ fun db ->
+  Person_sql.Single.get_view db ~id (sql_to_view ~id ~k: Fun.id)
+
+let get_row_for_user (id : User_id.t) : Person_row.t option Lwt.t =
+  let id = Entry.Id.to_string id in
+  Connection.with_ @@ fun db ->
+  Person_sql.Single.get_row_for_user db ~id (sql_to_row ~k: Fun.id)
 
 let search query : (Person_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = ()} = query in
@@ -21,6 +50,11 @@ let search query : (Person_row.t * float) list Lwt.t =
     db
     ~terms
     (fun ~score -> sql_to_row ~k: (Pair.snoc score))
+
+(* Legacy *)
+
+type t = Model_builder.Core.Person.t
+type entry = Model_builder.Core.Person.entry
 
 let sql_to_person
     ~id
@@ -56,10 +90,6 @@ let get id : Model_builder.Core.Person.entry option Lwt.t =
   let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   Person_sql.Single.get db ~id (sql_to_person ~id)
-
-let get_all () =
-  Connection.with_ @@ fun db ->
-  Person_sql.List.get_all db sql_to_person
 
 let create person =
   Connection.with_ @@ fun db ->

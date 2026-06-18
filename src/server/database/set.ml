@@ -19,11 +19,122 @@ let sql_to_row ~id ~name ~kind ~conceptors ~tunes ~permission ~(k : Set_row.t ->
     permission = (match permission with `Everyone -> Everyone | `Owner -> Owner | `Viewer -> Viewer | `Omniscient_administrator -> Omniscient_administrator);
   }
 
+let sql_to_view ~id ~name ~kind ~conceptors ~content ~order ~remark ~permission ~(k : Set_view.t -> 'w) : 'w =
+  k {
+    id = Entry.Id.of_string_exn id;
+    name;
+    kind = Kind_dance.of_string kind;
+    conceptors;
+    content; (* (Version_row.t * Model_builder.Core.Version_parameters.t) list *)
+    order = Model_builder.Core.Set_order.of_string order;
+    remark;
+    permission = (match permission with `Everyone -> Everyone | `Owner -> Owner | `Viewer -> Viewer | `Omniscient_administrator -> Omniscient_administrator);
+  }
+
+let get_tunes_for db set_ids =
+  Utils.fold_to_get (Set_sql.Fold.get_tunes_for ~set_ids) db (fun k ~set_id ~id -> Version.sql_to_name ~id ~k: (k set_id))
+
+let get_conceptors_for db set_ids =
+  Utils.fold_to_get (Set_sql.Fold.get_conceptors_for ~set_ids) db (fun k ~set_id -> Person.sql_to_name ~k: (k set_id))
+
+let get_content_for db set_ids =
+  (* FIXME: We would rather just get the composers, sources and
+     arrangers for versions that actually appear in the sets, with
+     something like [get_tune_composers_for_versions_of], but this
+     means even more duplication and I don't know if I am super
+     keen on doing that just yet. *)
+  let%lwt tune_composers_for = Version.get_tune_composers_for db `All in
+  let%lwt version_sources_for = Version.get_sources_for db `All in
+  let%lwt version_arrangers_for = Version.get_arrangers_for db `All in
+  Utils.fold_to_get (Set_sql.Fold.get_content_for ~set_ids) db (fun
+      k
+      ~set_id
+      ~version_id
+      ~tune_id
+      ~version_disambiguation
+      ~version_monolithic_bars
+      ~version_monolithic_or_default_structure
+      ~tune_name
+      ~tune_kind
+      ~version_parameter_transposition_semitones
+      ~version_parameter_first_bar
+      ~version_parameter_clef
+      ~version_parameter_structure
+      ~version_parameter_trivia
+      ~version_parameter_display_name
+      ~version_parameter_display_composer
+    ->
+    let version =
+      Version.sql_to_row
+        ~id: version_id
+        ~tune_id
+        ~disambiguation: version_disambiguation
+        ~monolithic_bars: version_monolithic_bars
+        ~monolithic_or_default_structure: version_monolithic_or_default_structure
+        ~tune_name
+        ~tune_kind
+        ~tune_composers: (tune_composers_for version_id)
+        ~sources: (version_sources_for version_id)
+        ~arrangers: (version_arrangers_for version_id)
+        ~k: Fun.id
+    in
+    let params =
+      Model_builder.Core.Version_parameters.make
+        ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) version_parameter_transposition_semitones)
+        ?first_bar: (Option.map Int64.to_int version_parameter_first_bar)
+        ?clef: (Option.map Music.Clef.of_string version_parameter_clef)
+        ?structure: (Option.map (Option.get % Model_builder.Core.Version.Structure.of_string % NEString.of_string_exn) version_parameter_structure)
+        ?trivia: version_parameter_trivia
+        ?display_name: (Option.map NEString.of_string_exn version_parameter_display_name)
+        ?display_composer: (Option.map NEString.of_string_exn version_parameter_display_composer)
+        ()
+    in
+    k set_id (version, params)
+  )
+
+let get_row ~user id : Set_row.t option Lwt.t =
+  let id = Entry.Id.to_string id in
+  Connection.with_ @@ fun db ->
+  let%lwt tunes = (fun f -> f id) <$> get_tunes_for db (`One_of [id]) in
+  let%lwt conceptors = (fun f -> f id) <$> get_conceptors_for db (`One_of [id]) in
+  Set_sql.Single.get_row
+    db
+    ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
+    ~id
+    (sql_to_row ~id ~tunes ~conceptors ~k: Fun.id)
+
+let get_rows ~user ids : (Set_id.t, Set_row.t) Utils.tbl Lwt.t =
+  let ids = List.map Entry.Id.to_string ids in
+  Connection.with_ @@ fun db ->
+  let%lwt tunes_for = get_tunes_for db (`One_of ids) in
+  let%lwt conceptors_for = get_conceptors_for db (`One_of ids) in
+  Utils.fold_to_tbl
+    (Set_sql.Fold.get_rows ~ids ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: ""))
+    db
+    (fun k ~id ->
+      sql_to_row
+        ~id
+        ~tunes: (tunes_for id)
+        ~conceptors: (conceptors_for id)
+        ~k: (k @@ Entry.Id.of_string_exn id)
+    )
+
+let get_view ~user id : Set_view.t option Lwt.t =
+  let id = Entry.Id.to_string id in
+  Connection.with_ @@ fun db ->
+  let%lwt conceptors = (fun f -> f id) <$> get_conceptors_for db (`One_of [id]) in
+  let%lwt content = (fun f -> f id) <$> get_content_for db (`One_of [id]) in
+  Set_sql.Single.get_view
+    db
+    ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
+    ~id
+    (sql_to_view ~id ~conceptors ~content ~k: Fun.id)
+
 let search ~user query : (Set_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Set_query.conceptor; contains_version; contains_tune}} = query in
   Connection.with_ @@ fun db ->
-  let%lwt tunes = Utils.fold_to_tbl Set_sql.Fold.get_all_tunes_new db (fun k ~set_id -> Version.sql_to_name ~k: (k set_id)) in
-  let%lwt conceptors = Utils.fold_to_tbl Set_sql.Fold.get_all_conceptors_new db (fun k ~set_id -> Person.sql_to_name ~k: (k set_id)) in
+  let%lwt tunes_for = get_tunes_for db `All in
+  let%lwt conceptors_for = get_conceptors_for db `All in
   Set_sql.List.search
     db
     ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
@@ -34,10 +145,12 @@ let search ~user query : (Set_row.t * float) list Lwt.t =
     (fun ~score ~id ->
       sql_to_row
         ~id
-        ~tunes: (Utils.tbl_get tunes id)
-        ~conceptors: (Utils.tbl_get conceptors id)
+        ~tunes: (tunes_for id)
+        ~conceptors: (conceptors_for id)
         ~k: (Pair.snoc score)
     )
+
+(* Legacy *)
 
 let sql_to_set
     ~id
@@ -151,52 +264,6 @@ let get id : Model_builder.Core.Set.entry option Lwt.t =
     )
   in
   Set_sql.Single.get db ~id (sql_to_set ~id ~conceptors ~viewers ~owners ~content)
-
-let get_all () =
-  Connection.with_ @@ fun db ->
-  let conceptors = Hashtbl.create 8 in
-  let owners = Hashtbl.create 8 in
-  let viewers = Hashtbl.create 8 in
-  let content = Hashtbl.create 8 in
-  Set_sql.Fold.get_all_conceptors db (fun ~set_id ~conceptor_id () -> Hashtbl.add conceptors set_id @@ Entry.Id.of_string_exn conceptor_id) ();%lwt
-  Entry_sql.Fold.get_all_owners db ~type_: `Set (fun ~entry_id ~owner_id () -> Hashtbl.add owners entry_id @@ Entry.Id.of_string_exn owner_id) ();%lwt
-  Entry_sql.Fold.get_all_viewers db ~type_: `Set (fun ~entry_id ~viewer_id () -> Hashtbl.add viewers entry_id @@ Entry.Id.of_string_exn viewer_id) ();%lwt
-  Set_sql.Fold.get_all_content
-    db
-    (fun
-        ~set_id
-        ~version_id
-        ~version_parameter_transposition_semitones
-        ~version_parameter_first_bar
-        ~version_parameter_clef
-        ~version_parameter_structure
-        ~version_parameter_trivia
-        ~version_parameter_display_name
-        ~version_parameter_display_composer
-        ()
-      ->
-      Hashtbl.add content set_id @@ (
-        Entry.Id.of_string_exn version_id,
-        Model_builder.Core.Version_parameters.make
-          ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) version_parameter_transposition_semitones)
-          ?first_bar: (Option.map Int64.to_int version_parameter_first_bar)
-          ?clef: (Option.map Music.Clef.of_string version_parameter_clef)
-          ?structure: (Option.map (Option.get % Model_builder.Core.Version.Structure.of_string % NEString.of_string_exn) version_parameter_structure)
-          ?trivia: version_parameter_trivia
-          ?display_name: (Option.map NEString.of_string_exn version_parameter_display_name)
-          ?display_composer: (Option.map NEString.of_string_exn version_parameter_display_composer)
-          ()
-      )
-    )
-    ();%lwt
-  Set_sql.List.get_all db (fun ~id ->
-    sql_to_set
-      ~id
-      ~conceptors: (List.rev @@ Hashtbl.find_all conceptors id)
-      ~viewers: (List.rev @@ Hashtbl.find_all viewers id)
-      ~owners: (List.rev @@ Hashtbl.find_all owners id)
-      ~content: (List.rev @@ Hashtbl.find_all content id)
-  )
 
 let create set access =
   Connection.with_ @@ fun db ->

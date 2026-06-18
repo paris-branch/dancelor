@@ -10,6 +10,10 @@ let fold_to_tbl fold db k =
 let tbl_get (Tbl t) k =
   List.rev @@ Hashtbl.find_all t k
 
+let fold_to_get fold db k =
+  let%lwt tbl = fold_to_tbl fold db k in
+  lwt @@ tbl_get tbl
+
 let list_option_map_to_sql f = function
   | None -> `None
   | Some x -> `Some (List.map f x)

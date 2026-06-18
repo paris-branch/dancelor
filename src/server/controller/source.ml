@@ -3,47 +3,15 @@ open Dancelor_common
 open Model_new
 open Search_new
 
-(* FIXME: The following conversion functions are temporary. We will
-   save some network by having them happen on the server, but they
-   should be pushed into individual controllers in a first place, and
-   then even all the way to the respective databases. *)
+include Shared.Make_public(struct
+  type id = Source_id.t
+  type row = Source_row.t
+  type view = Source_view.t
+  type query = Source_query.t
+  include Database.Source
+end)
 
-let to_name (source : Model.Source.entry) : Source_name.t = {
-  Source_name.id = Entry.id source;
-  name = NEString.to_string @@ Model.Source.name' source;
-}
-let to_short_name (source : Model.Source.entry) : Source_short_name.t = {
-  Source_short_name.id = Entry.id source;
-  short_name =
-  NEString.to_string (
-    match Model.Source.short_name' source with
-    | None -> Model.Source.name' source
-    | Some name -> name
-  );
-}
-
-let to_row (source : Model.Source.entry) : Source_row.t Lwt.t =
-  let%lwt editors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Source.editors' source in
-  let editors = List.map Person.to_name editors in
-  lwt {
-    Source_row.id = Entry.id source;
-    name = NEString.to_string @@ Model.Source.name' source;
-    date = Model.Source.date' source;
-    editors;
-  }
-
-let to_view (source : Model.Source.entry) : Source_view.t Lwt.t =
-  let%lwt editors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Source.editors' source in
-  let editors = List.map Person.to_name editors in
-  lwt {
-    Source_view.id = Entry.id source;
-    name = NEString.to_string @@ Model.Source.name' source;
-    short_name = Option.map NEString.to_string @@ Model.Source.short_name' source;
-    date = Model.Source.date' source;
-    editors;
-    scddb_id = Model.Source.scddb_id' source;
-    description = Model.Source.description' source;
-  }
+(* Legacy *)
 
 let get env id =
   match%lwt Database.Source.get id with
@@ -51,35 +19,6 @@ let get env id =
   | Some source ->
     Permission.assert_can_get_public env source;%lwt
     lwt source
-
-let get_row env id =
-  to_row =<< get env id
-
-let get_view env id =
-  to_view =<< get env id
-
-(** Returns a hash table containing as many of the ids as possible. *)
-let get_rows_table env ids =
-  let table = Hashtbl.create 8 in
-  Lwt_list.iter_s
-    (fun id ->
-      let%lwt source = Database.Source.get id in
-      Monadise_lwt.lift_1_1
-        Option.iter
-        (fun source ->
-          if%lwt Permission.can_get_public env source then
-            Hashtbl.add table id <$> to_row source
-          else
-            lwt_unit
-        )
-        source
-    )
-    ids;%lwt
-  lwt table
-
-let get_rows env ids =
-  let%lwt table = get_rows_table env ids in
-  lwt @@ List.filter_map (Hashtbl.find_opt table) ids
 
 let create env source =
   Permission.assert_can_create_public env;%lwt
@@ -99,15 +38,7 @@ let get_cover env id =
   let fname = Option.value fname ~default: (Filename.concat (Config.get ()).share "no-cover.webp") in
   Madge_server.respond_file ~fname
 
-let search' env query =
-  let%lwt items = Database.Source.search query in
-  let%lwt items = Lwt_list.filter_s (Permission.can_get_public_new env % fst) items in
-  lwt {Search_result.total = List.length items; items}
-
-let search env slice query =
-  let%lwt {total; items} = search' env query in
-  let items = List.map fst @@ Slice.list ~strict: false slice items in
-  lwt {Search_result.total; items}
+(* Dispatch *)
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Source.t -> a = fun env endpoint ->
   match endpoint with

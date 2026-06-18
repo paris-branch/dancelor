@@ -39,7 +39,7 @@ let user_now () = match Lwt.state user with Return user -> user | _ -> None
 let person_row =
   match%lwt user with
   | None -> lwt_none
-  | Some user -> Madge_client.call_exn Endpoints.Api.(route @@ Person For_user_row) (Entry.id user)
+  | Some user -> Madge_client.call_exn Endpoints.Api.(route @@ Person For_user) (Entry.id user)
 
 let person_id =
   let%lwt person = person_row in

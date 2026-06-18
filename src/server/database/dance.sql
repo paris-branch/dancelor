@@ -13,20 +13,6 @@ JOIN "entry" ON "dance"."id" = "entry"."id"
 WHERE "dance"."id" = @id
 LIMIT 1; -- NOTE: to help sqlgg
 
--- @get_all
-SELECT
-    "dance"."id",
-    "name",
-    "kind",
-    "two_chords",
-    "scddb_id",
-    "disambiguation",
-    "date",
-    "created_at",
-    "modified_at"
-FROM "dance"
-JOIN "entry" ON "dance"."id" = "entry"."id";
-
 -- @create
 INSERT INTO "dance" (
     "id",
@@ -117,6 +103,35 @@ INSERT INTO "dance_devisers" (
     @deviser_id
 );
 
+-- NEW MODELS
+
+-- @get_row
+SELECT
+    "name",
+    "kind",
+    "disambiguation"
+FROM "dance"
+WHERE "id" = @id;
+
+-- @get_rows
+SELECT
+    "id",
+    "name",
+    "kind",
+    "disambiguation"
+FROM "dance"
+WHERE "id" IN @ids;
+
+-- @get_view
+SELECT
+    "name",
+    "kind",
+    "scddb_id",
+    "disambiguation",
+    "date"
+FROM "dance"
+WHERE "id" = @id;
+
 -- @search
 SELECT
     CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
@@ -130,12 +145,20 @@ WHERE
     AND @deviser { Some { EXISTS (SELECT 1 FROM "dance_devisers" WHERE "dance_id" = "dance"."id" AND "deviser_id" IN @deviser) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
--- @get_all_devisers_new
+-- @get_extra_names_for
+SELECT
+    "dance_id",
+    "extra_name"
+FROM "dance_extra_names"
+WHERE @dance_ids { One_of { "dance_id" IN @dance_ids } | All { TRUE } }
+ORDER BY "extra_name";
+
+-- @get_devisers_for
 SELECT
     "dance_id",
     "person"."id",
     "person"."name"
 FROM "dance_devisers"
-JOIN "person"
-ON "dance_devisers"."deviser_id" = "person"."id"
+JOIN "person" ON "dance_devisers"."deviser_id" = "person"."id"
+WHERE @dance_ids { One_of { "dance_id" IN @dance_ids } | All { TRUE } }
 ORDER BY "index";

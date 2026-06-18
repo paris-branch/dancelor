@@ -26,6 +26,8 @@ let search query : (User_row.t * float) list Lwt.t =
     ~terms
     (fun ~score -> sql_to_row ~k: (Pair.snoc score))
 
+(* Legacy *)
+
 type t = Entry.User.t
 type entry = t Entry.public
 
@@ -163,10 +165,3 @@ let add_remember_me_token user_id key hash max_date =
 let set_omniscience id value =
   Connection.with_ @@ fun db ->
   ignore <$> User_sql.set_omniscience db ~id: (Entry.Id.to_string id) ~omniscience: value
-
-let get_person id =
-  Connection.with_ @@ fun db ->
-  (* NOTE: Two levels of options: first one (leading to Option.get) is whether
-     the user id exists; second one is because person_id is NULLABLE *)
-  (* FIXME: make person_id NOT NULL *)
-  Option.get <$> User_sql.Single.get_person db ~id: (Entry.Id.to_string id) (fun ~person_id -> Option.map Entry.Id.of_string_exn person_id)

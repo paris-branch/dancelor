@@ -3,40 +3,15 @@ open Dancelor_common
 open Model_new
 open Search_new
 
-(* FIXME: The following conversion functions are temporary. We will
-   save some network by having them happen on the server, but they
-   should be pushed into individual controllers in a first place, and
-   then even all the way to the respective databases. *)
+include Shared.Make_private(struct
+  type id = Book_id.t
+  type row = Book_row.t
+  type view = Book_view.t
+  type query = Book_query.t
+  include Database.Book
+end)
 
-let to_row env (book : Model.Book.entry) : Book_row.t Lwt.t =
-  let user = Environment.user env in
-  let%lwt authors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Book.authors' book in
-  let authors = List.map Person.to_name authors in
-  lwt {
-    Book_row.id = Entry.id book;
-    name = NEString.to_string @@ Model.Book.name' book;
-    date = Model.Book.date' book;
-    authors: Person_name.t list;
-    permission = Option.get @@ Permission.With_reason.can_get_private user book;
-  }
-
-let to_view env (book : Model.Book.entry) : Book_view.t Lwt.t =
-  let user = Environment.user env in
-  let%lwt authors = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Book.authors' book in
-  let authors = List.map Person.to_name authors in
-  let%lwt sources = Lwt_list.map_s (Option.get <%> Model.Source.get) @@ Model.Book.sources' book in
-  let sources = List.map Source.to_name sources in
-  lwt {
-    Book_view.id = Entry.id book;
-    name = NEString.to_string @@ Model.Book.name' book;
-    date = Model.Book.date' book;
-    authors;
-    contents = Model.Book.contents' book;
-    remark = Option.map NEString.to_string @@ Model.Book.remark' book;
-    sources;
-    scddb_id = Model.Book.scddb_id' book;
-    permission = Option.get @@ Permission.With_reason.can_get_private user book;
-  }
+(* Legacy *)
 
 let get env id =
   match%lwt Database.Book.get id with
@@ -44,35 +19,6 @@ let get env id =
   | Some book ->
     Permission.assert_can_get_private env book;%lwt
     lwt book
-
-let get_row env id =
-  to_row env =<< get env id
-
-let get_view env id =
-  to_view env =<< get env id
-
-(** Returns a hash table containing as many of the ids as possible. *)
-let get_rows_table env ids =
-  let table = Hashtbl.create 8 in
-  Lwt_list.iter_s
-    (fun id ->
-      let%lwt book = Database.Book.get id in
-      Monadise_lwt.lift_1_1
-        Option.iter
-        (fun book ->
-          if%lwt Permission.can_get_private env book then
-            Hashtbl.add table id <$> to_row env book
-          else
-            lwt_unit
-        )
-        book
-    )
-    ids;%lwt
-  lwt table
-
-let get_rows env ids =
-  let%lwt table = get_rows_table env ids in
-  lwt @@ List.filter_map (Hashtbl.find_opt table) ids
 
 let create env book access =
   Permission.assert_can_create_private env;%lwt
@@ -97,15 +43,7 @@ let build_pdf env id book_params rendering_params =
   let%lwt book_pdf_arg = Model_to_renderer.renderer_book_to_renderer_book_pdf_arg book rendering_params pdf_metadata in
   uncurry Job.register_job_and_file <$> Renderer.make_book_pdf book_pdf_arg
 
-let search' env query =
-  let user = Environment.user env in
-  let%lwt items = Database.Book.search ~user: (Option.map Entry.id user) query in
-  lwt {Search_result.total = List.length items; items}
-
-let search env slice query =
-  let%lwt {total; items} = search' env query in
-  let items = List.map fst @@ Slice.list ~strict: false slice items in
-  lwt {Search_result.total; items}
+(* Dispatch *)
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Book.t -> a = fun env endpoint ->
   match endpoint with

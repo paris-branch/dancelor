@@ -338,7 +338,7 @@ module Set_view = struct
     name: string;
     conceptors: Person_name.t list; [@default []]
     kind: Kind.Dance.t;
-    contents: (Version_row.t * Model_builder.Core.Version_parameters.t) list; [@default []] (** FIXME: more compact content *)
+    content: (Version_row.t * Model_builder.Core.Version_parameters.t) list; [@default []] (** FIXME: more compact content *)
     order: Model_builder.Core.Set_order.t;
     remark: string option; [@default None]
     permission: Permission_builder.can_get_private;
@@ -374,7 +374,7 @@ module Book_view = struct
     name: string;
     authors: Person_name.t list; [@default []]
     date: PartialDate.t option; [@default None]
-    contents: Model_builder.Core.Book.page list; (** FIXME: more compact pages*)
+    content: Model_builder.Core.Book.page list; (** FIXME: more compact pages*)
     remark: string option; [@default None]
     sources: Source_name.t list; [@default []]
     scddb_id: int option; [@default None]

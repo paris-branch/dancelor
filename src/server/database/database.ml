@@ -7,6 +7,7 @@ module Source = Source
 module Tune = Tune
 module User = User
 module Version = Version
+module Utils = Utils
 
 type t = Connection.t
 

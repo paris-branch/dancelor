@@ -212,9 +212,10 @@ INSERT INTO "version_destructured_transitions" (
     @chords
 );
 
--- @search
+-- NEW MODELS
+
+-- @get_row
 SELECT
-    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
     -- ids
     "version"."id",
     "tune"."id" AS "tune_id",
@@ -227,6 +228,61 @@ SELECT
     "kind" AS "tune_kind"
 FROM "version"
 JOIN "tune" ON "version"."tune_id" = "tune"."id"
+WHERE "version"."id" = @id
+LIMIT 1; -- NOTE: to help sqlgg
+
+-- @get_rows
+SELECT
+    -- ids
+    "version"."id",
+    "tune"."id" AS "tune_id",
+    -- version
+    "version"."disambiguation",
+    "version"."monolithic_bars",
+    "version"."monolithic_or_default_structure",
+    -- tune
+    "name" AS "tune_name",
+    "kind" AS "tune_kind"
+FROM "version"
+JOIN "tune" ON "version"."tune_id" = "tune"."id"
+WHERE "version"."id" IN @ids;
+
+-- @get_view
+SELECT
+    -- ids
+    "tune"."id" AS "tune_id",
+    -- version
+    "version"."disambiguation",
+    "version"."key",
+    "version"."remark",
+    "version"."monolithic_bars",
+    "version"."monolithic_or_default_structure",
+    -- tune
+    "tune"."name" AS "tune_name",
+    "tune"."kind" AS "tune_kind",
+    "tune"."remark" AS "tune_remark",
+    "tune"."scddb_id" AS "tune_scddb_id",
+    "tune"."date" AS "tune_date"
+FROM "version"
+JOIN "tune" ON "version"."tune_id" = "tune"."id"
+WHERE "version"."id" = @id
+LIMIT 1; -- NOTE: to help sqlgg
+
+-- @search
+SELECT
+    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
+    -- ids
+    "version"."id",
+    "tune"."id" AS "tune_id",
+    -- version
+    "version"."disambiguation",
+    "version"."monolithic_bars",
+    "version"."monolithic_or_default_structure",
+    -- tune
+    "tune"."name" AS "tune_name",
+    "tune"."kind" AS "tune_kind"
+FROM "version"
+JOIN "tune" ON "version"."tune_id" = "tune"."id"
 WHERE
     (@terms = '' OR @terms <% "name")
     AND { "key" IN @key }?
@@ -235,19 +291,32 @@ WHERE
     AND @tune_composer { Some { EXISTS (SELECT 1 FROM "tune_composers" WHERE "tune_id" = "tune"."id" AND "composer_id" IN @tune_composer) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
--- @get_all_arrangers_new
+-- @get_arrangers_for
 SELECT
     "version_id",
     "person"."id",
     "person"."name"
 FROM "version_arrangers"
-JOIN "person" ON "version_arrangers"."arranger_id" = "person"."id";
+JOIN "person" ON "version_arrangers"."arranger_id" = "person"."id"
+WHERE @version_ids { One_of { "version_id" IN @version_ids } | All { TRUE } };
 
--- @get_all_sources_new
+-- @get_sources_for
 SELECT
     "version_id",
     "source"."id",
     "source"."name",
     "source"."short_name"
 FROM "version_sources"
-JOIN "source" ON "version_sources"."source_id" = "source"."id";
+JOIN "source" ON "version_sources"."source_id" = "source"."id"
+WHERE @version_ids { One_of { "version_id" IN @version_ids } | All { TRUE } };
+
+-- @get_version_sources_for
+SELECT
+    "version_id",
+    "source"."id",
+    "source"."name",
+    "version_sources"."structure",
+    "version_sources"."details"
+FROM "version_sources"
+JOIN "source" ON "version_sources"."source_id" = "source"."id"
+WHERE @version_ids { One_of { "version_id" IN @version_ids } | All { TRUE } };
