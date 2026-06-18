@@ -40,16 +40,18 @@ let create () =
         a ~a: [a_href @@ Uri.of_string "/explore"] [txt "come explore the database"];
         txt "!"
       ];
-      section [
-        h4 [txt "Continue where you left off"];
-        R.div ~a: [a_class ["mb-3"]] (
-          let length = 15 in
-          S.from_lwt (Utils.Tables.placeholder ~rows: length ()) @@
-            match%lwt History.get_models () with
-            | [] -> lwt_nil
-            | history -> lwt [Utils.Tables.any @@ List.take length history]
-        )
-      ];
+      R.section (
+        let title_and_table t = [
+          h4 [txt "Continue where you left off"];
+          div ~a: [a_class ["mb-3"]] t
+        ]
+        in
+        let length = 15 in
+        S.from_lwt (title_and_table (Utils.Tables.placeholder ~rows: length ())) @@
+          match%lwt History.get_models () with
+          | [] -> lwt_nil
+          | history -> lwt (title_and_table [Utils.Tables.any @@ List.take length history])
+      );
       section [
         h4 [txt "Most recently added"];
         R.div ~a: [a_class ["mb-3"]] (
