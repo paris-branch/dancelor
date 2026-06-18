@@ -31,7 +31,7 @@ let to_view env (book : Model.Book.entry) : Book_view.t Lwt.t =
     name = NEString.to_string @@ Model.Book.name' book;
     date = Model.Book.date' book;
     authors;
-    contents = Model.Book.contents' book;
+    content = Model.Book.contents' book;
     remark = Option.map NEString.to_string @@ Model.Book.remark' book;
     sources;
     scddb_id = Model.Book.scddb_id' book;

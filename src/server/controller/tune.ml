@@ -3,7 +3,7 @@ open Dancelor_common
 open Model_new
 open Search_new
 
-include Shared.Make(struct
+include Shared.Make_public(struct
   type id = Tune_id.t
   type row = Tune_row.t
   type view = Tune_view.t
@@ -12,66 +12,6 @@ include Shared.Make(struct
 end)
 
 (* Legacy *)
-
-(* FIXME: The following conversion functions are temporary. We will
-   save some network by having them happen on the server, but they
-   should be pushed into individual controllers in a first place, and
-   then even all the way to the respective databases. *)
-let to_row (tune : Model.Tune.entry) : Tune_row.t Lwt.t =
-  let%lwt composers = Lwt_list.map_s (Option.get <%> Model.Person.get % Model.Tune.composer_composer) @@ Model.Tune.composers' tune in
-  let composers = List.map Person.to_name composers in
-  lwt {
-    Tune_row.id = Entry.id tune;
-    name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
-    kind = Model.Tune.kind' tune;
-    composers;
-  }
-let version_to_row_without_tune (version : Model.Version.entry) : Tune_view.version_row_without_tune Lwt.t =
-  let content_to_content = function
-    | Model.Version.Content.No_content -> Version_row.No_content
-    | Destructured _ -> Destructured
-    | Monolithic {bars; structure; _} -> Monolithic {bars; structure}
-  in
-  let%lwt sources = Lwt_list.map_s (Option.get <%> Model.Source.get % Model.Version.source_source) @@ Model.Version.sources' version in
-  let sources = List.map Source.to_short_name sources in
-  let%lwt arrangers = Lwt_list.map_s (Person.to_name % Option.get <%> Model.Person.get) (Model.Version.arrangers' version) in
-  lwt ({
-    id = Entry.id version;
-    sources;
-    disambiguation = Option.map NEString.to_string @@ Model.Version.disambiguation' version;
-    arrangers;
-    content = content_to_content @@ Model.Version.content' version;
-  }: Tune_view.version_row_without_tune)
-let to_view env (tune : Model.Tune.entry) : Tune_view.t Lwt.t =
-  let%lwt composers =
-    Lwt_list.map_s (fun composer ->
-      let id = Model.Tune.composer_composer composer in
-      let%lwt person = Option.get <$> Model.Person.get id in
-      lwt {
-        Person_name_with_details.id;
-        name = NEString.to_string @@ Model.Person.name' person;
-        details = Option.map NEString.to_string @@ Model.Tune.composer_details composer;
-      }
-    ) @@
-      Model.Tune.composers' tune
-  in
-  let%lwt dances = Lwt_list.map_s (Option.get <%> Model.Dance.get) @@ Model.Tune.dances' tune in
-  let%lwt dances = Lwt_list.map_s Dance.to_row dances in
-  let%lwt versions = Database.Version.get_all_for_tune (Entry.id tune) in
-  let%lwt versions = Lwt_list.filter_s (Permission.can_get_public env) versions in
-  let%lwt versions = Lwt_list.map_s version_to_row_without_tune versions in
-  lwt {
-    Tune_view.id = Entry.id tune;
-    name = NEString.to_string @@ NEList.hd @@ Model.Tune.names' tune;
-    extra_names = List.map NEString.to_string @@ NEList.tl @@ Model.Tune.names' tune;
-    kind = Model.Tune.kind' tune;
-    composers;
-    dances;
-    remark = Option.map NEString.to_string @@ Model.Tune.remark' tune;
-    scddb_id = Model.Tune.scddb_id' tune;
-    date = Model.Tune.date' tune;
-    versions;
-  }
 
 let get env id =
   match%lwt Database.Tune.get id with

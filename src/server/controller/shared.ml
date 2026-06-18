@@ -5,39 +5,38 @@
 
 open Nes
 open Dancelor_common
+open Model_new
 open Search_new
 
-module type Db = sig
+module type Db_private = sig
   type id
   type row
   type view
   type query
 
-  val get_row : id -> row option Lwt.t
-  val get_view : id -> view option Lwt.t
-  val get_rows : id list -> (id, row) Database.Utils.tbl Lwt.t
-  val search : query -> (row * float) list Lwt.t
+  val get_row : user: User_id.t option -> id -> row option Lwt.t
+  val get_view : user: User_id.t option -> id -> view option Lwt.t
+  val get_rows : user: User_id.t option -> id list -> (id, row) Database.Utils.tbl Lwt.t
+  val search : user: User_id.t option -> query -> (row * float) list Lwt.t
 end
 
-module Make (Db : Db) = struct
+module Make_private (Db : Db_private) = struct
   let get_row env id =
-    match%lwt Db.get_row id with
+    let user = Environment.user env in
+    match%lwt Db.get_row ~user: (Option.map Entry.id user) id with
     | None -> Permission.reject_can_get ()
-    | Some person ->
-      Permission.assert_can_get_public_new env person;%lwt
-      lwt person
+    | Some person -> lwt person
 
   let get_view env id =
-    match%lwt Db.get_view id with
+    let user = Environment.user env in
+    match%lwt Db.get_view ~user: (Option.map Entry.id user) id with
     | None -> Permission.reject_can_get ()
-    | Some person ->
-      Permission.assert_can_get_public_new env person;%lwt
-      lwt person
+    | Some person -> lwt person
 
   (** Returns a hash table containing as many of the ids as possible. *)
   let get_rows_table env ids =
-    let%lwt Tbl tbl = Db.get_rows ids in
-    Monadise_lwt.lift_2_1 Hashtbl.filter_map_inplace (fun _id person -> if%lwt Permission.can_get_public_new env person then lwt_some person else lwt_none) tbl;%lwt
+    let user = Environment.user env in
+    let%lwt Tbl tbl = Db.get_rows ~user: (Option.map Entry.id user) ids in
     lwt tbl
 
   let get_rows env ids =
@@ -49,8 +48,8 @@ module Make (Db : Db) = struct
 
   let search' env query =
     Cache.use ~cache ~key: (Environment.cache_key env, query) @@ fun () ->
-    let%lwt items = Db.search query in
-    let%lwt items = Lwt_list.filter_s (Permission.can_get_public_new env % fst) items in
+    let user = Environment.user env in
+    let%lwt items = Db.search ~user: (Option.map Entry.id user) query in
     lwt {Search_result.total = List.length items; items}
 
   let search env slice query =
@@ -58,3 +57,23 @@ module Make (Db : Db) = struct
     let items = List.map fst @@ Slice.list ~strict: false slice items in
     lwt {Search_result.total; items}
 end
+
+module type Db_public = sig
+  type id
+  type row
+  type view
+  type query
+
+  val get_row : id -> row option Lwt.t
+  val get_view : id -> view option Lwt.t
+  val get_rows : id list -> (id, row) Database.Utils.tbl Lwt.t
+  val search : query -> (row * float) list Lwt.t
+end
+
+module Make_public (Db : Db_public) = Make_private(struct
+  include Db
+  let get_row ~user: _ = get_row
+  let get_view ~user: _ = get_view
+  let get_rows ~user: _ = get_rows
+  let search ~user: _ = search
+end)

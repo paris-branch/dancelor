@@ -3,7 +3,7 @@ open Dancelor_common
 open Model_new
 open Search_new
 
-include Shared.Make(struct
+include Shared.Make_public(struct
   type id = Person_id.t
   type row = Person_row.t
   type view = Person_view.t

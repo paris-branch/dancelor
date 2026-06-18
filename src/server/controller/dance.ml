@@ -3,7 +3,7 @@ open Dancelor_common
 open Model_new
 open Search_new
 
-include Shared.Make(struct
+include Shared.Make_public(struct
   type id = Dance_id.t
   type row = Dance_row.t
   type view = Dance_view.t
@@ -12,21 +12,6 @@ include Shared.Make(struct
 end)
 
 (* Legacy *)
-
-(* FIXME: The following conversion function is temporary. We will
-   save some network by having them happen on the server, but they
-   should be pushed into individual controllers in a first place, and
-   then even all the way to the respective databases. *)
-let to_row (dance : Model.Dance.entry) : Dance_row.t Lwt.t =
-  let%lwt devisers = Lwt_list.map_s (Option.get <%> Model.Person.get) @@ Model.Dance.devisers' dance in
-  let devisers = List.map Person.to_name devisers in
-  lwt {
-    Dance_row.id = Entry.id dance;
-    name = NEString.to_string @@ NEList.hd @@ Model.Dance.names' dance;
-    kind = Model.Dance.kind' dance;
-    devisers;
-    disambiguation = Option.map NEString.to_string @@ Model.Dance.disambiguation' dance;
-  }
 
 let get env id =
   match%lwt Database.Dance.get id with

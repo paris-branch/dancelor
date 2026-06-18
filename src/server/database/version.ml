@@ -10,10 +10,10 @@ let sql_to_name ~id ~name ~(k : Version_name.t -> 'w) : 'w =
   k {id = Entry.Id.of_string_exn id; name}
 
 let sql_to_row
+    ~id
     ~sources
     ~arrangers
     ~tune_composers
-    ~id
     ~disambiguation
     ~monolithic_bars
     ~monolithic_or_default_structure
@@ -168,8 +168,8 @@ let get_rows ids : (Version_id.t, Version_row.t) Utils.tbl Lwt.t =
   let ids = List.map Entry.Id.to_string ids in
   Connection.with_ @@ fun db ->
   let%lwt tune_composers_for = get_tune_composers_for db (`One_of ids) in
-  let%lwt sources_for = get_sources_for db `All in
-  let%lwt arrangers_for = get_arrangers_for db `All in
+  let%lwt sources_for = get_sources_for db (`One_of ids) in
+  let%lwt arrangers_for = get_arrangers_for db (`One_of ids) in
   Utils.fold_to_tbl
     (Version_sql.Fold.get_rows ~ids)
     db

@@ -5,7 +5,7 @@ open Search_new
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server.controller.version": Logs.LOG)
 
-include Shared.Make(struct
+include Shared.Make_public(struct
   type id = Version_id.t
   type row = Version_row.t
   type view = Version_view.t
@@ -14,29 +14,6 @@ include Shared.Make(struct
 end)
 
 (* Legacy *)
-
-(* FIXME: The following conversion function is temporary. We will
-   save some network by having them happen on the server, but they
-   should be pushed into individual controllers in a first place, and
-   then even all the way to the respective databases. *)
-let to_row (version : Model.Version.entry) : Version_row.t Lwt.t =
-  let content_to_content = function
-    | Model.Version.Content.No_content -> Version_row.No_content
-    | Destructured _ -> Destructured
-    | Monolithic {bars; structure; _} -> Monolithic {bars; structure}
-  in
-  let%lwt tune = Tune.to_row =<< Model.Version.tune' version in
-  let%lwt sources = Lwt_list.map_s (Option.get <%> Model.Source.get % Model.Version.source_source) @@ Model.Version.sources' version in
-  let sources = List.map Source.to_short_name sources in
-  let%lwt arrangers = Lwt_list.map_s (Person.to_name % Option.get <%> Model.Person.get) (Model.Version.arrangers' version) in
-  lwt {
-    Version_row.id = Entry.id version;
-    tune;
-    sources;
-    disambiguation = Option.map NEString.to_string @@ Model.Version.disambiguation' version;
-    arrangers;
-    content = content_to_content @@ Model.Version.content' version;
-  }
 
 let get env id =
   match%lwt Database.Version.get id with
@@ -114,33 +91,6 @@ let get_view_for_tune env id =
   match%lwt Lwt_stream.get stream with
   | Some version -> (fun v -> Endpoints.Version.Version_view_fallback.Found v) <$> get_view env (Entry.id version)
   | None -> (fun t -> Endpoints.Version.Version_view_fallback.Fallback t) <$> Tune.get_view env id
-
-let rec search_and_extract acc s regexp =
-  let rem = Str.replace_first regexp "" s in
-  try
-    let gp = Str.matched_group 1 s in
-    let gp_words =
-      String.split_on_char ',' gp
-      |> List.map (String.remove_char '"')
-      |> List.map (String.remove_char '\'')
-      |> List.filter (fun s -> s <> "")
-    in
-    let rem, l = search_and_extract acc rem regexp in
-    rem, gp_words @ l
-  with
-    | Not_found | Invalid_argument _ -> rem, acc
-
-let score_list_vs_word words needle =
-  List.map (String.inclusion_proximity ~char_equal: Char.Sensible.equal ~needle) words
-  |> List.fold_left max 0.
-
-let score_list_vs_list words needles =
-  if needles = [] then 1.
-  else
-    begin
-      List.map (score_list_vs_word words) needles
-      |> List.fold_left max 0.
-    end
 
 let content env id =
   Log.debug (fun m -> m "content %a" Entry.Id.pp' id);

@@ -19,6 +19,24 @@ val sql_to_name :
   k: (Version_name.t -> 'w) ->
   'w
 
+val sql_to_row :
+  id: string ->
+  sources: Source_short_name.t list ->
+  arrangers: Person_name.t list ->
+  tune_composers: Person_name.t list ->
+  disambiguation: string option ->
+  monolithic_bars: int64 option ->
+  monolithic_or_default_structure: string option ->
+  tune_id: string ->
+  tune_name: string ->
+  tune_kind: Tune.sql_kind_base ->
+  k: (Version_row.t -> 'w) ->
+  'w
+
+val get_tune_composers_for : Connection.t -> [`All | `One_of of string list] -> (string -> Person_name.t list) Lwt.t
+val get_sources_for : Connection.t -> [`All | `One_of of string list] -> (string -> Source_short_name.t list) Lwt.t
+val get_arrangers_for : Connection.t -> [`All | `One_of of string list] -> (string -> Person_name.t list) Lwt.t
+
 (** {2 Legacy} *)
 
 type t = Model_builder.Core.Version.t
