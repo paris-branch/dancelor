@@ -2,40 +2,18 @@ open Nes
 open Dancelor_common
 open Model_new
 open Search_new
+open Sql_to_name
+open Sql_to_row
+open Sql_to_view
 
 module Entry_sql = Entry_sql.Sqlgg(Sqlgg_postgresql)
 module Set_sql = Set_sql.Sqlgg(Sqlgg_postgresql)
 
-type t = Model_builder.Core.Set.t
-type entry = Model_builder.Core.Set.entry
-
-let sql_to_row ~id ~name ~kind ~conceptors ~tunes ~permission ~(k : Set_row.t -> 'w) : 'w =
-  k {
-    id = Entry.Id.of_string_exn id;
-    name;
-    kind = Kind_dance.of_string kind;
-    conceptors;
-    tunes;
-    permission = (match permission with `Everyone -> Everyone | `Owner -> Owner | `Viewer -> Viewer | `Omniscient_administrator -> Omniscient_administrator);
-  }
-
-let sql_to_view ~id ~name ~kind ~conceptors ~content ~order ~remark ~permission ~(k : Set_view.t -> 'w) : 'w =
-  k {
-    id = Entry.Id.of_string_exn id;
-    name;
-    kind = Kind_dance.of_string kind;
-    conceptors;
-    content; (* (Version_row.t * Model_builder.Core.Version_parameters.t) list *)
-    order = Model_builder.Core.Set_order.of_string order;
-    remark;
-    permission = (match permission with `Everyone -> Everyone | `Owner -> Owner | `Viewer -> Viewer | `Omniscient_administrator -> Omniscient_administrator);
-  }
-
 let get_tunes_for db set_ids =
-  Utils.fold_to_get (Set_sql.Fold.get_tunes_for ~set_ids) db (fun k ~set_id ~id -> Version.sql_to_name ~id ~k: (k set_id))
+  Utils.fold_to_get (Set_sql.Fold.get_tunes_for ~set_ids) db (fun k ~set_id ~id -> version_sql_to_name ~id ~k: (k set_id))
 
 let get_conceptors_for db set_ids =
-  Utils.fold_to_get (Set_sql.Fold.get_conceptors_for ~set_ids) db (fun k ~set_id -> Person.sql_to_name ~k: (k set_id))
+  Utils.fold_to_get (Set_sql.Fold.get_conceptors_for ~set_ids) db (fun k ~set_id -> person_sql_to_name ~k: (k set_id))
 
 let get_content_for db set_ids =
   (* FIXME: We would rather just get the composers, sources and
@@ -65,7 +43,7 @@ let get_content_for db set_ids =
       ~version_parameter_display_composer
     ->
     let version =
-      Version.sql_to_row
+      version_sql_to_row
         ~id: version_id
         ~tune_id
         ~disambiguation: version_disambiguation
@@ -101,7 +79,7 @@ let get_row ~user id : Set_row.t option Lwt.t =
     db
     ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
     ~id
-    (sql_to_row ~id ~tunes ~conceptors ~k: Fun.id)
+    (set_sql_to_row ~id ~tunes ~conceptors ~k: Fun.id)
 
 let get_rows ~user ids : (Set_id.t, Set_row.t) Utils.tbl Lwt.t =
   let ids = List.map Entry.Id.to_string ids in
@@ -112,7 +90,7 @@ let get_rows ~user ids : (Set_id.t, Set_row.t) Utils.tbl Lwt.t =
     (Set_sql.Fold.get_rows ~ids ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: ""))
     db
     (fun k ~id ->
-      sql_to_row
+      set_sql_to_row
         ~id
         ~tunes: (tunes_for id)
         ~conceptors: (conceptors_for id)
@@ -128,7 +106,7 @@ let get_view ~user id : Set_view.t option Lwt.t =
     db
     ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
     ~id
-    (sql_to_view ~id ~conceptors ~content ~k: Fun.id)
+    (set_sql_to_view ~id ~conceptors ~content ~k: Fun.id)
 
 let search ~user query : (Set_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Set_query.conceptor; contains_version; contains_tune}} = query in
@@ -143,7 +121,7 @@ let search ~user query : (Set_row.t * float) list Lwt.t =
     ~contains_version: (Utils.list_option_map_to_sql Entry.Id.to_string contains_version)
     ~contains_tune: (Utils.list_option_map_to_sql Entry.Id.to_string contains_tune)
     (fun ~score ~id ->
-      sql_to_row
+      set_sql_to_row
         ~id
         ~tunes: (tunes_for id)
         ~conceptors: (conceptors_for id)
@@ -151,6 +129,9 @@ let search ~user query : (Set_row.t * float) list Lwt.t =
     )
 
 (* Legacy *)
+
+type t = Model_builder.Core.Set.t
+type entry = Model_builder.Core.Set.entry
 
 let sql_to_set
     ~id

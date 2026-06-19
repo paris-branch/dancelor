@@ -2,37 +2,18 @@ open Nes
 open Dancelor_common
 open Model_new
 open Search_new
+open Sql_to_name
+open Sql_to_row
+open Sql_to_view
 
 module Entry_sql = Entry_sql.Sqlgg(Sqlgg_postgresql)
 module Book_sql = Book_sql.Sqlgg(Sqlgg_postgresql)
 
-let sql_to_row ~id ~name ~date ~authors ~permission ~(k : Book_row.t -> 'w) : 'w =
-  k {
-    id = Entry.Id.of_string_exn id;
-    name;
-    date = Option.map (Option.get % PartialDate.from_string) date;
-    authors;
-    permission = (match permission with `Everyone -> Everyone | `Owner -> Owner | `Viewer -> Viewer | `Omniscient_administrator -> Omniscient_administrator);
-  }
-
-let sql_to_view ~id ~name ~date ~authors ~content ~remark ~sources ~scddb_id ~permission ~(k : Book_view.t -> 'w) : 'w =
-  k {
-    id = Entry.Id.of_string_exn id;
-    name;
-    date = Option.map (Option.get % PartialDate.from_string) date;
-    authors;
-    content; (* Model_builder.Core.Book.page list *)
-    remark;
-    sources; (* Source_name.t list *)
-    scddb_id = Option.map Int64.to_int scddb_id;
-    permission = (match permission with `Everyone -> Everyone | `Owner -> Owner | `Viewer -> Viewer | `Omniscient_administrator -> Omniscient_administrator);
-  }
-
 let get_authors_for db book_ids =
-  Utils.fold_to_get (Book_sql.Fold.get_authors_for ~book_ids) db (fun k ~book_id -> Person.sql_to_name ~k: (k book_id))
+  Utils.fold_to_get (Book_sql.Fold.get_authors_for ~book_ids) db (fun k ~book_id -> person_sql_to_name ~k: (k book_id))
 
 let get_sources_for db book_ids =
-  Utils.fold_to_get (Book_sql.Fold.get_sources_for ~book_ids) db (fun k ~book_id -> Source.sql_to_name ~k: (k book_id))
+  Utils.fold_to_get (Book_sql.Fold.get_sources_for ~book_ids) db (fun k ~book_id -> source_sql_to_name ~k: (k book_id))
 
 let get_content_versions_for db book_ids =
   Utils.fold_to_get (Book_sql.Fold.get_content_versions_for ~book_ids) db (fun
@@ -121,7 +102,7 @@ let get_row ~user id : Book_row.t option Lwt.t =
     db
     ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
     ~id
-    (sql_to_row ~id ~authors ~k: Fun.id)
+    (book_sql_to_row ~id ~authors ~k: Fun.id)
 
 let get_rows ~user ids : (Book_id.t, Book_row.t) Utils.tbl Lwt.t =
   let ids = List.map Entry.Id.to_string ids in
@@ -130,7 +111,7 @@ let get_rows ~user ids : (Book_id.t, Book_row.t) Utils.tbl Lwt.t =
   Utils.fold_to_tbl
     (Book_sql.Fold.get_rows ~ids ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: ""))
     db
-    (fun k ~id -> sql_to_row ~id ~authors: (authors_for id) ~k: (k @@ Entry.Id.of_string_exn id))
+    (fun k ~id -> book_sql_to_row ~id ~authors: (authors_for id) ~k: (k @@ Entry.Id.of_string_exn id))
 
 let get_view ~user id : Book_view.t option Lwt.t =
   let id = Entry.Id.to_string id in
@@ -142,7 +123,7 @@ let get_view ~user id : Book_view.t option Lwt.t =
     db
     ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
     ~id
-    (sql_to_view ~id ~authors ~sources ~content ~k: Fun.id)
+    (book_sql_to_view ~id ~authors ~sources ~content ~k: Fun.id)
 
 let search ~user query : (Book_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Book_query.author; contains_version; contains_tune; contains_set}} = query in
@@ -157,7 +138,7 @@ let search ~user query : (Book_row.t * float) list Lwt.t =
     ~contains_tune: (Utils.list_option_map_to_sql Entry.Id.to_string contains_tune)
     ~contains_set: (Utils.list_option_map_to_sql Entry.Id.to_string contains_set)
     (fun ~score ~id ->
-      sql_to_row
+      book_sql_to_row
         ~id
         ~authors: (authors_for id)
         ~k: (Pair.snoc score)

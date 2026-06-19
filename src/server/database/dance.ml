@@ -2,65 +2,36 @@ open Nes
 open Dancelor_common
 open Model_new
 open Search_new
+open Sql_to_name
+open Sql_to_row
+open Sql_to_view
 
 module Dance_sql = Dance_sql.Sqlgg(Sqlgg_postgresql)
-
-let two_chords_to_common = function
-  | `Dont_know -> Model_builder.Core.Dance.Dont_know
-  | `One_chord -> One_chord
-  | `Two_chords -> Two_chords
-
-let two_chords_of_common = function
-  | Model_builder.Core.Dance.Dont_know -> `Dont_know
-  | One_chord -> `One_chord
-  | Two_chords -> `Two_chords
-
-let sql_to_row ~id ~name ~kind ~devisers ~disambiguation ~(k : Dance_row.t -> 'w) : 'w =
-  k {
-    id = Entry.Id.of_string_exn id;
-    name;
-    kind = Kind_dance.of_string kind;
-    devisers;
-    disambiguation;
-  }
-
-let sql_to_view ~id ~name ~extra_names ~kind ~devisers ~scddb_id ~disambiguation ~date ~two_chords ~(k : Dance_view.t -> 'w) : 'w =
-  k {
-    id = Entry.Id.of_string_exn id;
-    name;
-    extra_names;
-    kind = Kind_dance.of_string kind;
-    devisers;
-    scddb_id = Option.map Int64.to_int scddb_id;
-    disambiguation;
-    date = Option.map (Option.get % PartialDate.from_string) date;
-    two_chords = two_chords_to_common two_chords;
-  }
 
 let get_extra_names_for db dance_ids =
   Utils.fold_to_tbl (Dance_sql.Fold.get_extra_names_for ~dance_ids) db (fun k ~dance_id ~extra_name -> k dance_id extra_name)
 
 let get_devisers_for db dance_ids =
-  Utils.fold_to_tbl (Dance_sql.Fold.get_devisers_for ~dance_ids) db (fun k ~dance_id -> Person.sql_to_name ~k: (k dance_id))
+  Utils.fold_to_tbl (Dance_sql.Fold.get_devisers_for ~dance_ids) db (fun k ~dance_id -> person_sql_to_name ~k: (k dance_id))
 
 let get_row id : Dance_row.t option Lwt.t =
   let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   let%lwt devisers = flip Utils.tbl_get id <$> get_devisers_for db (`One_of [id]) in
-  Dance_sql.Single.get_row db ~id (sql_to_row ~id ~devisers ~k: Fun.id)
+  Dance_sql.Single.get_row db ~id (dance_sql_to_row ~id ~devisers ~k: Fun.id)
 
 let get_rows ids : (Dance_id.t, Dance_row.t) Utils.tbl Lwt.t =
   let ids = List.map Entry.Id.to_string ids in
   Connection.with_ @@ fun db ->
   let%lwt devisers_for = get_devisers_for db (`One_of ids) in
-  Utils.fold_to_tbl (Dance_sql.Fold.get_rows ~ids) db (fun k ~id -> sql_to_row ~id ~devisers: (Utils.tbl_get devisers_for id) ~k: (k @@ Entry.Id.of_string_exn id))
+  Utils.fold_to_tbl (Dance_sql.Fold.get_rows ~ids) db (fun k ~id -> dance_sql_to_row ~id ~devisers: (Utils.tbl_get devisers_for id) ~k: (k @@ Entry.Id.of_string_exn id))
 
 let get_view id : Dance_view.t option Lwt.t =
   let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   let%lwt extra_names = flip Utils.tbl_get id <$> get_extra_names_for db (`One_of [id]) in
   let%lwt devisers = flip Utils.tbl_get id <$> get_devisers_for db (`One_of [id]) in
-  Dance_sql.Single.get_view db ~id (sql_to_view ~extra_names ~devisers ~id ~k: Fun.id)
+  Dance_sql.Single.get_view db ~id (dance_sql_to_view ~extra_names ~devisers ~id ~k: Fun.id)
 
 let search query : (Dance_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Dance_query.deviser}} = query in
@@ -70,7 +41,7 @@ let search query : (Dance_row.t * float) list Lwt.t =
     db
     ~terms
     ~deviser: (Utils.list_option_map_to_sql Entry.Id.to_string deviser)
-    (fun ~score ~id -> sql_to_row ~id ~devisers: (Utils.tbl_get devisers id) ~k: (Pair.snoc score))
+    (fun ~score ~id -> dance_sql_to_row ~id ~devisers: (Utils.tbl_get devisers id) ~k: (Pair.snoc score))
 
 (* Legacy *)
 
@@ -98,7 +69,7 @@ let sql_to_dance
       Model_builder.Core.Dance.make
         ~names: (NEList.cons (NEString.of_string_exn name) extra_names)
         ~kind: (Kind_dance.of_string kind)
-        ~two_chords: (two_chords_to_common two_chords)
+        ~two_chords: (Sql_types.two_chords_to_common two_chords)
         ~scddb_id: (Option.map Int64.to_int scddb_id)
         ~disambiguation: (Option.map NEString.of_string_exn disambiguation)
         ~date: (Option.map (Option.get % PartialDate.from_string) date)
@@ -115,7 +86,7 @@ let dance_to_sql ~create_or_update db id dance =
       ~id
       ~name: (NEString.to_string @@ NEList.hd @@ Model_builder.Core.Dance.names dance)
       ~kind: (Kind_dance.to_string @@ Model_builder.Core.Dance.kind dance)
-      ~two_chords: (two_chords_of_common @@ Model_builder.Core.Dance.two_chords dance)
+      ~two_chords: (Sql_types.two_chords_of_common @@ Model_builder.Core.Dance.two_chords dance)
       ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Dance.scddb_id dance)
       ~disambiguation: (Option.map NEString.to_string @@ Model_builder.Core.Dance.disambiguation dance)
       ~date: (Option.map PartialDate.to_string @@ Model_builder.Core.Dance.date dance);%lwt
