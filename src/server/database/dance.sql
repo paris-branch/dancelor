@@ -128,7 +128,8 @@ SELECT
     "kind",
     "scddb_id",
     "disambiguation",
-    "date"
+    "date",
+    "two_chords"
 FROM "dance"
 WHERE "id" = @id;
 

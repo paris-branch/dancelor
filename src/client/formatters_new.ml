@@ -76,6 +76,17 @@ module Dance = struct
       | Some disambiguation -> [span ~a: [a_class ["opacity-50"]] [txtf " (%s)" disambiguation]]
     in
     name ?link ?context {id = dance.id; name = dance.name} :: disambiguation_block
+
+  let aka (dance : Dance_view.t) =
+    match dance.extra_names with
+    | [] -> []
+    | names -> [txt @@ spf "Also known as %s" @@ String.concat ", " names]
+
+  let description (dance : Dance_view.t) =
+    let kind = Kind.Dance.to_pretty_string dance.kind in
+    match dance.devisers with
+    | [] -> [txt kind]
+    | devisers -> (txtf "%s by " kind) :: Person.names devisers
 end
 
 module Tune = struct

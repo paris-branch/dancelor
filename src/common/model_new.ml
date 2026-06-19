@@ -115,8 +115,12 @@ module Dance_view = struct
     scddb_id: int option; [@default None]
     disambiguation: string option; [@default None]
     date: PartialDate.t option; [@default None]
+    two_chords: Model_builder.Core.Dance.two_chords;
   }
   [@@deriving yojson, fields]
+
+  let to_name : t -> Dance_name.t = fun {id; name; _} ->
+    {id; name}
 end
 
 (** {2 Source} *)

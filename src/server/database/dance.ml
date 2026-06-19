@@ -24,7 +24,7 @@ let sql_to_row ~id ~name ~kind ~devisers ~disambiguation ~(k : Dance_row.t -> 'w
     disambiguation;
   }
 
-let sql_to_view ~id ~name ~extra_names ~kind ~devisers ~scddb_id ~disambiguation ~date ~(k : Dance_view.t -> 'w) : 'w =
+let sql_to_view ~id ~name ~extra_names ~kind ~devisers ~scddb_id ~disambiguation ~date ~two_chords ~(k : Dance_view.t -> 'w) : 'w =
   k {
     id = Entry.Id.of_string_exn id;
     name;
@@ -34,6 +34,7 @@ let sql_to_view ~id ~name ~extra_names ~kind ~devisers ~scddb_id ~disambiguation
     scddb_id = Option.map Int64.to_int scddb_id;
     disambiguation;
     date = Option.map (Option.get % PartialDate.from_string) date;
+    two_chords = two_chords_to_common two_chords;
   }
 
 let get_extra_names_for db dance_ids =
