@@ -58,6 +58,19 @@ module Source = struct
         [txt source.short_name]
     else
       txt source.short_name
+
+  let date_and_editors (source : Source_view.t) =
+    let date =
+      match source.date with
+      | None -> []
+      | Some date -> [txt (spf "Published %s" (PartialDate.to_pretty_string ~at: true date))]
+    in
+    let editors =
+      match source.editors with
+      | [] -> []
+      | editors -> (txt "by ") :: Person.names editors
+    in
+      (date @ [txt " "] @ editors)
 end
 
 module Dance = struct
