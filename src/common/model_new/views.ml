@@ -25,6 +25,7 @@ module Dance_view = struct
     disambiguation: string option; [@default None]
     date: PartialDate.t option; [@default None]
     two_chords: Model_builder.Core.Dance.two_chords;
+    tunes: Tune_row.t list; [@default []]
   }
   [@@deriving yojson, fields]
 

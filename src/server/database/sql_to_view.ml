@@ -22,7 +22,7 @@ let source_sql_to_view ~id ~name ~short_name ~editors ~scddb_id ~description ~da
     date = Option.map (Option.get % PartialDate.from_string) date;
   }
 
-let dance_sql_to_view ~id ~name ~extra_names ~kind ~devisers ~scddb_id ~disambiguation ~date ~two_chords ~(k : Dance_view.t -> 'w) : 'w =
+let dance_sql_to_view ~id ~name ~extra_names ~kind ~devisers ~scddb_id ~disambiguation ~date ~two_chords ~tunes ~(k : Dance_view.t -> 'w) : 'w =
   k {
     id = Entry.Id.of_string_exn id;
     name;
@@ -33,6 +33,7 @@ let dance_sql_to_view ~id ~name ~extra_names ~kind ~devisers ~scddb_id ~disambig
     disambiguation;
     date = Option.map (Option.get % PartialDate.from_string) date;
     two_chords = Sql_types.two_chords_to_common two_chords;
+    tunes;
   }
 
 let tune_sql_to_version_row_without_tune ~id ~sources ~disambiguation ~arrangers ~monolithic_bars ~monolithic_or_default_structure ~(k : Tune_view.version_row_without_tune -> 'w) : 'w =

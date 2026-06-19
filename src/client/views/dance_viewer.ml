@@ -65,23 +65,14 @@ let view context id =
       div
         [
           h3 [txt "Recommended Tunes"];
-          R.div
-            (
-              S.from_lwt (Tables.placeholder ()) @@
-                let%lwt tunes = Madge_client.call_exn Endpoints.Api.(route @@ Dance Tunes) id in
-                (* FIXME: include tunes in Dance_view.t *)
-                lwt
-                  [
-                    if tunes = [] then
-                      txt
-                        (
-                          "There are no recommended tunes for this dance. " ^
-                          "Dancelor is not all-knowing: go check the Strathspey Database! " ^
-                          "And if you find something that is not known here, report it to someone."
-                        )
-                    else
-                      Tables.tunes tunes
-                  ]
-            )
+          (
+            match dance.tunes with
+            | [] ->
+              txt @@
+              "There are no recommended tunes for this dance. " ^
+              "Dancelor is not all-knowing: go check the Strathspey Database! " ^
+              "And if you find something that is not known here, report it to someone."
+            | tunes -> Tables.tunes tunes
+          );
         ];
     ]
