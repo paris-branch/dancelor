@@ -236,4 +236,17 @@ module Book = struct
         [txt book.name]
     else
       txt book.name
+
+  let date_and_editors (book : Book_view.t) =
+    let date =
+      match book.date with
+      | None -> []
+      | Some date -> [txt (spf "Published %s" (NesPartialDate.to_pretty_string ~at: true date))]
+    in
+    let editors =
+      match book.authors with
+      | [] -> []
+      | editors -> txt "by " :: Person.names ~links: true editors
+    in
+    date @ [txt " "] @ editors
 end
