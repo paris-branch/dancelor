@@ -59,3 +59,11 @@ module Version_name = struct
   }
   [@@deriving yojson, fields]
 end
+
+module Set_name = struct
+  type t = {
+    id: Set_id.t;
+    name: string
+  }
+  [@@deriving yojson, fields]
+end

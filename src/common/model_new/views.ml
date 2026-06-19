@@ -129,6 +129,9 @@ module Set_view = struct
     permission: Permission_builder.can_get_private;
   }
   [@@deriving yojson, fields]
+
+  let to_name : t -> Set_name.t = fun {id; name; _} ->
+    {id; name}
 end
 
 module Book_view = struct
