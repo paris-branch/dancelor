@@ -7,7 +7,7 @@ let madge_call_or_option endpoint id =
     | Error (Madge_client.Http {status = `Not_found; _}) -> None
     | Error e -> raise (Madge_client.Error e)
 
-include Model_builder.Build(struct
+module Getters = struct
   let get_user = madge_call_or_option (User Get)
   let get_book = madge_call_or_option (Book Get)
   let get_dance = madge_call_or_option (Dance Get)
@@ -16,4 +16,6 @@ include Model_builder.Build(struct
   let get_source = madge_call_or_option (Source Get)
   let get_tune = madge_call_or_option (Tune Get)
   let get_version = madge_call_or_option (Version Get)
-end)
+end
+
+include Model_builder.Build(Getters)

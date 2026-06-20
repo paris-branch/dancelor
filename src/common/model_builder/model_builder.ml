@@ -5,6 +5,7 @@
 
 module Core = Core
 module Signature = Signature
+module Builder = Builder
 
 module type Getters = Getters.S
 

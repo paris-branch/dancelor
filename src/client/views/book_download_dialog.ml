@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common
+open Model_new
 open Model
 open Html
 open Utils
@@ -45,7 +46,7 @@ let create () =
 
 (* REVIEW: This is extremely close to `Version_download_dialog.render` (apart for
    one line and one type, really); there is room for factorisation here. *)
-let open_ book dialog =
+let open_ (book : Book_view.t) dialog =
   Page.open_dialog @@ fun return ->
   Page.make'
     ~title: (lwt "Download a PDF")
@@ -58,9 +59,9 @@ let open_ book dialog =
           return None;
           Version_download_dialog.open_pdf_generation_dialog (
             Job.run
-              (NesSlug.add_suffix (Book.slug' book) ".pdf")
+              (NesSlug.add_suffix (NesSlug.of_string book.name) ".pdf")
               Endpoints.Api.(route @@ Book Build_pdf)
-              (Entry.id book)
+              book.id
               book_params
               rendering_params
           )

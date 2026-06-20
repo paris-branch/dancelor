@@ -128,7 +128,8 @@ SELECT
     "kind",
     "scddb_id",
     "disambiguation",
-    "date"
+    "date",
+    "two_chords"
 FROM "dance"
 WHERE "id" = @id;
 
@@ -161,4 +162,25 @@ SELECT
 FROM "dance_devisers"
 JOIN "person" ON "dance_devisers"."deviser_id" = "person"."id"
 WHERE @dance_ids { One_of { "dance_id" IN @dance_ids } | All { TRUE } }
+ORDER BY "index";
+
+-- @get_tunes_for
+SELECT
+    "dance_id",
+    "id",
+    "name",
+    "kind"
+FROM "recommended_tunes"
+JOIN "tune" ON "recommended_tunes"."tune_id" = "tune"."id"
+WHERE @dance_ids { One_of { "recommended_tunes"."dance_id" IN @dance_ids } | All { TRUE } };
+
+-- @get_composers_for_tunes_for
+SELECT
+    "tune_composers"."tune_id",
+    "person"."id",
+    "person"."name"
+FROM "recommended_tunes"
+JOIN "tune_composers" ON "recommended_tunes"."tune_id" = "tune_composers"."tune_id"
+JOIN "person" ON "tune_composers"."composer_id" = "person"."id"
+WHERE @dance_ids { One_of { "recommended_tunes"."dance_id" IN @dance_ids } | All { TRUE } }
 ORDER BY "index";

@@ -7,33 +7,31 @@ open Html
 open Utils
 
 let view context id =
-  Main_page.madge_call_or_404 (Set Get) id @@ fun set ->
+  Main_page.madge_call_or_404 (Set Get_view) id @@ fun set ->
   Page.make'
     ~parent_title: "Set"
     ~before_title: [
-      Components.Context_links.make_and_render
+      Components.Context_links.make_and_render_new
         ?context
         ~this_page: (Endpoints.Page.href_set id)
-        (lwt @@ Any.set set);
+        (Any_id.Set id);
     ]
-    ~title: (lwt @@ NEString.to_string @@ Set.name' set)
+    ~title: (lwt set.name)
     ~subtitles: [
       span
         [
-          txt ((Kind.Dance.to_pretty_string % Set.kind') set);
+          txt (Kind.Dance.to_pretty_string set.kind);
           txt " — Play ";
-          txt ((Set_order.to_pretty_string % Set.order') set);
+          txt (Set_order.to_pretty_string set.order);
         ];
-      (
-        with_span_placeholder @@
-          match Set.conceptors' set with
-          | [] -> lwt_nil
-          | conceptors ->
-            let%lwt conceptors = Lwt_list.map_p (Option.get <%> Model.Person.get) conceptors in
-            lwt [txt "Set by "; Formatters.Person.names' ~links: true conceptors]
+      span (
+        match set.conceptors with
+        | [] -> []
+        | conceptors ->
+          txt "Set by " :: Formatters_new.Person.names ~links: true conceptors
       );
     ]
-    ~share: (Set set)
+    ~share_new: (Set id)
     ~actions: [
       lwt [
         Button.make
@@ -43,80 +41,63 @@ let view context id =
           ~dropdown: true
           ();
       ];
-      (Add_to.button_to_book ~source_type: "set" ~source_format: Formatters.Set.name' set (Model.Book.Set (Entry.id set, Model.Set_parameters.none)));
+      (Add_to.button_to_book ~source_type: "set" ~source_format: Formatters_new.Set.name (Set_view.to_name set) (Model.Book.Set (id, Model.Set_parameters.none)));
       (
-        match%lwt Permission.can_update_private set with
-        | None -> lwt_nil
-        | Some _ ->
-          lwt [
-            Button.make_a
-              ~label: "Edit"
-              ~icon: (Action Edit)
-              ~href: (S.const @@ Endpoints.Page.(href Set_edit) id)
-              ~dropdown: true
-              ();
-          ]
+        (* FIXME: check permission to know whether to show this *)
+        (* match%lwt Permission.can_update_private_new set with *)
+        (* | None -> lwt_nil *)
+        (* | Some _ -> *)
+        lwt [
+          Button.make_a
+            ~label: "Edit"
+            ~icon: (Action Edit)
+            ~href: (S.const @@ Endpoints.Page.(href Set_edit) id)
+            ~dropdown: true
+            ();
+        ]
       );
       (
-        match%lwt Permission.can_delete_private set with
-        | None -> lwt_nil
-        | Some _ ->
-          lwt [
-            Action.delete
-              ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Set Delete) (Entry.id set))
-              ~model: "set"
-              ();
-          ]
+        (* FIXME: check permission to know whether to show this *)
+        (* match%lwt Permission.can_delete_private_new set with *)
+        (* | None -> lwt_nil *)
+        (* | Some _ -> *)
+        lwt [
+          Action.delete
+            ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Set Delete) id)
+            ~model: "set"
+            ();
+        ]
       );
     ]
     [
-      R.div
+      div
         (
-          S.from_lwt
-            [
+          List.mapi
+            (fun index (version, params) ->
+              let context = Endpoints.Page.in_set id index in
               div
-                ~a: [a_class ["text-center"; "mt-4"]]
+                ~a: [a_class ["mt-4"]]
                 [
-                  h4 [span_placeholder ()];
-                  div_placeholder ~min: 10 ~max: 20 ();
-                ];
-              div
-                ~a: [a_class ["text-center"; "mt-4"]]
-                [
-                  h4 [span_placeholder ()];
-                  div_placeholder ~min: 10 ~max: 20 ();
-                ];
-            ] @@
-            Lwt_list.mapi_p
-              (fun index (version, params) ->
-                let%lwt version = Option.get <$> Model.Version.get version in
-                let%lwt name = NEList.hd <$> Model.Version.names' version in
-                let version_name = {Version_name.id = Entry.id version; name = NEString.to_string name} in
-                let context = Endpoints.Page.in_set id index in
-                lwt @@
-                  div
-                    ~a: [a_class ["mt-4"]]
-                    [
-                      div ~a: [a_class ["row"; "justify-content-between"; "mb-2"]] [
-                        div ~a: [a_class ["col"; "text-start"]] [
-                          Formatters.Version.name_disambiguation_and_sources'
-                            ~context: (S.const context)
-                            ~params
-                            version
-                        ];
-                        div ~a: [a_class ["col"; "text-end"]] [
-                          Formatters.Version.composer_and_arranger'
-                            ~short: true
-                            ~params
-                            version
-                        ];
-                      ];
-                      Components.Version_snippets.make ~show_audio: false ~params version_name;
-                    ]
-              )
-              (Set.contents' set)
+                  div ~a: [a_class ["row"; "justify-content-between"; "mb-2"]] [
+                    div ~a: [a_class ["col"; "text-start"]] (
+                      Formatters_new.Version.name_disambiguation_and_sources
+                        ~context: (S.const context)
+                        version @
+                        Formatters_new.Version.parameters (Some params)
+                    );
+                    div ~a: [a_class ["col"; "text-end"]] (
+                      Formatters_new.Version.composer_and_arranger
+                        ~short: true
+                        version @
+                        Formatters_new.Version.display_composer (Some params)
+                    );
+                  ];
+                  Components.Version_snippets.make ~show_audio: false ~params (Version_row.to_name version);
+                ]
+            )
+            set.content
         );
       quick_explorer_links [
-        ("books containing this set", Any_query.specific_only (Any_query.Book (Book_query.make_specific ~contains_set: (Some [Entry.id set]) ())));
+        ("books containing this set", Any_query.specific_only (Any_query.Book (Book_query.make_specific ~contains_set: (Some [id]) ())));
       ];
     ]

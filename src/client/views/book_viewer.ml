@@ -1,7 +1,10 @@
 open Nes
 open Dancelor_common
+open Model_new
 open Utils
 open Model
+
+module Warnings = Book_warnings_new.Build(Getters)
 
 let display_warnings warnings =
   let open Html in
@@ -148,18 +151,18 @@ let table_contents ~this_id contents =
 open Html
 
 let view context id =
-  Main_page.madge_call_or_404 (Book Get) id @@ fun book ->
+  Main_page.madge_call_or_404 (Book Get_view) id @@ fun book ->
   Page.make'
     ~parent_title: "Book"
     ~before_title: [
-      Components.Context_links.make_and_render
+      Components.Context_links.make_and_render_new
         ?context
         ~this_page: (Endpoints.Page.href_book id)
-        (lwt @@ Any.book book);
+        (Any_id.Book id);
     ]
-    ~title: (lwt @@ NEString.to_string @@ Book.name' book)
-    ~subtitles: [Formatters.Book.date_and_editors' book]
-    ~share: (Book book)
+    ~title: (lwt book.name)
+    ~subtitles: [span (Formatters_new.Book.date_and_editors book)]
+    ~share_new: (Book id)
     ~actions: [
       lwt [
         Button.make
@@ -170,41 +173,42 @@ let view context id =
           ();
       ];
       (
-        match%lwt Permission.can_update_private book with
-        | None -> lwt_nil
-        | Some _ ->
-          lwt [
-            Button.make_a
-              ~label: "Edit"
-              ~icon: (Action Edit)
-              ~href: (S.const @@ Endpoints.Page.(href Book_edit) id)
-              ~dropdown: true
-              ();
-          ]
+        (* FIXME: check permission to know whether to show this *)
+        (* match%lwt Permission.can_update_private book with *)
+        (* | None -> lwt_nil *)
+        (* | Some _ -> *)
+        lwt [
+          Button.make_a
+            ~label: "Edit"
+            ~icon: (Action Edit)
+            ~href: (S.const @@ Endpoints.Page.(href Book_edit) id)
+            ~dropdown: true
+            ();
+        ]
       );
       (
-        match%lwt Permission.can_delete_private book with
-        | None -> lwt_nil
-        | Some _ ->
-          lwt [
-            Action.delete
-              ~model: "book"
-              ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Book Delete) (Entry.id book))
-              ();
-          ]
+        (* FIXME: check permission to know whether to show this *)
+        (* match%lwt Permission.can_delete_private book with *)
+        (* | None -> lwt_nil *)
+        (* | Some _ -> *)
+        lwt [
+          Action.delete
+            ~model: "book"
+            ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Book Delete) id)
+            ();
+        ]
       );
-      (lwt @@ Option.map_to_list (Action.scddb Publication) (Book.scddb_id' book));
+      (lwt @@ Option.map_to_list (Action.scddb Publication) book.scddb_id);
     ]
     [
       R.div (
         S.from_lwt [] @@
-          match%lwt Book.warnings book with
+          match%lwt Warnings.all book with
           | [] -> lwt_nil
           | warnings -> lwt [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
       );
       div [
         h3 [txt "Contents"];
-        (* FIXME: with the following construct, we never show the table placeholder *)
-        table_contents ~this_id: id (Book.contents' book);
+        table_contents ~this_id: id book.content;
       ];
     ]

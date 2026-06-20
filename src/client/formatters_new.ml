@@ -58,6 +58,19 @@ module Source = struct
         [txt source.short_name]
     else
       txt source.short_name
+
+  let date_and_editors (source : Source_view.t) =
+    let date =
+      match source.date with
+      | None -> []
+      | Some date -> [txt (spf "Published %s" (PartialDate.to_pretty_string ~at: true date))]
+    in
+    let editors =
+      match source.editors with
+      | [] -> []
+      | editors -> (txt "by ") :: Person.names editors
+    in
+      (date @ [txt " "] @ editors)
 end
 
 module Dance = struct
@@ -76,6 +89,17 @@ module Dance = struct
       | Some disambiguation -> [span ~a: [a_class ["opacity-50"]] [txtf " (%s)" disambiguation]]
     in
     name ?link ?context {id = dance.id; name = dance.name} :: disambiguation_block
+
+  let aka (dance : Dance_view.t) =
+    match dance.extra_names with
+    | [] -> []
+    | names -> [txt @@ spf "Also known as %s" @@ String.concat ", " names]
+
+  let description (dance : Dance_view.t) =
+    let kind = Kind.Dance.to_pretty_string dance.kind in
+    match dance.devisers with
+    | [] -> [txt kind]
+    | devisers -> (txtf "%s by " kind) :: Person.names devisers
 end
 
 module Tune = struct
@@ -181,6 +205,14 @@ module Version = struct
 end
 
 module Set = struct
+  let name ?(link = true) ?context (set : Set_name.t) =
+    if link then
+      a
+        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_set ?context set.id) (switch_signal_option context)]
+        [txt set.name]
+    else
+      txt set.name
+
   let name_row ?(link = true) ?context (set : Set_row.t) =
     if link then
       a
@@ -204,4 +236,17 @@ module Book = struct
         [txt book.name]
     else
       txt book.name
+
+  let date_and_editors (book : Book_view.t) =
+    let date =
+      match book.date with
+      | None -> []
+      | Some date -> [txt (spf "Published %s" (NesPartialDate.to_pretty_string ~at: true date))]
+    in
+    let editors =
+      match book.authors with
+      | [] -> []
+      | editors -> txt "by " :: Person.names ~links: true editors
+    in
+    date @ [txt " "] @ editors
 end

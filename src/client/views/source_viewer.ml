@@ -1,27 +1,26 @@
 open Nes
 open Dancelor_common
+open Model_new
 open Search_new
-open Model
 open Html
 open Utils
 
 let view context id =
-  Main_page.madge_call_or_404 (Source Get) id @@ fun source ->
+  Main_page.madge_call_or_404 (Source Get_view) id @@ fun source ->
   Page.make'
     ~parent_title: "Source"
     ~before_title: [
-      Components.Context_links.make_and_render
-        (* FIXME: doesn't need to take an [Lwt.t] anymore? *)
+      Components.Context_links.make_and_render_new
         ?context
         ~this_page: (Endpoints.Page.href_source id)
-        (lwt @@ Any.source source);
+        (Any_id.Source id);
     ]
-    ~title: (lwt @@ NEString.to_string @@ Source.name' source)
-    ~subtitles: [Formatters.Source.date_and_editors' source]
-    ~share: (Source source)
+    ~title: (lwt source.name)
+    ~subtitles: (Formatters_new.Source.date_and_editors source)
+    ~share_new: (Source id)
     ~actions: [
       (
-        match%lwt Permission.can_update_public source with
+        match%lwt Permission.can_update_public_new source with
         | None -> lwt_nil
         | Some _ ->
           lwt [
@@ -34,17 +33,17 @@ let view context id =
           ]
       );
       (
-        match%lwt Permission.can_delete_public source with
+        match%lwt Permission.can_delete_public_new source with
         | None -> lwt_nil
         | Some _ ->
           lwt [
             Action.delete
               ~model: "source"
-              ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Source Delete) (Entry.id source))
+              ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Source Delete) id)
               ();
           ]
       );
-      (lwt @@ Option.map_to_list (Action.scddb Publication) (Source.scddb_id' source));
+      (lwt @@ Option.map_to_list (Action.scddb Publication) source.scddb_id);
     ]
     [
       div
@@ -55,12 +54,12 @@ let view context id =
           ];
           div ~a: [a_class ["col-12"; "col-sm"; "mt-4"; "mt-sm-0"]] [
             (
-              match Source.description' source with
+              match source.description with
               | Some desc -> Markdown.to_html desc
               | None -> p [txt "no description available"]
             );
             quick_explorer_links [
-              ("versions from this source", Any_query.specific_only (Any_query.Version (Version_query.make_specific ~source: (Some [Entry.id source]) ())));
+              ("versions from this source", Any_query.specific_only (Any_query.Version (Version_query.make_specific ~source: (Some [id]) ())));
             ];
           ];
         ];

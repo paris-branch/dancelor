@@ -27,18 +27,3 @@ val delete : Source_id.t -> unit Lwt.t
 val with_cover : Source_id.t -> (string option -> 'a Lwt.t) -> 'a Lwt.t
 (** Given a source id, produce a file containing the cover and pass its path to
     the callback. [None] means that there is no cover for this source. *)
-
-(** {2 Utilities for other models} *)
-
-val sql_to_name :
-  id: string ->
-  name: string ->
-  k: (Source_name.t -> 'w) ->
-  'w
-
-val sql_to_short_name :
-  id: string ->
-  name: string ->
-  short_name: string option ->
-  k: (Source_short_name.t -> 'w) ->
-  'w
