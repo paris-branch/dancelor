@@ -378,7 +378,8 @@ SELECT
     "set_parameter_version_parameter_display_name",
     "set_parameter_version_parameter_display_composer"
 FROM "book_content"
-WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } };
+WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } }
+ORDER BY "index";
 
 -- @get_content_versions_for
 SELECT
