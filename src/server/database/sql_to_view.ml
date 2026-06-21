@@ -167,5 +167,6 @@ let book_sql_to_view ~id ~name ~date ~authors ~content ~remark ~sources ~scddb_i
     remark;
     sources; (* Source_name.t list *)
     scddb_id = Option.map Int64.to_int scddb_id;
+    warnings = []; (* a bit ugly *)
     permission = (match permission with `Everyone -> Everyone | `Owner -> Owner | `Viewer -> Viewer | `Omniscient_administrator -> Omniscient_administrator);
   }

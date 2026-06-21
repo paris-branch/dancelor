@@ -27,6 +27,8 @@ module Dance_row = struct
     disambiguation: string option; [@default None]
   }
   [@@deriving yojson, fields]
+
+  let to_name : t -> Dance_name.t = fun {id; name; _} -> {id; name}
 end
 
 module Source_row = struct
@@ -49,6 +51,8 @@ module Tune_row = struct
     composers: Person_name.t list; [@default []]
   }
   [@@deriving yojson, fields]
+
+  let to_name : t -> Tune_name.t = fun {id; name; _} -> {id; name}
 end
 
 module Version_row = struct
@@ -68,8 +72,7 @@ module Version_row = struct
   }
   [@@deriving yojson, fields]
 
-  let to_name : t -> Version_name.t = fun {id; tune; _} ->
-    {id; name = tune.name}
+  let to_name : t -> Version_name.t = fun {id; tune; _} -> {id; name = tune.name}
 end
 
 module Set_row = struct
@@ -82,6 +85,8 @@ module Set_row = struct
     permission: Permission_builder.can_get_private;
   }
   [@@deriving yojson, fields]
+
+  let to_name : t -> Set_name.t = fun {id; name; _} -> {id; name}
 end
 
 module Book_row = struct

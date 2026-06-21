@@ -11,6 +11,141 @@ include Shared.Make_private(struct
   include Database.Book
 end)
 
+(* Bit of a hack *)
+
+module Warnings = struct
+  (** The following functions all have the name of a warning of
+      {!Book_view.warning}. They all are in charge of generating a
+      list of the associated warning corresponding to the given
+      book. The {!all} function then gathers all these warnings in a
+      common list. *)
+
+  let empty (book : Book_view.t) = if book.content = [] then [Book_view.Empty] else []
+
+  let tunes_from_content (book : Book_view.t) : Tune_name.t list =
+    List.concat_map
+      (function
+        | Book_view.Versions versions_and_params -> List.map (Tune_row.to_name % Version_row.tune % fst) versions_and_params
+        | _ -> []
+      )
+      book.content
+
+  let sets_from_content ~user (book : Book_view.t) : Set_view.t list Lwt.t =
+    let set_rows : Set_row.t list =
+      List.filter_map
+        (function
+          | Book_view.Part _
+          | Dance (_, Dance_only)
+          | Dance (_, Dance_versions _)
+          | Versions _ ->
+            None
+          | Dance (_, Dance_set (set, _))
+          | Set (set, _) ->
+            Some set
+        )
+        book.content
+    in
+    (* FIXME: Ugly as hell, and very inefficient, especially since
+       this is only to grab the versions. SQL would do that much better. *)
+    Lwt_list.filter_map_s (fun s -> Database.Set.get_view ~user s.Set_row.id) set_rows
+
+  let duplicate_set ~user book =
+    let%lwt sets = sets_from_content ~user book in
+    match List.sort (fun s1 s2 -> Entry.Id.compare' s1.Set_view.id s2.id) sets with
+    | [] -> lwt_nil
+    | first_set :: other_sets ->
+      let (_, warnings) =
+        List.fold_left
+          (fun (previous_set, warnings) current_set ->
+            let warnings =
+              if Entry.Id.equal' current_set.Set_view.id previous_set.Set_view.id then
+                  (Book_view.Duplicate_set (Set_view.to_name current_set) :: warnings)
+              else
+                warnings
+            in
+              (current_set, warnings)
+          )
+          (first_set, [])
+          other_sets
+      in
+      lwt warnings
+
+  let unique_sets_from_content ~user book =
+    let%lwt sets = sets_from_content ~user book in
+    lwt @@ List.sort_uniq (fun s1 s2 -> Entry.Id.compare' s1.Set_view.id s2.Set_view.id) sets
+
+  let duplicate_tune ~user book =
+    let%lwt sets = unique_sets_from_content ~user book in
+    let standalone_tunes = tunes_from_content book in
+    (* [tunes_to_sets] is a hashtable from tunes to sets they belong to.
+       Standalone tunes are associated with None *)
+    let tunes_to_sets = Hashtbl.create 8 in
+    (* register standalone tunes *)
+    List.iter
+      (fun t ->
+        Hashtbl.add tunes_to_sets t None
+      )
+      standalone_tunes;
+    (* register tunes in sets *)
+    List.iter
+      (fun set ->
+        List.iter
+          (fun (v, _) ->
+            Hashtbl.add tunes_to_sets (Tune_row.to_name v.Version_row.tune) (Some set)
+          )
+          set.Set_view.content
+      )
+      sets;
+    (* crawl all registered tunes and see if they appear several times. if that is
+       the case, add a warning accordingly *)
+    Hashtbl.to_seq_keys tunes_to_sets
+    |> List.of_seq
+    |> List.fold_left
+        (fun warnings tune ->
+          let set_opts = List.sort_count (Option.compare (fun s1 s2 -> Entry.Id.compare' s1.Set_view.id s2.id)) (Hashtbl.find_all tunes_to_sets tune) in
+          let set_opts = List.map (Pair.map_fst (Option.map Set_view.to_name)) set_opts in
+          if List.length set_opts > 1 then
+            Book_view.Duplicate_tune (tune, set_opts) :: warnings
+          else
+            warnings
+        )
+        []
+    |> lwt
+
+  let set_dance_kind_mismatch (book : Book_view.t) =
+    List.filter_map
+      (function
+        | Book_view.Dance (dance, Dance_set (set, _)) ->
+          if dance.kind <> set.kind then
+            Some (Book_view.Set_dance_kind_mismatch (Set_row.to_name set, Dance_row.to_name dance))
+          else
+            None
+        | _ -> None
+      )
+      book.content
+
+  let all ~user book =
+    Lwt_list.fold_left_s
+      (fun warnings new_warnings_lwt ->
+        let%lwt new_warnings = new_warnings_lwt in
+        lwt (warnings @ new_warnings)
+      )
+      []
+      [
+        (lwt @@ empty book);
+        duplicate_set ~user book;
+        duplicate_tune ~user book;
+        (lwt @@ set_dance_kind_mismatch book);
+      ]
+end
+
+let get_view env book =
+  (* FIXME: hackish; should be handled directly in the DB *)
+  let user = Option.map Entry.id @@ Environment.user env in
+  let%lwt book = get_view env book in
+  let%lwt warnings = Warnings.all ~user book in
+  lwt {book with warnings}
+
 (* Legacy *)
 
 let get env id =

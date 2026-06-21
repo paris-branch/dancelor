@@ -7,16 +7,12 @@ open Model
 open Model_new
 
 let book_page_to_any = function
-  | Book.Part _ -> lwt_none
-  | Book.Dance (dance, _) ->
-    let%lwt dance = Option.get <$> Model.Dance.get dance in
-    lwt_some (Any.Dance dance) (* FIXME: a “page” viewer *)
-  | Book.Set (set, _) ->
-    let%lwt set = Option.get <$> Model.Set.get set in
-    lwt_some (Any.Set set)
-  | Book.Versions versions_and_params ->
-    let%lwt version = (Option.get <%> Model.Version.get) (fst @@ NEList.hd versions_and_params) in
-    lwt_some (Any.Version version) (* FIXME: others? fixed by a page viewer *)
+  | Book_view.Part _ -> None
+  | Book_view.Dance (dance, _) -> Some (Any_row.Dance dance) (* FIXME: a “page” viewer *)
+  | Book_view.Set (set, _) -> Some (Any_row.Set set)
+  | Book_view.Versions versions_and_params ->
+    let version = fst @@ List.hd versions_and_params in
+    Some (Any_row.Version version) (* FIXME: others? fixed by a page viewer *)
 
 (** Given an element and a context, find the total number of elements, the
     previous element, the index of the given element and the next element. *)
@@ -35,12 +31,12 @@ let get_neighbours any = function
     let List.{total; previous; index; next; element = _} = List.map_context Any.version context in
     lwt_some (total, Option.map old_any_to_any_id previous, index, Option.map old_any_to_any_id next)
   | Endpoints.Page.In_book (book, index) ->
-    let%olwt book = Book.get book in
-    let%lwt viewable_content = Monadise_lwt.lift_1_1 List.filter_map book_page_to_any (Book.contents' book) in
+    let%olwt book = madge_call_or_option (Book Get_view) book in
+    let viewable_content = List.filter_map book_page_to_any book.content in
     match List.findi_context (fun i _ -> i = index) viewable_content with
     | None -> lwt_none
     | Some List.{total; previous; index; next; element = _} ->
-      lwt_some (total, Option.map old_any_to_any_id previous, index, Option.map old_any_to_any_id next)
+      lwt_some (total, Option.map Any_row.to_id previous, index, Option.map Any_row.to_id next)
 
 let neighbour_context ~left = function
   | Endpoints.Page.In_search query -> Endpoints.Page.In_search query

@@ -9,7 +9,7 @@ open Model_new
 type context =
   | In_search of string
   | In_set of Core.Set.t Entry.Id.t * int
-  | In_book of Core.Book.t Entry.Id.t * int
+  | In_book of Book_id.t * int
 [@@deriving yojson, variants]
 
 (* For serialisation *)
