@@ -9,6 +9,21 @@ let switch_signal_option = function
   | None -> S.Option.none
   | Some signal -> S.Option.some signal
 
+let several f versions =
+  versions
+  |> List.map (List.singleton % f)
+  |> List.interspersei ~last: (fun _ -> [txt " and "]) (fun _ -> [txt ", "])
+  |> List.flatten
+  |> span
+
+let several' f versions =
+  versions
+  |> List.map (List.singleton % f)
+  |> List.interspersei ~last: (fun _ -> [[txt " and "]]) (fun _ -> [[txt ", "]])
+  |> List.flatten
+  |> List.flatten
+  |> span
+
 module Person = struct
   let name ?(link = true) ?context (person : Person_name.t) =
     if link then
@@ -82,13 +97,15 @@ module Dance = struct
     else
       txt dance.name
 
+  let name_row ?link ?context dance = name ?link ?context (Dance_row.to_name dance)
+
   let name_and_disambiguation ?link ?context (dance : Dance_row.t) =
     let disambiguation_block =
       match dance.disambiguation with
       | None -> []
       | Some disambiguation -> [span ~a: [a_class ["opacity-50"]] [txtf " (%s)" disambiguation]]
     in
-    name ?link ?context {id = dance.id; name = dance.name} :: disambiguation_block
+    name_row ?link ?context dance :: disambiguation_block
 
   let aka (dance : Dance_view.t) =
     match dance.extra_names with
@@ -138,6 +155,8 @@ module Version = struct
         [txt version.tune.name]
     else
       txt version.tune.name
+
+  let names ?link versions = several (name ?link) versions
 
   let name_disambiguation_and_sources ?links ?context (version : Version_row.t) =
     let sources_block =
@@ -202,6 +221,12 @@ module Version = struct
     match Model.Version_parameters.display_composer params with
     | None -> []
     | Some display_composer -> [txtf " [as “%s”]" @@ NEString.to_string display_composer]
+
+  let names_disambiguations_sources_and_params ?links versions =
+    several' (fun (version, params) -> name_disambiguation_and_sources ?links version @ parameters (Some params)) versions
+
+  let composers_arrangers_and_params ?short ?links versions =
+    several' (fun (version, params) -> composer_and_arranger ?short ?links version @ display_composer (Some params)) versions
 end
 
 module Set = struct

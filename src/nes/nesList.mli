@@ -78,6 +78,10 @@ val all_some : 'a option list -> 'a list option
 (** Return [Some] if all the elements of the list are of the form [Some x], or
     [None] if at least one element is [None]. *)
 
+val is_singleton : 'a list -> bool
+(** [is_singleton l] is [true] is [l] has exactly one element, [false]
+    otherwise. *)
+
 (** {3 Association lists} *)
 
 val extract_assoc_opt : 'a -> ('a * 'b) list -> ('b * ('a * 'b) list) option

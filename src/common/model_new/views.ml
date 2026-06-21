@@ -135,15 +135,40 @@ module Set_view = struct
 end
 
 module Book_view = struct
+  type warning =
+    | Empty
+    | Duplicate_set of Set_name.t
+    | Duplicate_tune of Tune_name.t * (Set_name.t option * int) list
+    (** [Duplicate_tune] contains the list of sets in which the tune appears, as
+      well as the number of times this set is present *)
+    | Set_dance_kind_mismatch of Set_name.t * Dance_name.t
+  (** [Set_dance_kind_mismatch] contains a set where one of the associated dances
+    does not have the same kind *)
+  [@@deriving yojson]
+
+  type dance_page =
+    | Dance_only
+    | Dance_versions of (Version_row.t * Model_builder.Core.Version_parameters.t) list
+    | Dance_set of Set_row.t * Model_builder.Core.Set_parameters.t
+  [@@deriving yojson]
+
+  type page =
+    | Part of string
+    | Dance of Dance_row.t * dance_page
+    | Versions of (Version_row.t * Model_builder.Core.Version_parameters.t) list
+    | Set of Set_row.t * Model_builder.Core.Set_parameters.t
+  [@@deriving yojson]
+
   type t = {
     id: Book_id.t;
     name: string;
     authors: Person_name.t list; [@default []]
     date: PartialDate.t option; [@default None]
-    content: Model_builder.Core.Book.page list; (** FIXME: more compact pages*)
+    content: page list;
     remark: string option; [@default None]
     sources: Source_name.t list; [@default []]
     scddb_id: int option; [@default None]
+    warnings: warning list; [@default []]
     permission: Permission_builder.can_get_private;
   }
   [@@deriving yojson, fields]

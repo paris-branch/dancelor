@@ -364,8 +364,20 @@ SELECT
     "part_title",
     -- dance
     "dance_id",
+    "dance"."name" AS "dance_name",
+    "dance"."kind" AS "dance_kind",
+    "dance"."disambiguation" AS "dance_disambiguation",
     -- set
     "set_id",
+    "set"."name" AS "set_name",
+    "set"."kind" AS "set_kind",
+    CASE
+	WHEN "set_entry"."visibility" = 'Everyone' THEN 'Everyone'
+	WHEN "set_entry_owners"."owner_id" IS NOT NULL THEN 'Owner'
+	WHEN "set_entry"."visibility" = 'Select_viewers' AND "set_entry_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
+	WHEN "user"."role" = 'Administrator' AND "user"."omniscience" THEN 'Omniscient_administrator'
+	ELSE NULL
+    END AS "set_permission",
     -- set parameters
     "set_parameter_display_name",
     "set_parameter_display_conceptor",
@@ -378,6 +390,12 @@ SELECT
     "set_parameter_version_parameter_display_name",
     "set_parameter_version_parameter_display_composer"
 FROM "book_content"
+LEFT JOIN "dance" ON "book_content"."dance_id" = "dance"."id"
+LEFT JOIN "set" ON "book_content"."set_id" = "set"."id"
+LEFT JOIN "entry" AS "set_entry" ON "set_entry"."id" = "set"."id"
+LEFT JOIN "entry_owners" AS "set_entry_owners" ON "set_entry_owners"."entry_id" = "set_entry"."id" AND "set_entry_owners"."owner_id" = @user_id
+LEFT JOIN "entry_viewers" AS "set_entry_viewers" ON "set_entry_viewers"."entry_id" = "set_entry"."id" AND "set_entry_viewers"."viewer_id" = @user_id
+LEFT JOIN "user" ON "user"."id" = @user_id
 WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } }
 ORDER BY "index";
 
@@ -387,6 +405,12 @@ SELECT
     "content_index",
     -- version
     "version_id",
+    "tune_id",
+    "version"."disambiguation" AS "version_disambiguation",
+    "version"."monolithic_bars" AS "version_monolithic_bars",
+    "version"."monolithic_or_default_structure" AS "version_monolithic_or_default_structure",
+    "tune"."name" AS "tune_name",
+    "tune"."kind" AS "tune_kind",
     -- version parameters
     "version_parameter_transposition_semitones",
     "version_parameter_first_bar",
@@ -396,5 +420,7 @@ SELECT
     "version_parameter_display_name",
     "version_parameter_display_composer"
 FROM "book_content_versions"
+JOIN "version" ON "book_content_versions"."version_id" = "version"."id"
+JOIN "tune" ON "version"."tune_id" = "tune"."id"
 WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } }
 ORDER BY "index";

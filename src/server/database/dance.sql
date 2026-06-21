@@ -122,6 +122,15 @@ SELECT
 FROM "dance"
 WHERE "id" IN @ids;
 
+-- @get_rows_for
+SELECT
+    "id",
+    "name",
+    "kind",
+    "disambiguation"
+FROM "dance"
+WHERE @dance_ids { One_of { "id" IN @dance_ids } | All { TRUE } };
+
 -- @get_view
 SELECT
     "name",

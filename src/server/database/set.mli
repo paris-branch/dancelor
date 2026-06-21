@@ -10,6 +10,12 @@ val get_view : user: User_id.t option -> Set_id.t -> Set_view.t option Lwt.t
 
 val search : user: User_id.t option -> Set_query.t -> (Set_row.t * float) list Lwt.t
 
+(** {2 Utilities for other models} *)
+
+val get_tunes_for : Connection.t -> [`All | `One_of of string list] -> (string -> Version_name.t list) Lwt.t
+
+val get_conceptors_for : Connection.t -> [`All | `One_of of string list] -> (string -> Person_name.t list) Lwt.t
+
 (** {2 Legacy} *)
 
 type t = Model_builder.Core.Set.t

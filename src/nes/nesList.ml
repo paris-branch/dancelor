@@ -51,6 +51,10 @@ let%test _ = intersperse "," ~last: "and" ["a"; "b"; "c"; "d"] = ["a"; ","; "b";
 
 let singleton x = [x]
 
+let is_singleton = function
+  | [_] -> true
+  | _ -> false
+
 let sort_count cmp l =
   (* count_duplicates assumes that the list is sorted *)
   let rec count_duplicates acc (prev, nb) = function

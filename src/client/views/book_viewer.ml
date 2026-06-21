@@ -2,9 +2,6 @@ open Nes
 open Dancelor_common
 open Model_new
 open Utils
-open Model
-
-module Warnings = Book_warnings_new.Build(Getters)
 
 let display_warnings warnings =
   let open Html in
@@ -17,7 +14,7 @@ let display_warnings warnings =
     | (None, n) :: tl ->
       ([txt "standalone"] @ display_times n) :: display_sets tl
     | (Some set, n) :: tl ->
-      ([txt "in “"; Formatters.Set.name' set; txt "”"] @ display_times n) :: display_sets tl
+      ([txt "in “"; Formatters_new.Set.name set; txt "”"] @ display_times n) :: display_sets tl
   in
   let rec format_set_list = function
     (* If the warning Duplicate_tune has been logged, the list of sets,
@@ -28,44 +25,36 @@ let display_warnings warnings =
   in
   let display_warning warning =
     match warning with
-    | Book.Empty ->
+    | Book_view.Empty ->
       li [txt "This book is empty"]
-    | Book.Duplicate_set set ->
+    | Book_view.Duplicate_set set ->
       R.li @@
       S.from_lwt [] @@
-      let%lwt set = Option.get <$> Model.Set.get set in
-      lwt [txt "Set “"; Formatters.Set.name' set; txt "” appears several times in this book."]
-    | Book.Duplicate_tune (tune, sets_opt) ->
+      lwt [txt "Set “"; Formatters_new.Set.name set; txt "” appears several times in this book."]
+    | Book_view.Duplicate_tune (tune, sets_opt) ->
       R.li @@
       S.from_lwt [] @@
-      let%lwt tune = Option.get <$> Model.Tune.get tune in
-      let%lwt sets_opt =
-        Monadise_lwt.run @@ fun () ->
-        List.map (Pair.map_fst (Option.map (Option.get % Monadise_lwt.yield % Model.Set.get))) sets_opt
-      in
-      lwt (txt "Tune “" :: Formatters.Tune.name' tune :: txt "” appears several times: " :: (display_sets sets_opt |> format_set_list))
-    | Book.Set_dance_kind_mismatch (set, dance) ->
+      lwt (txt "Tune “" :: Formatters_new.Tune.name tune :: txt "” appears several times: " :: (display_sets sets_opt |> format_set_list))
+    | Book_view.Set_dance_kind_mismatch (set, dance) ->
       R.li @@
       S.from_lwt [] @@
-      let%lwt set = Option.get <$> Model.Set.get set in
-      let%lwt dance = Option.get <$> Model.Dance.get dance in
-      lwt [txt "Set “"; Formatters.Set.name' set; txt "” does not have the same kind as its associated dance “"; Formatters.Dance.name' dance; txt "”."]
+      lwt [txt "Set “"; Formatters_new.Set.name set; txt "” does not have the same kind as its associated dance “"; Formatters_new.Dance.name dance; txt "”."]
   in
   List.map display_warning warnings
 
-let table_contents ~this_id contents =
+let table_contents ~this_id content =
   (* We need to find the index of each part of the book in the whole book. They
      aren't just the index in the list because some elements are not actually
      viewable standalone. *)
-  let contents_lwt =
+  let content =
     let next_index = ref 0 in
-    Lwt_list.map_s
+    List.map
       (fun page ->
-        match%lwt Components.Context_links.book_page_to_any page with
-        | None -> lwt (-1, page)
-        | Some _ -> let index = !next_index in incr next_index; lwt (index, page)
+        match Components.Context_links.book_page_to_any page with
+        | None -> (-1, page)
+        | Some _ -> let index = !next_index in incr next_index; (index, page)
       )
-      contents
+      content
   in
   let open Html in
   tablex
@@ -84,67 +73,46 @@ let table_contents ~this_id contents =
         ]
     )
     [
-      R.tbody
+      tbody
         (
-          S.from_lwt [] (
-            Lwt_list.map_p
-              (fun (index, page) ->
-                let context = S.const @@ Endpoints.Page.in_book this_id index in
-                (* on non-viewable pages, index = -1 *)
-                match page with
-                | Book.Part title ->
-                  lwt @@
-                    Any_result.make_part_result
-                      ~prefix: [td [txt "Part"]]
-                      title
-                | Book.Dance (dance, Dance_only) ->
-                  let%lwt dance = Option.get <$> Model.Dance.get dance in
-                  lwt @@
-                    Any_result.make_dance_result
-                      ~prefix: [td [txt "Dance"]]
-                      ~context
-                      dance
-                | Book.Dance (dance, Dance_versions versions_and_params) ->
-                  let%lwt dance = Option.get <$> Model.Dance.get dance in
-                  let%lwt versions_and_params =
-                    Monadise_lwt.run @@ fun () ->
-                    NEList.map (Pair.map_fst (Option.get % Monadise_lwt.yield % Model.Version.get)) versions_and_params
-                  in
-                  lwt @@
-                    Any_result.make_dance_plus_versions_result
-                      ~prefix: [td [txt "Dance"; Any_result.details [txt (if NEList.is_singleton versions_and_params then "+Tune" else "+Tunes")]]]
-                      ~context
-                      dance
-                      versions_and_params
-                | Book.Dance (dance, Dance_set (set, params)) ->
-                  let%lwt dance = Option.get <$> Model.Dance.get dance in
-                  let%lwt set = Option.get <$> Model.Set.get set in
-                  lwt @@
-                    Any_result.make_dance_plus_set_result
-                      ~prefix: [td [txt "Dance"; Any_result.details [txt "+Set"]]]
-                      dance
-                      set
-                      ~set_params: params
-                | Book.Versions versions_and_params ->
-                  let%lwt versions_and_params =
-                    Monadise_lwt.run @@ fun () ->
-                    NEList.map (Pair.map_fst (Option.get % Monadise_lwt.yield % Model.Version.get)) versions_and_params
-                  in
-                  lwt @@
-                    Any_result.make_versions_result
-                      ~prefix: [td [txt @@ if NEList.is_singleton versions_and_params then "Tune" else "Tunes"]]
-                      versions_and_params
-                | Book.Set (set, params) ->
-                  let%lwt set = Option.get <$> Model.Set.get set in
-                  lwt @@
-                    Any_result.make_set_result
-                      ~prefix: [td [txt "Set"]]
-                      ~context
-                      ~params
-                      set
-              )
-            =<< contents_lwt
-          )
+          List.map
+            (fun (index, page) ->
+              let context = S.const @@ Endpoints.Page.in_book this_id index in
+              (* on non-viewable pages, index = -1 *)
+              match page with
+              | Book_view.Part title ->
+                Any_result_new.make_part_result
+                  ~prefix: [td [txt "Part"]]
+                  title
+              | Book_view.Dance (dance, Dance_only) ->
+                Any_result_new.make_dance_result
+                  ~prefix: [td [txt "Dance"]]
+                  ~context
+                  dance
+              | Book_view.Dance (dance, Dance_versions versions_and_params) ->
+                Any_result_new.make_dance_plus_versions_result
+                  ~prefix: [td [txt "Dance"; Any_result.details [txt (if List.is_singleton versions_and_params then "+Tune" else "+Tunes")]]]
+                  ~context
+                  dance
+                  versions_and_params
+              | Book_view.Dance (dance, Dance_set (set, params)) ->
+                Any_result_new.make_dance_plus_set_result
+                  ~prefix: [td [txt "Dance"; Any_result.details [txt "+Set"]]]
+                  dance
+                  set
+                  ~set_params: params
+              | Book_view.Versions versions_and_params ->
+                Any_result_new.make_versions_result
+                  ~prefix: [td [txt @@ if List.is_singleton versions_and_params then "Tune" else "Tunes"]]
+                  versions_and_params
+              | Book_view.Set (set, params) ->
+                Any_result_new.make_set_result
+                  ~prefix: [td [txt "Set"]]
+                  ~context
+                  ~params
+                  set
+            )
+            content
         )
     ]
 
@@ -201,11 +169,10 @@ let view context id =
       (lwt @@ Option.map_to_list (Action.scddb Publication) book.scddb_id);
     ]
     [
-      R.div (
-        S.from_lwt [] @@
-          match%lwt Warnings.all book with
-          | [] -> lwt_nil
-          | warnings -> lwt [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
+      div (
+        match book.warnings with
+        | [] -> []
+        | warnings -> [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
       );
       div [
         h3 [txt "Contents"];

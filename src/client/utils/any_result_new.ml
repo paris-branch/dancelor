@@ -19,7 +19,7 @@ let inline_details = Formatters_new.details
 let block_details content = p ~a: [a_class ["mb-0"; "opacity-50"; "lh-sm"]] [small content]
 
 let make_part_result ?classes ?onclick ?(prefix = []) ?(suffix = []) title =
-  row ?classes ?onclick (prefix @ [td ~a: [a_colspan 3] [txt @@ NEString.to_string title]] @ suffix)
+  row ?classes ?onclick (prefix @ [td ~a: [a_colspan 3] [txt title]] @ suffix)
 
 let make_source_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (source : Source_row.t) =
   row
@@ -70,6 +70,44 @@ let make_dance_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (
       ] @
       suffix
     )
+
+let make_dance_plus_set_result ?classes ?onclick ?context ?set_params ?(prefix = []) ?(suffix = []) (dance : Dance_row.t) (set : Set_row.t) =
+  row ?classes ?onclick (
+    prefix @
+    [td (
+      [Formatters_new.Dance.name_row ?context dance] @
+      [block_details [txt "Set: "; Formatters_new.Set.name_row ~link: (onclick = None) set]] @
+      Option.fold
+        (Option.bind set_params Model_builder.Core.Set_parameters.display_name)
+        ~none: []
+        ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]]) @
+        [block_details (Formatters_new.Set.tunes ~links: (onclick = None) set)]
+    );
+    td [txt @@ Kind.Dance.to_string dance.kind];
+    td (
+      Formatters_new.Person.names ~links: (onclick = None) ~short: true set.conceptors @
+        Option.fold
+          (Option.bind set_params Model_builder.Core.Set_parameters.display_conceptor)
+          ~none: []
+          ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]])
+    )] @
+    suffix
+  )
+
+let make_dance_plus_versions_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (dance : Dance_row.t) versions_and_params =
+  row ?classes ?onclick (
+    prefix @
+    [td [
+      Formatters_new.Dance.name_row ?context dance;
+      block_details [
+        txt (if List.is_singleton versions_and_params then "Tune: " else "Tunes: ");
+        Formatters_new.Version.names_disambiguations_sources_and_params versions_and_params
+      ];
+    ];
+    td [txt @@ Kind.Dance.to_string dance.kind];
+    td [Formatters_new.Version.composers_arrangers_and_params ~short: true versions_and_params]] @
+    suffix
+  )
 
 let make_book_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (book : Book_row.t) =
   row
@@ -146,6 +184,23 @@ let make_version_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = [])
       ] @
       suffix
     )
+
+let make_versions_result ?classes ?onclick ?(prefix = []) ?(suffix = []) versions_and_params =
+  row ?classes ?onclick (
+    prefix @
+    [td [Formatters_new.Version.names_disambiguations_sources_and_params versions_and_params];
+    td (
+      let all_kinds = List.sort_uniq Kind.Base.compare (List.map (fun (version, _) -> version.Version_row.tune.kind) versions_and_params) in
+      [
+        txt @@
+          match all_kinds with
+          | [kind] -> Kind.Base.to_long_string ~capitalised: true kind ^ (if List.is_singleton versions_and_params then "" else "s")
+          | _ -> "Medley"
+      ]
+    );
+    td [Formatters_new.Version.composers_arrangers_and_params ~short: true versions_and_params]] @
+    suffix
+  )
 
 let any_to_icon_and_string any =
   match (any : Any_row.t) with
