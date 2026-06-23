@@ -13,6 +13,10 @@ let serve_static_file path =
   let full_path = static_file_path path in
   if Sys.file_exists full_path && not (Sys.is_directory full_path) then
     Some (fun () ->
+      (* if String.ends_with ~needle: "client.js" path then *)
+      (*   Lwt_unix.sleep 10. *)
+      (* else *)
+      (*   Lwt.return_unit;%lwt *)
       (* Keep static files in cache for 30 days. *)
       let headers = Cohttp.Header.init_with "Cache-Control" "max-age=2592000" in
       Cohttp_lwt_unix.Server.respond_file ~headers ~fname: full_path ()
@@ -48,22 +52,28 @@ let serve_index =
               meta ~a: [a_name "description"; a_content "Dancelor — A community-edited database of Scottish country dance music. Search for tunes, assemble sets and books, and export to PDF, ready to print and bring to the dance."] ();
               link ~rel: [`Stylesheet] ~href: (Lazy.force fonts_css_href) ();
               link ~rel: [`Stylesheet] ~href: (Lazy.force style_css_href) ();
+              script ~a: [a_defer (); a_script_type `Javascript; a_src (Lazy.force bootstrap_bundle_min_js_href)] (txt "");
               (* Favicon *)
               link ~rel: [`Icon] ~a: [a_mime_type "image/png"; a_sizes (Some [(32, 32)])] ~href: (Lazy.force favicon_32x32_png_href) ();
               link ~rel: [`Icon] ~a: [a_mime_type "image/png"; a_sizes (Some [(16, 16)])] ~href: (Lazy.force favicon_16x16_png_href) ();
               link ~rel: [`Manifest] ~href: (Lazy.force site_webmanifest_href) ();
               (* Ahrefs ownership proof and analytics *)
               meta ~a: [a_name "ahrefs-site-verification"; a_content "4c418f04303adf3925d1c6bdef51b71cab26cd179ab478ecd1996cf71ce52ba4"] ();
-              script ~a: [a_src "https://analytics.ahrefs.com/analytics.js"; a_user_data "key" "HmcihempNgdCWYAHGvIYsg"; a_async ()] (txt "");
+              script ~a: [a_defer (); a_script_type `Javascript; a_src "https://analytics.ahrefs.com/analytics.js"; a_user_data "key" "HmcihempNgdCWYAHGvIYsg"; a_async ()] (txt "");
               (* Dancelor *)
-              script ~a: [a_script_type `Javascript; a_src (Lazy.force client_js_href)] (txt "");
+              script ~a: [a_defer (); a_script_type `Javascript; a_src (Lazy.force client_js_href)] (txt "");
             ]
           )
           (
             body
               ~a: [a_class ["placeholder-glow"]]
               [
-                script ~a: [a_src (Lazy.force bootstrap_bundle_min_js_href)] (txt "");
+                div ~a: [a_class ["d-flex"; "justify-content-center"; "align-items-center"; "min-vh-100"]] [
+                  div ~a: [a_class ["text-light"; "bg-primary"; "p-2"; "rounded"]] [
+                    img ~a: [a_height 80] ~src: "/logo.svg" ~alt: "Dancelor" ();
+                    div [txt "Dancelor is loading..."];
+                  ];
+                ];
               ]
           )
     in

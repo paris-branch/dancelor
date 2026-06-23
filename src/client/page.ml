@@ -116,7 +116,6 @@ let render p =
         )
     )
   in
-
   (* Result *)
   (
     p.on_load,

@@ -242,6 +242,7 @@ let current_content = ref None
 let initialise () =
   assert (!current_content = None);
   current_content := Some initial_content;
+  Dom_html.document##.body##.innerHTML := Js.string "";
   Dom.appendChild Dom_html.document##.body (To_dom.of_header header);
   add_slash_quick_search_event_listener ();
   Dom.appendChild Dom_html.document##.body initial_content;
@@ -249,7 +250,6 @@ let initialise () =
 
 let load page_promise =
   assert (!current_content <> None);
-  (* FIXME: Loading Dancelor logo until page promise resolves *)
   let%lwt page = page_promise in
   let iter_title = React.S.map set_title (Page.full_title page) in
   Depart.keep_forever iter_title;
