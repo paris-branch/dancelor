@@ -12,6 +12,9 @@ type error_response = {message: string} [@@deriving yojson]
 
 let max_attempts = 10 (* up to ~2 minutes *)
 
+let on_server_reachable = ref (fun () -> ())
+let on_server_unreachable = ref (fun () -> ())
+
 let call_retry ~retry (request : Request.t) : (Response.t, error) result Lwt.t =
   let meth = Request.meth_to_cohttp_code_meth (Request.meth request) in
   let body = Cohttp_lwt.Body.of_string (Request.body request) in
@@ -20,6 +23,7 @@ let call_retry ~retry (request : Request.t) : (Response.t, error) result Lwt.t =
     let status = Cohttp.Response.status response in
     if List.mem (Cohttp.Code.code_of_status status) [0; 502; 503; 504] then
       (
+        !on_server_unreachable ();
         if attempt >= max_attempts then
           Lwt.return_error @@ Server_unreachable {request; status}
         else
@@ -28,8 +32,11 @@ let call_retry ~retry (request : Request.t) : (Response.t, error) result Lwt.t =
           call_retry (attempt + 1)
       )
     else
-      let%lwt body = Response.body_of_lwt body in
-      lwt_ok (response, body)
+      (
+        !on_server_reachable ();
+        let%lwt body = Response.body_of_lwt body in
+        lwt_ok (response, body)
+      )
   in
   call_retry (if retry then 1 else max_int)
 

@@ -119,7 +119,7 @@ let header =
       R.a_class (
         S.l2
           (@)
-          (S.map (function Environment.Offline -> ["bg-secondary"] | _ -> ["bg-primary"]) Environment.run_status)
+          (S.map (function Environment.Unreachable -> ["bg-secondary"] | _ -> ["bg-primary"]) Environment.server_status)
           (S.const ["navbar"; "navbar-expand-sm"; "navbar-dark"; "mb-2"])
       )
     ]
@@ -184,7 +184,7 @@ let footer =
       R.a_class (
         S.l2
           (@)
-          (S.map (function Environment.Offline -> ["bg-secondary"] | _ -> ["bg-primary"]) Environment.run_status)
+          (S.map (function Environment.Unreachable -> ["bg-secondary"] | _ -> ["bg-primary"]) Environment.server_status)
           (S.const ["navbar"; "navbar-expand-sm"; "navbar-dark"; "mt-4"])
       )
     ]

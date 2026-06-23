@@ -55,37 +55,20 @@ let dispatch uri =
 
 let () = Random.self_init ()
 
-let () = Environment.start_ping_routine ()
-
 let () =
   Depart.keep_forever @@
-  S.flip_map Environment.run_status @@ function
-  | Running -> ()
-  | Offline ->
-    Toast.open_
-      ~title: "You are now offline"
-      [
-        txt
-          "The Dancelor server cannot be reached any more. You are now in \
-           offline mode."
-      ]
-  | Newer ->
-    Toast.open_
-      ~type_: Forever
-      ~title: "Newer version available"
-      [txt
-        "The Dancelor server has reloaded, meaning that there might be a newer \
-         version of the software and/or the database. You might want to reload \
-         the page.";
-      ]
-      ~buttons: [
-        Button.make
-          ~label: "Reload"
-          ~icon: (Other Reload)
-          ~classes: ["btn-primary"]
-          ~onclick: (fun () -> Js_of_ocaml.Dom_html.window##.location##reload; lwt_unit)
-          ();
-      ]
+    React.E.map
+      (function
+        | Environment.Reachable ->
+          Toast.open_
+            ~title: "You are back online"
+            [txt "The Dancelor server could be reached again. You are back online."]
+        | Environment.Unreachable ->
+          Toast.open_
+            ~title: "You are now offline"
+            [txt "The Dancelor server cannot be reached any more. You are now in offline mode."]
+      )
+      (S.changes Environment.server_status)
 
 let () =
   let previous_exn = ref (Failure "this is an exception that is never raised") in

@@ -29,3 +29,15 @@ val call_gen : ?retry: bool -> ('a, 'z, 'r) Route.t -> (('r, error) result Lwt.t
 (** {2 Other} *)
 
 val initialise_batch_route : (Request.t list -> unit Lwt.t, unit Lwt.t, Response.t list) route -> unit
+
+(** Hook that is called when the server is reachable, that is when a
+    connection could be established and it returns anything but a
+    transient HTTP 5** error (eg. 503). *)
+val on_server_reachable : (unit -> unit) ref
+
+(** Hook that is called when the server is unreachable, that is when
+    it returns an transient HTTP 5** error (eg. 503) or when the
+    connection couldn't be established. Note that it is called at each
+    retry and will therefore fire even if a subsequent retry would
+    succeed. *)
+val on_server_unreachable : (unit -> unit) ref

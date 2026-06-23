@@ -99,18 +99,6 @@ let sign_out () =
   Js_of_ocaml.Dom_html.window##.location##reload;
   lwt_unit
 
-let rec ping_until_success () =
-  let delay = (* every two seconds *) 2. in
-  let ping_promise =
-    match%lwt Madge_client.call Endpoints.Api.(route Boot_time) with
-    | Ok _ -> lwt_true
-    | _ -> lwt_false
-  in
-  let wait_promise = Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt lwt_false in
-  match%lwt Lwt.pick [ping_promise; wait_promise] with
-  | true -> lwt_unit
-  | false -> ping_until_success ()
-
 let set_omniscience enable =
   let%lwt _ = Madge_client.call Endpoints.Api.(route @@ User Set_omniscience) enable in
   Toast.open_

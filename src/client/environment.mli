@@ -7,14 +7,11 @@ open Dancelor_common
 open Model_new
 open Html
 
-(** Status of this run with respect to the server. It starts as {!Running} but
-    might change to {!Offline} if the server does not answer, or {!Newer} if
-    the server has reloaded. *)
-type run_status = Running | Offline | Newer
+(** Status of the server. It starts as {!Reachable} but might change to
+    {!Unreachable} if the server does not answer. *)
+type server_status = Reachable | Unreachable
 
-val run_status : run_status S.t
-
-val start_ping_routine : unit -> unit
+val server_status : server_status S.t
 
 (** The user that is currently logged in. This queries the server the first time
     it is needed, hence the promise. *)
