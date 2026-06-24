@@ -56,7 +56,7 @@ let make_and_render ?context ~this_page any_lwt =
           S.bind (S.from_lwt None (Lwt.map (Option.map (fun (_, _, index, _) -> index)) neighbours_lwt)) @@ fun index ->
           let page = Option.map (fun index -> 1 + index / Search.entries_per_page) index in
           (* NOTE: sync with search.ml *)
-          S.const @@ href Explore (Some query) page
+          S.const @@ href Explore query (Option.value page ~default: 1)
         | In_set (id, _) -> S.const @@ href_set id
         | In_book (id, _) -> S.const @@ href_book id
       in

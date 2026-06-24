@@ -27,4 +27,4 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Get_rows -> literal "rows" @@ body "ids" (module JList(Book_id)) @@ post (module JList(Book_row))
     | Update -> variable (module Book_id) @@ body "book" (module Book) @@ body "access" (module Entry.Access.Private) @@ put (module JUnit)
     | Delete -> variable (module Book_id) @@ delete (module JUnit)
-    | Build_pdf -> literal "build-pdf" @@ variable (module Book_id) @@ query "parameters" (module Book_parameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Job.Registration_response(Job_id))
+    | Build_pdf -> literal "build-pdf" @@ variable (module Book_id) @@ query_def "parameters" (module Book_parameters) ~eq: Book_parameters.equal Book_parameters.none @@ query_def "rendering-parameters" (module Rendering_parameters) ~eq: Rendering_parameters.equal Rendering_parameters.none @@ post (module Job.Registration_response(Job_id))

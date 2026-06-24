@@ -48,6 +48,16 @@ val query_opt :
   (('x option -> 'a), 'w, 'r) t
 (** Same as {!query} but the query argument is optional. *)
 
+val query_def :
+  string ->
+  (module JSONABLE with type t = 'x) ->
+  ?eq: ('x -> 'x -> bool) ->
+  'x ->
+  ('a, 'w, 'r) t ->
+  (('x -> 'a), 'w, 'r) t
+(** Same as {!query} but the query argument is optional: when absent,
+    the default value is used. *)
+
 val body :
   string ->
   (module JSONABLE with type t = 'x) ->
@@ -61,6 +71,15 @@ val body_opt :
   ('a, 'w, 'r) t ->
   (('x option -> 'a), 'w, 'r) t
 (** Same as {!query_opt} but feeds into the body of the request. *)
+
+val body_def :
+  string ->
+  (module JSONABLE with type t = 'x) ->
+  ?eq: ('x -> 'x -> bool) ->
+  'x ->
+  ('a, 'w, 'r) t ->
+  (('x -> 'a), 'w, 'r) t
+(** Same as {!query_def} but feeds into the body of the request. *)
 
 val void : unit -> ('w, 'w, Void.t) t
 (** Route that returns nothing usable for Madge. This is useful in particular
