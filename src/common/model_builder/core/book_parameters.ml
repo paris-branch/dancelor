@@ -10,7 +10,7 @@ module Self = struct
     simple: bool option; [@default None]
     every_set: Set_parameters.t; [@default Set_parameters.none] [@key "every-set"]
   }
-  [@@deriving make, yojson, fields]
+  [@@deriving eq, make, yojson, fields]
 end
 include Self
 

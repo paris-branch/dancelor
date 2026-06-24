@@ -20,11 +20,11 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     | Create -> body "book" (module Book) @@ body "access" (module Entry.Access.Private) @@ post (module Book_id)
-    | Search -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Book_query) @@ get (module Make_search_result(Book_row))
+    | Search -> literal "search" @@ query_json "slice" (module Slice) @@ query_json "query" (module Book_query) @@ get (module Make_search_result(Book_row))
     | Get -> variable (module Book_id) @@ get (module Entry.JPrivate(Book))
     | Get_row -> variable (module Book_id) @@ literal "row" @@ get (module Book_row)
     | Get_view -> variable (module Book_id) @@ literal "view" @@ get (module Book_view)
     | Get_rows -> literal "rows" @@ body "ids" (module JList(Book_id)) @@ post (module JList(Book_row))
     | Update -> variable (module Book_id) @@ body "book" (module Book) @@ body "access" (module Entry.Access.Private) @@ put (module JUnit)
     | Delete -> variable (module Book_id) @@ delete (module JUnit)
-    | Build_pdf -> literal "build-pdf" @@ variable (module Book_id) @@ query "parameters" (module Book_parameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Job.Registration_response(Job_id))
+    | Build_pdf -> literal "build-pdf" @@ variable (module Book_id) @@ query_json_def "parameters" (module Book_parameters) ~eq: Book_parameters.equal ~def: Book_parameters.none @@ query_json_def "rendering-parameters" (module Rendering_parameters) ~eq: Rendering_parameters.equal ~def: Rendering_parameters.none @@ post (module Job.Registration_response(Job_id))

@@ -23,7 +23,7 @@ class TestContextLinks():
   def test_fromExplorerURI(self):
     ## From the explorer loaded with query “tam”, click on the set “Tam Lin
     ## Thrice” and check that the resulting URL contains the right context.
-    self.driver.get("http://localhost:8080/explore?q=%22tam%22")
+    self.driver.get("http://localhost:8080/explore?q=tam")
     self.driver.find_element(By.XPATH, "//a[contains(text(), 'Tam Lin Thrice')]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/set/ului-yd9x-o35w?context=%5B%22In_search%22%2C%22tam%22%5D"))
 
@@ -54,7 +54,7 @@ class TestContextLinks():
     ## that clicking the banner's “undo” icon goes back to the explorer.
     self.driver.get("http://localhost:8080/set/ului-yd9x-o35w?context=%5B%22In_search%22%2C%22tam%22%5D")
     self.driver.find_element(By.XPATH, "//a[contains(@class, 'btn')]//i[contains(@class, 'bi-arrow-90deg-up')]").click()
-    self.wait.until(EC.url_to_be("http://localhost:8080/explore?q=%22tam%22"))
+    self.wait.until(EC.url_to_be("http://localhost:8080/explore?q=tam"))
 
   def test_bannerCloseRemovesContext(self):
     ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check

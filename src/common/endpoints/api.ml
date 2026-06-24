@@ -34,7 +34,7 @@ include Madge.Make_endpoints(struct
       | Any endpoint -> literal "any" @@ Any.route endpoint
       | User endpoint -> literal "user" @@ User.route endpoint
       | Job endpoint -> literal "job" @@ Job.route endpoint
-      | Report_issue -> literal "issue" @@ literal "report" @@ query "request" (module Issue_report.Request) @@ post (module Issue_report.Response)
+      | Report_issue -> literal "issue" @@ literal "report" @@ query_json "request" (module Issue_report.Request) @@ post (module Issue_report.Response)
 end)
 
 let href : type a r. (a, Uri.t, r) t -> a = fun endpoint ->

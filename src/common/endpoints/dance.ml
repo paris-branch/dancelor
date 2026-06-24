@@ -19,7 +19,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     | Create -> body "dance" (module Dance) @@ post (module Dance_id)
-    | Search -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Dance_query) @@ get (module Make_search_result(Dance_row))
+    | Search -> literal "search" @@ query_json "slice" (module Slice) @@ query_json "query" (module Dance_query) @@ get (module Make_search_result(Dance_row))
     | Get -> variable (module Dance_id) @@ get (module Entry.JPublic(Dance))
     | Get_row -> variable (module Dance_id) @@ literal "row" @@ get (module Dance_row)
     | Get_view -> variable (module Dance_id) @@ literal "view" @@ get (module Dance_view)

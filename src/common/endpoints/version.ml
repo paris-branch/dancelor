@@ -69,9 +69,11 @@ end
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
+  let query_def_version_params rest = query_json_def "parameters" (module Version_parameters) ~eq: Version_parameters.equal ~def: Version_parameters.none rest in
+  let query_def_rendering_params rest = query_json_def "rendering-parameters" (module Rendering_parameters) ~eq: Rendering_parameters.equal ~def: Rendering_parameters.none rest in
   function
     | Create -> body "version" (module Version) @@ post (module Version_id)
-    | Search -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Version_query) @@ get (module Make_search_result(Version_row))
+    | Search -> literal "search" @@ query_json "slice" (module Slice) @@ query_json "query" (module Version_query) @@ get (module Make_search_result(Version_row))
     | Get -> variable (module Version_id) @@ get (module Entry.JPublic(Version_no_lilypond))
     | Get_row -> variable (module Version_id) @@ literal "row" @@ get (module Version_row)
     | Get_view -> variable (module Version_id) @@ literal "view" @@ get (module Version_view)
@@ -79,7 +81,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Content -> literal "content" @@ variable (module Version_id) @@ get (module Copyright_response(Version.Content))
     | Update -> variable (module Version_id) @@ body "version" (module Version) @@ put (module JUnit)
     | Delete -> variable (module Version_id) @@ delete (module JUnit)
-    | Build_snippets -> literal "build-snippets" @@ variable (module Version_id) @@ query "parameters" (module Version_parameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Copyright_response(Job.Registration_response(Snippet_ids)))
-    | Build_pdf -> literal "build-pdf" @@ variable (module Version_id) @@ query "parameters" (module Version_parameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Copyright_response(Job.Registration_response(Job_id)))
+    | Build_snippets -> literal "build-snippets" @@ variable (module Version_id) @@ query_def_version_params @@ query_def_rendering_params @@ post (module Copyright_response(Job.Registration_response(Snippet_ids)))
+    | Build_pdf -> literal "build-pdf" @@ variable (module Version_id) @@ query_def_version_params @@ query_def_rendering_params @@ post (module Copyright_response(Job.Registration_response(Job_id)))
     (* Files related to an anonymous version *)
-    | Build_snippets' -> literal "build-snippets" @@ query "version" (module Version) @@ query "parameters" (module Version_parameters) @@ query "rendering-parameters" (module Rendering_parameters) @@ post (module Job.Registration_response(Snippet_ids))
+    | Build_snippets' -> literal "build-snippets" @@ query_json "version" (module Version) @@ query_def_version_params @@ query_def_rendering_params @@ post (module Job.Registration_response(Snippet_ids))

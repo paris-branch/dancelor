@@ -52,7 +52,7 @@ let quick_explorer_links links =
           let count_lwt = Search_result.total <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) Slice.nothing query in
           li [
             a
-              ~a: [a_href @@ Endpoints.Page.(href Explore) (some @@ Any_query.print query) None]
+              ~a: [a_href @@ Endpoints.Page.(href Explore) (Any_query.print query) 1]
               [txt text];
             R.txt (S.from_lwt "" (spf " (%d)" <$> count_lwt));
           ]

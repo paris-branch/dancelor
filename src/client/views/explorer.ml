@@ -7,7 +7,7 @@ open Html
 open Utils
 
 let uri input page =
-  Endpoints.Page.(href Explore) (Some input) page
+  Endpoints.Page.(href Explore) input (Option.value page ~default: 1)
 
 let update_uri input page =
   Dom_html.window##.history##replaceState
@@ -25,8 +25,8 @@ let view query page =
         | Error msg -> lwt_error msg
         | Ok query -> ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice query
       )
-      ?initial_input: query
-      ?initial_page: page
+      ~initial_input: query
+      ~initial_page: page
       ~pagination_mode: (Pagination ())
       ~on_input: (fun input -> update_uri input None)
       ~on_page_change: (fun page -> !on_page_change page)
