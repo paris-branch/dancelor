@@ -129,6 +129,7 @@ let make_a
     ?dropdown
     ?classes
     ~href
+    ?onclick
     ?(more_a = [])
     ()
   =
@@ -136,6 +137,16 @@ let make_a
     ~a: (
       List.flatten [
         [R.a_href href];
+        (
+          match onclick with
+          | None -> []
+          | Some onclick ->
+            [
+              a_onclick @@ fun _event ->
+              Lwt.async (fun () -> onclick ();%lwt lwt_unit);
+              false
+            ]
+        );
         (make_attributes ?dropdown ?classes ?disabled ?tooltip ());
         more_a
       ]

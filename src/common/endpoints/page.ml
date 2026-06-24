@@ -48,7 +48,7 @@ type (_, _, _) t =
   | Version_edit : ((Core.Version.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Version : ((Context.t option -> Core.Version.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Index : ('w, 'w, Void.t) t
-  | Explore : ((string option -> 'w), 'w, Void.t) t
+  | Explore : ((string option -> int option -> 'w), 'w, Void.t) t
   | User_create : ('w, 'w, Void.t) t
   | User_prepare_reset_password : ('w, 'w, Void.t) t
   | User_password_reset : ((Username.t -> Core.User.Password_reset_token_clear.t -> 'w), 'w, Void.t) t
@@ -83,7 +83,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Version_add -> query_opt "tune" (module Entry.Id.J(Core.Tune)) @@ literal "version" @@ literal "add" @@ void ()
     | Version_edit -> literal "version" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Version)) @@ void ()
     | Index -> void ()
-    | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
+    | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ query_opt "page" (module JInt) @@ void ()
     | User_create -> literal "user" @@ literal "create" @@ void ()
     | User_prepare_reset_password -> literal "user" @@ literal "prepare-reset-password" @@ void ()
     | User_password_reset -> literal "user" @@ literal "reset-password" @@ query "username" (module Username) @@ query "token" (module Core.User.Password_reset_token_clear) @@ void ()
@@ -146,12 +146,12 @@ let consume : type a w r. return: w -> (a, w, r) t -> a = fun ~return: value end
   | Source_add -> value
   | Source_edit -> const value
   | Tune -> const2 value
-  | Version -> (fun _ _ -> value)
+  | Version -> const2 value
   | Tune_add -> value
   | Tune_edit -> const value
   | Version_add -> const value
   | Version_edit -> const value
-  | Explore -> const value
+  | Explore -> const2 value
   | User_create -> value
   | User_prepare_reset_password -> value
   | User_password_reset -> const2 value

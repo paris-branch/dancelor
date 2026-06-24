@@ -3,6 +3,8 @@ open Dancelor_common
 open Search_new
 open Html
 
+val entries_per_page : int
+
 type 'p pagination_mode =
   | Pagination of 'p
   | Fixed_slice of Slice.t
@@ -13,11 +15,14 @@ val search_bar : 'result t -> 'result Search_bar.t
 
 val make :
   ?initial_input: string ->
+  ?initial_page: int ->
   search: (Slice.t -> string -> ('result Search_result.t, string) result Lwt.t) ->
   pagination_mode: unit pagination_mode ->
   ?min_characters: int ->
   ?on_input: (string -> unit) ->
   ?on_enter: (string -> unit) ->
+  ?on_page_change: (int -> unit) ->
+  ?page_url: (int -> Uri.t S.t) ->
   unit ->
   'result t
 

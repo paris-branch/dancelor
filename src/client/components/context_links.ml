@@ -48,15 +48,19 @@ let make_and_render ?context ~this_page any_lwt =
     context
     ~none: (div [])
     ~some: (fun context ->
+      let neighbours_lwt = flip get_neighbours context =<< any_lwt in
       let parent_href =
         let open Endpoints.Page in
         match context with
-        | In_search query -> href Explore (Some query)
-        | In_set (id, _) -> href_set id
-        | In_book (id, _) -> href_book id
+        | In_search query ->
+          S.bind (S.from_lwt None (Lwt.map (Option.map (fun (_, _, index, _) -> index)) neighbours_lwt)) @@ fun index ->
+          let page = Option.map (fun index -> 1 + index / Search.entries_per_page) index in
+          (* NOTE: sync with search.ml *)
+          S.const @@ href Explore (Some query) page
+        | In_set (id, _) -> S.const @@ href_set id
+        | In_book (id, _) -> S.const @@ href_book id
       in
-      let parent_a content = a ~a: [a_href parent_href] content in
-      let neighbours_lwt = flip get_neighbours context =<< any_lwt in
+      let parent_a content = a ~a: [R.a_href parent_href] content in
       let context_links = [
         div ~a: [a_class ["col"; "ps-0"]] [
           with_span_placeholder
@@ -92,7 +96,7 @@ let make_and_render ?context ~this_page any_lwt =
               ~icon: (Action Back)
               ~tooltip: "Go back to the parent page, be it a search, a set, \
                            or anything else."
-              ~href: (S.const parent_href)
+              ~href: parent_href
               ();
             Button.make_a
               ~classes: ["btn-warning"]

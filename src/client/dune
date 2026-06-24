@@ -21,6 +21,7 @@
   (pps
    js_of_ocaml-ppx
    lwt_ppx
+   ppx_deriving.std
    ppx_deriving_yojson
    ppx_fields_conv
    ppx_monad

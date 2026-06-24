@@ -2,34 +2,40 @@ open Nes
 open Utils
 open Html
 
+module Log = (val Logs.src_log @@ Logs.Src.create "client.components.pagination": Logs.LOG)
+
 type state = {
   current_page: int; (* first page is [1] *)
   entries_per_page: int;
   number_of_entries: int option; (* not sure that we know *)
 }
+[@@deriving show {with_path = false}]
 
 let number_of_pages {entries_per_page; number_of_entries; _} =
   let number_of_entries = Option.value ~default: entries_per_page number_of_entries in
   (number_of_entries + entries_per_page - 1) / entries_per_page
 
-let current_slice {current_page; entries_per_page; number_of_entries} =
-  let number_of_entries = Option.value ~default: entries_per_page number_of_entries in
+let current_slice ({current_page; entries_per_page; _} as state) =
+  Log.debug (fun m -> m "current_slice %a" pp_state state);
   Slice.make
     (* NOTE: Our page numbers start at 1. *)
     ~start: ((current_page - 1) * entries_per_page)
-    ~end_excl: (min (current_page * entries_per_page) number_of_entries)
+    ~end_excl: (current_page * entries_per_page)
     ()
 
 type t = {
   state: state React.signal;
   update_current_page: (int -> int) -> unit;
+  page_url: (int -> Uri.t S.t) option;
 }
 
-let create ~number_of_entries ~entries_per_page =
-  let (current_page, set_current_page) = S.create 1 in
+let create ?(initial_page = 1) ?(on_page_change = (fun _p -> ())) ?page_url ~number_of_entries ~entries_per_page () =
+  let (current_page, set_current_page) = S.create initial_page in
   let update_current_page f =
     let current_page = S.value current_page in
-    set_current_page (f current_page)
+    let new_page = f current_page in
+    set_current_page new_page;
+    on_page_change new_page
   in
   let state =
     S.bind current_page @@ fun current_page ->
@@ -41,7 +47,7 @@ let create ~number_of_entries ~entries_per_page =
         number_of_entries;
       }
   in
-    {state; update_current_page}
+    {state; update_current_page; page_url}
 
 let status_text pagination =
   S.flip_map pagination.state @@ fun state ->
@@ -53,7 +59,7 @@ let status_text pagination =
     spf
       "Showing %d to %d of %d entries"
       (Slice.start slice + 1)
-      (Slice.end_excl slice)
+      (min (Slice.end_excl slice) number_of_entries)
       number_of_entries
 
 module Button = struct
@@ -63,7 +69,7 @@ module Button = struct
       enabled (that is not grayed out and clickable) when the predicate [enabled]
       returns [true] on the [pagination] state. It changes the page to the result
       of [target] applied on the [pagination] state. *)
-  let make ~active ~enabled ~target ?text ?icon pagination =
+  let make ~active ~enabled ?target ?text ?icon pagination =
     li
       ~a: [
         R.a_class
@@ -78,13 +84,35 @@ module Button = struct
           )
       ]
       [
-        Button.make
+        (fun ~classes ~dropdown ~onclick ?label ?icon () ->
+          match pagination.page_url, target with
+          | None, _ | _, None ->
+            Button.make
+              ~classes
+              ~dropdown
+              ~onclick
+              ?label
+              ?icon
+              ()
+          | Some page_url, Some target ->
+            Button.make_a
+              ~href: (
+                S.bind pagination.state @@ fun state ->
+                page_url @@ target state.current_page
+              )
+              ~classes
+              ~dropdown
+              ~onclick
+              ?label
+              ?icon
+              ()
+        )
           ~classes: ["page-link"]
           ~dropdown: true
           ~onclick: (fun _ ->
             let state = S.value pagination.state in
             if enabled state then
-              pagination.update_current_page (fun current_page -> target current_page);
+              pagination.update_current_page (fun current_page -> Option.get target current_page);
             lwt_unit
           )
           ?label: text
@@ -92,17 +120,12 @@ module Button = struct
           ()
       ]
 
-  (** A value that can be passed to [make]'s [~target] argument when the button
-      is never be enabled. *)
-  let no_target = fun _ ->
-    failwith "Client.Components.Pagination.no_target"
-
   (** A button that is never enabled and shows three dots. *)
   let ellipsis =
     make
       ~active: (const false)
       ~enabled: (const false)
-      ~target: no_target
+      ?target: None
       ~text: "⋯"
       ?icon: None
 
