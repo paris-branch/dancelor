@@ -1,22 +1,44 @@
 open Serialisation
 
-type query_source = Uri | Body
+(** The type arguments are (1) the function type corresponding to the
+    route, often named ['a], (2) the return value of that function
+    type, often named ['w] for “omega”, and (3) the return value from
+    the route, often named ['r].
 
-(* NOTE: The type arguments are (1) the function type corresponding to the
-   route, (2) the return value of that function type, (3) the return value from
-   the route. *)
+    In [Query_or_body], [proxy]/[unproxy] allow manipulating a type of
+    interest (['y]) via a type that we know how to serialise
+    (['x]). The constructors [`Present]/[`Absent] refer to the
+    presence in the request. The constructors [`Match]/[`Dont_match]
+    refer to whether the route should be considered to match. It is
+    expected that [proxy (unproxy y) = `Match y]. *)
 type (_, _, _) t =
-  | Return : Request.meth * (module JSONABLE with type t = 'r) -> ('w, 'w, 'r) t
-  | Literal : string * ('a, 'w, 'r) t -> ('a, 'w, 'r) t
-  | Variable : string * (module STRINGABLE with type t = 'a) * string * ('b, 'w, 'r) t -> (('a -> 'b), 'w, 'r) t
-  | Query :
-    query_source
-    * string
-    *
-      ('b option -> (('c -> 'a) -> 'a) option) (* proxy *)
-    *
-      (('b option -> 'a) -> ('c -> 'a)) (* unproxy *)
-    *
-      (module JSONABLE with type t = 'b)
-    * ('a, 'w, 'r) t ->
-      (('c -> 'a), 'w, 'r) t
+  | Return :
+    {
+      meth: Request.meth;
+      serialiser: (module JSONABLE with type t = 'r);
+    } ->
+      ('w, 'w, 'r) t
+  | Literal :
+    {
+      str: string;
+      rest: ('a, 'w, 'r) t;
+    } ->
+      ('a, 'w, 'r) t
+  | Variable :
+    {
+      prefix: string;
+      serialiser: (module STRINGABLE with type t = 'x);
+      suffix: string;
+      rest: ('a, 'w, 'r) t;
+    } ->
+      (('x -> 'a), 'w, 'r) t
+  | Query_or_body :
+    {
+      kind: [`Query | `Body];
+      name: string;
+      serialiser: (module JSONABLE with type t = 'x);
+      proxy: ([`Present of 'x | `Absent] -> [`Match of 'y | `Dont_match]);
+      unproxy: ('y -> [`Present of 'x | `Absent]);
+      rest: ('a, 'w, 'r) t;
+    } ->
+      (('y -> 'a), 'w, 'r) t

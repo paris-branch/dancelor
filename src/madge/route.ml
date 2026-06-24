@@ -3,35 +3,37 @@ open Serialisation
 
 include Route_internal
 
-let return meth rt = Return (meth, rt)
-let literal str route = Literal (str, route)
-let variable ?(prefix = "") ?(suffix = "") rt route = Variable (prefix, rt, suffix, route)
+let return meth serialiser = Return {meth; serialiser}
+let literal str rest = Literal {str; rest}
+let variable ?(prefix = "") ?(suffix = "") serialiser rest = Variable {prefix; serialiser; suffix; rest}
 
 let void () = return GET (module JVoid)
-let get rt = return GET rt
-let post rt = return POST rt
-let head rt = return HEAD rt
-let delete rt = return DELETE rt
-let patch rt = return PATCH rt
-let put rt = return PUT rt
-let options rt = return OPTIONS rt
-let trace rt = return TRACE rt
-let connect rt = return CONNECT rt
+let get serialiser = return GET serialiser
+let post serialiser = return POST serialiser
+let head serialiser = return HEAD serialiser
+let delete serialiser = return DELETE serialiser
+let patch serialiser = return PATCH serialiser
+let put serialiser = return PUT serialiser
+let options serialiser = return OPTIONS serialiser
+let trace serialiser = return TRACE serialiser
+let connect serialiser = return CONNECT serialiser
 
-let query_opt name rt route =
-  let proxy = some % (fun x f -> f x) in
-  Query (Uri, name, proxy, Fun.id, rt, route)
+let query name serialiser rest =
+  let proxy = function `Present x -> `Match x | `Absent -> `Dont_match in
+  let unproxy y = `Present y in
+  Query_or_body {kind = `Query; name; proxy; unproxy; serialiser; rest}
 
-let query name rt route =
-  let proxy = Option.map (fun x f -> f x) in
-  let unproxy = fun f x -> f (Some x) in
-  Query (Uri, name, proxy, unproxy, rt, route)
+let query_opt name serialiser rest =
+  let proxy = function `Present x -> `Match (Some x) | `Absent -> `Match None in
+  let unproxy = Option.fold ~none: `Absent ~some: (fun y -> `Present y) in
+  Query_or_body {kind = `Query; name; proxy; unproxy; serialiser; rest}
 
-let body_opt name rt route =
-  let proxy = some % (fun x f -> f x) in
-  Query (Body, name, proxy, Fun.id, rt, route)
+let body name serialiser rest =
+  let proxy = function `Present x -> `Match x | `Absent -> `Dont_match in
+  let unproxy y = `Present y in
+  Query_or_body {kind = `Body; name; proxy; unproxy; serialiser; rest}
 
-let body name rt route =
-  let proxy = Option.map (fun x f -> f x) in
-  let unproxy = fun f x -> f (Some x) in
-  Query (Body, name, proxy, unproxy, rt, route)
+let body_opt name serialiser rest =
+  let proxy = function `Present x -> `Match (Some x) | `Absent -> `Match None in
+  let unproxy = Option.fold ~none: `Absent ~some: (fun y -> `Present y) in
+  Query_or_body {kind = `Body; name; proxy; unproxy; serialiser; rest}

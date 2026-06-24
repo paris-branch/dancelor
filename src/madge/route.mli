@@ -25,33 +25,42 @@ val literal :
 val variable :
   ?prefix: string ->
   ?suffix: string ->
-  (module STRINGABLE with type t = 'a) ->
-  ('b, 'w, 'r) t ->
-  (('a -> 'b), 'w, 'r) t
+  (module STRINGABLE with type t = 'x) ->
+  ('a, 'w, 'r) t ->
+  (('x -> 'a), 'w, 'r) t
+(** Given a way to serialise values of type ['x], extends a route of
+    type ['a] to a route of type ['x -> 'a] by prepending a component
+    to the path. *)
 
 val query :
   string ->
-  (module JSONABLE with type t = 'b) ->
+  (module JSONABLE with type t = 'x) ->
   ('a, 'w, 'r) t ->
-  (('b -> 'a), 'w, 'r) t
+  (('x -> 'a), 'w, 'r) t
+(** Given a name and a way to serialise values of type ['x], extends a
+    route of type ['a] to a route of type ['x -> 'a] by recognising
+    the query parameter of that name. *)
 
 val query_opt :
   string ->
-  (module JSONABLE with type t = 'b) ->
+  (module JSONABLE with type t = 'x) ->
   ('a, 'w, 'r) t ->
-  (('b option -> 'a), 'w, 'r) t
+  (('x option -> 'a), 'w, 'r) t
+(** Same as {!query} but the query argument is optional. *)
 
 val body :
   string ->
-  (module JSONABLE with type t = 'b) ->
+  (module JSONABLE with type t = 'x) ->
   ('a, 'w, 'r) t ->
-  (('b -> 'a), 'w, 'r) t
+  (('x -> 'a), 'w, 'r) t
+(** Same as {!query} but feeds into the body of the request. *)
 
 val body_opt :
   string ->
-  (module JSONABLE with type t = 'b) ->
+  (module JSONABLE with type t = 'x) ->
   ('a, 'w, 'r) t ->
-  (('b option -> 'a), 'w, 'r) t
+  (('x option -> 'a), 'w, 'r) t
+(** Same as {!query_opt} but feeds into the body of the request. *)
 
 val void : unit -> ('w, 'w, Void.t) t
 (** Route that returns nothing usable for Madge. This is useful in particular

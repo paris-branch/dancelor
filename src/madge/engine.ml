@@ -22,7 +22,7 @@ let rec with_request
   a
 = fun path query body route return ->
   match route with
-  | Return (meth, (module R)) ->
+  | Return {meth; serialiser = (module S)} ->
     (
       let uri = Uri.make ~path ~query () in
       let body =
@@ -35,24 +35,28 @@ let rec with_request
         else
           Yojson.Safe.to_string @@ `Assoc body
       in
-      return (module R) (Request.make ~meth ~uri ~body)
+      return (module S) (Request.make ~meth ~uri ~body)
     )
-  | Literal (str, route) ->
-    with_request (path ^ "/" ^ str) query body route return
-  | Variable (prefix, (module R), suffix, route) ->
-    fun x -> with_request (path ^ "/" ^ prefix ^ Uri.pct_encode (R.to_string x) ^ suffix) query body route return
-  | Query (source, name, _, unproxy, (module R), route) ->
+  | Literal {str; rest} ->
     (
-      unproxy @@ function
-        | None ->
-          with_request path query body route return
-        | Some x ->
-          let (query, body) =
-            match source with
-            | Uri -> ((name, [Yojson.Safe.to_string @@ R.to_yojson x]) :: query, body)
-            | Body -> (query, (name, R.to_yojson x) :: body)
-          in
-          with_request path query body route return
+      with_request (path ^ "/" ^ str) query body rest return
+    )
+  | Variable {prefix; serialiser = (module S); suffix; rest} ->
+    (fun x ->
+      with_request (path ^ "/" ^ prefix ^ Uri.pct_encode (S.to_string x) ^ suffix) query body rest return
+    )
+  | Query_or_body {kind; name; proxy = _; unproxy; serialiser = (module S); rest} ->
+    (fun y ->
+      match unproxy y with
+      | `Absent ->
+        with_request path query body rest return
+      | `Present x ->
+        let (query, body) =
+          match kind with
+          | `Query -> ((name, [Yojson.Safe.to_string @@ S.to_yojson x]) :: query, body)
+          | `Body -> (query, (name, S.to_yojson x) :: body)
+        in
+        with_request path query body rest return
     )
 
 let with_request
@@ -80,26 +84,26 @@ let rec apply
   (unit -> z) option
 = fun route controller meth path query body return ->
   match route with
-  | Return (meth', (module R)) ->
+  | Return {meth = meth'; serialiser = (module S)} ->
     (
-      Log.debug (fun m -> m "  Return (%s, <module R>)" (Request.meth_to_string meth'));
+      Log.debug (fun m -> m "  Return {meth = %s}" (Request.meth_to_string meth'));
       if meth' = meth && path = [] && query = [] && body = [] then
-        Some (fun () -> return (module R) controller)
+        Some (fun () -> return (module S) controller)
       else
         None
     )
-  | Literal (str, route) ->
+  | Literal {str; rest} ->
     (
-      Log.debug (fun m -> m "  Literal (\"%s\", <route>)" str);
+      Log.debug (fun m -> m "  Literal {str = %S}" str);
       match path with
-      | comp :: path when comp = str -> apply route controller meth path query body return
+      | comp :: path when comp = str -> apply rest controller meth path query body return
       | _ -> None
     )
-  | Variable (prefix, (module R), suffix, route) ->
+  | Variable {prefix; serialiser = (module S); suffix; rest} ->
     (
       Log.debug (fun m ->
         m
-          "  Variable (\"%s\", <module R>, \"%s\", <route>) [path = %a]"
+          "  Variable {prefix = %S; suffix = %S} [path = %a]"
           prefix
           suffix
           Format.(pp_print_list ~pp_sep: (fun fmt () -> fprintf fmt " ") pp_print_string)
@@ -110,32 +114,32 @@ let rec apply
       | comp :: path ->
         Option.bind (String.remove_prefix ~needle: prefix comp) @@ fun comp ->
         Option.bind (String.remove_suffix ~needle: suffix comp) @@ fun comp ->
-        Option.bind (R.of_string comp) @@ fun comp ->
-        apply route (fun () -> controller () comp) meth path query body return
+        Option.bind (S.of_string comp) @@ fun comp ->
+        apply rest (fun () -> controller () comp) meth path query body return
     )
-  | Query (source, name, proxy, _, (module R), route) ->
+  | Query_or_body {kind; name; proxy; unproxy = _; serialiser = (module S); rest} ->
     (
-      Log.debug (fun m -> m "  Query (\"%s\", <proxy>, ???, <module R>, <route>)" name);
+      Log.debug (fun m -> m "  Query_or_body {name = %S}" name);
       let extract_and_parse =
-        match (source, List.extract_assoc_opt name query, List.extract_assoc_opt name body) with
-        | (Uri, None, _) ->
+        match (kind, List.extract_assoc_opt name query, List.extract_assoc_opt name body) with
+        | (`Query, None, _) ->
           Log.debug (fun m -> m "    Could not find query argument `%s`" name);
-          Ok (None, query, body) (* absent: OK *)
-        | (Body, _, None) ->
+          Ok (`Absent, query, body) (* absent: OK *)
+        | (`Body, _, None) ->
           Log.debug (fun m -> m "    Could not find body argument `%s`" name);
-          Ok (None, query, body) (* absent: OK *)
-        | (Uri, Some (value, query), _) ->
+          Ok (`Absent, query, body) (* absent: OK *)
+        | (`Query, Some (value, query), _) ->
           (
-            match R.of_yojson (Yojson.Safe.from_string (List.hd value)) with
-            | Ok value -> Ok (Some value, query, body)
+            match S.of_yojson (Yojson.Safe.from_string (List.hd value)) with
+            | Ok value -> Ok (`Present value, query, body)
             | Error msg | exception (Failure msg) | exception (Yojson.Json_error msg) ->
               Log.debug (fun m -> m "    Found query argument `%s` but failed to unserialise it: %s" name msg);
               Error "unparseable" (* present but unparseable: error *)
           )
-        | (Body, _, Some (value, body)) ->
+        | (`Body, _, Some (value, body)) ->
           (
-            match R.of_yojson value with
-            | Ok value -> Ok (Some value, query, body)
+            match S.of_yojson value with
+            | Ok value -> Ok (`Present value, query, body)
             | Error msg ->
               Log.debug (fun m -> m "    Found body argument `%s` but failed to unserialise it: %s" name msg);
               Error "unparseable" (* present but unparseable: error *)
@@ -145,8 +149,8 @@ let rec apply
       | Error _ -> None (* unparseable: the route does not match *)
       | Ok (maybe_value, query, body) ->
         match proxy maybe_value with
-        | None -> None
-        | Some f -> apply route (fun () -> f (controller ())) meth path query body return
+        | `Dont_match -> None
+        | `Match value -> apply rest (fun () -> controller () value) meth path query body return
     )
 
 let apply
