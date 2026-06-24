@@ -6,14 +6,17 @@ open Route_internal
 
 module Log = (val Logs.(src_log (Src.create "madge.engine")): Logs.LOG)
 
+type query = (string * string list) list (* what Uri.t uses *)
+type body = (string * Yojson.Safe.t) list (* basically the body of an `Assoc *)
+
 (* route -> request *)
 
 exception Illegal_body_in_get_request
 
 let rec with_request
   : type a w r. string ->
-  Query.t ->
-  Query.t ->
+  query ->
+  body ->
   (a, w, r) Route.t ->
   ((module JSONABLE with type t = r) -> Request.t -> w) ->
   a
@@ -21,16 +24,16 @@ let rec with_request
   match route with
   | Return (meth, (module R)) ->
     (
-      let uri = Uri.make ~path ~query: (Query.to_strings query) () in
+      let uri = Uri.make ~path ~query () in
       let body =
         if meth = GET then
           (
-            if not (Query.is_empty body) then
+            if body <> [] then
               raise Illegal_body_in_get_request;
             ""
           )
         else
-          Yojson.Safe.to_string @@ `Assoc (Query.to_list body)
+          Yojson.Safe.to_string @@ `Assoc body
       in
       return (module R) (Request.make ~meth ~uri ~body)
     )
@@ -46,8 +49,8 @@ let rec with_request
         | Some x ->
           let (query, body) =
             match source with
-            | Uri -> (Query.add name (R.to_yojson x) query, body)
-            | Body -> (query, Query.add name (R.to_yojson x) body)
+            | Uri -> ((name, [Yojson.Safe.to_string @@ R.to_yojson x]) :: query, body)
+            | Body -> (query, (name, R.to_yojson x) :: body)
           in
           with_request path query body route return
     )
@@ -57,7 +60,7 @@ let with_request
   ((module JSONABLE with type t = r) -> Request.t -> w) ->
   a
 = fun route return ->
-  with_request "" Query.empty Query.empty route return
+  with_request "" [] [] route return
 
 let uri : type a r. (a, Uri.t, r) Route.t -> a = fun route ->
   with_request route (fun (module _) request -> Request.uri request)
@@ -71,8 +74,8 @@ let rec apply
   (unit -> a) ->
   Request.meth ->
   string list ->
-  Query.t ->
-  Query.t ->
+  query ->
+  body ->
   ((module JSONABLE with type t = r) -> (unit -> w) -> z) ->
   (unit -> z) option
 = fun route controller meth path query body return ->
@@ -80,7 +83,7 @@ let rec apply
   | Return (meth', (module R)) ->
     (
       Log.debug (fun m -> m "  Return (%s, <module R>)" (Request.meth_to_string meth'));
-      if meth' = meth && path = [] && Query.is_empty query && Query.is_empty body then
+      if meth' = meth && path = [] && query = [] && body = [] then
         Some (fun () -> return (module R) controller)
       else
         None
@@ -114,7 +117,7 @@ let rec apply
     (
       Log.debug (fun m -> m "  Query (\"%s\", <proxy>, ???, <module R>, <route>)" name);
       let extract_and_parse =
-        match (source, Query.extract name query, Query.extract name body) with
+        match (source, List.extract_assoc_opt name query, List.extract_assoc_opt name body) with
         | (Uri, None, _) ->
           Log.debug (fun m -> m "    Could not find query argument `%s`" name);
           Ok (None, query, body) (* absent: OK *)
@@ -123,9 +126,9 @@ let rec apply
           Ok (None, query, body) (* absent: OK *)
         | (Uri, Some (value, query), _) ->
           (
-            match R.of_yojson value with
+            match R.of_yojson (Yojson.Safe.from_string (List.hd value)) with
             | Ok value -> Ok (Some value, query, body)
-            | Error msg ->
+            | Error msg | exception (Failure msg) | exception (Yojson.Json_error msg) ->
               Log.debug (fun m -> m "    Found query argument `%s` but failed to unserialise it: %s" name msg);
               Error "unparseable" (* present but unparseable: error *)
           )
@@ -155,8 +158,15 @@ let apply
 = fun route controller request return ->
   Log.debug (fun m -> m "Madge.apply <route> <controller> <request> <return>");
   let path = List.filter ((<>) "") (String.split_on_char '/' (Uri.path @@ Request.uri request)) in
-  Option.bind (Query.from_uri @@ Request.uri request) @@ fun uri_query ->
-  apply route controller (Request.meth request) path uri_query (Query.from_body @@ Request.body request) return
+  let uri_query = Uri.query @@ Request.uri request in
+  let body_query =
+    let body = Request.body request in
+    let body = if body = "" then "{}" else body in
+    match Yojson.Safe.from_string body with
+    | `Assoc body -> body
+    | _ -> assert false
+  in
+  apply route controller (Request.meth request) path uri_query body_query return
 
 let apply'
   : type a w r. (a, w, r) Route.t ->
