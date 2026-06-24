@@ -34,9 +34,12 @@ type (_, _, _) t =
       (('x -> 'a), 'w, 'r) t
   | Query_or_body :
     {
-      kind: [`Query | `Body];
+      kind: [
+        | `Query_string of (module STRINGABLE with type t = 'x)
+        | `Query_json of (module JSONABLE with type t = 'x)
+        | `Body of (module JSONABLE with type t = 'x)
+      ];
       name: string;
-      serialiser: (module JSONABLE with type t = 'x);
       proxy: ([`Present of 'x | `Absent] -> [`Match of 'y | `Dont_match]);
       unproxy: ('y -> [`Present of 'x | `Absent]);
       rest: ('a, 'w, 'r) t;

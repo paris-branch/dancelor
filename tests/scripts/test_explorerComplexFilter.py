@@ -11,7 +11,7 @@ class TestExplorerComplexFilter():
     utils.default_teardown(self)
 
   def test_explorerComplexFilter(self):
-    self.driver.get("http://localhost:8080/explore?q=%22tam%22")
+    self.driver.get("http://localhost:8080/explore?q=tam")
     self.driver.find_element(By.XPATH, "//button[text()[contains(., 'Filter')]]").click()
     self.driver.find_element(By.XPATH, "//label[contains(text(), 'Book')]").click()
     self.driver.find_element(By.XPATH, "//button[text()[contains(., 'Apply')]]").click()

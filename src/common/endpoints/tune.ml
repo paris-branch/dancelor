@@ -18,7 +18,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     | Create -> body "tune" (module Tune) @@ post (module Tune_id)
-    | Search -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Tune_query) @@ get (module Make_search_result(Tune_row))
+    | Search -> literal "search" @@ query_json "slice" (module Slice) @@ query_json "query" (module Tune_query) @@ get (module Make_search_result(Tune_row))
     | Get -> variable (module Tune_id) @@ get (module Entry.JPublic(Tune))
     | Get_row -> variable (module Tune_id) @@ literal "row" @@ get (module Tune_row)
     | Get_view -> variable (module Tune_id) @@ literal "view" @@ get (module Tune_view)

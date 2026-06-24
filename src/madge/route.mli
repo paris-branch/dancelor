@@ -32,7 +32,33 @@ val variable :
     type ['a] to a route of type ['x -> 'a] by prepending a component
     to the path. *)
 
-val query :
+val query_str :
+  string ->
+  (module STRINGABLE with type t = 'x) ->
+  ('a, 'w, 'r) t ->
+  (('x -> 'a), 'w, 'r) t
+(** Given a name and a way to serialise values of type ['x], extends a
+    route of type ['a] to a route of type ['x -> 'a] by recognising
+    the query parameter of that name. *)
+
+val query_str_opt :
+  string ->
+  (module STRINGABLE with type t = 'x) ->
+  ('a, 'w, 'r) t ->
+  (('x option -> 'a), 'w, 'r) t
+(** Same as {!query} but the query argument is optional. *)
+
+val query_str_def :
+  string ->
+  (module STRINGABLE with type t = 'x) ->
+  ?eq: ('x -> 'x -> bool) ->
+  def: 'x ->
+  ('a, 'w, 'r) t ->
+  (('x -> 'a), 'w, 'r) t
+(** Same as {!query} but the query argument is optional: when absent,
+    the default value is used. *)
+
+val query_json :
   string ->
   (module JSONABLE with type t = 'x) ->
   ('a, 'w, 'r) t ->
@@ -41,18 +67,18 @@ val query :
     route of type ['a] to a route of type ['x -> 'a] by recognising
     the query parameter of that name. *)
 
-val query_opt :
+val query_json_opt :
   string ->
   (module JSONABLE with type t = 'x) ->
   ('a, 'w, 'r) t ->
   (('x option -> 'a), 'w, 'r) t
 (** Same as {!query} but the query argument is optional. *)
 
-val query_def :
+val query_json_def :
   string ->
   (module JSONABLE with type t = 'x) ->
   ?eq: ('x -> 'x -> bool) ->
-  'x ->
+  def: 'x ->
   ('a, 'w, 'r) t ->
   (('x -> 'a), 'w, 'r) t
 (** Same as {!query} but the query argument is optional: when absent,
@@ -63,23 +89,23 @@ val body :
   (module JSONABLE with type t = 'x) ->
   ('a, 'w, 'r) t ->
   (('x -> 'a), 'w, 'r) t
-(** Same as {!query} but feeds into the body of the request. *)
+(** Same as {!query_json} but feeds into the body of the request. *)
 
 val body_opt :
   string ->
   (module JSONABLE with type t = 'x) ->
   ('a, 'w, 'r) t ->
   (('x option -> 'a), 'w, 'r) t
-(** Same as {!query_opt} but feeds into the body of the request. *)
+(** Same as {!query_json_opt} but feeds into the body of the request. *)
 
 val body_def :
   string ->
   (module JSONABLE with type t = 'x) ->
   ?eq: ('x -> 'x -> bool) ->
-  'x ->
+  def: 'x ->
   ('a, 'w, 'r) t ->
   (('x -> 'a), 'w, 'r) t
-(** Same as {!query_def} but feeds into the body of the request. *)
+(** Same as {!query_json_def} but feeds into the body of the request. *)
 
 val void : unit -> ('w, 'w, Void.t) t
 (** Route that returns nothing usable for Madge. This is useful in particular

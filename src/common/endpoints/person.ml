@@ -20,7 +20,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   function
     | For_user -> literal "for-user" @@ variable (module User_id) @@ literal "row" @@ get (module JOption(Person_row))
     | Create -> body "person" (module Person) @@ post (module Person_id)
-    | Search -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Person_query) @@ get (module Make_search_result(Person_row))
+    | Search -> literal "search" @@ query_json "slice" (module Slice) @@ query_json "query" (module Person_query) @@ get (module Make_search_result(Person_row))
     | Get -> variable (module Person_id) @@ get (module Entry.JPublic(Person))
     | Get_row -> variable (module Person_id) @@ literal "row" @@ get (module Person_row)
     | Get_view -> variable (module Person_id) @@ literal "view" @@ get (module Person_view)

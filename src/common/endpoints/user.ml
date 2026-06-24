@@ -30,5 +30,5 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Create -> literal "create" @@ body "user" (module User) @@ post (module JPair(Entry.JPublic(User))(User.Password_reset_token_clear))
     | Prepare_reset_password -> literal "prepare-reset-password" @@ body "username" (module Username) @@ post (module User.Password_reset_token_clear)
     | Reset_password -> literal "reset-password" @@ body "username" (module Username) @@ body "token" (module User.Password_reset_token_clear) @@ body "password" (module User.Password_clear) @@ post (module JUnit)
-    | Search -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module User_query) @@ get (module Make_search_result(User_row))
+    | Search -> literal "search" @@ query_json "slice" (module Slice) @@ query_json "query" (module User_query) @@ get (module Make_search_result(User_row))
     | Set_omniscience -> literal "set-omniscience" @@ body "value" (module JBool) @@ put (module JUnit)

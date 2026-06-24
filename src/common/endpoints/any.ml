@@ -17,6 +17,6 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   function
     | Get -> variable (module Entry.Id.S(SUnit)) @@ get (module Any)
     | Get_rows -> literal "get-rows" @@ body "ids" (module JList(Any_id)) @@ post (module JList(Any_row))
-    | Newest -> literal "newest" @@ query "limit" (module JInt) @@ get (module JList(Any_row))
-    | Search -> literal "search" @@ query "slice" (module Slice) @@ query "query" (module Any_query) @@ get (module Make_search_result(Any_row))
-    | Search_context -> literal "context" @@ query "query" (module Any_query) @@ query "element" (module Any_id) @@ get (module Make_search_context_result(Any_id))
+    | Newest -> literal "newest" @@ query_json "limit" (module JInt) @@ get (module JList(Any_row))
+    | Search -> literal "search" @@ query_json "slice" (module Slice) @@ query_json "query" (module Any_query) @@ get (module Make_search_result(Any_row))
+    | Search_context -> literal "context" @@ query_json "query" (module Any_query) @@ query_json "element" (module Any_id) @@ get (module Make_search_context_result(Any_id))

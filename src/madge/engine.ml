@@ -45,7 +45,7 @@ let rec with_request
     (fun x ->
       with_request (path ^ "/" ^ prefix ^ Uri.pct_encode (S.to_string x) ^ suffix) query body rest return
     )
-  | Query_or_body {kind; name; proxy = _; unproxy; serialiser = (module S); rest} ->
+  | Query_or_body {kind; name; proxy = _; unproxy; rest} ->
     (fun y ->
       match unproxy y with
       | `Absent ->
@@ -53,8 +53,9 @@ let rec with_request
       | `Present x ->
         let (query, body) =
           match kind with
-          | `Query -> ((name, [Yojson.Safe.to_string @@ S.to_yojson x]) :: query, body)
-          | `Body -> (query, (name, S.to_yojson x) :: body)
+          | `Query_string(module S) -> ((name, [S.to_string x]) :: query, body)
+          | `Query_json(module S) -> ((name, [Yojson.Safe.to_string @@ S.to_yojson x]) :: query, body)
+          | `Body(module S) -> (query, (name, S.to_yojson x) :: body)
         in
         with_request path query body rest return
     )
@@ -117,18 +118,26 @@ let rec apply
         Option.bind (S.of_string comp) @@ fun comp ->
         apply rest (fun () -> controller () comp) meth path query body return
     )
-  | Query_or_body {kind; name; proxy; unproxy = _; serialiser = (module S); rest} ->
+  | Query_or_body {kind; name; proxy; unproxy = _; rest} ->
     (
       Log.debug (fun m -> m "  Query_or_body {name = %S}" name);
       let extract_and_parse =
         match (kind, List.extract_assoc_opt name query, List.extract_assoc_opt name body) with
-        | (`Query, None, _) ->
+        | ((`Query_string _ | `Query_json _), None, _) ->
           Log.debug (fun m -> m "    Could not find query argument `%s`" name);
           Ok (`Absent, query, body) (* absent: OK *)
-        | (`Body, _, None) ->
+        | (`Body _, _, None) ->
           Log.debug (fun m -> m "    Could not find body argument `%s`" name);
           Ok (`Absent, query, body) (* absent: OK *)
-        | (`Query, Some (value, query), _) ->
+        | (`Query_string(module S), Some (value, query), _) ->
+          (
+            match S.of_string (List.hd value) with
+            | Some value -> Ok (`Present value, query, body)
+            | None ->
+              Log.debug (fun m -> m "    Found query argument `%s` but failed to unserialise it" name);
+              Error "unparseable" (* present but unparseable: error *)
+          )
+        | (`Query_json(module S), Some (value, query), _) ->
           (
             match S.of_yojson (Yojson.Safe.from_string (List.hd value)) with
             | Ok value -> Ok (`Present value, query, body)
@@ -136,7 +145,7 @@ let rec apply
               Log.debug (fun m -> m "    Found query argument `%s` but failed to unserialise it: %s" name msg);
               Error "unparseable" (* present but unparseable: error *)
           )
-        | (`Body, _, Some (value, body)) ->
+        | (`Body(module S), _, Some (value, body)) ->
           (
             match S.of_yojson value with
             | Ok value -> Ok (`Present value, query, body)
