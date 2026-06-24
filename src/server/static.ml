@@ -42,7 +42,14 @@ let serve_index =
           (
             head (title (txt "Dancelor")) [
               meta ~a: [a_charset "utf-8"] ();
-              link ~rel: [`Canonical] ~href: (Uri.to_string @@ Uri.with_path base_url path) ();
+              (
+                (* Ignore the query part of the URL, it is usually not the most important part,
+                   except for the explorer which shouldn't be indexed but whose links should be followed. *)
+                (* FIXME: this matching is brittle *)
+                match path with
+                | "/explore" -> meta ~a: [a_name "robots"; a_content "noindex,follow"] ()
+                | _ -> link ~rel: [`Canonical] ~href: (Uri.to_string @@ Uri.with_path base_url path) ()
+              );
               (* Style *)
               meta ~a: [a_name "viewport"; a_content "width=device-width, initial-scale=1, maximum-scale=1"] ();
               meta ~a: [a_name "description"; a_content "Dancelor — A community-edited database of Scottish country dance music. Search for tunes, assemble sets and books, and export to PDF, ready to print and bring to the dance."] ();
