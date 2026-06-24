@@ -2,6 +2,8 @@ open Nes
 open Html
 open Utils
 
+let entries_per_page = 25
+
 module Search = struct
   type 'p pagination_mode =
     | Pagination of 'p
@@ -20,17 +22,20 @@ module Search = struct
 
   let make
       ?initial_input
+      ?initial_page
       ~search
       ~pagination_mode
       ?(min_characters = 0)
       ?on_input
       ?on_enter
+      ?on_page_change
+      ?page_url
       ()
     =
     let (number_of_entries, set_number_of_entries) = S.create None in
     let pagination =
       match pagination_mode with
-      | Pagination() -> Pagination (Pagination.create ~entries_per_page: 25 ~number_of_entries)
+      | Pagination() -> Pagination (Pagination.create ?initial_page ?on_page_change ?page_url ~entries_per_page ~number_of_entries ())
       | Fixed_slice slice -> Fixed_slice slice
     in
     let search_bar =

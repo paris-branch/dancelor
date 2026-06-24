@@ -31,12 +31,14 @@ val make_a :
   ?dropdown: bool ->
   ?classes: string list ->
   href: Uri.t S.t ->
-  ?more_a: [< Html_types.a_attrib >`Class `Href `Title] attrib list ->
+  ?onclick: (unit -> unit Lwt.t) ->
+  ?more_a: [< Html_types.a_attrib >`Class `Href `OnClick `Title] attrib list ->
   unit ->
   [> Html_types.a_] elt
-(** Variant of {!make} that creates an anchor element [<a/>] instead of a
-    [<button/>]. This makes sense when it is to be used as a link and not to
-    trigger an action. *)
+(** Variant of {!make} that creates an anchor element [<a/>] instead
+    of a [<button/>]. This makes sense when it is to be used as a link
+    and not to trigger an action. The [?onclick] optional argument
+    overrides the action of the link with that of the click. *)
 
 val make_icon :
   ?classes: string list ->
