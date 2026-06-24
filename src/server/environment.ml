@@ -207,8 +207,6 @@ let sign_out env user =
   register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
   lwt_unit
 
-let boot_time = Datetime.now ()
-
 type cache_key = {
   session_id: string;
   user: Database.User.entry option;

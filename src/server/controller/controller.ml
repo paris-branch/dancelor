@@ -27,6 +27,3 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.t -> a =
   | User endpoint -> User.dispatch env endpoint
   | Job endpoint -> Job.dispatch env endpoint
   | Report_issue -> Issue_report.report env
-  | Boot_time ->
-    Log.debug (fun m -> m "Answering boot time");
-    lwt Environment.boot_time

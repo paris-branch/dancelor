@@ -3,31 +3,12 @@ open Dancelor_common
 open Model_new
 open Html
 
-type run_status = Running | Offline | Newer
+type server_status = Reachable | Unreachable
 
-let (run_status, set_run_status) = S.create Running
+let (server_status, set_server_status) = S.create Reachable
 
-let start_ping_routine () =
-  let boot_time = ref None in
-  let rec ping () =
-    let old_boot_time = !boot_time in
-    let%lwt response = Madge_client.call ~retry: false Endpoints.Api.(route Boot_time) in
-    (
-      match response with
-      | Ok new_boot_time ->
-        boot_time := Some new_boot_time;
-        set_run_status (
-          match old_boot_time with
-          | Some old_boot_time when not (Datetime.equal old_boot_time new_boot_time) -> Newer
-          | _ -> Running
-        )
-      | Error Server_unreachable _ -> set_run_status Offline
-      | Error _ -> assert false
-    );
-    Js_of_ocaml_lwt.Lwt_js.sleep 3.;%lwt
-    ping ()
-  in
-  Lwt.async ping
+let () = Madge_client.on_server_reachable := (fun () -> set_server_status Reachable)
+let () = Madge_client.on_server_unreachable := (fun () -> set_server_status Unreachable)
 
 let user = Madge_client.call_exn Endpoints.Api.(route @@ User Status)
 let user_new = Madge_client.call_exn Endpoints.Api.(route @@ User Status_new)
