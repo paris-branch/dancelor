@@ -59,7 +59,7 @@ let callback _ request body =
           apply_controller env (Madge.Request.make ~meth ~uri ~body)
         )
       else
-        Static.serve env path
+        Static.serve env path (Uri.query uri)
 
   let () =
     Lwt.async_exception_hook :=

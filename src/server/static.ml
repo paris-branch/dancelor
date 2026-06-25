@@ -34,7 +34,21 @@ let serve_index =
   let site_webmanifest_href = Lazy.from_fun @@ fun () -> href_with_hash "site.webmanifest" in
   let client_js_href = Lazy.from_fun @@ fun () -> href_with_hash "client.js" in
   let bootstrap_bundle_min_js_href = Lazy.from_fun @@ fun () -> href_with_hash "bootstrap.bundle.min.js" in
-  fun path ->
+  fun path query ->
+    let (canonical_url, robots_content) =
+      (* For all pages but the explorer, we strip the query part from the canonical URL. Those pages
+         should be indexed. For the explorer, all pages are self-canonical, but we distinguish on
+         whether there is a `?q` argument in the query: if there isn't, then the page should be
+         indexed; if there is, then it is a refined query and it shouldn't be indexed. All pages
+         should be followed. *)
+      (* FIXME: this matching is brittle *)
+      match path with
+      | "/explore" ->
+        let uri = Uri.with_uri base_url ~path: (Some path) ~query: (Some query) in
+        let robots = if List.mem_assoc "q" query then "noindex, follow" else "index, follow" in
+          (uri, robots)
+      | _ -> (Uri.with_path base_url path, "index, follow")
+    in
     let index =
       Format.asprintf "%a" (pp ()) @@
         html
@@ -42,14 +56,8 @@ let serve_index =
           (
             head (title (txt "Dancelor")) [
               meta ~a: [a_charset "utf-8"] ();
-              (
-                (* Ignore the query part of the URL, it is usually not the most important part,
-                   except for the explorer which shouldn't be indexed but whose links should be followed. *)
-                (* FIXME: this matching is brittle *)
-                match path with
-                | "/explore" -> meta ~a: [a_name "robots"; a_content "noindex,follow"] ()
-                | _ -> link ~rel: [`Canonical] ~href: (Uri.to_string @@ Uri.with_path base_url path) ()
-              );
+              link ~rel: [`Canonical] ~href: (Uri.to_string canonical_url) ();
+              meta ~a: [a_name "robots"; a_content robots_content] ();
               (* Style *)
               meta ~a: [a_name "viewport"; a_content "width=device-width, initial-scale=1, maximum-scale=1"] ();
               meta ~a: [a_name "description"; a_content "Dancelor — A community-edited database of Scottish country dance music. Search for tunes, assemble sets and books, and export to PDF, ready to print and bring to the dance."] ();
@@ -114,7 +122,7 @@ let serve_robots_txt () =
   in
   Cohttp_lwt_unix.Server.respond_string ~headers ~status: `OK ~body: robots_txt ()
 
-let serve env path =
+let serve env path query =
   Log.debug (fun m -> m "Looking to serve %S" path);
   match serve_static_file path with
   | Some serve_static_file ->
@@ -136,5 +144,5 @@ let serve env path =
     else
       (
         Log.debug (fun m -> m "Serving main file.");
-        serve_index path
+        serve_index path query
       )
