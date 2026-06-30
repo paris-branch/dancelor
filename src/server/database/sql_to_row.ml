@@ -3,14 +3,14 @@ open Dancelor_common
 open Model_new
 
 let person_sql_to_row ~id ~name ~(k : Person_row.t -> 'w) : 'w =
-  k {id = Entry.Id.of_string_exn id; name}
+  k {id; name}
 
 let source_sql_to_row ~id ~name ~date ~editors ~(k : Source_row.t -> 'w) : 'w =
-  k {id = Entry.Id.of_string_exn id; name; date = Option.map (Option.get % PartialDate.from_string) date; editors}
+  k {id; name; date = Option.map (Option.get % PartialDate.from_string) date; editors}
 
 let dance_sql_to_row ~id ~name ~kind ~devisers ~disambiguation ~(k : Dance_row.t -> 'w) : 'w =
   k {
-    id = Entry.Id.of_string_exn id;
+    id;
     name;
     kind = Kind_dance.of_string kind;
     devisers;
@@ -19,7 +19,7 @@ let dance_sql_to_row ~id ~name ~kind ~devisers ~disambiguation ~(k : Dance_row.t
 
 let tune_sql_to_row ~id ~name ~kind ~composers ~(k : Tune_row.t -> 'w) : 'w =
   k {
-    id = Entry.Id.of_string_exn id;
+    id;
     name;
     kind = Sql_types.kind_base_to_common kind;
     composers;
@@ -51,7 +51,7 @@ let version_sql_to_row
     | _ -> assert false
   in
   k {
-    id = Entry.Id.of_string_exn id;
+    id;
     tune = tune_sql_to_row ~id: tune_id ~name: tune_name ~kind: tune_kind ~composers: tune_composers ~k: Fun.id;
     sources;
     disambiguation;
@@ -61,7 +61,7 @@ let version_sql_to_row
 
 let set_sql_to_row ~id ~name ~kind ~conceptors ~tunes ~permission ~(k : Set_row.t -> 'w) : 'w =
   k {
-    id = Entry.Id.of_string_exn id;
+    id;
     name;
     kind = Kind_dance.of_string kind;
     conceptors;
@@ -71,7 +71,7 @@ let set_sql_to_row ~id ~name ~kind ~conceptors ~tunes ~permission ~(k : Set_row.
 
 let book_sql_to_row ~id ~name ~date ~authors ~permission ~(k : Book_row.t -> 'w) : 'w =
   k {
-    id = Entry.Id.of_string_exn id;
+    id;
     name;
     date = Option.map (Option.get % PartialDate.from_string) date;
     authors;

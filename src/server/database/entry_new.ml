@@ -28,7 +28,7 @@ let classify_type : type_ -> [`Public | `Private] = function
   | `Set | `Book -> `Private
 
 let get_type db id =
-  Entry_sql.get_type db ~id: (Entry.Id.to_string id)
+  Entry_sql.get_type db ~id
 
 (** Handles only the insertion into the ["entry"] table. In
     particular, this function does not handle the ["entry_viewers"]
@@ -38,7 +38,7 @@ let insert_to_entry_table db ~visibility type_ =
     let id = Entry.Id.make () in
     match%lwt get_type db id with
     | None ->
-      let%lwt _ = Entry_sql.register db ~id: (Entry.Id.to_string id) ~type_ ~visibility in
+      let%lwt _ = Entry_sql.register db ~id ~type_ ~visibility in
       lwt @@ Entry.Id.unsafe_coerce id
     | Some _ ->
       make () (* extremely unlikely *)
@@ -55,24 +55,24 @@ let insert_or_update_private db access f =
     | Select_viewers viewers -> (`Select_viewers, NEList.to_list viewers)
   in
   let%lwt id = f visibility in
-  ignore <$> Entry_sql.delete_all_viewers db ~entry_id: (Entry.Id.to_string id);%lwt
+  ignore <$> Entry_sql.delete_all_viewers db ~entry_id: id;%lwt
   Lwt_list.iter_s
     (fun viewer ->
       ignore
       <$> Entry_sql.add_one_viewer
           db
-          ~entry_id: (Entry.Id.to_string id)
-          ~viewer_id: (Entry.Id.to_string viewer)
+          ~entry_id: id
+          ~viewer_id: viewer
     )
     viewers;%lwt
-  ignore <$> Entry_sql.delete_all_owners db ~entry_id: (Entry.Id.to_string id);%lwt
+  ignore <$> Entry_sql.delete_all_owners db ~entry_id: id;%lwt
   Lwt_list.iter_s
     (fun owner ->
       ignore
       <$> Entry_sql.add_one_owner
           db
-          ~entry_id: (Entry.Id.to_string id)
-          ~owner_id: (Entry.Id.to_string owner)
+          ~entry_id: id
+          ~owner_id: owner
     )
     (NEList.to_list @@ Entry.Access.Private.owners access);%lwt
   lwt id
@@ -91,14 +91,13 @@ let make_private db type_ access =
 let update_private_access db id access =
   ignore
   <$> insert_or_update_private db access @@ fun visibility ->
-    ignore <$> Entry_sql.update_visibility db ~id: (Entry.Id.to_string id) ~visibility: (Some visibility);%lwt
+    ignore <$> Entry_sql.update_visibility db ~id ~visibility: (Some visibility);%lwt
     lwt id
 
 let touch db id =
-  ignore <$> Entry_sql.touch db ~id: (Entry.Id.to_string id)
+  ignore <$> Entry_sql.touch db ~id
 
 let delete db id =
-  let id = Entry.Id.to_string id in
   ignore <$> Entry_sql.delete_all_owners db ~entry_id: id;%lwt
   ignore <$> Entry_sql.delete_all_viewers db ~entry_id: id;%lwt
   ignore <$> Entry_sql.delete db ~id
@@ -108,16 +107,17 @@ let get_newest ~user ~limit =
   Connection.with_ @@ fun db ->
   (* FIXME: some gymnastics just because users aren't handled so well yet *)
   let%lwt newest =
-    Entry_sql.List.get_newest db ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "") ~limit: (Int64.of_int limit) (fun ~id ~type_ ->
-      match type_ with
-      | `Book -> some @@ Any_id.Book (Entry.Id.of_string_exn id)
-      | `Dance -> some @@ Any_id.Dance (Entry.Id.of_string_exn id)
-      | `Person -> some @@ Any_id.Person (Entry.Id.of_string_exn id)
-      | `Set -> some @@ Any_id.Set (Entry.Id.of_string_exn id)
-      | `Source -> some @@ Any_id.Source (Entry.Id.of_string_exn id)
-      | `Tune -> some @@ Any_id.Tune (Entry.Id.of_string_exn id)
-      | `User -> None (* FIXME: we should handle users too *)
-      | `Version -> some @@ Any_id.Version (Entry.Id.of_string_exn id)
+    Entry_sql.List.get_newest db ~user_id: user ~limit: (Int64.of_int limit) (fun ~id ~type_ ->
+      some @@
+        match type_ with
+        | `Book -> Any_id.book @@ Entry.Id.unsafe_coerce id
+        | `Dance -> Any_id.dance @@ Entry.Id.unsafe_coerce id
+        | `Person -> Any_id.person @@ Entry.Id.unsafe_coerce id
+        | `Set -> Any_id.set @@ Entry.Id.unsafe_coerce id
+        | `Source -> Any_id.source @@ Entry.Id.unsafe_coerce id
+        | `Tune -> Any_id.tune @@ Entry.Id.unsafe_coerce id
+        | `User -> Any_id.user @@ Entry.Id.unsafe_coerce id
+        | `Version -> Any_id.version @@ Entry.Id.unsafe_coerce id
     )
   in
   lwt @@ List.filter_map Fun.id newest

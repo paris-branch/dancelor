@@ -51,7 +51,7 @@ let get_content_for db set_ids =
         ~monolithic_or_default_structure: version_monolithic_or_default_structure
         ~tune_name
         ~tune_kind
-        ~tune_composers: (tune_composers_for version_id)
+        ~tune_composers: (tune_composers_for tune_id)
         ~sources: (version_sources_for version_id)
         ~arrangers: (version_arrangers_for version_id)
         ~k: Fun.id
@@ -71,40 +71,37 @@ let get_content_for db set_ids =
   )
 
 let get_row ~user id : Set_row.t option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   let%lwt tunes = (fun f -> f id) <$> get_tunes_for db (`One_of [id]) in
   let%lwt conceptors = (fun f -> f id) <$> get_conceptors_for db (`One_of [id]) in
   Set_sql.Single.get_row
     db
-    ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
+    ~user_id: user
     ~id
     (set_sql_to_row ~id ~tunes ~conceptors ~k: Fun.id)
 
 let get_rows ~user ids : (Set_id.t, Set_row.t) Utils.tbl Lwt.t =
-  let ids = List.map Entry.Id.to_string ids in
   Connection.with_ @@ fun db ->
   let%lwt tunes_for = get_tunes_for db (`One_of ids) in
   let%lwt conceptors_for = get_conceptors_for db (`One_of ids) in
   Utils.fold_to_tbl
-    (Set_sql.Fold.get_rows ~ids ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: ""))
+    (Set_sql.Fold.get_rows ~ids ~user_id: user)
     db
     (fun k ~id ->
       set_sql_to_row
         ~id
         ~tunes: (tunes_for id)
         ~conceptors: (conceptors_for id)
-        ~k: (k @@ Entry.Id.of_string_exn id)
+        ~k: (k id)
     )
 
 let get_view ~user id : Set_view.t option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   let%lwt conceptors = (fun f -> f id) <$> get_conceptors_for db (`One_of [id]) in
   let%lwt content = (fun f -> f id) <$> get_content_for db (`One_of [id]) in
   Set_sql.Single.get_view
     db
-    ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
+    ~user_id: user
     ~id
     (set_sql_to_view ~id ~conceptors ~content ~k: Fun.id)
 
@@ -115,11 +112,11 @@ let search ~user query : (Set_row.t * float) list Lwt.t =
   let%lwt conceptors_for = get_conceptors_for db `All in
   Set_sql.List.search
     db
-    ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
+    ~user_id: user
     ~terms
-    ~conceptor: (Utils.list_option_map_to_sql Entry.Id.to_string conceptor)
-    ~contains_version: (Utils.list_option_map_to_sql Entry.Id.to_string contains_version)
-    ~contains_tune: (Utils.list_option_map_to_sql Entry.Id.to_string contains_tune)
+    ~conceptor: (Utils.option_to_sql conceptor)
+    ~contains_version: (Utils.option_to_sql contains_version)
+    ~contains_tune: (Utils.option_to_sql contains_tune)
     (fun ~score ~id ->
       set_sql_to_row
         ~id
@@ -160,7 +157,7 @@ let sql_to_set
     | _ -> assert false
   in
   Entry.make
-    ~id: (Entry.Id.of_string_exn id)
+    ~id: id
     ~meta: (Entry.Meta.make ~created_at ~modified_at ())
     ~access: (Entry.Access.Private.make ~owners: (NEList.of_list_exn owners) ~visibility ())
     (
@@ -175,7 +172,6 @@ let sql_to_set
     )
 
 let set_to_sql ~create_or_update db id set =
-  let id = Entry.Id.to_string id in
   ignore
   <$> create_or_update
       db
@@ -191,7 +187,7 @@ let set_to_sql ~create_or_update db id set =
       <$> Set_sql.add_one_conceptor
           db
           ~set_id: id
-          ~conceptor_id: (Entry.Id.to_string conceptor)
+          ~conceptor_id: conceptor
     )
     (Model_builder.Core.Set.conceptors set);%lwt
   ignore <$> Set_sql.delete_all_content db ~set_id: id;%lwt
@@ -202,7 +198,7 @@ let set_to_sql ~create_or_update db id set =
           db
           ~set_id: id
           ~index: (Int64.of_int index)
-          ~version_id: (Entry.Id.to_string version)
+          ~version_id: version
           ~version_parameter_transposition_semitones: (Option.map (Int64.of_int % Transposition.to_semitones) @@ Model_builder.Core.Version_parameters.transposition params)
           ~version_parameter_first_bar: (Option.map Int64.of_int @@ Model_builder.Core.Version_parameters.first_bar params)
           ~version_parameter_clef: (Option.map Music.Clef.to_string @@ Model_builder.Core.Version_parameters.clef params)
@@ -214,11 +210,10 @@ let set_to_sql ~create_or_update db id set =
     (Model_builder.Core.Set.contents set)
 
 let get id : Model_builder.Core.Set.entry option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
-  let%lwt conceptors = Set_sql.List.get_conceptors db ~set_id: id (fun ~conceptor_id -> Entry.Id.of_string_exn conceptor_id) in
-  let%lwt owners = Entry_sql.List.get_owners db ~entry_id: id (fun ~owner_id -> Entry.Id.of_string_exn owner_id) in
-  let%lwt viewers = Entry_sql.List.get_viewers db ~entry_id: id (fun ~viewer_id -> Entry.Id.of_string_exn viewer_id) in
+  let%lwt conceptors = Set_sql.List.get_conceptors db ~set_id: id (fun ~conceptor_id -> conceptor_id) in
+  let%lwt owners = Entry_sql.List.get_owners db ~entry_id: id (fun ~owner_id -> owner_id) in
+  let%lwt viewers = Entry_sql.List.get_viewers db ~entry_id: id (fun ~viewer_id -> viewer_id) in
   let%lwt content =
     Set_sql.List.get_content db ~set_id: id (fun
         ~version_id
@@ -231,7 +226,7 @@ let get id : Model_builder.Core.Set.entry option Lwt.t =
         ~version_parameter_display_composer
       ->
       (
-        Entry.Id.of_string_exn version_id,
+        version_id,
         Model_builder.Core.Version_parameters.make
           ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) version_parameter_transposition_semitones)
           ?first_bar: (Option.map Int64.to_int version_parameter_first_bar)
@@ -260,8 +255,7 @@ let update id set access =
 
 let delete id =
   Connection.with_ @@ fun db ->
-  let set_id = Entry.Id.to_string id in
-  ignore <$> Set_sql.delete_all_conceptors db ~set_id;%lwt
-  ignore <$> Set_sql.delete_all_content db ~set_id;%lwt
-  ignore <$> Set_sql.delete db ~id: set_id;%lwt
+  ignore <$> Set_sql.delete_all_conceptors db ~set_id: id;%lwt
+  ignore <$> Set_sql.delete_all_content db ~set_id: id;%lwt
+  ignore <$> Set_sql.delete db ~id;%lwt
   Entry_new.delete db id

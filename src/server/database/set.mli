@@ -12,9 +12,9 @@ val search : user: User_id.t option -> Set_query.t -> (Set_row.t * float) list L
 
 (** {2 Utilities for other models} *)
 
-val get_tunes_for : Connection.t -> [`All | `One_of of string list] -> (string -> Version_name.t list) Lwt.t
+val get_tunes_for : Connection.t -> Set_id.t Utils.all_or_one_of -> (Set_id.t -> Version_name.t list) Lwt.t
 
-val get_conceptors_for : Connection.t -> [`All | `One_of of string list] -> (string -> Person_name.t list) Lwt.t
+val get_conceptors_for : Connection.t -> Set_id.t Utils.all_or_one_of -> (Set_id.t -> Person_name.t list) Lwt.t
 
 (** {2 Legacy} *)
 

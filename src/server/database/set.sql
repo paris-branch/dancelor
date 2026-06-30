@@ -137,9 +137,9 @@ SELECT * FROM (
         END AS "permission"
     FROM "set"
     JOIN "entry" ON "entry"."id" = "set"."id"
-    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
-    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
-    LEFT JOIN "user" ON "user"."id" = @user_id
+    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
     WHERE "set"."id" = @id
 ) AS "set+"
 WHERE "set+"."permission" IS NOT NULL
@@ -160,9 +160,9 @@ SELECT * FROM (
         END AS "permission"
     FROM "set"
     JOIN "entry" ON "entry"."id" = "set"."id"
-    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
-    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
-    LEFT JOIN "user" ON "user"."id" = @user_id
+    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
     WHERE "set"."id" IN @ids
 ) AS "set+"
 WHERE "set+"."permission" IS NOT NULL;
@@ -183,9 +183,9 @@ SELECT * FROM (
         END AS "permission"
     FROM "set"
     JOIN "entry" ON "entry"."id" = "set"."id"
-    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
-    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
-    LEFT JOIN "user" ON "user"."id" = @user_id
+    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
     WHERE "set"."id" = @id
 ) AS "set+"
 WHERE "set+"."permission" IS NOT NULL
@@ -207,9 +207,9 @@ SELECT * FROM (
         END AS "permission"
     FROM "set"
     JOIN "entry" ON "entry"."id" = "set"."id"
-    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
-    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
-    LEFT JOIN "user" ON "user"."id" = @user_id
+    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
     WHERE
         (@terms = '' OR @terms <% "name")
         AND @conceptor { Some { EXISTS (SELECT 1 FROM "set_conceptors" WHERE "set_id" = "set"."id" AND "conceptor_id" IN @conceptor) } | None { TRUE } }

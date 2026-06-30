@@ -19,19 +19,16 @@ let get_tunes_for db dance_ids =
   Utils.fold_to_get (Dance_sql.Fold.get_tunes_for ~dance_ids) db (fun k ~dance_id ~id -> tune_sql_to_row ~id ~composers: (composers_for id) ~k: (k dance_id))
 
 let get_row id : Dance_row.t option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   let%lwt devisers = (fun f -> f id) <$> get_devisers_for db (`One_of [id]) in
   Dance_sql.Single.get_row db ~id (dance_sql_to_row ~id ~devisers ~k: Fun.id)
 
 let get_rows ids : (Dance_id.t, Dance_row.t) Utils.tbl Lwt.t =
-  let ids = List.map Entry.Id.to_string ids in
   Connection.with_ @@ fun db ->
   let%lwt devisers_for = get_devisers_for db (`One_of ids) in
-  Utils.fold_to_tbl (Dance_sql.Fold.get_rows ~ids) db (fun k ~id -> dance_sql_to_row ~id ~devisers: (devisers_for id) ~k: (k @@ Entry.Id.of_string_exn id))
+  Utils.fold_to_tbl (Dance_sql.Fold.get_rows ~ids) db (fun k ~id -> dance_sql_to_row ~id ~devisers: (devisers_for id) ~k: (k id))
 
 let get_view id : Dance_view.t option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   let%lwt extra_names = (fun f -> f id) <$> get_extra_names_for db (`One_of [id]) in
   let%lwt devisers = (fun f -> f id) <$> get_devisers_for db (`One_of [id]) in
@@ -45,7 +42,7 @@ let search query : (Dance_row.t * float) list Lwt.t =
   Dance_sql.List.search
     db
     ~terms
-    ~deviser: (Utils.list_option_map_to_sql Entry.Id.to_string deviser)
+    ~deviser: (Utils.option_to_sql deviser)
     (fun ~score ~id -> dance_sql_to_row ~id ~devisers: (devisers_for id) ~k: (Pair.snoc score))
 
 (* Legacy *)
@@ -67,7 +64,7 @@ let sql_to_dance
     ~devisers
   =
   Entry.make
-    ~id: (Entry.Id.of_string_exn id)
+    ~id
     ~meta: (Entry.Meta.make ~created_at ~modified_at ())
     ~access: Entry.Access.Public
     (
@@ -84,7 +81,6 @@ let sql_to_dance
 
 let dance_to_sql ~create_or_update db id dance =
   (* FIXME: transaction, maybe [Connection.with_transaction] *)
-  let id = Entry.Id.to_string id in
   ignore
   <$> create_or_update
       db
@@ -109,15 +105,14 @@ let dance_to_sql ~create_or_update db id dance =
           db
           ~dance_id: id
           ~index: (Int64.of_int index)
-          ~deviser_id: (Entry.Id.to_string deviser_id)
+          ~deviser_id
     )
     (Model_builder.Core.Dance.devisers dance)
 
 let get id : Model_builder.Core.Dance.entry option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   let%lwt extra_names = Dance_sql.List.get_extra_names db ~dance_id: id (fun ~extra_name -> NEString.of_string_exn extra_name) in
-  let%lwt devisers = Dance_sql.List.get_devisers db ~dance_id: id (fun ~deviser_id -> Entry.Id.of_string_exn deviser_id) in
+  let%lwt devisers = Dance_sql.List.get_devisers db ~dance_id: id (fun ~deviser_id -> deviser_id) in
   Dance_sql.Single.get db ~id (sql_to_dance ~id ~extra_names ~devisers)
 
 let create dance =
@@ -133,8 +128,7 @@ let update id dance =
 
 let delete id =
   Connection.with_ @@ fun db ->
-  let dance_id = Entry.Id.to_string id in
-  ignore <$> Dance_sql.delete_all_extra_names db ~dance_id;%lwt
-  ignore <$> Dance_sql.delete_all_devisers db ~dance_id;%lwt
-  ignore <$> Dance_sql.delete db ~id: dance_id;%lwt
+  ignore <$> Dance_sql.delete_all_extra_names db ~dance_id: id;%lwt
+  ignore <$> Dance_sql.delete_all_devisers db ~dance_id: id;%lwt
+  ignore <$> Dance_sql.delete db ~id;%lwt
   Entry_new.delete db id

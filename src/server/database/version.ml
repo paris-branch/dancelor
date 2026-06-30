@@ -37,9 +37,9 @@ let get_arrangers_for db version_ids =
   Utils.fold_to_get (Version_sql.Fold.get_arrangers_for ~version_ids) db (fun k ~version_id -> person_sql_to_name ~k: (k version_id))
 
 let get_row id : Version_row.t option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
-  let%lwt tune_composers = (fun f -> f id) <$> get_tune_composers_for db (`One_of [id]) in
+  (* FIXME: `All to then only grab one *)
+  let%lwt tune_composers_for = get_tune_composers_for db `All in
   let%lwt sources = (fun f -> f id) <$> get_sources_for db (`One_of [id]) in
   let%lwt arrangers = (fun f -> f id) <$> get_arrangers_for db (`One_of [id]) in
   Version_sql.Single.get_row
@@ -49,16 +49,16 @@ let get_row id : Version_row.t option Lwt.t =
       version_sql_to_row
         ~id
         ~tune_id
-        ~tune_composers
+        ~tune_composers: (tune_composers_for tune_id)
         ~sources
         ~arrangers
         ~k: Fun.id
     )
 
 let get_rows ids : (Version_id.t, Version_row.t) Utils.tbl Lwt.t =
-  let ids = List.map Entry.Id.to_string ids in
   Connection.with_ @@ fun db ->
-  let%lwt tune_composers_for = get_tune_composers_for db (`One_of ids) in
+  (* FIXME: `All to then only grab a handful *)
+  let%lwt tune_composers_for = get_tune_composers_for db `All in
   let%lwt sources_for = get_sources_for db (`One_of ids) in
   let%lwt arrangers_for = get_arrangers_for db (`One_of ids) in
   Utils.fold_to_tbl
@@ -71,19 +71,30 @@ let get_rows ids : (Version_id.t, Version_row.t) Utils.tbl Lwt.t =
         ~tune_composers: (tune_composers_for tune_id)
         ~sources: (sources_for id)
         ~arrangers: (arrangers_for id)
-        ~k: (k @@ Entry.Id.of_string_exn id)
+        ~k: (k id)
     )
 
 let get_view id : Version_view.t option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
-  let%lwt tune_extra_names = (fun f -> f id) <$> get_tune_extra_names_for db (`One_of [id]) in
-  let%lwt tune_dances = (fun f -> f id) <$> get_tune_dances_for db (`One_of [id]) in
-  let%lwt tune_versions = (fun f -> f id) <$> get_tune_versions_for db (`One_of [id]) in
-  let%lwt tune_composers = (fun f -> f id) <$> get_tune_composers_with_details_for db (`One_of [id]) in
+  (* FIXME: `All to then only grab a handful (x4) *)
+  let%lwt tune_extra_names_for = get_tune_extra_names_for db `All in
+  let%lwt tune_dances_for = get_tune_dances_for db `All in
+  let%lwt tune_versions_for = get_tune_versions_for db `All in
+  let%lwt tune_composers_for = get_tune_composers_with_details_for db `All in
   let%lwt arrangers = (fun f -> f id) <$> get_arrangers_for db (`One_of [id]) in
   let%lwt sources = (fun f -> f id) <$> get_version_sources_for db (`One_of [id]) in
-  Version_sql.Single.get_view db ~id (version_sql_to_view ~arrangers ~sources ~tune_extra_names ~tune_dances ~tune_composers ~tune_versions ~id ~k: Fun.id)
+  Version_sql.Single.get_view db ~id (fun ~tune_id ->
+    version_sql_to_view
+      ~tune_id
+      ~arrangers
+      ~sources
+      ~tune_extra_names: (tune_extra_names_for tune_id)
+      ~tune_dances: (tune_dances_for tune_id)
+      ~tune_composers: (tune_composers_for tune_id)
+      ~tune_versions: (tune_versions_for tune_id)
+      ~id
+      ~k: Fun.id
+  )
 
 let search query : (Version_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Version_query.tune; key; source}} = query in
@@ -95,9 +106,9 @@ let search query : (Version_row.t * float) list Lwt.t =
     db
     ~terms
     ~key: (Option.map (List.map Music.Key.to_string) key)
-    ~source: (Utils.list_option_map_to_sql Entry.Id.to_string source)
+    ~source: (Utils.option_to_sql source)
     ~tune_kind: (Option.map (List.map Sql_types.kind_base_of_common) tune.kind)
-    ~tune_composer: (Utils.list_option_map_to_sql Entry.Id.to_string tune.composer)
+    ~tune_composer: (Utils.option_to_sql tune.composer)
     (fun ~score ~id ~tune_id ->
       version_sql_to_row
         ~id
@@ -146,12 +157,12 @@ let sql_to_version
     | _ -> assert false
   in
   Entry.make
-    ~id: (Entry.Id.of_string_exn id)
+    ~id
     ~meta: (Entry.Meta.make ~created_at ~modified_at ())
     ~access: Entry.Access.Public
     (
       Model_builder.Core.Version.make
-        ~tune: (Entry.Id.of_string_exn tune_id)
+        ~tune: tune_id
         ~key: (Music.Key.of_string key)
         ~remark: (Option.map NEString.of_string_exn remark)
         ~disambiguation: (Option.map NEString.of_string_exn disambiguation)
@@ -169,12 +180,11 @@ let version_to_sql ~create_or_update db id version =
     | Monolithic {lilypond; bars; structure} -> (Some lilypond, Some (Int64.of_int bars), Some (NEString.to_string @@ Model_builder.Core.Version.Structure.to_string structure))
     | Destructured {default_structure; _} -> (None, None, Some (NEString.to_string @@ Model_builder.Core.Version.Structure.to_string default_structure))
   in
-  let id = Entry.Id.to_string id in
   ignore
   <$> create_or_update
       db
       ~id
-      ~tune_id: (Entry.Id.to_string @@ Model_builder.Core.Version.tune version)
+      ~tune_id: (Model_builder.Core.Version.tune version)
       ~key: (Music.Key.to_string @@ Model_builder.Core.Version.key version)
       ~remark: (Option.map NEString.to_string @@ Model_builder.Core.Version.remark version)
       ~disambiguation: (Option.map NEString.to_string @@ Model_builder.Core.Version.disambiguation version)
@@ -188,7 +198,7 @@ let version_to_sql ~create_or_update db id version =
       <$> Version_sql.add_one_arranger
           db
           ~version_id: id
-          ~arranger_id: (Entry.Id.to_string arranger)
+          ~arranger_id: arranger
     )
     (Model_builder.Core.Version.arrangers version);%lwt
   ignore <$> Version_sql.delete_all_sources db ~version_id: id;%lwt
@@ -198,7 +208,7 @@ let version_to_sql ~create_or_update db id version =
       <$> Version_sql.add_one_source
           db
           ~version_id: id
-          ~source_id: (Entry.Id.to_string source)
+          ~source_id: source
           ~structure: (NEString.to_string @@ Model_builder.Core.Version.Structure.to_string structure)
           ~details: (Option.map NEString.to_string details)
     )
@@ -244,13 +254,12 @@ let check_destructured_parts =
   )
 
 let get id : Model_builder.Core.Version.entry option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
-  let%lwt arrangers = Version_sql.List.get_arrangers db ~version_id: id (fun ~arranger_id -> Entry.Id.of_string_exn arranger_id) in
+  let%lwt arrangers = Version_sql.List.get_arrangers db ~version_id: id (fun ~arranger_id -> arranger_id) in
   let%lwt sources =
     Version_sql.List.get_sources db ~version_id: id (fun ~source_id ~structure ~details ->
       {
-        Model_builder.Core.Version.source = Entry.Id.of_string_exn source_id;
+        Model_builder.Core.Version.source = source_id;
         structure = Option.get (Model_builder.Core.Version.Structure.of_string (NEString.of_string_exn structure));
         details = Option.map NEString.of_string_exn details;
       }
@@ -287,7 +296,7 @@ let get_all () =
   Version_sql.Fold.get_all_arrangers
     db
     (fun ~version_id ~arranger_id () ->
-      Hashtbl.add arrangers version_id (Entry.Id.of_string_exn arranger_id)
+      Hashtbl.add arrangers version_id arranger_id
     )
     ();%lwt
   Version_sql.Fold.get_all_sources
@@ -297,7 +306,7 @@ let get_all () =
         sources
         version_id
         {
-          Model_builder.Core.Version.source = Entry.Id.of_string_exn source_id;
+          Model_builder.Core.Version.source = source_id;
           structure = Option.get (Model_builder.Core.Version.Structure.of_string (NEString.of_string_exn structure));
           details = Option.map NEString.of_string_exn details;
         }
@@ -335,7 +344,6 @@ let get_all () =
   )
 
 let get_all_for_tune tune_id =
-  let tune_id = Entry.Id.to_string tune_id in
   Connection.with_ @@ fun db ->
   let arrangers = Hashtbl.create 8 in
   let sources = Hashtbl.create 8 in
@@ -344,7 +352,7 @@ let get_all_for_tune tune_id =
   Version_sql.Fold.get_all_arrangers
     db
     (fun ~version_id ~arranger_id () ->
-      Hashtbl.add arrangers version_id (Entry.Id.of_string_exn arranger_id)
+      Hashtbl.add arrangers version_id arranger_id
     )
     ();%lwt
   Version_sql.Fold.get_all_sources
@@ -354,7 +362,7 @@ let get_all_for_tune tune_id =
         sources
         version_id
         {
-          Model_builder.Core.Version.source = Entry.Id.of_string_exn source_id;
+          Model_builder.Core.Version.source = source_id;
           structure = Option.get (Model_builder.Core.Version.Structure.of_string (NEString.of_string_exn structure));
           details = Option.map NEString.of_string_exn details;
         }
@@ -405,10 +413,9 @@ let update id version =
 
 let delete id =
   Connection.with_ @@ fun db ->
-  let version_id = Entry.Id.to_string id in
-  ignore <$> Version_sql.delete_all_arrangers db ~version_id;%lwt
-  ignore <$> Version_sql.delete_all_sources db ~version_id;%lwt
-  ignore <$> Version_sql.delete_all_destructured_parts db ~version_id;%lwt
-  ignore <$> Version_sql.delete_all_destructured_transitions db ~version_id;%lwt
-  ignore <$> Version_sql.delete db ~id: version_id;%lwt
+  ignore <$> Version_sql.delete_all_arrangers db ~version_id: id;%lwt
+  ignore <$> Version_sql.delete_all_sources db ~version_id: id;%lwt
+  ignore <$> Version_sql.delete_all_destructured_parts db ~version_id: id;%lwt
+  ignore <$> Version_sql.delete_all_destructured_transitions db ~version_id: id;%lwt
+  ignore <$> Version_sql.delete db ~id;%lwt
   Entry_new.delete db id

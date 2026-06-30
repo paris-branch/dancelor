@@ -13,9 +13,9 @@ val search : Version_query.t -> (Version_row.t * float) list Lwt.t
 
 (** {2 Utilities for other models} *)
 
-val get_tune_composers_for : Connection.t -> [`All | `One_of of string list] -> (string -> Person_name.t list) Lwt.t
-val get_sources_for : Connection.t -> [`All | `One_of of string list] -> (string -> Source_short_name.t list) Lwt.t
-val get_arrangers_for : Connection.t -> [`All | `One_of of string list] -> (string -> Person_name.t list) Lwt.t
+val get_tune_composers_for : Connection.t -> Tune_id.t Utils.all_or_one_of -> (Tune_id.t -> Person_name.t list) Lwt.t
+val get_sources_for : Connection.t -> Version_id.t Utils.all_or_one_of -> (Version_id.t -> Source_short_name.t list) Lwt.t
+val get_arrangers_for : Connection.t -> Version_id.t Utils.all_or_one_of -> (Version_id.t -> Person_name.t list) Lwt.t
 
 (** {2 Legacy} *)
 

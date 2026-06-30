@@ -4,7 +4,7 @@ open Model_new
 
 let person_sql_to_view ~id ~name ~scddb_id ~composed_tunes_are_public ~published_tunes_are_public ~(k : Person_view.t -> 'w) : 'w =
   k {
-    id = Entry.Id.of_string_exn id;
+    id;
     name;
     scddb_id = Option.map Int64.to_int scddb_id;
     composed_tunes_are_public;
@@ -13,7 +13,7 @@ let person_sql_to_view ~id ~name ~scddb_id ~composed_tunes_are_public ~published
 
 let source_sql_to_view ~id ~name ~short_name ~editors ~scddb_id ~description ~date ~(k : Source_view.t -> 'w) : 'w =
   k {
-    id = Entry.Id.of_string_exn id;
+    id;
     name;
     short_name;
     editors;
@@ -24,7 +24,7 @@ let source_sql_to_view ~id ~name ~short_name ~editors ~scddb_id ~description ~da
 
 let dance_sql_to_view ~id ~name ~extra_names ~kind ~devisers ~scddb_id ~disambiguation ~date ~two_chords ~tunes ~(k : Dance_view.t -> 'w) : 'w =
   k {
-    id = Entry.Id.of_string_exn id;
+    id;
     name;
     extra_names;
     kind = Kind_dance.of_string kind;
@@ -49,7 +49,7 @@ let tune_sql_to_version_row_without_tune ~id ~sources ~disambiguation ~arrangers
     | _ -> assert false
   in
   k {
-    id = Entry.Id.of_string_exn id;
+    id;
     sources;
     disambiguation;
     arrangers;
@@ -58,7 +58,7 @@ let tune_sql_to_version_row_without_tune ~id ~sources ~disambiguation ~arrangers
 
 let tune_sql_to_view ~id ~name ~extra_names ~kind ~composers ~dances ~remark ~scddb_id ~date ~versions ~(k : Tune_view.t -> 'w) : 'w =
   k {
-    id = Entry.Id.of_string_exn id;
+    id;
     name;
     extra_names;
     kind = Sql_types.kind_base_to_common kind;
@@ -79,7 +79,7 @@ let version_sql_to_source
     : 'w
   =
   k {
-    id = Entry.Id.of_string_exn id;
+    id;
     name;
     structure = Option.get (Model_builder.Core.Version.Structure.of_string (NEString.of_string_exn structure));
     details;
@@ -123,7 +123,7 @@ let version_sql_to_view
     | _ -> assert false
   in
   k {
-    id = Entry.Id.of_string_exn id;
+    id;
     tune =
     tune_sql_to_view
       ~id: tune_id
@@ -147,7 +147,7 @@ let version_sql_to_view
 
 let set_sql_to_view ~id ~name ~kind ~conceptors ~content ~order ~remark ~permission ~(k : Set_view.t -> 'w) : 'w =
   k {
-    id = Entry.Id.of_string_exn id;
+    id;
     name;
     kind = Kind_dance.of_string kind;
     conceptors;
@@ -159,7 +159,7 @@ let set_sql_to_view ~id ~name ~kind ~conceptors ~content ~order ~remark ~permiss
 
 let book_sql_to_view ~id ~name ~date ~authors ~content ~remark ~sources ~scddb_id ~permission ~(k : Book_view.t -> 'w) : 'w =
   k {
-    id = Entry.Id.of_string_exn id;
+    id;
     name;
     date = Option.map (Option.get % PartialDate.from_string) date;
     authors;
