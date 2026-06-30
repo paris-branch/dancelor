@@ -9,7 +9,7 @@ module Person_sql = Person_sql.Sqlgg(Sqlgg_postgresql)
 
 let get_row_for ids : (Person_id.t -> Person_row.t option) Lwt.t =
   Connection.with_ @@ fun db ->
-  Utils.fold_to_get_single (Person_sql.Fold.get_rows ~ids) db (fun k ~id -> person_sql_to_row ~id ~k: (k id))
+  Utils.fold_to_get_single (Person_sql.Fold.get_rows db ~ids) (fun k ~id -> person_sql_to_row ~id ~k: (k id))
 
 let get_view id : Person_view.t option Lwt.t =
   Connection.with_ @@ fun db ->

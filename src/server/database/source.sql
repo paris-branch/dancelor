@@ -75,13 +75,6 @@ WHERE "id" = @id;
 
 -- NEW MODELS
 
--- @get_row
-SELECT
-    "name",
-    "date"
-FROM "source"
-WHERE "id" = @id;
-
 -- @get_rows
 SELECT
     "id",

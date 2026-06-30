@@ -15,7 +15,7 @@ let sql_to_row ~id ~username ~(k : User_row.t -> 'w) : 'w =
 
 let get_row_for ids : (User_id.t -> User_row.t option) Lwt.t =
   Connection.with_ @@ fun db ->
-  Utils.fold_to_get_single (User_sql.Fold.get_rows ~ids) db (fun k ~id -> sql_to_row ~id ~k: (k id))
+  Utils.fold_to_get_single (User_sql.Fold.get_rows db ~ids) (fun k ~id -> sql_to_row ~id ~k: (k id))
 
 let search query : (User_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = ()} = query in

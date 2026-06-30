@@ -9,19 +9,19 @@ open Sql_to_view
 module Dance_sql = Dance_sql.Sqlgg(Sqlgg_postgresql)
 
 let get_extra_names_for db dance_ids =
-  Utils.fold_to_get_list (Dance_sql.Fold.get_extra_names_for ~dance_ids) db (fun k ~dance_id ~extra_name -> k dance_id extra_name)
+  Utils.fold_to_get_list (Dance_sql.Fold.get_extra_names_for db ~dance_ids) (fun k ~dance_id ~extra_name -> k dance_id extra_name)
 
 let get_devisers_for db dance_ids =
-  Utils.fold_to_get_list (Dance_sql.Fold.get_devisers_for ~dance_ids) db (fun k ~dance_id -> person_sql_to_name ~k: (k dance_id))
+  Utils.fold_to_get_list (Dance_sql.Fold.get_devisers_for db ~dance_ids) (fun k ~dance_id -> person_sql_to_name ~k: (k dance_id))
 
 let get_tunes_for db dance_ids =
-  let%lwt composers_for = Utils.fold_to_get_list (Dance_sql.Fold.get_composers_for_tunes_for ~dance_ids) db (fun k ~tune_id -> person_sql_to_name ~k: (k tune_id)) in
-  Utils.fold_to_get_list (Dance_sql.Fold.get_tunes_for ~dance_ids) db (fun k ~dance_id ~id -> tune_sql_to_row ~id ~composers: (composers_for id) ~k: (k dance_id))
+  let%lwt composers_for = Utils.fold_to_get_list (Dance_sql.Fold.get_composers_for_tunes_for db ~dance_ids) (fun k ~tune_id -> person_sql_to_name ~k: (k tune_id)) in
+  Utils.fold_to_get_list (Dance_sql.Fold.get_tunes_for db ~dance_ids) (fun k ~dance_id ~id -> tune_sql_to_row ~id ~composers: (composers_for id) ~k: (k dance_id))
 
 let get_row_for ids : (Dance_id.t -> Dance_row.t option) Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt devisers_for = get_devisers_for db (`One_of ids) in
-  Utils.fold_to_get_single (Dance_sql.Fold.get_rows ~ids) db (fun k ~id -> dance_sql_to_row ~id ~devisers: (devisers_for id) ~k: (k id))
+  Utils.fold_to_get_single (Dance_sql.Fold.get_rows db ~ids) (fun k ~id -> dance_sql_to_row ~id ~devisers: (devisers_for id) ~k: (k id))
 
 let get_view id : Dance_view.t option Lwt.t =
   Connection.with_ @@ fun db ->

@@ -1,13 +1,13 @@
 open Nes
 
-let fold_to_get_single fold db k =
+let fold_to_get_single fold k =
   let t = Hashtbl.create 8 in
-  fold db (k (fun key value () -> assert (not @@ Hashtbl.mem t key); Hashtbl.add t key value)) ();%lwt
+  fold (k (fun key value () -> assert (not @@ Hashtbl.mem t key); Hashtbl.add t key value)) ();%lwt
   lwt (Hashtbl.find_opt t)
 
-let fold_to_get_list fold db k =
+let fold_to_get_list fold k =
   let t = Hashtbl.create 8 in
-  fold db (k (fun key value () -> Hashtbl.add t key value)) ();%lwt
+  fold (k (fun key value () -> Hashtbl.add t key value)) ();%lwt
   lwt (List.rev % Hashtbl.find_all t)
 
 type 'a sql_option = [`None | `Some of 'a]
