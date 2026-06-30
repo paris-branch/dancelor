@@ -115,10 +115,12 @@ SET
     "omniscience" = @omniscience
 WHERE "id" = @id;
 
--- @get_row
-SELECT "username"
+-- @get_rows
+SELECT
+    "id",
+    "username"
 FROM "user"
-WHERE "id" = @id;
+WHERE "id" IN @ids;
 
 -- @search
 SELECT

@@ -9,21 +9,16 @@ open Sql_to_view
 module Source_sql = Source_sql.Sqlgg(Sqlgg_postgresql)
 
 let get_editors_for db source_ids =
-  Utils.fold_to_tbl (Source_sql.Fold.get_editors_for ~source_ids) db (fun k ~source_id -> person_sql_to_name ~k: (k source_id))
+  Utils.fold_to_get_list (Source_sql.Fold.get_editors_for ~source_ids) db (fun k ~source_id -> person_sql_to_name ~k: (k source_id))
 
-let get_row id : Source_row.t option Lwt.t =
-  Connection.with_ @@ fun db ->
-  let%lwt editors = flip Utils.tbl_get id <$> get_editors_for db (`One_of [id]) in
-  Source_sql.Single.get_row db ~id (source_sql_to_row ~id ~editors ~k: Fun.id)
-
-let get_rows ids : (Source_id.t, Source_row.t) Utils.tbl Lwt.t =
+let get_row_for ids : (Source_id.t -> Source_row.t option) Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt editors_for = get_editors_for db (`One_of ids) in
-  Utils.fold_to_tbl (Source_sql.Fold.get_rows ~ids) db (fun k ~id -> source_sql_to_row ~id ~editors: (Utils.tbl_get editors_for id) ~k: (k id))
+  Utils.fold_to_get_single (Source_sql.Fold.get_rows ~ids) db (fun k ~id -> source_sql_to_row ~id ~editors: (editors_for id) ~k: (k id))
 
 let get_view id : Source_view.t option Lwt.t =
   Connection.with_ @@ fun db ->
-  let%lwt editors = flip Utils.tbl_get id <$> get_editors_for db (`One_of [id]) in
+  let%lwt editors = (fun f -> f id) <$> get_editors_for db (`One_of [id]) in
   Source_sql.Single.get_view db ~id (source_sql_to_view ~editors ~id ~k: Fun.id)
 
 let search query : (Source_row.t * float) list Lwt.t =
@@ -34,7 +29,7 @@ let search query : (Source_row.t * float) list Lwt.t =
     db
     ~terms
     ~editor: (Utils.option_to_sql editor)
-    (fun ~score ~id -> source_sql_to_row ~id ~editors: (Utils.tbl_get editors_for id) ~k: (Pair.snoc score))
+    (fun ~score ~id -> source_sql_to_row ~id ~editors: (editors_for id) ~k: (Pair.snoc score))
 
 (* Legacy *)
 

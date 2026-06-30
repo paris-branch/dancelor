@@ -1,8 +1,21 @@
 open NesUnix
 open Dancelor_common
+open Model_new
 open Search_new
 
 module Log = (val Logs.src_log @@ Logs.Src.create "server.controller.user": Logs.LOG)
+
+include Shared.Make_public(struct
+  type id = User_id.t
+  type row = User_row.t
+  type query = User_query.t
+  include Database.User
+  (* FIXME: An actual view for users *)
+  type view = User_row.t
+  let get_view id = (fun f -> f id) <$> get_row_for [id]
+end)
+
+(* Legacy *)
 
 let get env id =
   match%lwt Database.User.get id with
@@ -10,35 +23,6 @@ let get env id =
   | Some user ->
     Permission.assert_can_get_public env user;%lwt
     lwt user
-
-let get_row _env id =
-  match%lwt Database.User.get_row id with
-  | None -> Permission.reject_can_get ()
-  | Some user -> (* FIXME: Permission.assert_can_get_public env user *) lwt user
-
-(** Returns a hash table containing as many of the ids as possible. *)
-let get_rows_table env ids =
-  (* FIXME: This (and same for the other models) is extremely wasteful. *)
-  let table = Hashtbl.create 8 in
-  Lwt_list.iter_s
-    (fun id ->
-      let%lwt user = Database.User.get_row id in
-      Monadise_lwt.lift_1_1
-        Option.iter
-        (fun user ->
-          if%lwt Permission.can_get_public_new env user then
-            lwt @@ Hashtbl.add table id user
-          else
-            lwt_unit
-        )
-        user
-    )
-    ids;%lwt
-  lwt table
-
-let get_rows env ids =
-  let%lwt table = get_rows_table env ids in
-  lwt @@ List.filter_map (Hashtbl.find_opt table) ids
 
 let status = lwt % Environment.user
 
@@ -149,15 +133,7 @@ let set_omniscience env value =
   Permission.assert_can_administrate env @@ fun user ->
   Database.User.set_omniscience (Entry.id user) value
 
-let search' env query =
-  let%lwt items = Database.User.search query in
-  let%lwt items = Lwt_list.filter_s (Permission.can_get_public_new env % fst) items in
-  lwt {Search_result.total = List.length items; items}
-
-let search env slice query =
-  let%lwt {total; items} = search' env query in
-  let items = List.map fst @@ Slice.list ~strict: false slice items in
-  lwt {Search_result.total; items}
+(* Dispatch *)
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a = fun env endpoint ->
   match endpoint with

@@ -10,10 +10,10 @@ module Entry_sql = Entry_sql.Sqlgg(Sqlgg_postgresql)
 module Set_sql = Set_sql.Sqlgg(Sqlgg_postgresql)
 
 let get_tunes_for db set_ids =
-  Utils.fold_to_get (Set_sql.Fold.get_tunes_for ~set_ids) db (fun k ~set_id ~id -> version_sql_to_name ~id ~k: (k set_id))
+  Utils.fold_to_get_list (Set_sql.Fold.get_tunes_for ~set_ids) db (fun k ~set_id ~id -> version_sql_to_name ~id ~k: (k set_id))
 
 let get_conceptors_for db set_ids =
-  Utils.fold_to_get (Set_sql.Fold.get_conceptors_for ~set_ids) db (fun k ~set_id -> person_sql_to_name ~k: (k set_id))
+  Utils.fold_to_get_list (Set_sql.Fold.get_conceptors_for ~set_ids) db (fun k ~set_id -> person_sql_to_name ~k: (k set_id))
 
 let get_content_for db set_ids =
   (* FIXME: We would rather just get the composers, sources and
@@ -24,7 +24,7 @@ let get_content_for db set_ids =
   let%lwt tune_composers_for = Version.get_tune_composers_for db `All in
   let%lwt version_sources_for = Version.get_sources_for db `All in
   let%lwt version_arrangers_for = Version.get_arrangers_for db `All in
-  Utils.fold_to_get (Set_sql.Fold.get_content_for ~set_ids) db (fun
+  Utils.fold_to_get_list (Set_sql.Fold.get_content_for ~set_ids) db (fun
       k
       ~set_id
       ~version_id
@@ -70,21 +70,11 @@ let get_content_for db set_ids =
     k set_id (version, params)
   )
 
-let get_row ~user_id id : Set_row.t option Lwt.t =
-  Connection.with_ @@ fun db ->
-  let%lwt tunes = (fun f -> f id) <$> get_tunes_for db (`One_of [id]) in
-  let%lwt conceptors = (fun f -> f id) <$> get_conceptors_for db (`One_of [id]) in
-  Set_sql.Single.get_row
-    db
-    ~user_id
-    ~id
-    (set_sql_to_row ~id ~tunes ~conceptors ~k: Fun.id)
-
-let get_rows ~user_id ids : (Set_id.t, Set_row.t) Utils.tbl Lwt.t =
+let get_row_for ~user_id ids : (Set_id.t -> Set_row.t option) Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt tunes_for = get_tunes_for db (`One_of ids) in
   let%lwt conceptors_for = get_conceptors_for db (`One_of ids) in
-  Utils.fold_to_tbl
+  Utils.fold_to_get_single
     (Set_sql.Fold.get_rows ~ids ~user_id)
     db
     (fun k ~id ->

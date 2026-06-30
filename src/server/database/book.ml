@@ -11,19 +11,19 @@ module Dance_sql = Dance_sql.Sqlgg(Sqlgg_postgresql)
 module Book_sql = Book_sql.Sqlgg(Sqlgg_postgresql)
 
 let get_authors_for db book_ids =
-  Utils.fold_to_get (Book_sql.Fold.get_authors_for ~book_ids) db (fun k ~book_id -> person_sql_to_name ~k: (k book_id))
+  Utils.fold_to_get_list (Book_sql.Fold.get_authors_for ~book_ids) db (fun k ~book_id -> person_sql_to_name ~k: (k book_id))
 
 let get_sources_for db book_ids =
-  Utils.fold_to_get (Book_sql.Fold.get_sources_for ~book_ids) db (fun k ~book_id -> source_sql_to_name ~k: (k book_id))
+  Utils.fold_to_get_list (Book_sql.Fold.get_sources_for ~book_ids) db (fun k ~book_id -> source_sql_to_name ~k: (k book_id))
 
 let get_devisers_for db dance_ids =
-  Utils.fold_to_get (Dance_sql.Fold.get_devisers_for ~dance_ids) db (fun k ~dance_id -> person_sql_to_name ~k: (k dance_id))
+  Utils.fold_to_get_list (Dance_sql.Fold.get_devisers_for ~dance_ids) db (fun k ~dance_id -> person_sql_to_name ~k: (k dance_id))
 
 let get_content_versions_for db book_ids =
   let%lwt version_sources_for = Version.get_sources_for db `All in
   let%lwt version_arrangers_for = Version.get_arrangers_for db `All in
   let%lwt tune_composers_for = Version.get_tune_composers_for db `All in
-  Utils.fold_to_get (Book_sql.Fold.get_content_versions_for ~book_ids) db (fun
+  Utils.fold_to_get_list (Book_sql.Fold.get_content_versions_for ~book_ids) db (fun
       k
       ~book_id
       ~content_index
@@ -76,7 +76,7 @@ let get_content_for ~user_id db book_ids =
   let%lwt tunes_for = Set.get_tunes_for db `All in
   let%lwt conceptors_for = Set.get_conceptors_for db `All in
   let%lwt content_versions_for = get_content_versions_for db book_ids in
-  Utils.fold_to_get
+  Utils.fold_to_get_list
     (Book_sql.Fold.get_content_for ~user_id ~book_ids)
     db
     (fun
@@ -161,19 +161,10 @@ let get_content_for ~user_id db book_ids =
       k book_id page
     )
 
-let get_row ~user_id id : Book_row.t option Lwt.t =
-  Connection.with_ @@ fun db ->
-  let%lwt authors = (fun f -> f id) <$> get_authors_for db (`One_of [id]) in
-  Book_sql.Single.get_row
-    db
-    ~user_id
-    ~id
-    (book_sql_to_row ~id ~authors ~k: Fun.id)
-
-let get_rows ~user_id ids : (Book_id.t, Book_row.t) Utils.tbl Lwt.t =
+let get_row_for ~user_id ids : (Book_id.t -> Book_row.t option) Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt authors_for = get_authors_for db (`One_of ids) in
-  Utils.fold_to_tbl
+  Utils.fold_to_get_single
     (Book_sql.Fold.get_rows ~ids ~user_id)
     db
     (fun k ~id -> book_sql_to_row ~id ~authors: (authors_for id) ~k: (k id))

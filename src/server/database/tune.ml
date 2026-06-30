@@ -9,32 +9,27 @@ open Sql_to_view
 module Tune_sql = Tune_sql.Sqlgg(Sqlgg_postgresql)
 
 let get_extra_names_for db tune_ids =
-  Utils.fold_to_get (Tune_sql.Fold.get_extra_names_for ~tune_ids) db (fun k ~tune_id ~extra_name -> k tune_id extra_name)
+  Utils.fold_to_get_list (Tune_sql.Fold.get_extra_names_for ~tune_ids) db (fun k ~tune_id ~extra_name -> k tune_id extra_name)
 
 let get_dances_for db tune_ids =
-  let%lwt devisers_for = Utils.fold_to_get (Tune_sql.Fold.get_devisers_for_dances_of ~tune_ids) db (fun k ~dance_id -> person_sql_to_name ~k: (k dance_id)) in
-  Utils.fold_to_get (Tune_sql.Fold.get_dances_for ~tune_ids) db (fun k ~tune_id ~id -> dance_sql_to_row ~id ~devisers: (devisers_for id) ~k: (k tune_id))
+  let%lwt devisers_for = Utils.fold_to_get_list (Tune_sql.Fold.get_devisers_for_dances_of ~tune_ids) db (fun k ~dance_id -> person_sql_to_name ~k: (k dance_id)) in
+  Utils.fold_to_get_list (Tune_sql.Fold.get_dances_for ~tune_ids) db (fun k ~tune_id ~id -> dance_sql_to_row ~id ~devisers: (devisers_for id) ~k: (k tune_id))
 
 let get_versions_for db tune_ids =
-  let%lwt sources_for = Utils.fold_to_get (Tune_sql.Fold.get_sources_for_versions_of ~tune_ids) db (fun k ~version_id -> source_sql_to_short_name ~k: (k version_id)) in
-  let%lwt arrangers_for = Utils.fold_to_get (Tune_sql.Fold.get_arrangers_for_versions_of ~tune_ids) db (fun k ~version_id -> person_sql_to_name ~k: (k version_id)) in
-  Utils.fold_to_get (Tune_sql.Fold.get_versions_for ~tune_ids) db (fun k ~id ~tune_id -> tune_sql_to_version_row_without_tune ~id ~arrangers: (arrangers_for id) ~sources: (sources_for id) ~k: (k tune_id))
+  let%lwt sources_for = Utils.fold_to_get_list (Tune_sql.Fold.get_sources_for_versions_of ~tune_ids) db (fun k ~version_id -> source_sql_to_short_name ~k: (k version_id)) in
+  let%lwt arrangers_for = Utils.fold_to_get_list (Tune_sql.Fold.get_arrangers_for_versions_of ~tune_ids) db (fun k ~version_id -> person_sql_to_name ~k: (k version_id)) in
+  Utils.fold_to_get_list (Tune_sql.Fold.get_versions_for ~tune_ids) db (fun k ~id ~tune_id -> tune_sql_to_version_row_without_tune ~id ~arrangers: (arrangers_for id) ~sources: (sources_for id) ~k: (k tune_id))
 
 let get_composers_for db tune_ids =
-  Utils.fold_to_get (Tune_sql.Fold.get_composers_for ~tune_ids) db (fun k ~tune_id -> person_sql_to_name ~k: (k tune_id))
+  Utils.fold_to_get_list (Tune_sql.Fold.get_composers_for ~tune_ids) db (fun k ~tune_id -> person_sql_to_name ~k: (k tune_id))
 
 let get_composers_with_details_for db tune_ids =
-  Utils.fold_to_get (Tune_sql.Fold.get_composers_with_details_for ~tune_ids) db (fun k ~tune_id -> person_sql_to_name_with_details ~k: (k tune_id))
+  Utils.fold_to_get_list (Tune_sql.Fold.get_composers_with_details_for ~tune_ids) db (fun k ~tune_id -> person_sql_to_name_with_details ~k: (k tune_id))
 
-let get_row id : Tune_row.t option Lwt.t =
-  Connection.with_ @@ fun db ->
-  let%lwt composers = (fun f -> f id) <$> get_composers_for db (`One_of [id]) in
-  Tune_sql.Single.get_row db ~id (tune_sql_to_row ~id ~composers ~k: Fun.id)
-
-let get_rows ids : (Tune_id.t, Tune_row.t) Utils.tbl Lwt.t =
+let get_row_for ids : (Tune_id.t -> Tune_row.t option) Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt composers_for = get_composers_for db (`One_of ids) in
-  Utils.fold_to_tbl (Tune_sql.Fold.get_rows ~ids) db (fun k ~id -> tune_sql_to_row ~id ~composers: (composers_for id) ~k: (k id))
+  Utils.fold_to_get_single (Tune_sql.Fold.get_rows ~ids) db (fun k ~id -> tune_sql_to_row ~id ~composers: (composers_for id) ~k: (k id))
 
 let get_rows_for_dance dance_id : Tune_row.t list Lwt.t =
   Connection.with_ @@ fun db ->

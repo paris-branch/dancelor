@@ -3,12 +3,8 @@ open Dancelor_common
 open Model_new
 open Search_new
 
-val get_row : Version_id.t -> Version_row.t option Lwt.t
-
-val get_rows : Version_id.t list -> (Version_id.t, Version_row.t) Utils.tbl Lwt.t
-
+val get_row_for : Version_id.t list -> (Version_id.t -> Version_row.t option) Lwt.t
 val get_view : Version_id.t -> Version_view.t option Lwt.t
-
 val search : Version_query.t -> (Version_row.t * float) list Lwt.t
 
 (** {2 Utilities for other models} *)

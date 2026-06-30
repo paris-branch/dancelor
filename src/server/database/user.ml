@@ -13,9 +13,9 @@ module Remember_me_token_hashed = Fresh.Make(HashedSecret)
 let sql_to_row ~id ~username ~(k : User_row.t -> 'w) : 'w =
   k {id; username = Username.of_string_exn username}
 
-let get_row id : User_row.t option Lwt.t =
+let get_row_for ids : (User_id.t -> User_row.t option) Lwt.t =
   Connection.with_ @@ fun db ->
-  User_sql.Single.get_row db ~id (sql_to_row ~id ~k: Fun.id)
+  Utils.fold_to_get_single (User_sql.Fold.get_rows ~ids) db (fun k ~id -> sql_to_row ~id ~k: (k id))
 
 let search query : (User_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = ()} = query in

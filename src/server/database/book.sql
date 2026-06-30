@@ -234,28 +234,6 @@ INSERT INTO "book_content_versions" (
 
 -- NEW MODELS
 
--- @get_row
-SELECT * FROM (
-    SELECT
-        "name",
-        "date",
-        CASE
-            WHEN "entry"."visibility" = 'Everyone' THEN 'Everyone'
-            WHEN "entry_owners"."owner_id" IS NOT NULL THEN 'Owner'
-            WHEN "entry"."visibility" = 'Select_viewers' AND "entry_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
-            WHEN "user"."role" = 'Administrator' AND "user"."omniscience" THEN 'Omniscient_administrator'
-            ELSE NULL
-        END AS "permission"
-    FROM "book"
-    JOIN "entry" ON "entry"."id" = "book"."id"
-    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = (@user_id :: TEXT NULL)
-    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
-    LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
-    WHERE "book"."id" = @id
-) AS "book+"
-WHERE "book+"."permission" IS NOT NULL
-LIMIT 1; -- NOTE: to help sqlgg
-
 -- @get_rows
 SELECT * FROM (
     SELECT
