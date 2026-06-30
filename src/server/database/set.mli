@@ -2,13 +2,13 @@ open Dancelor_common
 open Model_new
 open Search_new
 
-val get_row : user: User_id.t option -> Set_id.t -> Set_row.t option Lwt.t
+val get_row : user_id: User_id.t option -> Set_id.t -> Set_row.t option Lwt.t
 
-val get_rows : user: User_id.t option -> Set_id.t list -> (Set_id.t, Set_row.t) Utils.tbl Lwt.t
+val get_rows : user_id: User_id.t option -> Set_id.t list -> (Set_id.t, Set_row.t) Utils.tbl Lwt.t
 
-val get_view : user: User_id.t option -> Set_id.t -> Set_view.t option Lwt.t
+val get_view : user_id: User_id.t option -> Set_id.t -> Set_view.t option Lwt.t
 
-val search : user: User_id.t option -> Set_query.t -> (Set_row.t * float) list Lwt.t
+val search : user_id: User_id.t option -> Set_query.t -> (Set_row.t * float) list Lwt.t
 
 (** {2 Utilities for other models} *)
 

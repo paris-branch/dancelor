@@ -70,22 +70,22 @@ let get_content_for db set_ids =
     k set_id (version, params)
   )
 
-let get_row ~user id : Set_row.t option Lwt.t =
+let get_row ~user_id id : Set_row.t option Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt tunes = (fun f -> f id) <$> get_tunes_for db (`One_of [id]) in
   let%lwt conceptors = (fun f -> f id) <$> get_conceptors_for db (`One_of [id]) in
   Set_sql.Single.get_row
     db
-    ~user_id: user
+    ~user_id
     ~id
     (set_sql_to_row ~id ~tunes ~conceptors ~k: Fun.id)
 
-let get_rows ~user ids : (Set_id.t, Set_row.t) Utils.tbl Lwt.t =
+let get_rows ~user_id ids : (Set_id.t, Set_row.t) Utils.tbl Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt tunes_for = get_tunes_for db (`One_of ids) in
   let%lwt conceptors_for = get_conceptors_for db (`One_of ids) in
   Utils.fold_to_tbl
-    (Set_sql.Fold.get_rows ~ids ~user_id: user)
+    (Set_sql.Fold.get_rows ~ids ~user_id)
     db
     (fun k ~id ->
       set_sql_to_row
@@ -95,24 +95,24 @@ let get_rows ~user ids : (Set_id.t, Set_row.t) Utils.tbl Lwt.t =
         ~k: (k id)
     )
 
-let get_view ~user id : Set_view.t option Lwt.t =
+let get_view ~user_id id : Set_view.t option Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt conceptors = (fun f -> f id) <$> get_conceptors_for db (`One_of [id]) in
   let%lwt content = (fun f -> f id) <$> get_content_for db (`One_of [id]) in
   Set_sql.Single.get_view
     db
-    ~user_id: user
+    ~user_id
     ~id
     (set_sql_to_view ~id ~conceptors ~content ~k: Fun.id)
 
-let search ~user query : (Set_row.t * float) list Lwt.t =
+let search ~user_id query : (Set_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Set_query.conceptor; contains_version; contains_tune}} = query in
   Connection.with_ @@ fun db ->
   let%lwt tunes_for = get_tunes_for db `All in
   let%lwt conceptors_for = get_conceptors_for db `All in
   Set_sql.List.search
     db
-    ~user_id: user
+    ~user_id
     ~terms
     ~conceptor: (Utils.option_to_sql conceptor)
     ~contains_version: (Utils.option_to_sql contains_version)

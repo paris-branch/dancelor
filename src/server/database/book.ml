@@ -70,14 +70,14 @@ let get_content_versions_for db book_ids =
     k (book_id, content_index) (version, version_params)
   )
 
-let get_content_for ~user db book_ids =
+let get_content_for ~user_id db book_ids =
   (* FIXME: get rid of the following `All *)
   let%lwt devisers_for = get_devisers_for db `All in
   let%lwt tunes_for = Set.get_tunes_for db `All in
   let%lwt conceptors_for = Set.get_conceptors_for db `All in
   let%lwt content_versions_for = get_content_versions_for db book_ids in
   Utils.fold_to_get
-    (Book_sql.Fold.get_content_for ~user_id: user ~book_ids)
+    (Book_sql.Fold.get_content_for ~user_id ~book_ids)
     db
     (fun
         k
@@ -161,41 +161,41 @@ let get_content_for ~user db book_ids =
       k book_id page
     )
 
-let get_row ~user id : Book_row.t option Lwt.t =
+let get_row ~user_id id : Book_row.t option Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt authors = (fun f -> f id) <$> get_authors_for db (`One_of [id]) in
   Book_sql.Single.get_row
     db
-    ~user_id: user
+    ~user_id
     ~id
     (book_sql_to_row ~id ~authors ~k: Fun.id)
 
-let get_rows ~user ids : (Book_id.t, Book_row.t) Utils.tbl Lwt.t =
+let get_rows ~user_id ids : (Book_id.t, Book_row.t) Utils.tbl Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt authors_for = get_authors_for db (`One_of ids) in
   Utils.fold_to_tbl
-    (Book_sql.Fold.get_rows ~ids ~user_id: user)
+    (Book_sql.Fold.get_rows ~ids ~user_id)
     db
     (fun k ~id -> book_sql_to_row ~id ~authors: (authors_for id) ~k: (k id))
 
-let get_view ~user id : Book_view.t option Lwt.t =
+let get_view ~user_id id : Book_view.t option Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt authors = (fun f -> f id) <$> get_authors_for db (`One_of [id]) in
   let%lwt sources = (fun f -> f id) <$> get_sources_for db (`One_of [id]) in
-  let%lwt content = (fun f -> f id) <$> get_content_for ~user db (`One_of [id]) in
+  let%lwt content = (fun f -> f id) <$> get_content_for ~user_id db (`One_of [id]) in
   Book_sql.Single.get_view
     db
-    ~user_id: user
+    ~user_id
     ~id
     (book_sql_to_view ~id ~authors ~sources ~content ~k: Fun.id)
 
-let search ~user query : (Book_row.t * float) list Lwt.t =
+let search ~user_id query : (Book_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Book_query.author; contains_version; contains_tune; contains_set}} = query in
   Connection.with_ @@ fun db ->
   let%lwt authors_for = get_authors_for db `All in
   Book_sql.List.search
     db
-    ~user_id: user
+    ~user_id
     ~terms
     ~author: (Utils.option_to_sql author)
     ~contains_version: (Utils.option_to_sql contains_version)

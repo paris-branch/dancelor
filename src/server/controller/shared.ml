@@ -14,29 +14,29 @@ module type Db_private = sig
   type view
   type query
 
-  val get_row : user: User_id.t option -> id -> row option Lwt.t
-  val get_view : user: User_id.t option -> id -> view option Lwt.t
-  val get_rows : user: User_id.t option -> id list -> (id, row) Database.Utils.tbl Lwt.t
-  val search : user: User_id.t option -> query -> (row * float) list Lwt.t
+  val get_row : user_id: User_id.t option -> id -> row option Lwt.t
+  val get_view : user_id: User_id.t option -> id -> view option Lwt.t
+  val get_rows : user_id: User_id.t option -> id list -> (id, row) Database.Utils.tbl Lwt.t
+  val search : user_id: User_id.t option -> query -> (row * float) list Lwt.t
 end
 
 module Make_private (Db : Db_private) = struct
   let get_row env id =
     let user = Environment.user env in
-    match%lwt Db.get_row ~user: (Option.map Entry.id user) id with
+    match%lwt Db.get_row ~user_id: (Option.map Entry.id user) id with
     | None -> Permission.reject_can_get ()
     | Some person -> lwt person
 
   let get_view env id =
     let user = Environment.user env in
-    match%lwt Db.get_view ~user: (Option.map Entry.id user) id with
+    match%lwt Db.get_view ~user_id: (Option.map Entry.id user) id with
     | None -> Permission.reject_can_get ()
     | Some person -> lwt person
 
   (** Returns a hash table containing as many of the ids as possible. *)
   let get_rows_table env ids =
     let user = Environment.user env in
-    let%lwt Tbl tbl = Db.get_rows ~user: (Option.map Entry.id user) ids in
+    let%lwt Tbl tbl = Db.get_rows ~user_id: (Option.map Entry.id user) ids in
     lwt tbl
 
   let get_rows env ids =
@@ -49,7 +49,7 @@ module Make_private (Db : Db_private) = struct
   let search' env query =
     Cache.use ~cache ~key: (Environment.cache_key env, query) @@ fun () ->
     let user = Environment.user env in
-    let%lwt items = Db.search ~user: (Option.map Entry.id user) query in
+    let%lwt items = Db.search ~user_id: (Option.map Entry.id user) query in
     lwt {Search_result.total = List.length items; items}
 
   let search env slice query =
@@ -72,8 +72,8 @@ end
 
 module Make_public (Db : Db_public) = Make_private(struct
   include Db
-  let get_row ~user: _ = get_row
-  let get_view ~user: _ = get_view
-  let get_rows ~user: _ = get_rows
-  let search ~user: _ = search
+  let get_row ~user_id: _ = get_row
+  let get_view ~user_id: _ = get_view
+  let get_rows ~user_id: _ = get_rows
+  let search ~user_id: _ = search
 end)
