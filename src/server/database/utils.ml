@@ -14,6 +14,18 @@ let fold_to_get fold db k =
   let%lwt tbl = fold_to_tbl fold db k in
   lwt @@ tbl_get tbl
 
-let list_option_map_to_sql f = function
+type 'a sql_option = [`None | `Some of 'a]
+
+let option_to_sql : 'a option -> 'a sql_option = function
   | None -> `None
-  | Some x -> `Some (List.map f x)
+  | Some x -> `Some x
+
+let sql_to_option : 'a sql_option -> 'a option = function
+  | `None -> None
+  | `Some x -> Some x
+
+type 'a all_or_one_of = [`All | `One_of of 'a list]
+
+let map_all_or_one_of f = function
+  | `All -> `All
+  | `One_of xs -> `One_of (List.map f xs)

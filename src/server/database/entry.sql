@@ -91,9 +91,9 @@ SELECT
     "entry"."id",
     "entry"."type"
 FROM "entry"
-LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
-LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
-LEFT JOIN "user" ON "user"."id" = @user_id
+LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = (@user_id :: TEXT NULL)
+LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
+LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
 WHERE
     ("entry"."type" IN ('Person', 'Dance', 'Source', 'Tune', 'Version', 'User'))
     OR ("entry"."visibility" = 'Everyone')

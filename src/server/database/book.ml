@@ -77,11 +77,7 @@ let get_content_for ~user db book_ids =
   let%lwt conceptors_for = Set.get_conceptors_for db `All in
   let%lwt content_versions_for = get_content_versions_for db book_ids in
   Utils.fold_to_get
-    (
-      Book_sql.Fold.get_content_for
-        ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
-        ~book_ids
-    )
+    (Book_sql.Fold.get_content_for ~user_id: user ~book_ids)
     db
     (fun
         k
@@ -166,33 +162,30 @@ let get_content_for ~user db book_ids =
     )
 
 let get_row ~user id : Book_row.t option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   let%lwt authors = (fun f -> f id) <$> get_authors_for db (`One_of [id]) in
   Book_sql.Single.get_row
     db
-    ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
+    ~user_id: user
     ~id
     (book_sql_to_row ~id ~authors ~k: Fun.id)
 
 let get_rows ~user ids : (Book_id.t, Book_row.t) Utils.tbl Lwt.t =
-  let ids = List.map Entry.Id.to_string ids in
   Connection.with_ @@ fun db ->
   let%lwt authors_for = get_authors_for db (`One_of ids) in
   Utils.fold_to_tbl
-    (Book_sql.Fold.get_rows ~ids ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: ""))
+    (Book_sql.Fold.get_rows ~ids ~user_id: user)
     db
-    (fun k ~id -> book_sql_to_row ~id ~authors: (authors_for id) ~k: (k @@ Entry.Id.of_string_exn id))
+    (fun k ~id -> book_sql_to_row ~id ~authors: (authors_for id) ~k: (k id))
 
 let get_view ~user id : Book_view.t option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   let%lwt authors = (fun f -> f id) <$> get_authors_for db (`One_of [id]) in
   let%lwt sources = (fun f -> f id) <$> get_sources_for db (`One_of [id]) in
   let%lwt content = (fun f -> f id) <$> get_content_for ~user db (`One_of [id]) in
   Book_sql.Single.get_view
     db
-    ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
+    ~user_id: user
     ~id
     (book_sql_to_view ~id ~authors ~sources ~content ~k: Fun.id)
 
@@ -202,12 +195,12 @@ let search ~user query : (Book_row.t * float) list Lwt.t =
   let%lwt authors_for = get_authors_for db `All in
   Book_sql.List.search
     db
-    ~user_id: (Option.fold user ~some: Entry.Id.to_string ~none: "")
+    ~user_id: user
     ~terms
-    ~author: (Utils.list_option_map_to_sql Entry.Id.to_string author)
-    ~contains_version: (Utils.list_option_map_to_sql Entry.Id.to_string contains_version)
-    ~contains_tune: (Utils.list_option_map_to_sql Entry.Id.to_string contains_tune)
-    ~contains_set: (Utils.list_option_map_to_sql Entry.Id.to_string contains_set)
+    ~author: (Utils.option_to_sql author)
+    ~contains_version: (Utils.option_to_sql contains_version)
+    ~contains_tune: (Utils.option_to_sql contains_tune)
+    ~contains_set: (Utils.option_to_sql contains_set)
     (fun ~score ~id ->
       book_sql_to_row
         ~id
@@ -248,7 +241,7 @@ let sql_to_book
     | _ -> assert false
   in
   Entry.make
-    ~id: (Entry.Id.of_string_exn id)
+    ~id
     ~meta: (Entry.Meta.make ~created_at ~modified_at ())
     ~access: (Entry.Access.Private.make ~owners: (NEList.of_list_exn owners) ~visibility ())
     (
@@ -265,7 +258,6 @@ let sql_to_book
 
 let book_to_sql ~create_or_update db id book =
   (* FIXME: transaction, maybe [Connection.with_transaction] *)
-  let id = Entry.Id.to_string id in
   ignore
   <$> create_or_update
       db
@@ -281,7 +273,7 @@ let book_to_sql ~create_or_update db id book =
       <$> Book_sql.add_one_author
           db
           ~book_id: id
-          ~author_id: (Entry.Id.to_string author)
+          ~author_id: author
     )
     (Model_builder.Core.Book.authors book);%lwt
   ignore <$> Book_sql.delete_all_sources db ~book_id: id;%lwt
@@ -291,7 +283,7 @@ let book_to_sql ~create_or_update db id book =
       <$> Book_sql.add_one_source
           db
           ~book_id: id
-          ~source_id: (Entry.Id.to_string source)
+          ~source_id: source
     )
     (Model_builder.Core.Book.sources book);%lwt
   ignore <$> Book_sql.delete_all_content db ~book_id: id;%lwt
@@ -315,8 +307,8 @@ let book_to_sql ~create_or_update db id book =
           ~index: (Int64.of_int content_index)
           ~page_type
           ~part_title: (Option.map NEString.to_string part_title)
-          ~dance_id: (Option.map Entry.Id.to_string dance_id)
-          ~set_id: (Option.map Entry.Id.to_string set_id)
+          ~dance_id
+          ~set_id
           ~set_parameter_display_name: (Option.map NEString.to_string @@ Model_builder.Core.Set_parameters.display_name set_params)
           ~set_parameter_display_conceptor: (Option.map NEString.to_string @@ Model_builder.Core.Set_parameters.display_conceptor set_params)
           ~set_parameter_display_kind: (Option.map NEString.to_string @@ Model_builder.Core.Set_parameters.display_kind set_params)
@@ -335,7 +327,7 @@ let book_to_sql ~create_or_update db id book =
               ~book_id: id
               ~content_index: (Int64.of_int content_index)
               ~index: (Int64.of_int index)
-              ~version_id: (Entry.Id.to_string version)
+              ~version_id: version
               ~version_parameter_transposition_semitones: (Option.map (Int64.of_int % Transposition.to_semitones) @@ Model_builder.Core.Version_parameters.transposition params)
               ~version_parameter_first_bar: (Option.map Int64.of_int @@ Model_builder.Core.Version_parameters.first_bar params)
               ~version_parameter_clef: (Option.map Music.Clef.to_string @@ Model_builder.Core.Version_parameters.clef params)
@@ -360,7 +352,7 @@ let sql_to_content_version ~k = fun
   ->
   k
     (
-      Entry.Id.of_string_exn version_id,
+      version_id,
       Model_builder.Core.Version_parameters.make
         ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) version_parameter_transposition_semitones)
         ?first_bar: (Option.map Int64.to_int version_parameter_first_bar)
@@ -409,20 +401,19 @@ let sql_to_content_item ~versions_and_params ~k = fun
   k @@
     match page_type with
     | `Part -> Model_builder.Core.Book.Part (NEString.of_string_exn @@ Option.get part_title)
-    | `Dance_only -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_only)
-    | `Dance_versions -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_versions (NEList.of_list_exn versions_and_params))
-    | `Dance_set -> Dance (Entry.Id.of_string_exn (Option.get dance_id), Dance_set (Entry.Id.of_string_exn (Option.get set_id), set_params))
+    | `Dance_only -> Dance (Option.get dance_id, Dance_only)
+    | `Dance_versions -> Dance (Option.get dance_id, Dance_versions (NEList.of_list_exn versions_and_params))
+    | `Dance_set -> Dance (Option.get dance_id, Dance_set (Option.get set_id, set_params))
     | `Versions -> Versions (NEList.of_list_exn versions_and_params)
-    | `Set -> Set (Entry.Id.of_string_exn (Option.get set_id), set_params)
+    | `Set -> Set (Option.get set_id, set_params)
     | _ -> assert false
 
 let get id : Model_builder.Core.Book.entry option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
-  let%lwt authors = Book_sql.List.get_authors db ~book_id: id (fun ~author_id -> Entry.Id.of_string_exn author_id) in
-  let%lwt sources = Book_sql.List.get_sources db ~book_id: id (fun ~source_id -> Entry.Id.of_string_exn source_id) in
-  let%lwt owners = Entry_sql.List.get_owners db ~entry_id: id (fun ~owner_id -> Entry.Id.of_string_exn owner_id) in
-  let%lwt viewers = Entry_sql.List.get_viewers db ~entry_id: id (fun ~viewer_id -> Entry.Id.of_string_exn viewer_id) in
+  let%lwt authors = Book_sql.List.get_authors db ~book_id: id (fun ~author_id -> author_id) in
+  let%lwt sources = Book_sql.List.get_sources db ~book_id: id (fun ~source_id -> source_id) in
+  let%lwt owners = Entry_sql.List.get_owners db ~entry_id: id (fun ~owner_id -> owner_id) in
+  let%lwt viewers = Entry_sql.List.get_viewers db ~entry_id: id (fun ~viewer_id -> viewer_id) in
   let content_versions = Hashtbl.create 8 in
   Book_sql.Fold.get_content_versions db ~book_id: id (fun ~content_index -> sql_to_content_version ~k: (fun v () -> Hashtbl.add content_versions content_index v)) ();%lwt
   let%lwt content = Book_sql.List.get_content db ~book_id: id (fun ~index -> sql_to_content_item ~versions_and_params: (List.rev @@ Hashtbl.find_all content_versions index) ~k: Fun.id) in
@@ -442,10 +433,9 @@ let update id book access =
 
 let delete id =
   Connection.with_ @@ fun db ->
-  let book_id = Entry.Id.to_string id in
-  ignore <$> Book_sql.delete_all_authors db ~book_id;%lwt
-  ignore <$> Book_sql.delete_all_content_versions db ~book_id;%lwt
-  ignore <$> Book_sql.delete_all_content db ~book_id;%lwt
-  ignore <$> Book_sql.delete_all_sources db ~book_id;%lwt
-  ignore <$> Book_sql.delete db ~id: book_id;%lwt
+  ignore <$> Book_sql.delete_all_authors db ~book_id: id;%lwt
+  ignore <$> Book_sql.delete_all_content_versions db ~book_id: id;%lwt
+  ignore <$> Book_sql.delete_all_content db ~book_id: id;%lwt
+  ignore <$> Book_sql.delete_all_sources db ~book_id: id;%lwt
+  ignore <$> Book_sql.delete db ~id;%lwt
   Entry_new.delete db id

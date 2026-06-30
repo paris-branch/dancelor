@@ -12,19 +12,16 @@ let get_editors_for db source_ids =
   Utils.fold_to_tbl (Source_sql.Fold.get_editors_for ~source_ids) db (fun k ~source_id -> person_sql_to_name ~k: (k source_id))
 
 let get_row id : Source_row.t option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   let%lwt editors = flip Utils.tbl_get id <$> get_editors_for db (`One_of [id]) in
   Source_sql.Single.get_row db ~id (source_sql_to_row ~id ~editors ~k: Fun.id)
 
 let get_rows ids : (Source_id.t, Source_row.t) Utils.tbl Lwt.t =
-  let ids = List.map Entry.Id.to_string ids in
   Connection.with_ @@ fun db ->
   let%lwt editors_for = get_editors_for db (`One_of ids) in
-  Utils.fold_to_tbl (Source_sql.Fold.get_rows ~ids) db (fun k ~id -> source_sql_to_row ~id ~editors: (Utils.tbl_get editors_for id) ~k: (k @@ Entry.Id.of_string_exn id))
+  Utils.fold_to_tbl (Source_sql.Fold.get_rows ~ids) db (fun k ~id -> source_sql_to_row ~id ~editors: (Utils.tbl_get editors_for id) ~k: (k id))
 
 let get_view id : Source_view.t option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   let%lwt editors = flip Utils.tbl_get id <$> get_editors_for db (`One_of [id]) in
   Source_sql.Single.get_view db ~id (source_sql_to_view ~editors ~id ~k: Fun.id)
@@ -36,7 +33,7 @@ let search query : (Source_row.t * float) list Lwt.t =
   Source_sql.List.search
     db
     ~terms
-    ~editor: (Utils.list_option_map_to_sql Entry.Id.to_string editor)
+    ~editor: (Utils.option_to_sql editor)
     (fun ~score ~id -> source_sql_to_row ~id ~editors: (Utils.tbl_get editors_for id) ~k: (Pair.snoc score))
 
 (* Legacy *)
@@ -56,7 +53,7 @@ let sql_to_source
     ~modified_at
   =
   Entry.make
-    ~id: (Entry.Id.of_string_exn id)
+    ~id
     ~meta: (Entry.Meta.make ~created_at ~modified_at ())
     ~access: Entry.Access.Public
     (
@@ -72,7 +69,6 @@ let sql_to_source
 
 let source_to_sql ~create_or_update ~delete_all_editors ~add_one_editor id source =
   (* FIXME: transaction, maybe [Connection.with_transaction] *)
-  let id = Entry.Id.to_string id in
   ignore
   <$> create_or_update
       ~id
@@ -84,14 +80,13 @@ let source_to_sql ~create_or_update ~delete_all_editors ~add_one_editor id sourc
   ignore <$> delete_all_editors ~source_id: id;%lwt
   Lwt_list.iter_s
     (fun person_id ->
-      ignore <$> add_one_editor ~source_id: id ~person_id: (Entry.Id.to_string person_id)
+      ignore <$> add_one_editor ~source_id: id ~person_id
     )
     (Model_builder.Core.Source.editors source)
 
 let get id : Model_builder.Core.Source.entry option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
-  let%lwt editors = Source_sql.List.get_editors db ~source_id: id (fun ~person_id -> Entry.Id.of_string_exn person_id) in
+  let%lwt editors = Source_sql.List.get_editors db ~source_id: id (fun ~person_id -> person_id) in
   Source_sql.Single.get db ~id (sql_to_source ~id ~editors)
 
 let create source =
@@ -117,14 +112,14 @@ let update id source =
 
 let delete id =
   Connection.with_ @@ fun db ->
-  ignore <$> Source_sql.delete_all_editors ~source_id: (Entry.Id.to_string id) db;%lwt
-  ignore <$> Source_sql.delete db ~id: (Entry.Id.to_string id);%lwt
+  ignore <$> Source_sql.delete_all_editors ~source_id: id db;%lwt
+  ignore <$> Source_sql.delete db ~id;%lwt
   Entry_new.delete db id
 
 let with_cover id f =
   let%lwt cover =
     Connection.with_ @@ fun db ->
-    Option.join <$> Source_sql.get_cover db ~id: (Entry.Id.to_string id)
+    Option.join <$> Source_sql.get_cover db ~id
   in
   match cover with
   | None -> f None

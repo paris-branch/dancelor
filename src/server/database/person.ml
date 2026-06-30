@@ -8,22 +8,18 @@ open Sql_to_view
 module Person_sql = Person_sql.Sqlgg(Sqlgg_postgresql)
 
 let get_row id : Person_row.t option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   Person_sql.Single.get_row db ~id (person_sql_to_row ~id ~k: Fun.id)
 
 let get_rows ids : (Person_id.t, Person_row.t) Utils.tbl Lwt.t =
-  let ids = List.map Entry.Id.to_string ids in
   Connection.with_ @@ fun db ->
-  Utils.fold_to_tbl (Person_sql.Fold.get_rows ~ids) db (fun k ~id -> person_sql_to_row ~id ~k: (k @@ Entry.Id.of_string_exn id))
+  Utils.fold_to_tbl (Person_sql.Fold.get_rows ~ids) db (fun k ~id -> person_sql_to_row ~id ~k: (k id))
 
 let get_view id : Person_view.t option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   Person_sql.Single.get_view db ~id (person_sql_to_view ~id ~k: Fun.id)
 
 let get_row_for_user (id : User_id.t) : Person_row.t option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   Person_sql.Single.get_row_for_user db ~id (person_sql_to_row ~k: Fun.id)
 
@@ -50,7 +46,7 @@ let sql_to_person
     ~modified_at
   =
   Entry.make
-    ~id: (Entry.Id.of_string_exn id)
+    ~id
     ~meta: (Entry.Meta.make ~created_at ~modified_at ())
     ~access: Entry.Access.Public
     (
@@ -64,14 +60,13 @@ let sql_to_person
 
 let person_to_sql ~create_or_update id person =
   create_or_update
-    ~id: (Entry.Id.to_string id)
+    ~id
     ~name: (NEString.to_string @@ Model_builder.Core.Person.name person)
     ~scddb_id: (Option.map Int64.of_int @@ Model_builder.Core.Person.scddb_id person)
     ~composed_tunes_are_public: (Model_builder.Core.Person.composed_tunes_are_public person)
     ~published_tunes_are_public: (Model_builder.Core.Person.published_tunes_are_public person)
 
 let get id : Model_builder.Core.Person.entry option Lwt.t =
-  let id = Entry.Id.to_string id in
   Connection.with_ @@ fun db ->
   Person_sql.Single.get db ~id (sql_to_person ~id)
 
@@ -88,5 +83,5 @@ let update id person =
 
 let delete id =
   Connection.with_ @@ fun db ->
-  ignore <$> Person_sql.delete db ~id: (Entry.Id.to_string id);%lwt
+  ignore <$> Person_sql.delete db ~id;%lwt
   Entry_new.delete db id

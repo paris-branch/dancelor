@@ -248,9 +248,9 @@ SELECT * FROM (
         END AS "permission"
     FROM "book"
     JOIN "entry" ON "entry"."id" = "book"."id"
-    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
-    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
-    LEFT JOIN "user" ON "user"."id" = @user_id
+    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
     WHERE "book"."id" = @id
 ) AS "book+"
 WHERE "book+"."permission" IS NOT NULL
@@ -271,9 +271,9 @@ SELECT * FROM (
         END AS "permission"
     FROM "book"
     JOIN "entry" ON "entry"."id" = "book"."id"
-    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
-    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
-    LEFT JOIN "user" ON "user"."id" = @user_id
+    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
     WHERE "book"."id" IN @ids
 ) AS "book+"
 WHERE "book+"."permission" IS NOT NULL;
@@ -294,9 +294,9 @@ SELECT * FROM (
         END AS "permission"
     FROM "book"
     JOIN "entry" ON "entry"."id" = "book"."id"
-    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
-    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
-    LEFT JOIN "user" ON "user"."id" = @user_id
+    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
     WHERE "book"."id" = @id
 ) AS "book+"
 WHERE "book+"."permission" IS NOT NULL
@@ -318,9 +318,9 @@ SELECT * FROM (
         END AS "permission"
     FROM "book"
     JOIN "entry" ON "entry"."id" = "book"."id"
-    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = @user_id
-    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = @user_id
-    LEFT JOIN "user" ON "user"."id" = @user_id
+    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
+    LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
     WHERE
 	(@terms = '' OR @terms <% "name")
         AND @author { Some { EXISTS (SELECT 1 FROM "book_authors" WHERE "book_id" = "book"."id" AND "author_id" IN @author) } | None { TRUE } }
@@ -393,9 +393,9 @@ FROM "book_content"
 LEFT JOIN "dance" ON "book_content"."dance_id" = "dance"."id"
 LEFT JOIN "set" ON "book_content"."set_id" = "set"."id"
 LEFT JOIN "entry" AS "set_entry" ON "set_entry"."id" = "set"."id"
-LEFT JOIN "entry_owners" AS "set_entry_owners" ON "set_entry_owners"."entry_id" = "set_entry"."id" AND "set_entry_owners"."owner_id" = @user_id
-LEFT JOIN "entry_viewers" AS "set_entry_viewers" ON "set_entry_viewers"."entry_id" = "set_entry"."id" AND "set_entry_viewers"."viewer_id" = @user_id
-LEFT JOIN "user" ON "user"."id" = @user_id
+LEFT JOIN "entry_owners" AS "set_entry_owners" ON "set_entry_owners"."entry_id" = "set_entry"."id" AND "set_entry_owners"."owner_id" = (@user_id :: TEXT NULL)
+LEFT JOIN "entry_viewers" AS "set_entry_viewers" ON "set_entry_viewers"."entry_id" = "set_entry"."id" AND "set_entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
+LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
 WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } }
 ORDER BY "index";
 
