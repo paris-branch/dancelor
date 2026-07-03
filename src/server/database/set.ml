@@ -9,6 +9,15 @@ open Sql_to_view
 module Entry_sql = Entry_sql.Sqlgg(Sqlgg_postgresql)
 module Set_sql = Set_sql.Sqlgg(Sqlgg_postgresql)
 
+let get_tune_composers_for db set_ids =
+  Utils.fold_to_get_list (Set_sql.Fold.get_tune_composers_for db ~set_ids) (fun k ~tune_id -> person_sql_to_name ~k: (k tune_id))
+
+let get_version_sources_for db set_ids =
+  Utils.fold_to_get_list (Set_sql.Fold.get_version_sources_for db ~set_ids) (fun k ~version_id -> source_sql_to_short_name ~k: (k version_id))
+
+let get_version_arrangers_for db set_ids =
+  Utils.fold_to_get_list (Set_sql.Fold.get_version_arrangers_for db ~set_ids) (fun k ~version_id -> person_sql_to_name ~k: (k version_id))
+
 let get_tunes_for db set_ids =
   Utils.fold_to_get_list (Set_sql.Fold.get_tunes_for db ~set_ids) (fun k ~set_id ~id -> version_sql_to_name ~id ~k: (k set_id))
 
@@ -16,14 +25,9 @@ let get_conceptors_for db set_ids =
   Utils.fold_to_get_list (Set_sql.Fold.get_conceptors_for db ~set_ids) (fun k ~set_id -> person_sql_to_name ~k: (k set_id))
 
 let get_content_for db set_ids =
-  (* FIXME: We would rather just get the composers, sources and
-     arrangers for versions that actually appear in the sets, with
-     something like [get_tune_composers_for_versions_of], but this
-     means even more duplication and I don't know if I am super
-     keen on doing that just yet. *)
-  let%lwt tune_composers_for = Version.get_tune_composers_for db `All in
-  let%lwt version_sources_for = Version.get_sources_for db `All in
-  let%lwt version_arrangers_for = Version.get_arrangers_for db `All in
+  let%lwt tune_composers_for = get_tune_composers_for db set_ids in
+  let%lwt version_sources_for = get_version_sources_for db set_ids in
+  let%lwt version_arrangers_for = get_version_arrangers_for db set_ids in
   Utils.fold_to_get_list
     (Set_sql.Fold.get_content_for db ~set_ids)
     (fun

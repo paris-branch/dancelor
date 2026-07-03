@@ -7,8 +7,16 @@ open Sql_to_row
 open Sql_to_view
 
 module Entry_sql = Entry_sql.Sqlgg(Sqlgg_postgresql)
-module Dance_sql = Dance_sql.Sqlgg(Sqlgg_postgresql)
 module Book_sql = Book_sql.Sqlgg(Sqlgg_postgresql)
+
+let get_version_sources_for db book_ids =
+  Utils.fold_to_get_list (Book_sql.Fold.get_version_sources_for db ~book_ids) (fun k ~version_id -> source_sql_to_short_name ~k: (k version_id))
+
+let get_version_arrangers_for db book_ids =
+  Utils.fold_to_get_list (Book_sql.Fold.get_version_arrangers_for db ~book_ids) (fun k ~version_id -> person_sql_to_name ~k: (k version_id))
+
+let get_tune_composers_for db book_ids =
+  Utils.fold_to_get_list (Book_sql.Fold.get_tune_composers_for db ~book_ids) (fun k ~tune_id -> person_sql_to_name ~k: (k tune_id))
 
 let get_authors_for db book_ids =
   Utils.fold_to_get_list (Book_sql.Fold.get_authors_for db ~book_ids) (fun k ~book_id -> person_sql_to_name ~k: (k book_id))
@@ -16,13 +24,19 @@ let get_authors_for db book_ids =
 let get_sources_for db book_ids =
   Utils.fold_to_get_list (Book_sql.Fold.get_sources_for db ~book_ids) (fun k ~book_id -> source_sql_to_name ~k: (k book_id))
 
-let get_devisers_for db dance_ids =
-  Utils.fold_to_get_list (Dance_sql.Fold.get_devisers_for db ~dance_ids) (fun k ~dance_id -> person_sql_to_name ~k: (k dance_id))
+let get_dance_devisers_for db book_ids =
+  Utils.fold_to_get_list (Book_sql.Fold.get_dance_devisers_for db ~book_ids) (fun k ~dance_id -> person_sql_to_name ~k: (k dance_id))
+
+let get_set_tunes_for db book_ids =
+  Utils.fold_to_get_list (Book_sql.Fold.get_set_tunes_for db ~book_ids) (fun k ~set_id -> version_sql_to_name ~k: (k set_id))
+
+let get_set_conceptors_for db book_ids =
+  Utils.fold_to_get_list (Book_sql.Fold.get_set_conceptors_for db ~book_ids) (fun k ~set_id -> person_sql_to_name ~k: (k set_id))
 
 let get_content_versions_for db book_ids =
-  let%lwt version_sources_for = Version.get_sources_for db `All in
-  let%lwt version_arrangers_for = Version.get_arrangers_for db `All in
-  let%lwt tune_composers_for = Version.get_tune_composers_for db `All in
+  let%lwt version_sources_for = get_version_sources_for db book_ids in
+  let%lwt version_arrangers_for = get_version_arrangers_for db book_ids in
+  let%lwt tune_composers_for = get_tune_composers_for db book_ids in
   Utils.fold_to_get_list
     (Book_sql.Fold.get_content_versions_for db ~book_ids)
     (fun
@@ -73,10 +87,9 @@ let get_content_versions_for db book_ids =
     )
 
 let get_content_for ~user_id db book_ids =
-  (* FIXME: get rid of the following `All *)
-  let%lwt devisers_for = get_devisers_for db `All in
-  let%lwt tunes_for = Set.get_tunes_for db `All in
-  let%lwt conceptors_for = Set.get_conceptors_for db `All in
+  let%lwt dance_devisers_for = get_dance_devisers_for db book_ids in
+  let%lwt tunes_for = get_set_tunes_for db book_ids in
+  let%lwt set_conceptors_for = get_set_conceptors_for db book_ids in
   let%lwt content_versions_for = get_content_versions_for db book_ids in
   Utils.fold_to_get_list
     (Book_sql.Fold.get_content_for db ~user_id ~book_ids)
@@ -131,7 +144,7 @@ let get_content_for ~user_id db book_ids =
               ~name: (Option.get dance_name)
               ~kind: (Option.get dance_kind)
               ~disambiguation: dance_disambiguation
-              ~devisers: (devisers_for dance_id)
+              ~devisers: (dance_devisers_for dance_id)
               ~k: Fun.id
           )
           dance_id
@@ -144,7 +157,7 @@ let get_content_for ~user_id db book_ids =
               ~name: (Option.get set_name)
               ~kind: (Option.get set_kind)
               ~permission: (Option.get set_permission)
-              ~conceptors: (conceptors_for set_id)
+              ~conceptors: (set_conceptors_for set_id)
               ~tunes: (tunes_for set_id)
               ~k: Fun.id
           )

@@ -235,4 +235,3 @@ SELECT
     "permission"
 FROM "book"
 JOIN "entries" ON "entries"."id" = "book"."id";
-

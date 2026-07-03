@@ -172,6 +172,17 @@ JOIN "persons" ON "tune_composers"."composer_id" = "persons"."id"
 WHERE @tune_ids { One_of { "tune_id" IN @tune_ids } | All { TRUE } }
 ORDER BY "index";
 
+-- @get_composers_for_tunes_of_dances
+WITH "persons" AS &get_person_rows
+SELECT
+    "tune_composers"."tune_id",
+    "persons".*
+FROM "tune_composers"
+JOIN "persons" ON "tune_composers"."composer_id" = "persons"."id"
+JOIN "recommended_tunes" ON "tune_composers"."tune_id" = "recommended_tunes"."tune_id"
+WHERE @dance_ids { One_of { "dance_id" IN @dance_ids } | All { TRUE } }
+ORDER BY "index";
+
 -- @get_composers_with_details_for
 WITH "persons" AS &get_person_rows
 SELECT

@@ -172,3 +172,36 @@ WITH "set_contents" AS &get_set_contents
 SELECT *
 FROM "set_contents"
 WHERE @set_ids { One_of { "set_id" IN @set_ids } | All { TRUE } };
+
+-- @get_tune_composers_for
+WITH "persons" AS &get_person_rows
+SELECT
+    "version"."tune_id",
+    "persons".*
+FROM "set_content"
+JOIN "version" ON "set_content"."version_id" = "version"."id"
+JOIN "tune_composers" ON "version"."tune_id" = "tune_composers"."tune_id"
+JOIN "persons" ON "tune_composers"."composer_id" = "persons"."id"
+WHERE @set_ids { One_of { "set_id" IN @set_ids } | All { TRUE } }
+ORDER BY "tune_composers"."index";
+
+-- @get_version_sources_for
+WITH "sources" AS &get_source_short_names
+SELECT
+    "set_content"."version_id",
+    "sources".*
+FROM "set_content"
+JOIN "version_sources" ON "set_content"."version_id" = "version_sources"."version_id"
+JOIN "sources" ON "version_sources"."source_id" = "sources"."id"
+WHERE @set_ids { One_of { "set_id" IN @set_ids } | All { TRUE } };
+
+-- @get_version_arrangers_for
+WITH "persons" AS &get_person_rows
+SELECT
+    "set_content"."version_id",
+    "persons".*
+FROM "set_content"
+JOIN "version_arrangers" ON "set_content"."version_id" = "version_arrangers"."version_id"
+JOIN "persons" ON "version_arrangers"."arranger_id" = "persons"."id"
+WHERE @set_ids { One_of { "set_id" IN @set_ids } | All { TRUE } };
+

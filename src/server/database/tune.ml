@@ -23,6 +23,9 @@ let get_versions_for db tune_ids =
 let get_composers_for db tune_ids =
   Utils.fold_to_get_list (Tune_sql.Fold.get_composers_for db ~tune_ids) (fun k ~tune_id -> person_sql_to_name ~k: (k tune_id))
 
+let get_composers_for_tunes_of_dances db dance_ids =
+  Utils.fold_to_get_list (Tune_sql.Fold.get_composers_for_tunes_of_dances db ~dance_ids) (fun k ~tune_id -> person_sql_to_name ~k: (k tune_id))
+
 let get_composers_with_details_for db tune_ids =
   Utils.fold_to_get_list (Tune_sql.Fold.get_composers_with_details_for db ~tune_ids) (fun k ~tune_id -> person_sql_to_name_with_details ~k: (k tune_id))
 
@@ -33,7 +36,7 @@ let get_row_for ids : (Tune_id.t -> Tune_row.t option) Lwt.t =
 
 let get_rows_for_dance dance_id : Tune_row.t list Lwt.t =
   Connection.with_ @@ fun db ->
-  let%lwt composers_for = get_composers_for db `All in
+  let%lwt composers_for = get_composers_for_tunes_of_dances db (`One_of [dance_id]) in
   Tune_sql.List.get_rows_for_dance
     db
     ~dance_id
