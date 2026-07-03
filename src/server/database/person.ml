@@ -13,7 +13,7 @@ let get_row_for ids : (Person_id.t -> Person_row.t option) Lwt.t =
 
 let get_view id : Person_view.t option Lwt.t =
   Connection.with_ @@ fun db ->
-  Person_sql.Single.get_view db ~id (person_sql_to_view ~id ~k: Fun.id)
+  Person_sql.Single.get_view db ~id (person_sql_to_view ~k: Fun.id)
 
 let get_row_for_user (id : User_id.t) : Person_row.t option Lwt.t =
   Connection.with_ @@ fun db ->

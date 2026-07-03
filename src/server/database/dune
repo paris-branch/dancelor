@@ -12,7 +12,7 @@
 
 (rule
  (target entry_sql.ml)
- (deps schema.sql entry.sql)
+ (deps schema.sql ctes.sql entry.sql)
  (action
   (with-stdout-to
    %{target}
@@ -30,7 +30,7 @@
 
 (rule
  (target book_sql.ml)
- (deps schema.sql book.sql)
+ (deps schema.sql ctes.sql book.sql)
  (action
   (with-stdout-to
    %{target}
@@ -48,7 +48,7 @@
 
 (rule
  (target dance_sql.ml)
- (deps schema.sql dance.sql)
+ (deps schema.sql ctes.sql dance.sql)
  (action
   (with-stdout-to
    %{target}
@@ -66,7 +66,7 @@
 
 (rule
  (target person_sql.ml)
- (deps schema.sql person.sql)
+ (deps schema.sql ctes.sql person.sql)
  (action
   (with-stdout-to
    %{target}
@@ -84,7 +84,7 @@
 
 (rule
  (target set_sql.ml)
- (deps schema.sql set.sql)
+ (deps schema.sql ctes.sql set.sql)
  (action
   (with-stdout-to
    %{target}
@@ -102,7 +102,7 @@
 
 (rule
  (target source_sql.ml)
- (deps schema.sql source.sql)
+ (deps schema.sql ctes.sql source.sql)
  (action
   (with-stdout-to
    %{target}
@@ -120,7 +120,7 @@
 
 (rule
  (target tune_sql.ml)
- (deps schema.sql tune.sql)
+ (deps schema.sql ctes.sql tune.sql)
  (action
   (with-stdout-to
    %{target}
@@ -138,7 +138,7 @@
 
 (rule
  (target user_sql.ml)
- (deps schema.sql user.sql)
+ (deps schema.sql ctes.sql user.sql)
  (action
   (with-stdout-to
    %{target}
@@ -156,7 +156,7 @@
 
 (rule
  (target version_sql.ml)
- (deps schema.sql version.sql)
+ (deps schema.sql ctes.sql version.sql)
  (action
   (with-stdout-to
    %{target}

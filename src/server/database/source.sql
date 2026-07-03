@@ -76,40 +76,33 @@ WHERE "id" = @id;
 -- NEW MODELS
 
 -- @get_rows
-SELECT
-    "id",
-    "name",
-    "date"
-FROM "source"
+WITH "sources" AS &get_source_rows
+SELECT "sources".*
+FROM "sources"
 WHERE "id" IN @ids;
 
 -- @get_view
-SELECT
-    "name",
-     "short_name",
-     "scddb_id",
-     "description",
-     "date"
-FROM "source"
+WITH "sources" AS &get_source_views
+SELECT "sources".*
+FROM "sources"
 WHERE "id" = @id;
 
 -- @search
+WITH "sources" AS &get_source_rows
 SELECT
     CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
-    "source"."id",
-    "name",
-    "date"
-FROM "source"
+    "sources".*
+FROM "sources"
 WHERE
     (@terms = '' OR @terms <% "name")
-    AND @editor { Some { EXISTS (SELECT 1 FROM "source_editors" WHERE "source_id" = "source"."id" AND "person_id" IN @editor) } | None { TRUE } }
+    AND @editor { Some { EXISTS (SELECT 1 FROM "source_editors" WHERE "source_id" = "sources"."id" AND "person_id" IN @editor) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_editors_for
+WITH "persons" AS &get_person_rows
 SELECT
     "source_id",
-    "person"."id",
-    "person"."name"
+    "persons".*
 FROM "source_editors"
-JOIN "person" ON "source_editors"."person_id" = "person"."id"
+JOIN "persons" ON "source_editors"."person_id" = "persons"."id"
 WHERE @source_ids { One_of { "source_id" IN @source_ids } | All { TRUE } };

@@ -63,8 +63,9 @@ let get_view id : Version_view.t option Lwt.t =
   let%lwt tune_composers_for = get_tune_composers_with_details_for db `All in
   let%lwt arrangers = (fun f -> f id) <$> get_arrangers_for db (`One_of [id]) in
   let%lwt sources = (fun f -> f id) <$> get_version_sources_for db (`One_of [id]) in
-  Version_sql.Single.get_view db ~id (fun ~tune_id ->
+  Version_sql.Single.get_view db ~id (fun ~id ~tune_id ->
     version_sql_to_view
+      ~id
       ~tune_id
       ~arrangers
       ~sources
@@ -72,7 +73,6 @@ let get_view id : Version_view.t option Lwt.t =
       ~tune_dances: (tune_dances_for tune_id)
       ~tune_composers: (tune_composers_for tune_id)
       ~tune_versions: (tune_versions_for tune_id)
-      ~id
       ~k: Fun.id
   )
 

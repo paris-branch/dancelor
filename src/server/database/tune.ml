@@ -45,7 +45,7 @@ let get_view id : Tune_view.t option Lwt.t =
   let%lwt dances = (fun f -> f id) <$> get_dances_for db (`One_of [id]) in
   let%lwt versions = (fun f -> f id) <$> get_versions_for db (`One_of [id]) in
   let%lwt composers = (fun f -> f id) <$> get_composers_with_details_for db (`One_of [id]) in
-  Tune_sql.Single.get_view db ~id (tune_sql_to_view ~extra_names ~dances ~composers ~versions ~id ~k: Fun.id)
+  Tune_sql.Single.get_view db ~id (tune_sql_to_view ~extra_names ~dances ~composers ~versions ~k: Fun.id)
 
 let search query : (Tune_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Tune_query.kind; composer}} = query in

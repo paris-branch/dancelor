@@ -116,17 +116,16 @@ SET
 WHERE "id" = @id;
 
 -- @get_rows
-SELECT
-    "id",
-    "username"
-FROM "user"
+WITH "users" AS &get_user_rows
+SELECT *
+FROM "users"
 WHERE "id" IN @ids;
 
 -- @search
+WITH "users" AS &get_user_rows
 SELECT
     CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "username") END AS "score",
-    "id",
-    "username"
-FROM "user"
+    "users".*
+FROM "users"
 WHERE (@terms = '' OR @terms <% "username")
 ORDER BY "score" DESC, "username" ASC;

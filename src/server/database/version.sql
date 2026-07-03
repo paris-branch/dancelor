@@ -214,109 +214,60 @@ INSERT INTO "version_destructured_transitions" (
 
 -- NEW MODELS
 
--- @get_row
-SELECT
-    -- ids
-    "version"."id",
-    "tune"."id" AS "tune_id",
-    -- version
-    "version"."disambiguation",
-    "version"."monolithic_bars",
-    "version"."monolithic_or_default_structure",
-    -- tune
-    "name" AS "tune_name",
-    "kind" AS "tune_kind"
-FROM "version"
-JOIN "tune" ON "version"."tune_id" = "tune"."id"
-WHERE "version"."id" = @id
-LIMIT 1; -- NOTE: to help sqlgg
-
 -- @get_rows
-SELECT
-    -- ids
-    "version"."id",
-    "tune"."id" AS "tune_id",
-    -- version
-    "version"."disambiguation",
-    "version"."monolithic_bars",
-    "version"."monolithic_or_default_structure",
-    -- tune
-    "name" AS "tune_name",
-    "kind" AS "tune_kind"
-FROM "version"
-JOIN "tune" ON "version"."tune_id" = "tune"."id"
-WHERE "version"."id" IN @ids;
+WITH "versions" AS &get_version_and_tune_rows
+SELECT *
+FROM "versions"
+WHERE "id" IN @ids;
 
 -- @get_view
-SELECT
-    -- ids
-    "tune"."id" AS "tune_id",
-    -- version
-    "version"."disambiguation",
-    "version"."key",
-    "version"."remark",
-    "version"."monolithic_bars",
-    "version"."monolithic_or_default_structure",
-    -- tune
-    "tune"."name" AS "tune_name",
-    "tune"."kind" AS "tune_kind",
-    "tune"."remark" AS "tune_remark",
-    "tune"."scddb_id" AS "tune_scddb_id",
-    "tune"."date" AS "tune_date"
-FROM "version"
-JOIN "tune" ON "version"."tune_id" = "tune"."id"
-WHERE "version"."id" = @id
+WITH "versions" AS &get_version_views
+SELECT "versions".*
+FROM "versions"
+JOIN "tune" ON "versions"."tune_id" = "tune"."id"
+WHERE "versions"."id" = @id
 LIMIT 1; -- NOTE: to help sqlgg
 
 -- @search
+WITH "version_rows" AS &get_version_and_tune_rows
 SELECT
-    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
-    -- ids
-    "version"."id",
-    "tune"."id" AS "tune_id",
-    -- version
-    "version"."disambiguation",
-    "version"."monolithic_bars",
-    "version"."monolithic_or_default_structure",
-    -- tune
-    "tune"."name" AS "tune_name",
-    "tune"."kind" AS "tune_kind"
-FROM "version"
-JOIN "tune" ON "version"."tune_id" = "tune"."id"
+    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "tune_name") END AS "score",
+    "version_rows".*
+FROM "version_rows"
+JOIN "version" ON "version_rows"."id" = "version"."id"
 WHERE
-    (@terms = '' OR @terms <% "name")
+    (@terms = '' OR @terms <% "tune_name")
     AND { "key" IN @key }?
     AND @source { Some { EXISTS (SELECT 1 FROM "version_sources" WHERE "version_id" = "version"."id" AND "source_id" IN @source) } | None { TRUE } }
-    AND { "tune"."kind" IN @tune_kind }?
-    AND @tune_composer { Some { EXISTS (SELECT 1 FROM "tune_composers" WHERE "tune_id" = "tune"."id" AND "composer_id" IN @tune_composer) } | None { TRUE } }
-ORDER BY "score" DESC, "name" ASC;
+    AND { "tune_kind" IN @tune_kind }?
+    AND @tune_composer { Some { EXISTS (SELECT 1 FROM "tune_composers" WHERE "tune_id" = "version"."tune_id" AND "composer_id" IN @tune_composer) } | None { TRUE } }
+ORDER BY "score" DESC, "tune_name" ASC;
 
 -- @get_arrangers_for
+WITH "persons" AS &get_person_rows
 SELECT
     "version_id",
-    "person"."id",
-    "person"."name"
+    "persons".*
 FROM "version_arrangers"
-JOIN "person" ON "version_arrangers"."arranger_id" = "person"."id"
+JOIN "persons" ON "version_arrangers"."arranger_id" = "persons"."id"
 WHERE @version_ids { One_of { "version_id" IN @version_ids } | All { TRUE } };
 
 -- @get_sources_for
+WITH "sources" AS &get_source_short_names
 SELECT
     "version_id",
-    "source"."id",
-    "source"."name",
-    "source"."short_name"
+    "sources".*
 FROM "version_sources"
-JOIN "source" ON "version_sources"."source_id" = "source"."id"
+JOIN "sources" ON "version_sources"."source_id" = "sources"."id"
 WHERE @version_ids { One_of { "version_id" IN @version_ids } | All { TRUE } };
 
 -- @get_version_sources_for
+WITH "sources" AS &get_source_names
 SELECT
     "version_id",
-    "source"."id",
-    "source"."name",
-    "version_sources"."structure",
-    "version_sources"."details"
+    "sources".*,
+    "structure",
+    "details"
 FROM "version_sources"
-JOIN "source" ON "version_sources"."source_id" = "source"."id"
+JOIN "sources" ON "version_sources"."source_id" = "sources"."id"
 WHERE @version_ids { One_of { "version_id" IN @version_ids } | All { TRUE } };

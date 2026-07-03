@@ -178,7 +178,7 @@ let get_view ~user_id id : Book_view.t option Lwt.t =
     db
     ~user_id
     ~id
-    (book_sql_to_view ~id ~authors ~sources ~content ~k: Fun.id)
+    (book_sql_to_view ~authors ~sources ~content ~k: Fun.id)
 
 let search ~user_id query : (Book_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Book_query.author; contains_version; contains_tune; contains_set}} = query in

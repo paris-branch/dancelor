@@ -94,7 +94,7 @@ let get_view ~user_id id : Set_view.t option Lwt.t =
     db
     ~user_id
     ~id
-    (set_sql_to_view ~id ~conceptors ~content ~k: Fun.id)
+    (set_sql_to_view ~conceptors ~content ~k: Fun.id)
 
 let search ~user_id query : (Set_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Set_query.conceptor; contains_version; contains_tune}} = query in

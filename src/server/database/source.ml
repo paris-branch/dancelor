@@ -19,7 +19,7 @@ let get_row_for ids : (Source_id.t -> Source_row.t option) Lwt.t =
 let get_view id : Source_view.t option Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt editors = (fun f -> f id) <$> get_editors_for db (`One_of [id]) in
-  Source_sql.Single.get_view db ~id (source_sql_to_view ~editors ~id ~k: Fun.id)
+  Source_sql.Single.get_view db ~id (source_sql_to_view ~editors ~k: Fun.id)
 
 let search query : (Source_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Source_query.editor}} = query in
