@@ -62,7 +62,7 @@ let make_and_render ?context ~this_page any_lwt =
       in
       let parent_a content = a ~a: [R.a_href parent_href] content in
       let context_links = [
-        div ~a: [a_class ["col"; "ps-0"]] [
+        div ~a: [a_class ["col"; "ps-0"; "text-truncate"]] [
           with_span_placeholder
             (
               uncurry List.cons
