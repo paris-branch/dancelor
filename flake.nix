@@ -22,6 +22,14 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    sqlgg = {
+      ## NOTE: using the fork until these PRs are merged:
+      ## - https://github.com/ygrek/sqlgg/pull/291 - support for pgtrgm functions and operators
+      ## - https://github.com/ygrek/sqlgg/pull/292 - fix pg params number in reusable queries
+      url = "github:niols/sqlgg";
+      flake = false;
+    };
   };
 
   outputs =
