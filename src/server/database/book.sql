@@ -234,128 +234,58 @@ INSERT INTO "book_content_versions" (
 
 -- NEW MODELS
 
--- @get_row
-SELECT * FROM (
-    SELECT
-        "name",
-        "date",
-        CASE
-            WHEN "entry"."visibility" = 'Everyone' THEN 'Everyone'
-            WHEN "entry_owners"."owner_id" IS NOT NULL THEN 'Owner'
-            WHEN "entry"."visibility" = 'Select_viewers' AND "entry_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
-            WHEN "user"."role" = 'Administrator' AND "user"."omniscience" THEN 'Omniscient_administrator'
-            ELSE NULL
-        END AS "permission"
-    FROM "book"
-    JOIN "entry" ON "entry"."id" = "book"."id"
-    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = (@user_id :: TEXT NULL)
-    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
-    LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
-    WHERE "book"."id" = @id
-) AS "book+"
-WHERE "book+"."permission" IS NOT NULL
-LIMIT 1; -- NOTE: to help sqlgg
-
 -- @get_rows
-SELECT * FROM (
-    SELECT
-        "book"."id",
-        "name",
-        "date",
-        CASE
-            WHEN "entry"."visibility" = 'Everyone' THEN 'Everyone'
-            WHEN "entry_owners"."owner_id" IS NOT NULL THEN 'Owner'
-            WHEN "entry"."visibility" = 'Select_viewers' AND "entry_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
-            WHEN "user"."role" = 'Administrator' AND "user"."omniscience" THEN 'Omniscient_administrator'
-            ELSE NULL
-        END AS "permission"
-    FROM "book"
-    JOIN "entry" ON "entry"."id" = "book"."id"
-    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = (@user_id :: TEXT NULL)
-    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
-    LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
-    WHERE "book"."id" IN @ids
-) AS "book+"
-WHERE "book+"."permission" IS NOT NULL;
+WITH "books" AS &get_book_rows
+SELECT *
+FROM "books"
+WHERE "books"."id" IN @ids;
 
 -- @get_view
-SELECT * FROM (
-    SELECT
-        "name",
-        "date",
-	"remark",
-	"scddb_id",
-        CASE
-            WHEN "entry"."visibility" = 'Everyone' THEN 'Everyone'
-            WHEN "entry_owners"."owner_id" IS NOT NULL THEN 'Owner'
-            WHEN "entry"."visibility" = 'Select_viewers' AND "entry_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
-            WHEN "user"."role" = 'Administrator' AND "user"."omniscience" THEN 'Omniscient_administrator'
-            ELSE NULL
-        END AS "permission"
-    FROM "book"
-    JOIN "entry" ON "entry"."id" = "book"."id"
-    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = (@user_id :: TEXT NULL)
-    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
-    LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
-    WHERE "book"."id" = @id
-) AS "book+"
-WHERE "book+"."permission" IS NOT NULL
-LIMIT 1; -- NOTE: to help sqlgg
+WITH "books" AS &get_book_views
+SELECT *
+FROM "books"
+WHERE "books"."id" = @id;
 
 -- @search
-SELECT * FROM (
-    SELECT
-        CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
-        "book"."id",
-        "name",
-        "date",
-        CASE
-            WHEN "entry"."visibility" = 'Everyone' THEN 'Everyone'
-            WHEN "entry_owners"."owner_id" IS NOT NULL THEN 'Owner'
-            WHEN "entry"."visibility" = 'Select_viewers' AND "entry_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
-            WHEN "user"."role" = 'Administrator' AND "user"."omniscience" THEN 'Omniscient_administrator'
-            ELSE NULL
-        END AS "permission"
-    FROM "book"
-    JOIN "entry" ON "entry"."id" = "book"."id"
-    LEFT JOIN "entry_owners" ON "entry_owners"."entry_id" = "entry"."id" AND "entry_owners"."owner_id" = (@user_id :: TEXT NULL)
-    LEFT JOIN "entry_viewers" ON "entry_viewers"."entry_id" = "entry"."id" AND "entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
-    LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
-    WHERE
-	(@terms = '' OR @terms <% "name")
-        AND @author { Some { EXISTS (SELECT 1 FROM "book_authors" WHERE "book_id" = "book"."id" AND "author_id" IN @author) } | None { TRUE } }
-	AND @contains_version { Some {
-	        EXISTS (SELECT 1 FROM "book_content" JOIN "set_content" ON "book_content"."set_id" = "set_content"."set_id" WHERE "book_content"."book_id" = "book"."id" AND "set_content"."version_id" IN @contains_version )
-	        OR EXISTS (SELECT 1 FROM "book_content_versions" WHERE "book_id" = "book"."id" AND "version_id" IN @contains_version)
-	    } | None { TRUE } }
-	AND @contains_tune { Some {
-	        EXISTS (SELECT 1 FROM "book_content" JOIN "set_content" ON "book_content"."set_id" = "set_content"."set_id" JOIN "version" ON "set_content"."version_id" = "version"."id" WHERE "book_content"."book_id" = "book"."id" AND "version"."tune_id" IN @contains_tune )
-	        OR EXISTS (SELECT 1 FROM "book_content_versions" JOIN "version" ON "book_content_versions"."version_id" = "version"."id" WHERE "book_content_versions"."book_id" = "book"."id" AND "version"."tune_id" IN @contains_tune)
-	    } | None { TRUE } }
-	AND @contains_set { Some { EXISTS (SELECT 1 FROM "book_content" WHERE "book_id" = "book"."id" AND "set_id" IN @contains_set ) } | None { TRUE } }
-) AS "book+"
-WHERE "book+"."permission" IS NOT NULL
+WITH "books" AS &get_book_rows
+SELECT
+    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
+    "books".*
+FROM "books"
+WHERE
+    (@terms = '' OR @terms <% "name")
+    AND @author { Some { EXISTS (SELECT 1 FROM "book_authors" WHERE "book_id" = "books"."id" AND "author_id" IN @author) } | None { TRUE } }
+    AND @contains_version { Some {
+	    EXISTS (SELECT 1 FROM "book_content" JOIN "set_content" ON "book_content"."set_id" = "set_content"."set_id" WHERE "book_content"."book_id" = "books"."id" AND "set_content"."version_id" IN @contains_version )
+	    OR EXISTS (SELECT 1 FROM "book_content_versions" WHERE "book_id" = "books"."id" AND "version_id" IN @contains_version)
+	} | None { TRUE } }
+    AND @contains_tune { Some {
+	    EXISTS (SELECT 1 FROM "book_content" JOIN "set_content" ON "book_content"."set_id" = "set_content"."set_id" JOIN "version" ON "set_content"."version_id" = "version"."id" WHERE "book_content"."book_id" = "books"."id" AND "version"."tune_id" IN @contains_tune )
+	    OR EXISTS (SELECT 1 FROM "book_content_versions" JOIN "version" ON "book_content_versions"."version_id" = "version"."id" WHERE "book_content_versions"."book_id" = "books"."id" AND "version"."tune_id" IN @contains_tune)
+	} | None { TRUE } }
+    AND @contains_set { Some { EXISTS (SELECT 1 FROM "book_content" WHERE "book_id" = "books"."id" AND "set_id" IN @contains_set ) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_authors_for
+WITH "persons" AS &get_person_rows
 SELECT
     "book_id",
-    "person"."id",
-    "person"."name"
+    "persons".*
 FROM "book_authors"
-JOIN "person" ON "book_authors"."author_id" = "person"."id"
+JOIN "persons" ON "book_authors"."author_id" = "persons"."id"
 WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } };
 
 -- @get_sources_for
+WITH "sources" AS &get_source_names
 SELECT
     "book_id",
-    "source"."id",
-    "source"."name"
+    "sources".*
 FROM "book_sources"
-JOIN "source" ON "book_sources"."source_id" = "source"."id"
+JOIN "sources" ON "book_sources"."source_id" = "sources"."id"
 WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } };
 
 -- @get_content_for
+WITH "set_permissions" AS &get_entry_permissions
 SELECT
     "book_id",
     "page_type",
@@ -371,13 +301,7 @@ SELECT
     "set_id",
     "set"."name" AS "set_name",
     "set"."kind" AS "set_kind",
-    CASE
-	WHEN "set_entry"."visibility" = 'Everyone' THEN 'Everyone'
-	WHEN "set_entry_owners"."owner_id" IS NOT NULL THEN 'Owner'
-	WHEN "set_entry"."visibility" = 'Select_viewers' AND "set_entry_viewers"."viewer_id" IS NOT NULL THEN 'Viewer'
-	WHEN "user"."role" = 'Administrator' AND "user"."omniscience" THEN 'Omniscient_administrator'
-	ELSE NULL
-    END AS "set_permission",
+    "set_permissions"."permission" AS "set_permission",
     -- set parameters
     "set_parameter_display_name",
     "set_parameter_display_conceptor",
@@ -392,10 +316,7 @@ SELECT
 FROM "book_content"
 LEFT JOIN "dance" ON "book_content"."dance_id" = "dance"."id"
 LEFT JOIN "set" ON "book_content"."set_id" = "set"."id"
-LEFT JOIN "entry" AS "set_entry" ON "set_entry"."id" = "set"."id"
-LEFT JOIN "entry_owners" AS "set_entry_owners" ON "set_entry_owners"."entry_id" = "set_entry"."id" AND "set_entry_owners"."owner_id" = (@user_id :: TEXT NULL)
-LEFT JOIN "entry_viewers" AS "set_entry_viewers" ON "set_entry_viewers"."entry_id" = "set_entry"."id" AND "set_entry_viewers"."viewer_id" = (@user_id :: TEXT NULL)
-LEFT JOIN "user" ON "user"."id" = (@user_id :: TEXT NULL)
+LEFT JOIN "set_permissions" ON "set"."id" = "set_permissions"."id"
 WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } }
 ORDER BY "index";
 
@@ -424,3 +345,67 @@ JOIN "version" ON "book_content_versions"."version_id" = "version"."id"
 JOIN "tune" ON "version"."tune_id" = "tune"."id"
 WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } }
 ORDER BY "index";
+
+-- @get_tune_composers_for
+WITH "persons" AS &get_person_rows
+SELECT
+    "version"."tune_id",
+    "persons".*
+FROM "book_content_versions"
+JOIN "version" ON "book_content_versions"."version_id" = "version"."id"
+JOIN "tune_composers" ON "version"."tune_id" = "tune_composers"."tune_id"
+JOIN "persons" ON "tune_composers"."composer_id" = "persons"."id"
+WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } }
+ORDER BY "tune_composers"."index";
+
+-- @get_version_sources_for
+WITH "sources" AS &get_source_short_names
+SELECT
+    "book_content_versions"."version_id",
+    "sources".*
+FROM "book_content_versions"
+JOIN "version_sources" ON "book_content_versions"."version_id" = "version_sources"."version_id"
+JOIN "sources" ON "version_sources"."source_id" = "sources"."id"
+WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } };
+
+-- @get_version_arrangers_for
+WITH "persons" AS &get_person_rows
+SELECT
+    "book_content_versions"."version_id",
+    "persons".*
+FROM "book_content_versions"
+JOIN "version_arrangers" ON "book_content_versions"."version_id" = "version_arrangers"."version_id"
+JOIN "persons" ON "version_arrangers"."arranger_id" = "persons"."id"
+WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } };
+
+-- @get_set_conceptors_for
+WITH "persons" AS &get_person_rows
+SELECT
+    "set_conceptors"."set_id",
+    "persons".*
+FROM "set_conceptors"
+JOIN "persons" ON "set_conceptors"."conceptor_id" = "persons"."id"
+JOIN "book_content" ON "set_conceptors"."set_id" = "book_content"."set_id"
+WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } };
+
+-- @get_set_tunes_for
+WITH "versions" AS &get_version_names
+SELECT
+    "set_content"."set_id",
+    "versions".*
+FROM "set_content"
+JOIN "book_content" ON "set_content"."set_id" = "book_content"."set_id"
+JOIN "versions" ON "set_content"."version_id" = "versions"."id"
+WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } }
+ORDER BY "set_content"."index";
+
+-- @get_dance_devisers_for
+WITH "persons" AS &get_person_rows
+SELECT
+    "dance_devisers"."dance_id",
+    "persons".*
+FROM "dance_devisers"
+JOIN "persons" ON "dance_devisers"."deviser_id" = "persons"."id"
+JOIN "book_content" ON "dance_devisers"."dance_id" = "book_content"."dance_id"
+WHERE @book_ids { One_of { "book_id" IN @book_ids } | All { TRUE } }
+ORDER BY "dance_devisers"."index";

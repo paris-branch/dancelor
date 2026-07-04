@@ -30,7 +30,7 @@ module Warnings = struct
       )
       book.content
 
-  let sets_from_content ~user (book : Book_view.t) : Set_view.t list Lwt.t =
+  let sets_from_content ~user_id (book : Book_view.t) : Set_view.t list Lwt.t =
     let set_rows : Set_row.t list =
       List.filter_map
         (function
@@ -47,10 +47,10 @@ module Warnings = struct
     in
     (* FIXME: Ugly as hell, and very inefficient, especially since
        this is only to grab the versions. SQL would do that much better. *)
-    Lwt_list.filter_map_s (fun s -> Database.Set.get_view ~user s.Set_row.id) set_rows
+    Lwt_list.filter_map_s (fun s -> Database.Set.get_view ~user_id s.Set_row.id) set_rows
 
-  let duplicate_set ~user book =
-    let%lwt sets = sets_from_content ~user book in
+  let duplicate_set ~user_id book =
+    let%lwt sets = sets_from_content ~user_id book in
     match List.sort (fun s1 s2 -> Entry.Id.compare' s1.Set_view.id s2.id) sets with
     | [] -> lwt_nil
     | first_set :: other_sets ->
@@ -70,12 +70,12 @@ module Warnings = struct
       in
       lwt warnings
 
-  let unique_sets_from_content ~user book =
-    let%lwt sets = sets_from_content ~user book in
+  let unique_sets_from_content ~user_id book =
+    let%lwt sets = sets_from_content ~user_id book in
     lwt @@ List.sort_uniq (fun s1 s2 -> Entry.Id.compare' s1.Set_view.id s2.Set_view.id) sets
 
-  let duplicate_tune ~user book =
-    let%lwt sets = unique_sets_from_content ~user book in
+  let duplicate_tune ~user_id book =
+    let%lwt sets = unique_sets_from_content ~user_id book in
     let standalone_tunes = tunes_from_content book in
     (* [tunes_to_sets] is a hashtable from tunes to sets they belong to.
        Standalone tunes are associated with None *)
@@ -124,7 +124,7 @@ module Warnings = struct
       )
       book.content
 
-  let all ~user book =
+  let all ~user_id book =
     Lwt_list.fold_left_s
       (fun warnings new_warnings_lwt ->
         let%lwt new_warnings = new_warnings_lwt in
@@ -133,17 +133,17 @@ module Warnings = struct
       []
       [
         (lwt @@ empty book);
-        duplicate_set ~user book;
-        duplicate_tune ~user book;
+        duplicate_set ~user_id book;
+        duplicate_tune ~user_id book;
         (lwt @@ set_dance_kind_mismatch book);
       ]
 end
 
 let get_view env book =
   (* FIXME: hackish; should be handled directly in the DB *)
-  let user = Option.map Entry.id @@ Environment.user env in
+  let user_id = Option.map Entry.id @@ Environment.user env in
   let%lwt book = get_view env book in
-  let%lwt warnings = Warnings.all ~user book in
+  let%lwt warnings = Warnings.all ~user_id book in
   lwt {book with warnings}
 
 (* Legacy *)

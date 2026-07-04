@@ -9,31 +9,26 @@ open Sql_to_view
 module Dance_sql = Dance_sql.Sqlgg(Sqlgg_postgresql)
 
 let get_extra_names_for db dance_ids =
-  Utils.fold_to_get (Dance_sql.Fold.get_extra_names_for ~dance_ids) db (fun k ~dance_id ~extra_name -> k dance_id extra_name)
+  Utils.fold_to_get_list (Dance_sql.Fold.get_extra_names_for db ~dance_ids) (fun k ~dance_id ~extra_name -> k dance_id extra_name)
 
 let get_devisers_for db dance_ids =
-  Utils.fold_to_get (Dance_sql.Fold.get_devisers_for ~dance_ids) db (fun k ~dance_id -> person_sql_to_name ~k: (k dance_id))
+  Utils.fold_to_get_list (Dance_sql.Fold.get_devisers_for db ~dance_ids) (fun k ~dance_id -> person_sql_to_name ~k: (k dance_id))
 
 let get_tunes_for db dance_ids =
-  let%lwt composers_for = Utils.fold_to_get (Dance_sql.Fold.get_composers_for_tunes_for ~dance_ids) db (fun k ~tune_id -> person_sql_to_name ~k: (k tune_id)) in
-  Utils.fold_to_get (Dance_sql.Fold.get_tunes_for ~dance_ids) db (fun k ~dance_id ~id -> tune_sql_to_row ~id ~composers: (composers_for id) ~k: (k dance_id))
+  let%lwt composers_for = Utils.fold_to_get_list (Dance_sql.Fold.get_composers_for_tunes_for db ~dance_ids) (fun k ~tune_id -> person_sql_to_name ~k: (k tune_id)) in
+  Utils.fold_to_get_list (Dance_sql.Fold.get_tunes_for db ~dance_ids) (fun k ~dance_id ~id -> tune_sql_to_row ~id ~composers: (composers_for id) ~k: (k dance_id))
 
-let get_row id : Dance_row.t option Lwt.t =
-  Connection.with_ @@ fun db ->
-  let%lwt devisers = (fun f -> f id) <$> get_devisers_for db (`One_of [id]) in
-  Dance_sql.Single.get_row db ~id (dance_sql_to_row ~id ~devisers ~k: Fun.id)
-
-let get_rows ids : (Dance_id.t, Dance_row.t) Utils.tbl Lwt.t =
+let get_row_for ids : (Dance_id.t -> Dance_row.t option) Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt devisers_for = get_devisers_for db (`One_of ids) in
-  Utils.fold_to_tbl (Dance_sql.Fold.get_rows ~ids) db (fun k ~id -> dance_sql_to_row ~id ~devisers: (devisers_for id) ~k: (k id))
+  Utils.fold_to_get_single (Dance_sql.Fold.get_rows db ~ids: (`One_of ids)) (fun k ~id -> dance_sql_to_row ~id ~devisers: (devisers_for id) ~k: (k id))
 
 let get_view id : Dance_view.t option Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt extra_names = (fun f -> f id) <$> get_extra_names_for db (`One_of [id]) in
   let%lwt devisers = (fun f -> f id) <$> get_devisers_for db (`One_of [id]) in
   let%lwt tunes = (fun f -> f id) <$> get_tunes_for db (`One_of [id]) in
-  Dance_sql.Single.get_view db ~id (dance_sql_to_view ~extra_names ~devisers ~tunes ~id ~k: Fun.id)
+  Dance_sql.Single.get_view db ~id (dance_sql_to_view ~extra_names ~devisers ~tunes ~k: Fun.id)
 
 let search query : (Dance_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Dance_query.deviser}} = query in

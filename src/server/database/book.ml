@@ -7,78 +7,92 @@ open Sql_to_row
 open Sql_to_view
 
 module Entry_sql = Entry_sql.Sqlgg(Sqlgg_postgresql)
-module Dance_sql = Dance_sql.Sqlgg(Sqlgg_postgresql)
 module Book_sql = Book_sql.Sqlgg(Sqlgg_postgresql)
 
+let get_version_sources_for db book_ids =
+  Utils.fold_to_get_list (Book_sql.Fold.get_version_sources_for db ~book_ids) (fun k ~version_id -> source_sql_to_short_name ~k: (k version_id))
+
+let get_version_arrangers_for db book_ids =
+  Utils.fold_to_get_list (Book_sql.Fold.get_version_arrangers_for db ~book_ids) (fun k ~version_id -> person_sql_to_name ~k: (k version_id))
+
+let get_tune_composers_for db book_ids =
+  Utils.fold_to_get_list (Book_sql.Fold.get_tune_composers_for db ~book_ids) (fun k ~tune_id -> person_sql_to_name ~k: (k tune_id))
+
 let get_authors_for db book_ids =
-  Utils.fold_to_get (Book_sql.Fold.get_authors_for ~book_ids) db (fun k ~book_id -> person_sql_to_name ~k: (k book_id))
+  Utils.fold_to_get_list (Book_sql.Fold.get_authors_for db ~book_ids) (fun k ~book_id -> person_sql_to_name ~k: (k book_id))
 
 let get_sources_for db book_ids =
-  Utils.fold_to_get (Book_sql.Fold.get_sources_for ~book_ids) db (fun k ~book_id -> source_sql_to_name ~k: (k book_id))
+  Utils.fold_to_get_list (Book_sql.Fold.get_sources_for db ~book_ids) (fun k ~book_id -> source_sql_to_name ~k: (k book_id))
 
-let get_devisers_for db dance_ids =
-  Utils.fold_to_get (Dance_sql.Fold.get_devisers_for ~dance_ids) db (fun k ~dance_id -> person_sql_to_name ~k: (k dance_id))
+let get_dance_devisers_for db book_ids =
+  Utils.fold_to_get_list (Book_sql.Fold.get_dance_devisers_for db ~book_ids) (fun k ~dance_id -> person_sql_to_name ~k: (k dance_id))
+
+let get_set_tunes_for db book_ids =
+  Utils.fold_to_get_list (Book_sql.Fold.get_set_tunes_for db ~book_ids) (fun k ~set_id -> version_sql_to_name ~k: (k set_id))
+
+let get_set_conceptors_for db book_ids =
+  Utils.fold_to_get_list (Book_sql.Fold.get_set_conceptors_for db ~book_ids) (fun k ~set_id -> person_sql_to_name ~k: (k set_id))
 
 let get_content_versions_for db book_ids =
-  let%lwt version_sources_for = Version.get_sources_for db `All in
-  let%lwt version_arrangers_for = Version.get_arrangers_for db `All in
-  let%lwt tune_composers_for = Version.get_tune_composers_for db `All in
-  Utils.fold_to_get (Book_sql.Fold.get_content_versions_for ~book_ids) db (fun
-      k
-      ~book_id
-      ~content_index
-      ~version_id
-      ~tune_id
-      ~version_disambiguation
-      ~version_monolithic_bars
-      ~version_monolithic_or_default_structure
-      ~tune_name
-      ~tune_kind
-      ~version_parameter_transposition_semitones
-      ~version_parameter_first_bar
-      ~version_parameter_clef
-      ~version_parameter_structure
-      ~version_parameter_trivia
-      ~version_parameter_display_name
-      ~version_parameter_display_composer
-    ->
-    let version =
-      version_sql_to_row
-        ~id: version_id
-        ~disambiguation: version_disambiguation
-        ~monolithic_bars: version_monolithic_bars
-        ~monolithic_or_default_structure: version_monolithic_or_default_structure
+  let%lwt version_sources_for = get_version_sources_for db book_ids in
+  let%lwt version_arrangers_for = get_version_arrangers_for db book_ids in
+  let%lwt tune_composers_for = get_tune_composers_for db book_ids in
+  Utils.fold_to_get_list
+    (Book_sql.Fold.get_content_versions_for db ~book_ids)
+    (fun
+        k
+        ~book_id
+        ~content_index
+        ~version_id
         ~tune_id
+        ~version_disambiguation
+        ~version_monolithic_bars
+        ~version_monolithic_or_default_structure
         ~tune_name
         ~tune_kind
-        ~sources: (version_sources_for version_id)
-        ~arrangers: (version_arrangers_for version_id)
-        ~tune_composers: (tune_composers_for tune_id)
-        ~k: Fun.id
-    in
-    let version_params =
-      Model_builder.Core.Version_parameters.make
-        ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) version_parameter_transposition_semitones)
-        ?first_bar: (Option.map Int64.to_int version_parameter_first_bar)
-        ?clef: (Option.map Music.Clef.of_string version_parameter_clef)
-        ?structure: (Option.map (Option.get % Model_builder.Core.Version.Structure.of_string % NEString.of_string_exn) version_parameter_structure)
-        ?trivia: version_parameter_trivia
-        ?display_name: (Option.map NEString.of_string_exn version_parameter_display_name)
-        ?display_composer: (Option.map NEString.of_string_exn version_parameter_display_composer)
-        ()
-    in
-    k (book_id, content_index) (version, version_params)
-  )
+        ~version_parameter_transposition_semitones
+        ~version_parameter_first_bar
+        ~version_parameter_clef
+        ~version_parameter_structure
+        ~version_parameter_trivia
+        ~version_parameter_display_name
+        ~version_parameter_display_composer
+      ->
+      let version =
+        version_sql_to_row
+          ~id: version_id
+          ~disambiguation: version_disambiguation
+          ~monolithic_bars: version_monolithic_bars
+          ~monolithic_or_default_structure: version_monolithic_or_default_structure
+          ~tune_id
+          ~tune_name
+          ~tune_kind
+          ~sources: (version_sources_for version_id)
+          ~arrangers: (version_arrangers_for version_id)
+          ~tune_composers: (tune_composers_for tune_id)
+          ~k: Fun.id
+      in
+      let version_params =
+        Model_builder.Core.Version_parameters.make
+          ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) version_parameter_transposition_semitones)
+          ?first_bar: (Option.map Int64.to_int version_parameter_first_bar)
+          ?clef: (Option.map Music.Clef.of_string version_parameter_clef)
+          ?structure: (Option.map (Option.get % Model_builder.Core.Version.Structure.of_string % NEString.of_string_exn) version_parameter_structure)
+          ?trivia: version_parameter_trivia
+          ?display_name: (Option.map NEString.of_string_exn version_parameter_display_name)
+          ?display_composer: (Option.map NEString.of_string_exn version_parameter_display_composer)
+          ()
+      in
+      k (book_id, content_index) (version, version_params)
+    )
 
-let get_content_for ~user db book_ids =
-  (* FIXME: get rid of the following `All *)
-  let%lwt devisers_for = get_devisers_for db `All in
-  let%lwt tunes_for = Set.get_tunes_for db `All in
-  let%lwt conceptors_for = Set.get_conceptors_for db `All in
+let get_content_for ~user_id db book_ids =
+  let%lwt dance_devisers_for = get_dance_devisers_for db book_ids in
+  let%lwt tunes_for = get_set_tunes_for db book_ids in
+  let%lwt set_conceptors_for = get_set_conceptors_for db book_ids in
   let%lwt content_versions_for = get_content_versions_for db book_ids in
-  Utils.fold_to_get
-    (Book_sql.Fold.get_content_for ~user_id: user ~book_ids)
-    db
+  Utils.fold_to_get_list
+    (Book_sql.Fold.get_content_for db ~user_id ~book_ids)
     (fun
         k
         ~book_id
@@ -130,7 +144,7 @@ let get_content_for ~user db book_ids =
               ~name: (Option.get dance_name)
               ~kind: (Option.get dance_kind)
               ~disambiguation: dance_disambiguation
-              ~devisers: (devisers_for dance_id)
+              ~devisers: (dance_devisers_for dance_id)
               ~k: Fun.id
           )
           dance_id
@@ -143,7 +157,7 @@ let get_content_for ~user db book_ids =
               ~name: (Option.get set_name)
               ~kind: (Option.get set_kind)
               ~permission: (Option.get set_permission)
-              ~conceptors: (conceptors_for set_id)
+              ~conceptors: (set_conceptors_for set_id)
               ~tunes: (tunes_for set_id)
               ~k: Fun.id
           )
@@ -161,41 +175,31 @@ let get_content_for ~user db book_ids =
       k book_id page
     )
 
-let get_row ~user id : Book_row.t option Lwt.t =
-  Connection.with_ @@ fun db ->
-  let%lwt authors = (fun f -> f id) <$> get_authors_for db (`One_of [id]) in
-  Book_sql.Single.get_row
-    db
-    ~user_id: user
-    ~id
-    (book_sql_to_row ~id ~authors ~k: Fun.id)
-
-let get_rows ~user ids : (Book_id.t, Book_row.t) Utils.tbl Lwt.t =
+let get_row_for ~user_id ids : (Book_id.t -> Book_row.t option) Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt authors_for = get_authors_for db (`One_of ids) in
-  Utils.fold_to_tbl
-    (Book_sql.Fold.get_rows ~ids ~user_id: user)
-    db
+  Utils.fold_to_get_single
+    (Book_sql.Fold.get_rows db ~ids ~user_id)
     (fun k ~id -> book_sql_to_row ~id ~authors: (authors_for id) ~k: (k id))
 
-let get_view ~user id : Book_view.t option Lwt.t =
+let get_view ~user_id id : Book_view.t option Lwt.t =
   Connection.with_ @@ fun db ->
   let%lwt authors = (fun f -> f id) <$> get_authors_for db (`One_of [id]) in
   let%lwt sources = (fun f -> f id) <$> get_sources_for db (`One_of [id]) in
-  let%lwt content = (fun f -> f id) <$> get_content_for ~user db (`One_of [id]) in
+  let%lwt content = (fun f -> f id) <$> get_content_for ~user_id db (`One_of [id]) in
   Book_sql.Single.get_view
     db
-    ~user_id: user
+    ~user_id
     ~id
-    (book_sql_to_view ~id ~authors ~sources ~content ~k: Fun.id)
+    (book_sql_to_view ~authors ~sources ~content ~k: Fun.id)
 
-let search ~user query : (Book_row.t * float) list Lwt.t =
+let search ~user_id query : (Book_row.t * float) list Lwt.t =
   let {Query.common = {terms}; specific = {Book_query.author; contains_version; contains_tune; contains_set}} = query in
   Connection.with_ @@ fun db ->
   let%lwt authors_for = get_authors_for db `All in
   Book_sql.List.search
     db
-    ~user_id: user
+    ~user_id
     ~terms
     ~author: (Utils.option_to_sql author)
     ~contains_version: (Utils.option_to_sql contains_version)

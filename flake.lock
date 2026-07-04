@@ -207,6 +207,7 @@
         "flake-parts": "flake-parts",
         "git-hooks-nix": "git-hooks-nix",
         "nixpkgs": "nixpkgs",
+        "sqlgg": "sqlgg",
         "topiary": "topiary"
       }
     },
@@ -225,6 +226,22 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "sqlgg": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1783161475,
+        "narHash": "sha256-2fE11H7aKcTsVcZN2Qm2XaRSbjERP7j09NPT/GwzhT4=",
+        "owner": "niols",
+        "repo": "sqlgg",
+        "rev": "4fee597f34d40cf85ee8abbdcce6792a82de95db",
+        "type": "github"
+      },
+      "original": {
+        "owner": "niols",
+        "repo": "sqlgg",
         "type": "github"
       }
     },

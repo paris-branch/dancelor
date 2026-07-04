@@ -33,32 +33,32 @@ let get_rows env ids =
       ([], [], [], [], [], [], [], [])
       ids
   in
-  let%lwt person_rows = Person.get_rows_table env person_ids
-  and dance_rows = Dance.get_rows_table env dance_ids
-  and source_rows = Source.get_rows_table env source_ids
-  and tune_rows = Tune.get_rows_table env tune_ids
-  and version_rows = Version.get_rows_table env version_ids
-  and set_rows = Set.get_rows_table env set_ids
-  and book_rows = Book.get_rows_table env book_ids
-  and user_rows = User.get_rows_table env user_ids
+  let%lwt row_for_person = Person.get_row_for env person_ids
+  and row_for_dance = Dance.get_row_for env dance_ids
+  and row_for_source = Source.get_row_for env source_ids
+  and row_for_tune = Tune.get_row_for env tune_ids
+  and row_for_version = Version.get_row_for env version_ids
+  and row_for_set = Set.get_row_for env set_ids
+  and row_for_book = Book.get_row_for env book_ids
+  and row_for_user = User.get_row_for env user_ids
   in
   lwt @@
     List.filter_map
       (function
-        | Any_id.Person id -> Option.map Any_row.person @@ Hashtbl.find_opt person_rows id
-        | Dance id -> Option.map Any_row.dance @@ Hashtbl.find_opt dance_rows id
-        | Source id -> Option.map Any_row.source @@ Hashtbl.find_opt source_rows id
-        | Tune id -> Option.map Any_row.tune @@ Hashtbl.find_opt tune_rows id
-        | Version id -> Option.map Any_row.version @@ Hashtbl.find_opt version_rows id
-        | Set id -> Option.map Any_row.set @@ Hashtbl.find_opt set_rows id
-        | Book id -> Option.map Any_row.book @@ Hashtbl.find_opt book_rows id
-        | User id -> Option.map Any_row.user @@ Hashtbl.find_opt user_rows id
+        | Any_id.Person id -> Option.map Any_row.person @@ row_for_person id
+        | Dance id -> Option.map Any_row.dance @@ row_for_dance id
+        | Source id -> Option.map Any_row.source @@ row_for_source id
+        | Tune id -> Option.map Any_row.tune @@ row_for_tune id
+        | Version id -> Option.map Any_row.version @@ row_for_version id
+        | Set id -> Option.map Any_row.set @@ row_for_set id
+        | Book id -> Option.map Any_row.book @@ row_for_book id
+        | User id -> Option.map Any_row.user @@ row_for_user id
       )
       ids
 
 let newest env limit =
   let user = Environment.user env in
-  let%lwt ids = Database.Any.get_newest ~user: (Option.map Entry.id user) ~limit in
+  let%lwt ids = Database.Any.get_newest ~user_id: (Option.map Entry.id user) ~limit in
   get_rows env ids
 
 (** Given two streams sorted according to the comparison function, produce one

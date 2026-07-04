@@ -105,54 +105,27 @@ INSERT INTO "dance_devisers" (
 
 -- NEW MODELS
 
--- @get_row
-SELECT
-    "name",
-    "kind",
-    "disambiguation"
-FROM "dance"
-WHERE "id" = @id;
-
 -- @get_rows
-SELECT
-    "id",
-    "name",
-    "kind",
-    "disambiguation"
-FROM "dance"
-WHERE "id" IN @ids;
-
--- @get_rows_for
-SELECT
-    "id",
-    "name",
-    "kind",
-    "disambiguation"
-FROM "dance"
-WHERE @dance_ids { One_of { "id" IN @dance_ids } | All { TRUE } };
+WITH "dances" AS &get_dance_rows
+SELECT *
+FROM "dances"
+WHERE @ids { One_of { "id" IN @ids } | All { TRUE } };
 
 -- @get_view
-SELECT
-    "name",
-    "kind",
-    "scddb_id",
-    "disambiguation",
-    "date",
-    "two_chords"
-FROM "dance"
+WITH "dances" AS &get_dance_views
+SELECT *
+FROM "dances"
 WHERE "id" = @id;
 
 -- @search
+WITH "dances" AS &get_dance_rows
 SELECT
     CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
-    "dance"."id",
-    "name",
-    "kind",
-    "disambiguation"
-FROM "dance"
+    "dances".*
+FROM "dances"
 WHERE
     (@terms = '' OR @terms <% "name")
-    AND @deviser { Some { EXISTS (SELECT 1 FROM "dance_devisers" WHERE "dance_id" = "dance"."id" AND "deviser_id" IN @deviser) } | None { TRUE } }
+    AND @deviser { Some { EXISTS (SELECT 1 FROM "dance_devisers" WHERE "dance_id" = "dances"."id" AND "deviser_id" IN @deviser) } | None { TRUE } }
 ORDER BY "score" DESC, "name" ASC;
 
 -- @get_extra_names_for
@@ -164,12 +137,12 @@ WHERE @dance_ids { One_of { "dance_id" IN @dance_ids } | All { TRUE } }
 ORDER BY "extra_name";
 
 -- @get_devisers_for
+WITH "persons" AS &get_person_rows
 SELECT
     "dance_id",
-    "person"."id",
-    "person"."name"
+    "persons".*
 FROM "dance_devisers"
-JOIN "person" ON "dance_devisers"."deviser_id" = "person"."id"
+JOIN "persons" ON "dance_devisers"."deviser_id" = "persons"."id"
 WHERE @dance_ids { One_of { "dance_id" IN @dance_ids } | All { TRUE } }
 ORDER BY "index";
 

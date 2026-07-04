@@ -14,34 +14,30 @@ module type Db_private = sig
   type view
   type query
 
-  val get_row : user: User_id.t option -> id -> row option Lwt.t
-  val get_view : user: User_id.t option -> id -> view option Lwt.t
-  val get_rows : user: User_id.t option -> id list -> (id, row) Database.Utils.tbl Lwt.t
-  val search : user: User_id.t option -> query -> (row * float) list Lwt.t
+  val get_row_for : user_id: User_id.t option -> id list -> (id -> row option) Lwt.t
+  val get_view : user_id: User_id.t option -> id -> view option Lwt.t
+  val search : user_id: User_id.t option -> query -> (row * float) list Lwt.t
 end
 
 module Make_private (Db : Db_private) = struct
-  let get_row env id =
+  let get_row_for env ids =
     let user = Environment.user env in
-    match%lwt Db.get_row ~user: (Option.map Entry.id user) id with
+    Db.get_row_for ~user_id: (Option.map Entry.id user) ids
+
+  let get_row env id =
+    match%lwt (fun f -> f id) <$> get_row_for env [id] with
     | None -> Permission.reject_can_get ()
-    | Some person -> lwt person
+    | Some row -> lwt row
+
+  let get_rows env ids =
+    let%lwt row_for = get_row_for env ids in
+    lwt @@ List.filter_map row_for ids
 
   let get_view env id =
     let user = Environment.user env in
-    match%lwt Db.get_view ~user: (Option.map Entry.id user) id with
+    match%lwt Db.get_view ~user_id: (Option.map Entry.id user) id with
     | None -> Permission.reject_can_get ()
     | Some person -> lwt person
-
-  (** Returns a hash table containing as many of the ids as possible. *)
-  let get_rows_table env ids =
-    let user = Environment.user env in
-    let%lwt Tbl tbl = Db.get_rows ~user: (Option.map Entry.id user) ids in
-    lwt tbl
-
-  let get_rows env ids =
-    let%lwt table = get_rows_table env ids in
-    lwt @@ List.filter_map (Hashtbl.find_opt table) ids
 
   let cache : (Environment.cache_key * Db.query, (Db.row * float) Search_result.t Lwt.t) Cache.t =
     Cache.create ~lifetime: 60 ()
@@ -49,7 +45,7 @@ module Make_private (Db : Db_private) = struct
   let search' env query =
     Cache.use ~cache ~key: (Environment.cache_key env, query) @@ fun () ->
     let user = Environment.user env in
-    let%lwt items = Db.search ~user: (Option.map Entry.id user) query in
+    let%lwt items = Db.search ~user_id: (Option.map Entry.id user) query in
     lwt {Search_result.total = List.length items; items}
 
   let search env slice query =
@@ -64,16 +60,14 @@ module type Db_public = sig
   type view
   type query
 
-  val get_row : id -> row option Lwt.t
+  val get_row_for : id list -> (id -> row option) Lwt.t
   val get_view : id -> view option Lwt.t
-  val get_rows : id list -> (id, row) Database.Utils.tbl Lwt.t
   val search : query -> (row * float) list Lwt.t
 end
 
 module Make_public (Db : Db_public) = Make_private(struct
   include Db
-  let get_row ~user: _ = get_row
-  let get_view ~user: _ = get_view
-  let get_rows ~user: _ = get_rows
-  let search ~user: _ = search
+  let get_row_for ~user_id: _ = get_row_for
+  let get_view ~user_id: _ = get_view
+  let search ~user_id: _ = search
 end)
