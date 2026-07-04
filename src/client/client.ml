@@ -20,9 +20,10 @@ let dispatch uri =
     | Index -> Index.create ()
     | Any -> redirect_any
     | Explore -> Explorer.view
-    | Book View -> Book_viewer.view
     | Book Add -> Book_editor.add ()
     | Book Edit -> Book_editor.edit
+    | Book View -> Book_viewer.view
+    | Book Preview -> Book_viewer.preview
     | Dance View -> Dance_viewer.view
     | Dance Add -> Dance_editor.add ()
     | Dance Edit -> Dance_editor.edit

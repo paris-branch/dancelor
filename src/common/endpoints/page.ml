@@ -9,7 +9,6 @@ open Model_new
 type context =
   | In_search of string
   | In_set of Core.Set.t Entry.Id.t * int
-  | In_book of Book_id.t * int
 [@@deriving yojson, variants]
 
 (* For serialisation *)
@@ -57,6 +56,7 @@ type (_, _, _) book =
   | Add : ('w, 'w, Void.t) book
   | Edit : (Book_id.t -> 'w, 'w, Void.t) book
   | View : (Context.t option -> Book_id.t -> 'w, 'w, Void.t) book
+  | Preview : (Book_id.t -> int -> 'w, 'w, Void.t) book
 [@@deriving madge_wrapped_endpoints]
 
 type (_, _, _) user =
@@ -132,6 +132,7 @@ let route_book : type a w r. (a, w, r) book -> (a, w, r) route =
     | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Book_id) @@ void ()
     | Add -> literal "add" @@ void ()
     | Edit -> literal "edit" @@ variable (module Book_id) @@ void ()
+    | Preview -> literal "preview" @@ variable (module Book_id) @@ literal "page" @@ variable (module SInt_1) @@ void ()
 
 let route_user : type a w r. (a, w, r) user -> (a, w, r) route =
   let open Route in
@@ -198,9 +199,10 @@ let consume : type a w r. return: w -> (a, w, r) t -> a = fun ~return: value end
   match endpoint with
   | Index -> value
   | Any -> const value
-  | Book View -> const2 value
   | Book Add -> value
   | Book Edit -> const value
+  | Book View -> const2 value
+  | Book Preview -> const2 value
   | Dance View -> const2 value
   | Dance Add -> value
   | Dance Edit -> const value

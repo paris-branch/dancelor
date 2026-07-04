@@ -14,6 +14,21 @@ end
 
 (* Base *)
 
+module SInt : STRINGABLE with type t = int = struct
+  type t = int
+  let to_string = string_of_int
+  let of_string = int_of_string_opt
+end
+
+(** Same as {!SInt} for integers that should be shifted by 1. This
+    allows URLs to contain eg. 1-10 but the rest of the code
+    manipulates 0-9. *)
+module SInt_1 : STRINGABLE with type t = int = struct
+  type t = int
+  let to_string = string_of_int % (fun n -> n + 1)
+  let of_string = Option.map (fun n -> n - 1) % int_of_string_opt
+end
+
 module SString : STRINGABLE with type t = string = struct
   type t = string
   let to_string = Fun.id

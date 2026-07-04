@@ -24,17 +24,17 @@ type action =
   | Delete
   | Download
   | Edit
-  | Hide
   | Magic
   | Move_down
   | Move_left
   | Move_right
   | Move_up
+  | No_preview
   | Parameterise
+  | Preview
   | Save
   | See_outside (** eg. go to SCDDB *)
   | Share
-  | Show
   | Search
   | Search_more
   | Stop
@@ -49,17 +49,17 @@ let action_to_string = function
   | Delete -> "trash"
   | Download -> "download"
   | Edit -> "pencil-square"
-  | Hide -> "eye-slash"
   | Magic -> "magic"
   | Move_down -> "arrow-down"
   | Move_left -> "arrow-left"
   | Move_right -> "arrow-right"
   | Move_up -> "arrow-up"
+  | No_preview -> "eye-slash"
   | Parameterise -> "toggles"
+  | Preview -> "eye"
   | Save -> "save"
   | See_outside -> "box-arrow-up-right"
   | Share -> "share"
-  | Show -> "eye"
   | Search -> "search"
   | Search_more -> "zoom-in"
   | Stop -> "stop-circle"

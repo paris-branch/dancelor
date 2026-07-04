@@ -43,19 +43,6 @@ let display_warnings warnings =
   List.map display_warning warnings
 
 let table_contents ~this_id content =
-  (* We need to find the index of each part of the book in the whole book. They
-     aren't just the index in the list because some elements are not actually
-     viewable standalone. *)
-  let content =
-    let next_index = ref 0 in
-    List.map
-      (fun page ->
-        match Components.Context_links.book_page_to_any page with
-        | None -> (-1, page)
-        | Some _ -> let index = !next_index in incr next_index; (index, page)
-      )
-      content
-  in
   let open Html in
   tablex
     ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-2"]]
@@ -69,46 +56,60 @@ let table_contents ~this_id content =
               th [txt "Name"];
               th [txt "Kind"];
               th [txt "Music by"];
+              th [txt "Preview"];
             ]
         ]
     )
     [
       tbody
         (
-          List.map
-            (fun (index, page) ->
-              let context = S.const @@ Endpoints.Page.in_book this_id index in
-              (* on non-viewable pages, index = -1 *)
+          List.mapi
+            (fun pageno page ->
+              let preview_href = Endpoints.Page.(href @@ Book Preview) this_id pageno in
+              let suffix = [
+                td ~a: [a_class ["p-0"; "text-end"]] [
+                  Button.make_a
+                    ~classes: ["btn-sm"; "btn-outline-secondary"]
+                    ~href: (S.const preview_href)
+                    ~icon: (Action Preview)
+                    ~tooltip: "Preview the book at this page."
+                    ()
+                ]
+              ]
+              in
               match page with
               | Book_view.Part title ->
                 Any_result_new.make_part_result
                   ~prefix: [td [txt "Part"]]
+                  ~suffix
                   title
               | Book_view.Dance (dance, Dance_only) ->
                 Any_result_new.make_dance_result
                   ~prefix: [td [txt "Dance"]]
-                  ~context
+                  ~suffix
                   dance
               | Book_view.Dance (dance, Dance_versions versions_and_params) ->
                 Any_result_new.make_dance_plus_versions_result
                   ~prefix: [td [txt "Dance"; Any_result.details [txt (if List.is_singleton versions_and_params then "+Tune" else "+Tunes")]]]
-                  ~context
+                  ~suffix
                   dance
                   versions_and_params
               | Book_view.Dance (dance, Dance_set (set, params)) ->
                 Any_result_new.make_dance_plus_set_result
                   ~prefix: [td [txt "Dance"; Any_result.details [txt "+Set"]]]
+                  ~suffix
                   dance
                   set
                   ~set_params: params
               | Book_view.Versions versions_and_params ->
                 Any_result_new.make_versions_result
                   ~prefix: [td [txt @@ if List.is_singleton versions_and_params then "Tune" else "Tunes"]]
+                  ~suffix
                   versions_and_params
               | Book_view.Set (set, params) ->
                 Any_result_new.make_set_result
                   ~prefix: [td [txt "Set"]]
-                  ~context
+                  ~suffix
                   ~params
                   set
             )
@@ -179,3 +180,85 @@ let view context id =
         table_contents ~this_id: id book.content;
       ];
     ]
+
+let parent_title_and_title = function
+  | Book_view.Part name -> ("Part", name)
+  | Dance (dance, Dance_only) -> ("Dance", dance.name)
+  | Dance (dance, Dance_versions [_]) -> ("Dance+Version", dance.name)
+  | Dance (dance, Dance_versions _) -> ("Dance+Versions", dance.name)
+  | Dance (dance, Dance_set _) -> ("Dance+Set", dance.name)
+  | Versions [] -> assert false
+  | Versions [(version, _)] -> ("Version", version.tune.name)
+  | Versions ((first_version, _) :: _) -> ("Versions", spf "%s etc." first_version.tune.name)
+  | Set (set, _) -> ("Set", set.name)
+
+let subtitles = function
+  | Book_view.Part _ -> lwt_nil
+  | Dance (dance, dance_page) ->
+    let%lwt dance = Madge_client.call_exn Endpoints.Api.(route @@ Dance Get_view) dance.Dance_row.id in
+    let%lwt more_subtitles =
+      match dance_page with
+      | Dance_only -> lwt_nil
+      | Dance_versions [(version, _)] ->
+        let%lwt version = Madge_client.call_exn Endpoints.Api.(route @@ Version Get_view) version.Version_row.id in
+        lwt @@ Version_viewer.subtitles version.tune
+      | Dance_versions _ -> lwt_nil
+      | Dance_set (set, _params) ->
+        let%lwt set = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_view) set.Set_row.id in
+        lwt @@ Set_viewer.subtitles set
+    in
+    lwt @@ Dance_viewer.subtitles dance @ more_subtitles
+  | Versions [] -> assert false
+  | Versions [(version, _)] ->
+    let%lwt version = Madge_client.call_exn Endpoints.Api.(route @@ Version Get_view) version.Version_row.id in
+    lwt @@ Version_viewer.subtitles version.tune
+  | Versions ((_first_version, _) :: _) ->
+    assert false
+  | Set (set, _) ->
+    let%lwt set = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_view) set.Set_row.id in
+    lwt @@ Set_viewer.subtitles set
+
+let body_dance (dance : Dance_row.t) =
+  let%lwt dance = Madge_client.call_exn Endpoints.Api.(route @@ Dance Get_view) dance.id in
+  lwt @@ Dance_viewer.body dance
+
+let body_versions = function
+  | [(version, _params)] ->
+    let%lwt version = Madge_client.call_exn Endpoints.Api.(route @@ Version Get_view) version.Version_row.id in
+    lwt @@ Version_viewer.body (`Version version.id) version.tune (Some version)
+  | versions ->
+    lwt @@ Set_viewer.body_gen versions None
+
+let body_set (set : Set_row.t) =
+  let%lwt set = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_view) set.id in
+  lwt @@ Set_viewer.body set
+
+let body = function
+  | Book_view.Part _ -> lwt [txt "This is a part; nothing to see here."]
+  | Dance (dance, Dance_only) -> body_dance dance
+  | Dance (_dance, Dance_versions versions) -> body_versions versions
+  | Dance (_dance, Dance_set (set, _params)) -> body_set set
+  | Versions versions -> body_versions versions
+  | Set (set, _) -> body_set set
+
+let this_page = function
+  | Book_view.Part _ -> None
+  | Dance (_, Dance_set _) -> None (* because it's unclear which it would lead to *)
+  | Dance (dance, _) -> Some (Endpoints.Page.(href @@ Dance View) None dance.id)
+  | Versions [(version, _)] -> Some (Endpoints.Page.(href @@ Version View) None version.id)
+  | Versions _ -> None
+  | Set (set, _) -> Some (Endpoints.Page.(href @@ Set View) None set.id)
+
+let preview id pageno =
+  Main_page.madge_call_or_404 (Book Get_view) id @@ fun book ->
+  let page = List.nth book.content pageno in
+  let (parent_title, title) = parent_title_and_title page in
+  let%lwt subtitles = subtitles page in
+  let%lwt body = body page in
+  let this_page = this_page page in
+  Page.make'
+    ~parent_title
+    ~before_title: [Components.Context_links.make_and_render_book ~this_page book pageno]
+    ~title: (lwt title)
+    ~subtitles
+    body
