@@ -150,7 +150,7 @@ let view context tune_or_version_id =
                 Button.make_a
                   ~label: "Edit version"
                   ~icon: (Action Edit)
-                  ~href: (S.const @@ Endpoints.Page.(href Version_edit) version.Version_view.id)
+                  ~href: (S.const @@ Endpoints.Page.(href @@ Version Edit) version.Version_view.id)
                   ~dropdown: true
                   ()
               ]
@@ -164,7 +164,7 @@ let view context tune_or_version_id =
             Button.make_a
               ~label: "Edit tune"
               ~icon: (Action Edit)
-              ~href: (S.const @@ Endpoints.Page.(href Tune_edit) tune.id)
+              ~href: (S.const @@ Endpoints.Page.(href @@ Tune Edit) tune.id)
               ~dropdown: true
               ()
           ]
@@ -353,7 +353,7 @@ let view context tune_or_version_id =
                     if%lwt Environment.is_connected then
                       lwt [
                         txt "Do you maybe want to ";
-                        a ~a: [a_href @@ Endpoints.Page.(href Version_add (Some tune.id))] [txt "add one"];
+                        a ~a: [a_href @@ Endpoints.Page.(href (Version Add) (Some tune.id))] [txt "add one"];
                         txt "?";
                       ]
                     else lwt [txt "Did you maybe forget to sign in?"]

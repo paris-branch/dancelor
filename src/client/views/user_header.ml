@@ -165,7 +165,7 @@ let header_item =
                             ~label: "Create user"
                             ~icon: (Action Add)
                             ~dropdown: true
-                            ~href: (S.const @@ Endpoints.Page.(href User_create))
+                            ~href: (S.const @@ Endpoints.Page.(href @@ User Create))
                             ()
                         ];
                         li [
@@ -173,7 +173,7 @@ let header_item =
                             ~label: "Reset user password"
                             ~icon: (Action Edit)
                             ~dropdown: true
-                            ~href: (S.const @@ Endpoints.Page.(href User_prepare_reset_password))
+                            ~href: (S.const @@ Endpoints.Page.(href @@ User Prepare_reset_password))
                             ()
                         ];
                         li [
@@ -206,7 +206,7 @@ let header_item =
                             ~label: "My person"
                             ~icon: (Model Person)
                             ~dropdown: true
-                            ~href: (S.const (Endpoints.Page.(href Person None) person_id))
+                            ~href: (S.const (Endpoints.Page.(href (Person View) None) person_id))
                             ()
                         ]
                   );

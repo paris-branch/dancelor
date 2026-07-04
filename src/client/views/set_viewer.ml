@@ -51,7 +51,7 @@ let view context id =
           Button.make_a
             ~label: "Edit"
             ~icon: (Action Edit)
-            ~href: (S.const @@ Endpoints.Page.(href Set_edit) id)
+            ~href: (S.const @@ Endpoints.Page.(href @@ Set Edit) id)
             ~dropdown: true
             ();
         ]
