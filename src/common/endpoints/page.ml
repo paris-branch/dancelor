@@ -17,9 +17,6 @@ module Context = struct type t = context [@@deriving yojson] end
 
 (** {2 Endpoints} *)
 
-(* NOTE: The order matters. For instance, `Book_add` appears before `Book`,
-   because otherwise `/book/add` will be seen as `Book` with id `add`. *)
-
 type (_, _, _) person =
   | Add : ('w, 'w, Void.t) person
   | Edit : (Person_id.t -> 'w, 'w, Void.t) person
@@ -68,8 +65,6 @@ type (_, _, _) user =
   | Password_reset : (Username.t -> Core.User.Password_reset_token_clear.t -> 'w, 'w, Void.t) user
 [@@deriving madge_wrapped_endpoints]
 
-(* FIXME: Make routes independent, for instance with paths /add/book instead of
-   /book/add (or new/edit/create), for /book/view/<id> vs /book/add. *)
 type (_, _, _) t =
   | Index : ('w, 'w, Void.t) t
   | Explore : (string -> int -> 'w, 'w, Void.t) t
@@ -92,49 +87,49 @@ open Madge
 let route_person : type a w r. (a, w, r) person -> (a, w, r) route =
   let open Route in
   function
-    | View -> query_json_opt "context" (module Context) @@ variable (module Person_id) @@ void ()
+    | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Person_id) @@ void ()
     | Add -> literal "add" @@ void ()
     | Edit -> literal "edit" @@ variable (module Person_id) @@ void ()
 
 let route_dance : type a w r. (a, w, r) dance -> (a, w, r) route =
   let open Route in
   function
-    | View -> query_json_opt "context" (module Context) @@ variable (module Dance_id) @@ void ()
+    | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Dance_id) @@ void ()
     | Add -> literal "add" @@ void ()
     | Edit -> literal "edit" @@ variable (module Dance_id) @@ void ()
 
 let route_source : type a w r. (a, w, r) source -> (a, w, r) route =
   let open Route in
   function
-    | View -> query_json_opt "context" (module Context) @@ variable (module Source_id) @@ void ()
+    | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Source_id) @@ void ()
     | Add -> literal "add" @@ void ()
     | Edit -> literal "edit" @@ variable (module Source_id) @@ void ()
 
 let route_tune : type a w r. (a, w, r) tune -> (a, w, r) route =
   let open Route in
   function
-    | View -> query_json_opt "context" (module Context) @@ variable (module Tune_id) @@ void ()
+    | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Tune_id) @@ void ()
     | Add -> literal "add" @@ void ()
     | Edit -> literal "edit" @@ variable (module Tune_id) @@ void ()
 
 let route_version : type a w r. (a, w, r) version -> (a, w, r) route =
   let open Route in
   function
-    | View -> query_json_opt "context" (module Context) @@ variable (module Version_id) @@ void ()
-    | Add -> query_json_opt "tune" (module Entry.Id.J(Core.Tune)) @@ literal "add" @@ void ()
+    | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Version_id) @@ void ()
+    | Add -> literal "add" @@ query_json_opt "tune" (module Entry.Id.J(Core.Tune)) @@ void ()
     | Edit -> literal "edit" @@ variable (module Version_id) @@ void ()
 
 let route_set : type a w r. (a, w, r) set -> (a, w, r) route =
   let open Route in
   function
-    | View -> query_json_opt "context" (module Context) @@ variable (module Set_id) @@ void ()
+    | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Set_id) @@ void ()
     | Add -> literal "add" @@ void ()
     | Edit -> literal "edit" @@ variable (module Set_id) @@ void ()
 
 let route_book : type a w r. (a, w, r) book -> (a, w, r) route =
   let open Route in
   function
-    | View -> query_json_opt "context" (module Context) @@ variable (module Book_id) @@ void ()
+    | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Book_id) @@ void ()
     | Add -> literal "add" @@ void ()
     | Edit -> literal "edit" @@ variable (module Book_id) @@ void ()
 

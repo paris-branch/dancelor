@@ -20,7 +20,7 @@ class TestActions():
     return os.path.join(self.download_dir, files[0])
 
   def test_versionShowLilyPond(self):
-    self.driver.get("http://localhost:8080/version/xzzb-wasm-babe")
+    self.driver.get("http://localhost:8080/version/view/xzzb-wasm-babe")
     self.driver.find_element(By.XPATH, "(//i[contains(@class, 'bi-three-dots-vertical')])[2]").click()
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Show LilyPond')]").click()
     expected = subprocess.run(

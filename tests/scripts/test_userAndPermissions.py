@@ -23,7 +23,7 @@ class TestUserAndPermissions():
 
   def load_entry(self):
     ## Access the entry page of a private set.
-    self.driver.get("http://localhost:8080/set/wrwk-cz9g-g3wi")
+    self.driver.get("http://localhost:8080/set/view/wrwk-cz9g-g3wi")
 
   def is_404(self):
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Oooops')]")
