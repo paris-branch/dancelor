@@ -169,24 +169,12 @@ let confirmation_dialog ~this_version ~other_version =
     lwt_unit
   in
 
-  (* how to update a version and its params from a set or a book *)
-  let replace_version_and_params (a_version, a_version_params) =
+  (* how to update a version from a set or a book *)
+  let replace_version a_version =
     if Entry.Id.equal' a_version (Entry.id this_version) then
-      (
-        Entry.id other_version,
-        Model.Version_parameters.compose
-          (
-            (* if [this_version] is monolithic, then it comes
-               with a specific structure, and this information
-               was used when making the set, so we keep it as a
-               version parameter to the updated set *)
-            match Model.Version.content' this_version with
-            | Monolithic {structure; _} -> Model.Version_parameters.make ~structure ()
-            | _ -> Model.Version_parameters.none
-          )
-          a_version_params (* existing parameters take precedence *)
-      )
-    else (a_version, a_version_params)
+      Entry.id other_version
+    else
+      a_version
   in
 
   (* changes to sets *)
@@ -200,7 +188,7 @@ let confirmation_dialog ~this_version ~other_version =
     (fun set ->
       add_changes
         ~action: (fun () ->
-          let contents = List.map replace_version_and_params (Model.Set.contents' set) in
+          let contents = List.map (Pair.map_fst replace_version) (Model.Set.contents' set) in
           ignore
           <$> Madge_client.call_exn
               Endpoints.Api.(route @@ Set Update)
@@ -227,9 +215,9 @@ let confirmation_dialog ~this_version ~other_version =
             List.map
               (function
                 | Model.Book.Dance (dance, Dance_versions versions_and_params) ->
-                  Model.Book.Dance (dance, Model.Book.Dance_versions (NEList.map replace_version_and_params versions_and_params))
+                  Model.Book.Dance (dance, Model.Book.Dance_versions (NEList.map (Pair.map_fst replace_version) versions_and_params))
                 | Model.Book.Versions versions_and_params ->
-                  Model.Book.Versions (NEList.map replace_version_and_params versions_and_params)
+                  Model.Book.Versions (NEList.map (Pair.map_fst replace_version) versions_and_params)
                 | page -> page
               )
               (Model.Book.contents' book)

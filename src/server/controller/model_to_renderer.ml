@@ -16,7 +16,16 @@ let format_persons =
 
 let version_to_lilypond_content ~version_params version =
   (* get a LilyPond from the potentially-destructured content *)
-  let structure = Model.Version_parameters.structure version_params in
+  let structure =
+    match Model.Version_parameters.structure version_params with
+    | Some Force_no_structure -> None
+    | Some Structure structure -> Some structure
+    | None ->
+      match Model.Version.content version with
+      | No_content -> None
+      | Monolithic {structure; _} -> Some structure
+      | Destructured {default_structure; _} -> Some default_structure
+  in
   let%lwt content = Model.Version.content_lilypond ?structure version in
   let instructions =
     (* if the version is destructured, and the user asked for a structure, but
@@ -91,7 +100,7 @@ let version_to_renderer_tune ?(version_params = Model.Version_parameters.none) v
   in
   let show_bar_numbers =
     Model.Version.(Content.is_monolithic @@ content version)
-    || Model.Version_parameters.structure version_params <> None
+    || Model.Version_parameters.structure version_params <> Some Force_no_structure
   in
   let show_time_signatures = kind = Other in
   (* only show time signatures if “Other” *)
