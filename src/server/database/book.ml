@@ -77,7 +77,7 @@ let get_content_versions_for db book_ids =
           ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) version_parameter_transposition_semitones)
           ?first_bar: (Option.map Int64.to_int version_parameter_first_bar)
           ?clef: (Option.map Music.Clef.of_string version_parameter_clef)
-          ?structure: (Option.map (Option.get % Model_builder.Core.Version.Structure.of_string % NEString.of_string_exn) version_parameter_structure)
+          ?structure: (Option.map (Option.get % Model_builder.Core.Version_parameters.maybe_structure_of_string % NEString.of_string_exn) version_parameter_structure)
           ?trivia: version_parameter_trivia
           ?display_name: (Option.map NEString.of_string_exn version_parameter_display_name)
           ?display_composer: (Option.map NEString.of_string_exn version_parameter_display_composer)
@@ -128,7 +128,7 @@ let get_content_for ~user_id db book_ids =
               ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) set_parameter_version_parameter_transposition_semitones)
               ?first_bar: (Option.map Int64.to_int set_parameter_version_parameter_first_bar)
               ?clef: (Option.map Music.Clef.of_string set_parameter_version_parameter_clef)
-              ?structure: (Option.map (Option.get % Model_builder.Core.Version.Structure.of_string % NEString.of_string_exn) set_parameter_version_parameter_structure)
+              ?structure: (Option.map (Option.get % Model_builder.Core.Version_parameters.maybe_structure_of_string % NEString.of_string_exn) set_parameter_version_parameter_structure)
               ?trivia: set_parameter_version_parameter_trivia
               ?display_name: (Option.map NEString.of_string_exn set_parameter_version_parameter_display_name)
               ?display_composer: (Option.map NEString.of_string_exn set_parameter_version_parameter_display_composer)
@@ -319,7 +319,7 @@ let book_to_sql ~create_or_update db id book =
           ~set_parameter_version_parameter_transposition_semitones: (Option.map (Int64.of_int % Transposition.to_semitones) @@ Model_builder.Core.Version_parameters.transposition set_version_params)
           ~set_parameter_version_parameter_first_bar: (Option.map Int64.of_int @@ Model_builder.Core.Version_parameters.first_bar set_version_params)
           ~set_parameter_version_parameter_clef: (Option.map Music.Clef.to_string @@ Model_builder.Core.Version_parameters.clef set_version_params)
-          ~set_parameter_version_parameter_structure: (Option.map (NEString.to_string % Model_builder.Core.Version.Structure.to_string) @@ Model_builder.Core.Version_parameters.structure set_version_params)
+          ~set_parameter_version_parameter_structure: (Option.map (NEString.to_string % Model_builder.Core.Version_parameters.maybe_structure_to_string) @@ Model_builder.Core.Version_parameters.structure set_version_params)
           ~set_parameter_version_parameter_trivia: (Model_builder.Core.Version_parameters.trivia set_version_params)
           ~set_parameter_version_parameter_display_name: (Option.map NEString.to_string @@ Model_builder.Core.Version_parameters.display_name set_version_params)
           ~set_parameter_version_parameter_display_composer: (Option.map NEString.to_string @@ Model_builder.Core.Version_parameters.display_composer set_version_params);%lwt
@@ -335,7 +335,7 @@ let book_to_sql ~create_or_update db id book =
               ~version_parameter_transposition_semitones: (Option.map (Int64.of_int % Transposition.to_semitones) @@ Model_builder.Core.Version_parameters.transposition params)
               ~version_parameter_first_bar: (Option.map Int64.of_int @@ Model_builder.Core.Version_parameters.first_bar params)
               ~version_parameter_clef: (Option.map Music.Clef.to_string @@ Model_builder.Core.Version_parameters.clef params)
-              ~version_parameter_structure: (Option.map (NEString.to_string % Model_builder.Core.Version.Structure.to_string) @@ Model_builder.Core.Version_parameters.structure params)
+              ~version_parameter_structure: (Option.map (NEString.to_string % Model_builder.Core.Version_parameters.maybe_structure_to_string) @@ Model_builder.Core.Version_parameters.structure params)
               ~version_parameter_trivia: (Model_builder.Core.Version_parameters.trivia params)
               ~version_parameter_display_name: (Option.map NEString.to_string @@ Model_builder.Core.Version_parameters.display_name params)
               ~version_parameter_display_composer: (Option.map NEString.to_string @@ Model_builder.Core.Version_parameters.display_composer params)
@@ -361,7 +361,7 @@ let sql_to_content_version ~k = fun
         ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) version_parameter_transposition_semitones)
         ?first_bar: (Option.map Int64.to_int version_parameter_first_bar)
         ?clef: (Option.map Music.Clef.of_string version_parameter_clef)
-        ?structure: (Option.map (Option.get % Model_builder.Core.Version.Structure.of_string % NEString.of_string_exn) version_parameter_structure)
+        ?structure: (Option.map (Option.get % Model_builder.Core.Version_parameters.maybe_structure_of_string % NEString.of_string_exn) version_parameter_structure)
         ?trivia: version_parameter_trivia
         ?display_name: (Option.map NEString.of_string_exn version_parameter_display_name)
         ?display_composer: (Option.map NEString.of_string_exn version_parameter_display_composer)
@@ -394,7 +394,7 @@ let sql_to_content_item ~versions_and_params ~k = fun
           ?transposition: (Option.map (Transposition.from_semitones % Int64.to_int) set_parameter_version_parameter_transposition_semitones)
           ?first_bar: (Option.map Int64.to_int set_parameter_version_parameter_first_bar)
           ?clef: (Option.map Music.Clef.of_string set_parameter_version_parameter_clef)
-          ?structure: (Option.map (Option.get % Model_builder.Core.Version.Structure.of_string % NEString.of_string_exn) set_parameter_version_parameter_structure)
+          ?structure: (Option.map (Option.get % Model_builder.Core.Version_parameters.maybe_structure_of_string % NEString.of_string_exn) set_parameter_version_parameter_structure)
           ?trivia: set_parameter_version_parameter_trivia
           ?display_name: (Option.map NEString.of_string_exn set_parameter_version_parameter_display_name)
           ?display_composer: (Option.map NEString.of_string_exn set_parameter_version_parameter_display_composer)

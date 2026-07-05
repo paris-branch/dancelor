@@ -206,8 +206,8 @@ module Version = struct
     in
     let structure_block =
       match Model.Version_parameters.structure params with
-      | None -> []
-      | Some structure -> [txtf " [play %s]" @@ NEString.to_string @@ Model.Version.Structure.to_string structure]
+      | None | Some Force_no_structure -> []
+      | Some Structure structure -> [txtf " [play %s]" @@ NEString.to_string @@ Model.Version.Structure.to_string structure]
     in
     let transposition_block =
       match Model.Version_parameters.transposition params with

@@ -18,18 +18,12 @@ let all_versions =
 let all_versions_prerendering_job =
   Lwt_stream.filter_map_s
     (fun version ->
-      let run_with_params =
-        match Model.Version.content' version with
-        | No_content -> `No_need_to_run
-        | Monolithic _ -> `Run_with_params None
-        | Destructured {default_structure; _} -> `Run_with_params (some @@ Model.Version_parameters.make ~structure: default_structure ()) (* FIXME: at the moment, this requires us to keep this in sync with the client, when this should be the default *)
-      in
-      match run_with_params with
-      | `No_need_to_run -> lwt_none
-      | `Run_with_params params ->
+      match Model.Version.content' version with
+      | No_content -> lwt_none
+      | _ ->
         let%lwt job =
           Controller.Job.register_job ~add_pending: false
-          <$> Controller.Version.render_snippets ?version_params: params (Entry.value version)
+          <$> Controller.Version.render_snippets (Entry.value version)
         in
         match !(job.state) with
         | Failed _ | Pending -> lwt_some job

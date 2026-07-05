@@ -4,11 +4,42 @@
 
 open Nes
 
+type maybe_structure =
+  | Force_no_structure
+  | Structure of Version.Structure.t
+[@@deriving eq, ord, show {with_path = false}, variants]
+
+let maybe_structure_to_string = function
+  | Force_no_structure -> NEString.of_string_exn "none"
+  | Structure structure -> Version.Structure.to_string structure
+
+let maybe_structure_of_string s =
+  if NEString.to_string s = "none" then
+    Some Force_no_structure
+  else
+    Option.map structure @@ Version.Structure.of_string s
+
+let maybe_structure_to_yojson s =
+  `String (NEString.to_string @@ maybe_structure_to_string s)
+
+let maybe_structure_of_yojson = function
+  | `String s ->
+    (
+      match NEString.of_string s with
+      | Some s ->
+        Option.fold
+          ~some: Result.ok
+          ~none: (Error "maybe_structure_of_yojson")
+          (maybe_structure_of_string s)
+      | _ -> Error "maybe_structure_of_yojson"
+    )
+  | _ -> Error "maybe_structure_of_yojson"
+
 type t = {
   transposition: Transposition.t option; [@default None]
   first_bar: int option; [@default None] [@key "first-bar"]
   clef: Music.Clef.t option; [@default None]
-  structure: Version.Structure.t option; [@default None]
+  structure: maybe_structure option; [@default None]
   trivia: string option; [@default None]
   display_name: NEString.t option; [@default None] [@key "display-name"]
   display_composer: NEString.t option [@default None] [@key "display-composer"]
