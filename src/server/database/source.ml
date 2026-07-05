@@ -119,6 +119,7 @@ let with_cover id f =
   match cover with
   | None -> f None
   | Some cover ->
+    let cover = Postgresql.unescape_bytea cover in
     Lwt_io.with_temp_file (fun (fname, ochan) ->
       Lwt_io.write ochan cover;%lwt
       f (Some fname)
