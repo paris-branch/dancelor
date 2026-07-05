@@ -44,23 +44,9 @@ let display_warnings warnings =
 
 let table_contents ~this_id content =
   let open Html in
-  tablex
-    ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-2"]]
-    ~thead: (
-      thead
-        ~a: [a_class ["table-primary"]]
-        [
-          tr
-            [
-              th [txt "Type"];
-              th [txt "Name"];
-              th [txt "Kind"];
-              th [txt "Music by"];
-              th [txt "Preview"];
-            ]
-        ]
-    )
-    [
+  Utils.Tables.make
+    ~header: [""; ""; ""; ""; ""]
+    (
       tbody
         (
           List.mapi
@@ -115,7 +101,7 @@ let table_contents ~this_id content =
             )
             content
         )
-    ]
+    )
 
 open Html
 

@@ -226,30 +226,32 @@ let make_result ?classes ?context (any : Any_row.t) =
     ]
   in
   let suffix = [
-    td [
-      let permission =
-        match any with
-        | Source _ -> None
-        | Person _ -> None
-        | Dance _ -> None
-        | Tune _ -> None
-        | Version _ -> None
-        | Set set -> Some set.permission
-        | Book book -> Some book.permission
-        | User _ -> None
-      in
-      match permission with
-      | None -> Icon.html Icon.(Access Everyone) ~tooltip: "You can see this entry because it is an always-public entry (eg. a person or a tune)" ~classes: ["opacity-25"]
-      | Some reason ->
-        let (icon, tooltip, classes) =
-          match reason with
-          | Everyone -> (Icon.(Access Everyone), "You can see this entry because it was made public by its owner.", ["opacity-50"])
-          | Viewer -> (Icon.(Access Viewer), "You can see this entry because its owner marked you as one of its viewers.", ["opacity-75"])
-          | Owner -> (Icon.(Access Owner), "You can see this entry because you are (one of) its owners.", [])
-          | Omniscient_administrator -> (Icon.(Access Omniscient_administrator), "You can see this entry because you are an administrator, with omniscience enabled. You would not be able to access it without that.", [])
+    td
+      ~a: [a_class ["text-end"]]
+      [
+        let permission =
+          match any with
+          | Source _ -> None
+          | Person _ -> None
+          | Dance _ -> None
+          | Tune _ -> None
+          | Version _ -> None
+          | Set set -> Some set.permission
+          | Book book -> Some book.permission
+          | User _ -> None
         in
-        Icon.html icon ~tooltip ~classes
-    ]
+        match permission with
+        | None -> Icon.html Icon.(Access Everyone) ~tooltip: "You can see this entry because it is an always-public entry (eg. a person or a tune)" ~classes: ["opacity-25"]
+        | Some reason ->
+          let (icon, tooltip, classes) =
+            match reason with
+            | Everyone -> (Icon.(Access Everyone), "You can see this entry because it was made public by its owner.", ["opacity-50"])
+            | Viewer -> (Icon.(Access Viewer), "You can see this entry because its owner marked you as one of its viewers.", ["opacity-75"])
+            | Owner -> (Icon.(Access Owner), "You can see this entry because you are (one of) its owners.", [])
+            | Omniscient_administrator -> (Icon.(Access Omniscient_administrator), "You can see this entry because you are an administrator, with omniscience enabled. You would not be able to access it without that.", [])
+          in
+          Icon.html icon ~tooltip ~classes
+      ]
   ]
   in
   match any with

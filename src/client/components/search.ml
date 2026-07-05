@@ -119,41 +119,22 @@ module Search = struct
                 | Pagination p -> Pagination.render ~is_below: false p
                 | Fixed_slice _ -> div []
               );
-              div
-                ~a: [a_class ["table-responsive"]]
-                [
-                  let make_table_headers (thead : ('a, 'b, [< Html_types.thead | Html_types.tfoot]) Html.star) =
-                    thead
-                      ~a: [a_class ["table-primary"; "pe-none"]]
-                      [
-                        tr [
-                          th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]];
-                          th [txt "Name"];
-                          th [txt "Kind/date"];
-                          th [txt "By"];
-                          th []
-                        ]
-                      ]
-                  in
-                  tablex
-                    ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-1"]]
-                    ?thead: (if show_table_headers then Some (make_table_headers thead) else None)
-                    ?tfoot: (if show_table_headers then Some (make_table_headers tfoot) else None)
-                    [
-                      R.tbody
-                        (
-                          S.flip_map (S.Pair.pair (fst @@ slice t.pagination) (Search_bar.state t.search_bar))
-                            @@ fun (_, state) ->
-                            match state with
-                            | Results results ->
-                              let context = S.map Dancelor_common.Endpoints.Page.in_search @@ Search_bar.text t.search_bar in
-                              List.map (make_result ~context) results
-                            | Start_typing | Continue_typing | No_results | Errors _ ->
-                              List.map make_result results_when_no_search
-                            | Searching -> []
-                        )
-                    ];
-                ];
+              Utils.Tables.make
+                ?header: (if show_table_headers then Some [""; ""; ""; ""; ""] else None)
+                (
+                  R.tbody
+                    (
+                      S.flip_map (S.Pair.pair (fst @@ slice t.pagination) (Search_bar.state t.search_bar))
+                        @@ fun (_, state) ->
+                        match state with
+                        | Results results ->
+                          let context = S.map Dancelor_common.Endpoints.Page.in_search @@ Search_bar.text t.search_bar in
+                          List.map (make_result ~context) results
+                        | Start_typing | Continue_typing | No_results | Errors _ ->
+                          List.map make_result results_when_no_search
+                        | Searching -> []
+                    )
+                );
               (
                 match t.pagination with
                 | Pagination p -> Pagination.render ~is_below: true p
