@@ -231,17 +231,21 @@ LIMIT 1; -- NOTE: to help sqlgg
 -- @search
 WITH "version_rows" AS &get_version_and_tune_rows
 SELECT
-    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "tune_name") END AS "score",
+    CASE
+        WHEN @terms = '' THEN 1.0
+	ELSE GREATEST(word_similarity(@terms, "tune"."name"), word_similarity(make_name_search(@terms), "tune"."name_search"))
+    END AS "score",
     "version_rows".*
 FROM "version_rows"
 JOIN "version" ON "version_rows"."id" = "version"."id"
+JOIN "tune" ON "version"."tune_id" = "tune"."id"
 WHERE
-    (@terms = '' OR @terms <% "tune_name")
+    (@terms = '' OR @terms <% "tune"."name" OR make_name_search(@terms) <% "name_search")
     AND { "key" IN @key }?
     AND @source { Some { EXISTS (SELECT 1 FROM "version_sources" WHERE "version_id" = "version"."id" AND "source_id" IN @source) } | None { TRUE } }
     AND { "tune_kind" IN @tune_kind }?
     AND @tune_composer { Some { EXISTS (SELECT 1 FROM "tune_composers" WHERE "tune_id" = "version"."tune_id" AND "composer_id" IN @tune_composer) } | None { TRUE } }
-ORDER BY "score" DESC, "tune_name" ASC;
+ORDER BY "score" DESC, "name_search" ASC, "name" ASC, "id" ASC;
 
 -- @get_tune_composers_for
 WITH "persons" AS &get_person_rows

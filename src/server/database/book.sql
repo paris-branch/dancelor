@@ -247,24 +247,28 @@ FROM "books"
 WHERE "books"."id" = @id;
 
 -- @search
-WITH "books" AS &get_book_rows
+WITH "book_rows" AS &get_book_rows
 SELECT
-    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
-    "books".*
-FROM "books"
+    CASE
+        WHEN @terms = '' THEN 1.0
+	ELSE GREATEST(word_similarity(@terms, "book"."name"), word_similarity(make_name_search(@terms), "name_search"))
+    END AS "score",
+    "book_rows".*
+FROM "book"
+JOIN "book_rows" ON "book"."id" = "book_rows"."id"
 WHERE
-    (@terms = '' OR @terms <% "name")
-    AND @author { Some { EXISTS (SELECT 1 FROM "book_authors" WHERE "book_id" = "books"."id" AND "author_id" IN @author) } | None { TRUE } }
+    (@terms = '' OR @terms <% "book"."name" OR make_name_search(@terms) <% "name_search")
+    AND @author { Some { EXISTS (SELECT 1 FROM "book_authors" WHERE "book_id" = "book"."id" AND "author_id" IN @author) } | None { TRUE } }
     AND @contains_version { Some {
-	    EXISTS (SELECT 1 FROM "book_content" JOIN "set_content" ON "book_content"."set_id" = "set_content"."set_id" WHERE "book_content"."book_id" = "books"."id" AND "set_content"."version_id" IN @contains_version )
-	    OR EXISTS (SELECT 1 FROM "book_content_versions" WHERE "book_id" = "books"."id" AND "version_id" IN @contains_version)
+	    EXISTS (SELECT 1 FROM "book_content" JOIN "set_content" ON "book_content"."set_id" = "set_content"."set_id" WHERE "book_content"."book_id" = "book"."id" AND "set_content"."version_id" IN @contains_version )
+	    OR EXISTS (SELECT 1 FROM "book_content_versions" WHERE "book_id" = "book"."id" AND "version_id" IN @contains_version)
 	} | None { TRUE } }
     AND @contains_tune { Some {
-	    EXISTS (SELECT 1 FROM "book_content" JOIN "set_content" ON "book_content"."set_id" = "set_content"."set_id" JOIN "version" ON "set_content"."version_id" = "version"."id" WHERE "book_content"."book_id" = "books"."id" AND "version"."tune_id" IN @contains_tune )
-	    OR EXISTS (SELECT 1 FROM "book_content_versions" JOIN "version" ON "book_content_versions"."version_id" = "version"."id" WHERE "book_content_versions"."book_id" = "books"."id" AND "version"."tune_id" IN @contains_tune)
+	    EXISTS (SELECT 1 FROM "book_content" JOIN "set_content" ON "book_content"."set_id" = "set_content"."set_id" JOIN "version" ON "set_content"."version_id" = "version"."id" WHERE "book_content"."book_id" = "book"."id" AND "version"."tune_id" IN @contains_tune )
+	    OR EXISTS (SELECT 1 FROM "book_content_versions" JOIN "version" ON "book_content_versions"."version_id" = "version"."id" WHERE "book_content_versions"."book_id" = "book"."id" AND "version"."tune_id" IN @contains_tune)
 	} | None { TRUE } }
-    AND @contains_set { Some { EXISTS (SELECT 1 FROM "book_content" WHERE "book_id" = "books"."id" AND "set_id" IN @contains_set ) } | None { TRUE } }
-ORDER BY "score" DESC, "name" ASC;
+    AND @contains_set { Some { EXISTS (SELECT 1 FROM "book_content" WHERE "book_id" = "book"."id" AND "set_id" IN @contains_set ) } | None { TRUE } }
+ORDER BY "score" DESC, "name_search" ASC, "name" ASC, "id" ASC;
 
 -- @get_authors_for
 WITH "persons" AS &get_person_rows

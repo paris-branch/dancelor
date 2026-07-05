@@ -122,10 +122,14 @@ FROM "users"
 WHERE "id" IN @ids;
 
 -- @search
-WITH "users" AS &get_user_rows
+WITH "user_rows" AS &get_user_rows
 SELECT
-    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "username") END AS "score",
-    "users".*
-FROM "users"
-WHERE (@terms = '' OR @terms <% "username")
-ORDER BY "score" DESC, "username" ASC;
+    CASE
+        WHEN @terms = '' THEN 1.0
+	ELSE GREATEST(word_similarity(@terms, "user"."username"), word_similarity(make_name_search(@terms), "username_search"))
+    END AS "score",
+    "user_rows".*
+FROM "user"
+JOIN "user_rows" ON "user"."id" = "user_rows"."id"
+WHERE (@terms = '' OR @terms <% "user"."username" OR make_name_search(@terms) <% "username_search")
+ORDER BY "score" DESC, "username_search" ASC, "username" ASC;

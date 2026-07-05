@@ -143,16 +143,20 @@ FROM "tunes"
 WHERE "id" = @id;
 
 -- @search
-WITH "tunes" AS &get_tune_rows
+WITH "tune_rows" AS &get_tune_rows
 SELECT
-    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
-    "tunes".*
-FROM "tunes"
+    CASE
+        WHEN @terms = '' THEN 1.0
+	ELSE GREATEST(word_similarity(@terms, "tune"."name"), word_similarity(make_name_search(@terms), "name_search"))
+    END AS "score",
+    "tune_rows".*
+FROM "tune"
+JOIN "tune_rows" ON "tune"."id" = "tune_rows"."id"
 WHERE
-    (@terms = '' OR @terms <% "name")
-    AND { "kind" IN @kind }?
-    AND @composer { Some { EXISTS (SELECT 1 FROM "tune_composers" WHERE "tune_id" = "tunes"."id" AND "composer_id" IN @composer) } | None { TRUE } }
-ORDER BY "score" DESC, "name" ASC;
+    (@terms = '' OR @terms <% "tune"."name" OR make_name_search(@terms) <% "name_search")
+    AND { "tune"."kind" IN @kind }?
+    AND @composer { Some { EXISTS (SELECT 1 FROM "tune_composers" WHERE "tune_id" = "tune"."id" AND "composer_id" IN @composer) } | None { TRUE } }
+ORDER BY "score" DESC, "name_search" ASC, "name" ASC, "id" ASC;
 
 -- @get_extra_names_for
 SELECT

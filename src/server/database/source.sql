@@ -88,15 +88,19 @@ FROM "sources"
 WHERE "id" = @id;
 
 -- @search
-WITH "sources" AS &get_source_rows
+WITH "source_rows" AS &get_source_rows
 SELECT
-    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
-    "sources".*
-FROM "sources"
+    CASE
+        WHEN @terms = '' THEN 1.0
+	ELSE GREATEST(word_similarity(@terms, "source"."name"), word_similarity(make_name_search(@terms), "name_search"))
+    END AS "score",
+    "source_rows".*
+FROM "source"
+JOIN "source_rows" ON "source"."id" = "source_rows"."id"
 WHERE
-    (@terms = '' OR @terms <% "name")
-    AND @editor { Some { EXISTS (SELECT 1 FROM "source_editors" WHERE "source_id" = "sources"."id" AND "person_id" IN @editor) } | None { TRUE } }
-ORDER BY "score" DESC, "name" ASC;
+    (@terms = '' OR @terms <% "source"."name" OR make_name_search(@terms) <% "name_search")
+    AND @editor { Some { EXISTS (SELECT 1 FROM "source_editors" WHERE "source_id" = "source"."id" AND "person_id" IN @editor) } | None { TRUE } }
+ORDER BY "score" DESC, "name_search" ASC, "name" ASC, "id" ASC;
 
 -- @get_editors_for
 WITH "persons" AS &get_person_rows
