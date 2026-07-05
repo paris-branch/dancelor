@@ -265,8 +265,8 @@ let editor user =
           ()
       in
       S.flip_map show_preview @@ function
-        | true -> [flip_show_preview_button ~icon: (Action Show)]
-        | false -> [flip_show_preview_button ~icon: (Action Hide)]
+        | true -> [flip_show_preview_button ~icon: (Action Preview)]
+        | false -> [flip_show_preview_button ~icon: (Action No_preview)]
     ) ^::
   Input.prepare_option
     ~type_: Text

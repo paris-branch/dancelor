@@ -17,7 +17,7 @@ let open_token_result_dialog user token =
         txt " has been generated. Pass them the following link: ";
       ];
       p [
-        let href = Endpoints.Page.(href User_password_reset) user.username token in
+        let href = Endpoints.Page.(href @@ User Password_reset) user.username token in
         a ~a: [a_href href] [txt @@ Uri.to_string href]
       ];
       p [

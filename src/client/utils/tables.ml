@@ -1,25 +1,29 @@
 open Nes
 open Html
 
-let map_table ~header f list =
+let make ?header body =
   div
-    ~a: [a_class ["table-responsive"]]
+    ~a: [a_class ["table-responsive"; "mx-n2"; "mx-sm-0"]]
     [
       tablex
-        ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-2"]]
-        ~thead: (thead ~a: [a_class ["table-primary"]] [tr (List.map (fun str -> th [txt str]) header)])
-        [tbody (List.map f list)]
+        ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-1"]]
+        ?thead: (Option.map (fun header -> thead ~a: [a_class ["table-primary"; "pe-none"]] [tr (List.map (fun str -> th [txt str]) header)]) header)
+        ?tfoot: (Option.map (fun header -> tfoot ~a: [a_class ["table-primary"; "pe-none"]] [tr (List.map (fun str -> th [txt str]) header)]) header)
+        [body]
     ]
 
+let map_table ?header f list =
+  make ?header (tbody (List.map f list))
+
 let dances dances =
-  map_table ~header: ["Name"; "Kind"; "Deviser"] Any_result_new.make_dance_result dances
+  map_table ~header: [""; ""; ""] Any_result_new.make_dance_result dances
 
 let tunes tunes =
-  map_table ~header: ["Name"; "Kind"; "Composer"] Any_result_new.make_tune_result tunes
+  map_table ~header: [""; ""; ""] Any_result_new.make_tune_result tunes
 
 let versions ?onclick versions =
   map_table
-    ~header: ["Name"; "Kind"; "Composer"]
+    ~header: [""; ""; ""]
     (fun version ->
       Any_result_new.make_version_result
         ?onclick: (Option.map (fun onclick () -> onclick version) onclick)
@@ -28,27 +32,10 @@ let versions ?onclick versions =
     versions
 
 let any ?context anys =
-  tablex
-    ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-1"]]
-    ~thead: (
-      thead
-        ~a: [a_class ["table-primary"; "pe-none"]]
-        [
-          tr [
-            th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]];
-            th [txt "Name"];
-            th [txt "Kind/date"];
-            th [txt "By"];
-            th []
-          ]
-        ]
-    )
-    ~tfoot: (
-      tfoot
-        ~a: [a_class ["table-primary"; "pe-none"]]
-        [tr [td []; td []; td []; td []; td []]]
-    )
-    [tbody (List.map (Any_result_new.make_result ?context) anys)]
+  map_table
+    ~header: [""; ""; ""; ""; ""]
+    (Any_result_new.make_result ?context)
+    anys
 
 let placeholder ?(show_thead = true) ?(show_tfoot = true) ?(rows = 3) () = [
   div

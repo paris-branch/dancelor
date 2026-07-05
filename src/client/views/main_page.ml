@@ -99,13 +99,13 @@ let nav_item_create =
                   li [Button.make_a ~label ~icon: (Model icon) ~href: (S.const href) ~dropdown: true ()]
                 )
                 [
-                  (Icon.Person, href Person_add, "Person");
-                  (Icon.Dance, href Dance_add, "Dance");
-                  (Icon.Source, href Source_add, "Source");
-                  (Icon.Tune, href Tune_add, "Tune");
-                  (Icon.Version, href Version_add None, "Version");
-                  (Icon.Set, href Set_add, "Set");
-                  (Icon.Book, href Book_add, "Book");
+                  (Icon.Person, href (Person Add), "Person");
+                  (Icon.Dance, href (Dance Add), "Dance");
+                  (Icon.Source, href (Source Add), "Source");
+                  (Icon.Tune, href (Tune Add), "Tune");
+                  (Icon.Version, href (Version Add) None, "Version");
+                  (Icon.Set, href (Set Add), "Set");
+                  (Icon.Book, href (Book Add), "Book");
                 ]
             );
         ]

@@ -20,30 +20,31 @@ let dispatch uri =
     | Index -> Index.create ()
     | Any -> redirect_any
     | Explore -> Explorer.view
-    | Book -> Book_viewer.view
-    | Book_add -> Book_editor.add ()
-    | Book_edit -> Book_editor.edit
-    | Dance -> Dance_viewer.view
-    | Dance_add -> Dance_editor.add ()
-    | Dance_edit -> Dance_editor.edit
-    | Person -> Person_viewer.view
-    | Person_add -> Person_editor.add ()
-    | Person_edit -> Person_editor.edit
-    | Version -> Version_viewer.view_version
-    | Version_add -> Version_editor.add
-    | Version_edit -> Version_editor.edit
-    | Tune -> Version_viewer.view_tune
-    | Tune_add -> Tune_editor.add ()
-    | Tune_edit -> Tune_editor.edit
-    | Set -> Set_viewer.view
-    | Set_add -> Set_editor.add ()
-    | Set_edit -> Set_editor.edit
-    | Source -> Source_viewer.view
-    | Source_add -> Source_editor.add ()
-    | Source_edit -> Source_editor.edit
-    | User_create -> User_creator.create ()
-    | User_prepare_reset_password -> User_password_reset_preparer.create ()
-    | User_password_reset -> User_password_resetter.create
+    | Book Add -> Book_editor.add ()
+    | Book Edit -> Book_editor.edit
+    | Book View -> Book_viewer.view
+    | Book Preview -> Book_viewer.preview
+    | Dance View -> Dance_viewer.view
+    | Dance Add -> Dance_editor.add ()
+    | Dance Edit -> Dance_editor.edit
+    | Person View -> Person_viewer.view
+    | Person Add -> Person_editor.add ()
+    | Person Edit -> Person_editor.edit
+    | Version View -> Version_viewer.view_version
+    | Version Add -> Version_editor.add
+    | Version Edit -> Version_editor.edit
+    | Tune View -> Version_viewer.view_tune
+    | Tune Add -> Tune_editor.add ()
+    | Tune Edit -> Tune_editor.edit
+    | Set View -> Set_viewer.view
+    | Set Add -> Set_editor.add ()
+    | Set Edit -> Set_editor.edit
+    | Source View -> Source_viewer.view
+    | Source Add -> Source_editor.add ()
+    | Source Edit -> Source_editor.edit
+    | User Create -> User_creator.create ()
+    | User Prepare_reset_password -> User_password_reset_preparer.create ()
+    | User Password_reset -> User_password_resetter.create
   in
   let madge_match_apply_all : Page.t Lwt.t Endpoints.Page.wrapped' list -> (unit -> Page.t Lwt.t) option =
     List.find_map @@ fun (Endpoints.Page.W' endpoint) ->

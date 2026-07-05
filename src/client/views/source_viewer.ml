@@ -27,7 +27,7 @@ let view context id =
             Button.make_a
               ~label: "Edit"
               ~icon: (Action Edit)
-              ~href: (S.const @@ Endpoints.Page.(href Source_edit) id)
+              ~href: (S.const @@ Endpoints.Page.(href @@ Source Edit) id)
               ~dropdown: true
               ()
           ]

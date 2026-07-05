@@ -42,13 +42,13 @@ let add (uri : Uri.t) : unit =
 (** Returns all the models whose page is present in the history. *)
 let get_model_ids () : Any_id.t list =
   let model_id : type a r. (a, Any_id.t option, r) Endpoints.Page.t -> a = function
-    | Person -> (fun _ -> some % Any_id.person)
-    | Dance -> (fun _ -> some % Any_id.dance)
-    | Source -> (fun _ -> some % Any_id.source)
-    | Tune -> (fun _ -> some % Any_id.tune)
-    | Version -> (fun _ -> some % Any_id.version)
-    | Set -> (fun _ -> some % Any_id.set)
-    | Book -> (fun _ -> some % Any_id.book)
+    | Person View -> (fun _ -> some % Any_id.person)
+    | Dance View -> (fun _ -> some % Any_id.dance)
+    | Source View -> (fun _ -> some % Any_id.source)
+    | Tune View -> (fun _ -> some % Any_id.tune)
+    | Version View -> (fun _ -> some % Any_id.version)
+    | Set View -> (fun _ -> some % Any_id.set)
+    | Book View -> (fun _ -> some % Any_id.book)
     (* FIXME: user once there is a user viewer page endpoint *)
     (* everything else we ignore *)
     | endpoint -> Endpoints.Page.consume endpoint ~return: None
