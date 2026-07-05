@@ -1492,3 +1492,51 @@ ALTER TABLE "tune"
 -- @m069_2026_06_use_enum_for_tune_kind__rename_column
 ALTER TABLE "tune"
   RENAME COLUMN "kind_new" TO "kind";
+
+-- @m070_2026_07_name_search__create_extension_unaccent
+-- @m070_2026_07_name_search__create_function_name_search
+
+-- @m070_2026_07_name_search__add_column_person_name_search
+ALTER TABLE "person"
+  ADD COLUMN "name_search" text
+  GENERATED ALWAYS AS ("make_name_search"(name)) STORED;
+
+-- @m070_2026_07_name_search__add_column_dance_name_search
+ALTER TABLE "dance"
+  ADD COLUMN "name_search" text
+  GENERATED ALWAYS AS ("make_name_search"(name)) STORED;
+
+-- @m070_2026_07_name_search__add_column_source_name_search
+ALTER TABLE "source"
+  ADD COLUMN "name_search" text
+  GENERATED ALWAYS AS ("make_name_search"(name)) STORED;
+
+-- @m070_2026_07_name_search__add_column_tune_name_search
+ALTER TABLE "tune"
+  ADD COLUMN "name_search" text
+  GENERATED ALWAYS AS ("make_name_search"(name)) STORED;
+
+-- @m070_2026_07_name_search__add_column_set_name_search
+ALTER TABLE "set"
+  ADD COLUMN "name_search" text
+  GENERATED ALWAYS AS ("make_name_search"(name)) STORED;
+
+-- @m070_2026_07_name_search__add_column_book_name_search
+ALTER TABLE "book"
+  ADD COLUMN "name_search" text
+  GENERATED ALWAYS AS ("make_name_search"(name)) STORED;
+
+-- @m070_2026_07_name_search__add_column_user_username_search
+ALTER TABLE "user"
+  ADD COLUMN "username_search" text
+  GENERATED ALWAYS AS ("make_name_search"(username)) STORED;
+
+-- @m070_2026_07_name_search__add_column_dance_extra_name_search
+ALTER TABLE "dance_extra_names"
+  ADD COLUMN "extra_name_search" text
+  GENERATED ALWAYS AS ("make_name_search"(extra_name)) STORED;
+
+-- @m070_2026_07_name_search__add_column_tune_extra_name_search
+ALTER TABLE "tune_extra_names"
+  ADD COLUMN "extra_name_search" text
+  GENERATED ALWAYS AS ("make_name_search"(extra_name)) STORED;

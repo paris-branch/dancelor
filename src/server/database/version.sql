@@ -296,7 +296,9 @@ JOIN "sources" ON "version_sources"."source_id" = "sources"."id"
 WHERE @version_ids { One_of { "version_id" IN @version_ids } | All { TRUE } };
 
 -- @get_tune_extra_names_for
-SELECT "tune_extra_names".*
+SELECT
+    "version"."tune_id",
+    "extra_name"
 FROM "tune_extra_names"
 JOIN "version" ON "tune_extra_names"."tune_id" = "version"."tune_id"
 WHERE @version_ids { One_of { "version"."id" IN @version_ids } | All { TRUE } }

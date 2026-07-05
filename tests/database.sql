@@ -34,6 +34,13 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm" WITH SCHEMA "dancelor";
 
 
 --
+-- Name: unaccent; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS "unaccent" WITH SCHEMA "public";
+
+
+--
 -- Name: globally_unique_id_type; Type: TYPE; Schema: dancelor; Owner: -
 --
 
@@ -128,6 +135,15 @@ CREATE TYPE "dancelor"."visibility" AS ENUM (
 
 
 --
+-- Name: make_name_search("text"); Type: FUNCTION; Schema: dancelor; Owner: -
+--
+
+CREATE FUNCTION "dancelor"."make_name_search"("text") RETURNS "text"
+    LANGUAGE "sql" IMMUTABLE PARALLEL SAFE
+    AS $_$ SELECT regexp_replace(lower("public"."unaccent"($1)), '^(the|an?)\s+(.+)$', '\2, \1') $_$;
+
+
+--
 -- Name: book; Type: TABLE; Schema: dancelor; Owner: -
 --
 
@@ -136,7 +152,8 @@ CREATE TABLE "dancelor"."book" (
     "name" character varying NOT NULL,
     "date" character varying,
     "remark" character varying,
-    "scddb_id" integer
+    "scddb_id" integer,
+    "name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("name")::"text")) STORED
 );
 
 
@@ -214,7 +231,8 @@ CREATE TABLE "dancelor"."dance" (
     "scddb_id" integer,
     "disambiguation" character varying(256),
     "date" character varying(32),
-    "two_chords" "dancelor"."two_chords" NOT NULL
+    "two_chords" "dancelor"."two_chords" NOT NULL,
+    "name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("name")::"text")) STORED
 );
 
 
@@ -235,7 +253,8 @@ CREATE TABLE "dancelor"."dance_devisers" (
 
 CREATE TABLE "dancelor"."dance_extra_names" (
     "dance_id" character varying(14) NOT NULL,
-    "extra_name" character varying(256) NOT NULL
+    "extra_name" character varying(256) NOT NULL,
+    "extra_name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("extra_name")::"text")) STORED
 );
 
 
@@ -291,7 +310,8 @@ CREATE TABLE "dancelor"."person" (
     "name" character varying(256) NOT NULL,
     "scddb_id" integer,
     "composed_tunes_are_public" boolean NOT NULL,
-    "published_tunes_are_public" boolean NOT NULL
+    "published_tunes_are_public" boolean NOT NULL,
+    "name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("name")::"text")) STORED
 );
 
 
@@ -326,7 +346,8 @@ CREATE TABLE "dancelor"."set" (
     "name" character varying NOT NULL,
     "kind" character varying NOT NULL,
     "order" character varying NOT NULL,
-    "remark" character varying
+    "remark" character varying,
+    "name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("name")::"text")) STORED
 );
 
 
@@ -369,7 +390,8 @@ CREATE TABLE "dancelor"."source" (
     "short_name" character varying(64),
     "scddb_id" integer,
     "description" "text",
-    "date" character varying(32)
+    "date" character varying(32),
+    "name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("name")::"text")) STORED
 );
 
 
@@ -393,7 +415,8 @@ CREATE TABLE "dancelor"."tune" (
     "remark" character varying,
     "scddb_id" integer,
     "date" character varying(32),
-    "kind" "dancelor"."kind" NOT NULL
+    "kind" "dancelor"."kind" NOT NULL,
+    "name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("name")::"text")) STORED
 );
 
 
@@ -415,7 +438,8 @@ CREATE TABLE "dancelor"."tune_composers" (
 
 CREATE TABLE "dancelor"."tune_extra_names" (
     "tune_id" character varying(14) NOT NULL,
-    "extra_name" character varying NOT NULL
+    "extra_name" character varying NOT NULL,
+    "extra_name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("extra_name")::"text")) STORED
 );
 
 
@@ -431,7 +455,8 @@ CREATE TABLE "dancelor"."user" (
     "password_reset_token_max_date" timestamp without time zone,
     "omniscience" boolean NOT NULL,
     "person_id" character varying(14),
-    "role" "dancelor"."role" NOT NULL
+    "role" "dancelor"."role" NOT NULL,
+    "username_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("username")::"text")) STORED
 );
 
 
@@ -685,6 +710,7 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m066_2026_06
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m067_2026_06_move_created_update_at_to_entry_table', '2026-06-12 06:56:48.092879+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m068_2026_06_move_access_to_entry_table', '2026-06-12 06:59:06.504884+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m069_2026_06_use_enum_for_tune_kind', '2026-06-13 15:45:51.895098+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m070_2026_07_name_search', '2026-07-05 23:59:27.945785+00');
 
 
 --

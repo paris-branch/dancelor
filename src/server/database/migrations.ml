@@ -871,9 +871,8 @@ let migrations : migration list = [
     Migrations_sql.m059_2026_05_string_to_nestring_option__make_book_remarks_nullable;
     Migrations_sql.m059_2026_05_string_to_nestring_option__convert_book_remarks;
   ];
-  make_custom "m060_2026_06_create_extension_pg_trgm" (fun db ->
-    Connection.bypass_exec db "CREATE EXTENSION IF NOT EXISTS pg_trgm";
-    lwt_unit
+  make_ddl "m060_2026_06_create_extension_pg_trgm" (
+    bypass "CREATE EXTENSION IF NOT EXISTS pg_trgm"
   );
   make_ddls "m061_2026_06_use_enum_for_user_role" [
     Migrations_sql.m061_2026_06_use_enum_for_user_role__create_type_role;
@@ -999,6 +998,22 @@ let migrations : migration list = [
     ignore <$> Migrations_sql.m069_2026_06_use_enum_for_tune_kind__cleanup_columns db;%lwt
     ignore <$> Migrations_sql.m069_2026_06_use_enum_for_tune_kind__rename_column db
   );
+  make_ddls "m070_2026_07_name_search" [
+    bypass "CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public";
+    bypass
+      {| CREATE FUNCTION make_name_search(TEXT) RETURNS TEXT
+           LANGUAGE "sql" IMMUTABLE PARALLEL SAFE
+           AS $$ SELECT regexp_replace(lower("public"."unaccent"($1)), '^(the|an?)\s+(.+)$', '\2, \1') $$ |};
+    Migrations_sql.m070_2026_07_name_search__add_column_person_name_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_dance_name_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_source_name_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_tune_name_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_set_name_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_book_name_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_user_username_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_dance_extra_name_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_tune_extra_name_search;
+  ];
 ]
 
 exception Migration_failed of string * exn
