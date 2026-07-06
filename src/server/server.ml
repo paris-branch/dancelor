@@ -54,6 +54,7 @@ let callback _ request body =
       Environment.with_ request @@ fun env ->
       if String.starts_with ~needle: "/api/" path then
         (
+          Metrics.increment_http_requests_count `API;
           Log.debug (fun m -> m "Looking for an API controller for %s." path);
           let%lwt body = Cohttp_lwt.Body.to_string body in
           apply_controller env (Madge.Request.make ~meth ~uri ~body)

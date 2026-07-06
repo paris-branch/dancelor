@@ -127,22 +127,27 @@ let serve env path query =
   match serve_static_file path with
   | Some serve_static_file ->
     (
-      Log.debug (fun m -> m "Serving static file: <share>/%s" @@ String.ltrim ~chars: ['/'] path);
+      let path = String.ltrim ~chars: ['/'] path in
+      Metrics.increment_http_requests_count (`Static path);
+      Log.debug (fun m -> m "Serving static file: <share>/%s" path);
       serve_static_file ()
     )
   | None ->
     if path = "/sitemap.xml" then
       (
+        Metrics.increment_http_requests_count (`Static "sitemap.xml");
         Log.debug (fun m -> m "Generating and serving sitemap.xml");
         serve_sitemap env
       )
     else if path = "/robots.txt" then
       (
+        Metrics.increment_http_requests_count (`Static "robots.txt");
         Log.debug (fun m -> m "Serving robots.txt");
         serve_robots_txt ()
       )
     else
       (
+        Metrics.increment_http_requests_count `Main_file;
         Log.debug (fun m -> m "Serving main file.");
         serve_index path query
       )
