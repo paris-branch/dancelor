@@ -1,8 +1,7 @@
 -- NOTE: For schema elements that sqlgg cannot parse. This file will
 -- be included before `schema.sql` in tests only.
 
--- FIXME: Upstream to sqlgg.
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
 
 CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;
 

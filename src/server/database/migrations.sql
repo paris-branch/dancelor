@@ -1540,3 +1540,6 @@ ALTER TABLE "dance_extra_names"
 ALTER TABLE "tune_extra_names"
   ADD COLUMN "extra_name_search" text
   GENERATED ALWAYS AS ("make_name_search"(extra_name)) STORED;
+
+-- @m071_2026_07_move_pg_trgm_to_public
+-- @m072_2026_07_gin_indices

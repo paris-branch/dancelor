@@ -30,7 +30,7 @@ CREATE SCHEMA "dancelor";
 -- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
 --
 
-CREATE EXTENSION IF NOT EXISTS "pg_trgm" WITH SCHEMA "dancelor";
+CREATE EXTENSION IF NOT EXISTS "pg_trgm" WITH SCHEMA "public";
 
 
 --
@@ -711,6 +711,8 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m067_2026_06
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m068_2026_06_move_access_to_entry_table', '2026-06-12 06:59:06.504884+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m069_2026_06_use_enum_for_tune_kind', '2026-06-13 15:45:51.895098+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m070_2026_07_name_search', '2026-07-05 23:59:27.945785+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m071_2026_07_move_pg_trgm_to_public', '2026-07-06 00:45:28.179447+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m072_2026_07_gin_indices', '2026-07-06 00:45:28.19765+00');
 
 
 --
@@ -1191,6 +1193,132 @@ ALTER TABLE ONLY "dancelor"."version_sources"
 
 ALTER TABLE ONLY "dancelor"."user"
     ADD CONSTRAINT "user_username_key" UNIQUE ("username");
+
+
+--
+-- Name: idx_book_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_book_name" ON "dancelor"."book" USING "gin" ("name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_book_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_book_name_search" ON "dancelor"."book" USING "gin" ("name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_dance_extra_names_extra_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_dance_extra_names_extra_name" ON "dancelor"."dance_extra_names" USING "gin" ("extra_name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_dance_extra_names_extra_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_dance_extra_names_extra_name_search" ON "dancelor"."dance_extra_names" USING "gin" ("extra_name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_dance_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_dance_name" ON "dancelor"."dance" USING "gin" ("name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_dance_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_dance_name_search" ON "dancelor"."dance" USING "gin" ("name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_person_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_person_name" ON "dancelor"."person" USING "gin" ("name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_person_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_person_name_search" ON "dancelor"."person" USING "gin" ("name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_set_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_set_name" ON "dancelor"."set" USING "gin" ("name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_set_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_set_name_search" ON "dancelor"."set" USING "gin" ("name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_source_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_source_name" ON "dancelor"."source" USING "gin" ("name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_source_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_source_name_search" ON "dancelor"."source" USING "gin" ("name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_tune_extra_names_extra_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_tune_extra_names_extra_name" ON "dancelor"."tune_extra_names" USING "gin" ("extra_name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_tune_extra_names_extra_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_tune_extra_names_extra_name_search" ON "dancelor"."tune_extra_names" USING "gin" ("extra_name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_tune_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_tune_name" ON "dancelor"."tune" USING "gin" ("name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_tune_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_tune_name_search" ON "dancelor"."tune" USING "gin" ("name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_user_username; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_user_username" ON "dancelor"."user" USING "gin" ("username" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_user_username_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_user_username_search" ON "dancelor"."user" USING "gin" ("username_search" "public"."gin_trgm_ops");
 
 
 --

@@ -1014,6 +1014,30 @@ let migrations : migration list = [
     Migrations_sql.m070_2026_07_name_search__add_column_dance_extra_name_search;
     Migrations_sql.m070_2026_07_name_search__add_column_tune_extra_name_search;
   ];
+  make_ddls "m071_2026_07_move_pg_trgm_to_public" [
+    bypass "DROP EXTENSION pg_trgm";
+    bypass "CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public";
+  ];
+  make_ddls "m072_2026_07_gin_indices" [
+    bypass {| CREATE INDEX "idx_person_name" ON "person" USING GIN ("name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_person_name_search" ON "person" USING GIN ("name_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_dance_name" ON "dance" USING GIN ("name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_dance_name_search" ON "dance" USING GIN ("name_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_source_name" ON "source" USING GIN ("name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_source_name_search" ON "source" USING GIN ("name_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_tune_name" ON "tune" USING GIN ("name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_tune_name_search" ON "tune" USING GIN ("name_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_set_name" ON "set" USING GIN ("name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_set_name_search" ON "set" USING GIN ("name_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_book_name" ON "book" USING GIN ("name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_book_name_search" ON "book" USING GIN ("name_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_user_username" ON "user" USING GIN ("username" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_user_username_search" ON "user" USING GIN ("username_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_dance_extra_names_extra_name" ON "dance_extra_names" USING GIN ("extra_name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_dance_extra_names_extra_name_search" ON "dance_extra_names" USING GIN ("extra_name_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_tune_extra_names_extra_name" ON "tune_extra_names" USING GIN ("extra_name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_tune_extra_names_extra_name_search" ON "tune_extra_names" USING GIN ("extra_name_search" "public"."gin_trgm_ops") |};
+  ];
 ]
 
 exception Migration_failed of string * exn
