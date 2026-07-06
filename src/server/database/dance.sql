@@ -118,15 +118,19 @@ FROM "dances"
 WHERE "id" = @id;
 
 -- @search
-WITH "dances" AS &get_dance_rows
+WITH "dance_rows" AS &get_dance_rows
 SELECT
-    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
-    "dances".*
-FROM "dances"
+    CASE
+        WHEN @terms = '' THEN 1.0
+	ELSE GREATEST(word_similarity(@terms, "dance"."name"), word_similarity(make_name_search(@terms), "name_search"))
+    END AS "score",
+    "dance_rows".*
+FROM "dance"
+JOIN "dance_rows" ON "dance"."id" = "dance_rows"."id"
 WHERE
-    (@terms = '' OR @terms <% "name")
-    AND @deviser { Some { EXISTS (SELECT 1 FROM "dance_devisers" WHERE "dance_id" = "dances"."id" AND "deviser_id" IN @deviser) } | None { TRUE } }
-ORDER BY "score" DESC, "name" ASC;
+    (@terms = '' OR @terms <% "dance"."name" OR make_name_search(@terms) <% "name_search")
+    AND @deviser { Some { EXISTS (SELECT 1 FROM "dance_devisers" WHERE "dance_id" = "dance"."id" AND "deviser_id" IN @deviser) } | None { TRUE } }
+ORDER BY "score" DESC, "name_search" ASC, "name" ASC, "id" ASC;
 
 -- @get_extra_names_for
 SELECT

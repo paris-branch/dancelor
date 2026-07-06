@@ -63,10 +63,14 @@ WHERE "user"."id" = @id
 LIMIT 1; -- NOTE: to help sqlgg
 
 -- @search
-WITH "persons" AS &get_person_rows
+WITH "person_rows" AS &get_person_rows
 SELECT
-    CASE WHEN @terms = '' THEN 1.0 ELSE word_similarity(@terms, "name") END AS "score",
-    "persons".*
-FROM "persons"
-WHERE (@terms = '' OR @terms <% "name")
-ORDER BY "score" DESC, "name" ASC;
+    CASE
+        WHEN @terms = '' THEN 1.0
+	ELSE GREATEST(word_similarity(@terms, "person"."name"), word_similarity(make_name_search(@terms), "name_search"))
+    END AS "score",
+    "person_rows".*
+FROM "person"
+JOIN "person_rows" ON "person"."id" = "person_rows"."id"
+WHERE (@terms = '' OR @terms <% "person"."name" OR make_name_search(@terms) <% "name_search")
+ORDER BY "score" DESC, "name_search" ASC, "name" ASC, "id" ASC;

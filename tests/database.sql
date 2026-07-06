@@ -30,7 +30,14 @@ CREATE SCHEMA "dancelor";
 -- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
 --
 
-CREATE EXTENSION IF NOT EXISTS "pg_trgm" WITH SCHEMA "dancelor";
+CREATE EXTENSION IF NOT EXISTS "pg_trgm" WITH SCHEMA "public";
+
+
+--
+-- Name: unaccent; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS "unaccent" WITH SCHEMA "public";
 
 
 --
@@ -128,6 +135,15 @@ CREATE TYPE "dancelor"."visibility" AS ENUM (
 
 
 --
+-- Name: make_name_search("text"); Type: FUNCTION; Schema: dancelor; Owner: -
+--
+
+CREATE FUNCTION "dancelor"."make_name_search"("text") RETURNS "text"
+    LANGUAGE "sql" IMMUTABLE PARALLEL SAFE
+    AS $_$ SELECT regexp_replace(lower("public"."unaccent"($1)), '^(the|an?)\s+(.+)$', '\2, \1') $_$;
+
+
+--
 -- Name: book; Type: TABLE; Schema: dancelor; Owner: -
 --
 
@@ -136,7 +152,8 @@ CREATE TABLE "dancelor"."book" (
     "name" character varying NOT NULL,
     "date" character varying,
     "remark" character varying,
-    "scddb_id" integer
+    "scddb_id" integer,
+    "name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("name")::"text")) STORED
 );
 
 
@@ -214,7 +231,8 @@ CREATE TABLE "dancelor"."dance" (
     "scddb_id" integer,
     "disambiguation" character varying(256),
     "date" character varying(32),
-    "two_chords" "dancelor"."two_chords" NOT NULL
+    "two_chords" "dancelor"."two_chords" NOT NULL,
+    "name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("name")::"text")) STORED
 );
 
 
@@ -235,7 +253,8 @@ CREATE TABLE "dancelor"."dance_devisers" (
 
 CREATE TABLE "dancelor"."dance_extra_names" (
     "dance_id" character varying(14) NOT NULL,
-    "extra_name" character varying(256) NOT NULL
+    "extra_name" character varying(256) NOT NULL,
+    "extra_name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("extra_name")::"text")) STORED
 );
 
 
@@ -291,7 +310,8 @@ CREATE TABLE "dancelor"."person" (
     "name" character varying(256) NOT NULL,
     "scddb_id" integer,
     "composed_tunes_are_public" boolean NOT NULL,
-    "published_tunes_are_public" boolean NOT NULL
+    "published_tunes_are_public" boolean NOT NULL,
+    "name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("name")::"text")) STORED
 );
 
 
@@ -326,7 +346,8 @@ CREATE TABLE "dancelor"."set" (
     "name" character varying NOT NULL,
     "kind" character varying NOT NULL,
     "order" character varying NOT NULL,
-    "remark" character varying
+    "remark" character varying,
+    "name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("name")::"text")) STORED
 );
 
 
@@ -369,7 +390,8 @@ CREATE TABLE "dancelor"."source" (
     "short_name" character varying(64),
     "scddb_id" integer,
     "description" "text",
-    "date" character varying(32)
+    "date" character varying(32),
+    "name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("name")::"text")) STORED
 );
 
 
@@ -393,7 +415,8 @@ CREATE TABLE "dancelor"."tune" (
     "remark" character varying,
     "scddb_id" integer,
     "date" character varying(32),
-    "kind" "dancelor"."kind" NOT NULL
+    "kind" "dancelor"."kind" NOT NULL,
+    "name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("name")::"text")) STORED
 );
 
 
@@ -415,7 +438,8 @@ CREATE TABLE "dancelor"."tune_composers" (
 
 CREATE TABLE "dancelor"."tune_extra_names" (
     "tune_id" character varying(14) NOT NULL,
-    "extra_name" character varying NOT NULL
+    "extra_name" character varying NOT NULL,
+    "extra_name_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("extra_name")::"text")) STORED
 );
 
 
@@ -431,7 +455,8 @@ CREATE TABLE "dancelor"."user" (
     "password_reset_token_max_date" timestamp without time zone,
     "omniscience" boolean NOT NULL,
     "person_id" character varying(14),
-    "role" "dancelor"."role" NOT NULL
+    "role" "dancelor"."role" NOT NULL,
+    "username_search" "text" GENERATED ALWAYS AS ("dancelor"."make_name_search"(("username")::"text")) STORED
 );
 
 
@@ -685,6 +710,9 @@ INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m066_2026_06
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m067_2026_06_move_created_update_at_to_entry_table', '2026-06-12 06:56:48.092879+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m068_2026_06_move_access_to_entry_table', '2026-06-12 06:59:06.504884+00');
 INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m069_2026_06_use_enum_for_tune_kind', '2026-06-13 15:45:51.895098+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m070_2026_07_name_search', '2026-07-05 23:59:27.945785+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m071_2026_07_move_pg_trgm_to_public', '2026-07-06 00:45:28.179447+00');
+INSERT INTO "dancelor"."migrations" ("name", "applied_at") VALUES ('m072_2026_07_gin_indices', '2026-07-06 00:45:28.19765+00');
 
 
 --
@@ -1165,6 +1193,132 @@ ALTER TABLE ONLY "dancelor"."version_sources"
 
 ALTER TABLE ONLY "dancelor"."user"
     ADD CONSTRAINT "user_username_key" UNIQUE ("username");
+
+
+--
+-- Name: idx_book_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_book_name" ON "dancelor"."book" USING "gin" ("name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_book_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_book_name_search" ON "dancelor"."book" USING "gin" ("name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_dance_extra_names_extra_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_dance_extra_names_extra_name" ON "dancelor"."dance_extra_names" USING "gin" ("extra_name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_dance_extra_names_extra_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_dance_extra_names_extra_name_search" ON "dancelor"."dance_extra_names" USING "gin" ("extra_name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_dance_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_dance_name" ON "dancelor"."dance" USING "gin" ("name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_dance_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_dance_name_search" ON "dancelor"."dance" USING "gin" ("name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_person_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_person_name" ON "dancelor"."person" USING "gin" ("name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_person_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_person_name_search" ON "dancelor"."person" USING "gin" ("name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_set_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_set_name" ON "dancelor"."set" USING "gin" ("name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_set_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_set_name_search" ON "dancelor"."set" USING "gin" ("name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_source_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_source_name" ON "dancelor"."source" USING "gin" ("name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_source_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_source_name_search" ON "dancelor"."source" USING "gin" ("name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_tune_extra_names_extra_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_tune_extra_names_extra_name" ON "dancelor"."tune_extra_names" USING "gin" ("extra_name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_tune_extra_names_extra_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_tune_extra_names_extra_name_search" ON "dancelor"."tune_extra_names" USING "gin" ("extra_name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_tune_name; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_tune_name" ON "dancelor"."tune" USING "gin" ("name" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_tune_name_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_tune_name_search" ON "dancelor"."tune" USING "gin" ("name_search" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_user_username; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_user_username" ON "dancelor"."user" USING "gin" ("username" "public"."gin_trgm_ops");
+
+
+--
+-- Name: idx_user_username_search; Type: INDEX; Schema: dancelor; Owner: -
+--
+
+CREATE INDEX "idx_user_username_search" ON "dancelor"."user" USING "gin" ("username_search" "public"."gin_trgm_ops");
 
 
 --

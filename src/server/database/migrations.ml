@@ -871,9 +871,8 @@ let migrations : migration list = [
     Migrations_sql.m059_2026_05_string_to_nestring_option__make_book_remarks_nullable;
     Migrations_sql.m059_2026_05_string_to_nestring_option__convert_book_remarks;
   ];
-  make_custom "m060_2026_06_create_extension_pg_trgm" (fun db ->
-    Connection.bypass_exec db "CREATE EXTENSION IF NOT EXISTS pg_trgm";
-    lwt_unit
+  make_ddl "m060_2026_06_create_extension_pg_trgm" (
+    bypass "CREATE EXTENSION IF NOT EXISTS pg_trgm"
   );
   make_ddls "m061_2026_06_use_enum_for_user_role" [
     Migrations_sql.m061_2026_06_use_enum_for_user_role__create_type_role;
@@ -999,6 +998,46 @@ let migrations : migration list = [
     ignore <$> Migrations_sql.m069_2026_06_use_enum_for_tune_kind__cleanup_columns db;%lwt
     ignore <$> Migrations_sql.m069_2026_06_use_enum_for_tune_kind__rename_column db
   );
+  make_ddls "m070_2026_07_name_search" [
+    bypass "CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public";
+    bypass
+      {| CREATE FUNCTION make_name_search(TEXT) RETURNS TEXT
+           LANGUAGE "sql" IMMUTABLE PARALLEL SAFE
+           AS $$ SELECT regexp_replace(lower("public"."unaccent"($1)), '^(the|an?)\s+(.+)$', '\2, \1') $$ |};
+    Migrations_sql.m070_2026_07_name_search__add_column_person_name_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_dance_name_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_source_name_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_tune_name_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_set_name_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_book_name_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_user_username_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_dance_extra_name_search;
+    Migrations_sql.m070_2026_07_name_search__add_column_tune_extra_name_search;
+  ];
+  make_ddls "m071_2026_07_move_pg_trgm_to_public" [
+    bypass "DROP EXTENSION pg_trgm";
+    bypass "CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public";
+  ];
+  make_ddls "m072_2026_07_gin_indices" [
+    bypass {| CREATE INDEX "idx_person_name" ON "person" USING GIN ("name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_person_name_search" ON "person" USING GIN ("name_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_dance_name" ON "dance" USING GIN ("name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_dance_name_search" ON "dance" USING GIN ("name_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_source_name" ON "source" USING GIN ("name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_source_name_search" ON "source" USING GIN ("name_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_tune_name" ON "tune" USING GIN ("name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_tune_name_search" ON "tune" USING GIN ("name_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_set_name" ON "set" USING GIN ("name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_set_name_search" ON "set" USING GIN ("name_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_book_name" ON "book" USING GIN ("name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_book_name_search" ON "book" USING GIN ("name_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_user_username" ON "user" USING GIN ("username" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_user_username_search" ON "user" USING GIN ("username_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_dance_extra_names_extra_name" ON "dance_extra_names" USING GIN ("extra_name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_dance_extra_names_extra_name_search" ON "dance_extra_names" USING GIN ("extra_name_search" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_tune_extra_names_extra_name" ON "tune_extra_names" USING GIN ("extra_name" "public"."gin_trgm_ops") |};
+    bypass {| CREATE INDEX "idx_tune_extra_names_extra_name_search" ON "tune_extra_names" USING GIN ("extra_name_search" "public"."gin_trgm_ops") |};
+  ];
 ]
 
 exception Migration_failed of string * exn

@@ -18,6 +18,7 @@ CREATE TABLE "person" (
     "scddb_id" INT,
     "composed_tunes_are_public" BOOLEAN NOT NULL,
     "published_tunes_are_public" BOOLEAN NOT NULL,
+    "name_search" TEXT GENERATED ALWAYS AS (make_name_search("name")) STORED,
     CONSTRAINT "fk_person_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
@@ -34,6 +35,7 @@ CREATE TABLE "user" (
     -- [sqlgg] module=Sql_types.Person_id_conv
     "person_id" VARCHAR(14) NULL,
     "role" "role" NOT NULL,
+    "username_search" TEXT GENERATED ALWAYS AS (make_name_search("username")) STORED,
     CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "entry" ("id"),
     CONSTRAINT "fk_user_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
 );
@@ -77,6 +79,7 @@ CREATE TABLE "source" (
     "scddb_id" INT,
     "description" TEXT,
     "date" VARCHAR(32),
+    "name_search" TEXT GENERATED ALWAYS AS (make_name_search("name")) STORED,
     CONSTRAINT "fk_source_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
@@ -101,6 +104,7 @@ CREATE TABLE "dance" (
     "disambiguation" VARCHAR(256),
     "date" VARCHAR(32),
     "two_chords" "two_chords" NOT NULL,
+    "name_search" TEXT GENERATED ALWAYS AS (make_name_search("name")) STORED,
     CONSTRAINT "fk_dance_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
@@ -120,6 +124,7 @@ CREATE TABLE "dance_extra_names" (
     -- [sqlgg] module=Sql_types.Dance_id_conv
     "dance_id" VARCHAR(14) NOT NULL,
     "extra_name" VARCHAR(256) NOT NULL,
+    "extra_name_search" TEXT GENERATED ALWAYS AS (make_name_search("extra_name")) STORED,
     CONSTRAINT "fk_dance_extra_names_dance_id" FOREIGN KEY ("dance_id") REFERENCES "dance" ("id")
 );
 
@@ -133,6 +138,7 @@ CREATE TABLE "tune" (
     "scddb_id" INT,
     "date" VARCHAR(32),
     "kind" "kind" NOT NULL,
+    "name_search" TEXT GENERATED ALWAYS AS (make_name_search("name")) STORED,
     CONSTRAINT "fk_tune_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
@@ -140,6 +146,7 @@ CREATE TABLE "tune_extra_names" (
     -- [sqlgg] module=Sql_types.Tune_id_conv
     "tune_id" VARCHAR(14) NOT NULL,
     "extra_name" VARCHAR NOT NULL,
+    "extra_name_search" TEXT GENERATED ALWAYS AS (make_name_search("extra_name")) STORED,
     CONSTRAINT "fk_tune_extra_names_tune_id" FOREIGN KEY ("tune_id") REFERENCES "tune" ("id")
 );
 
@@ -231,6 +238,7 @@ CREATE TABLE "set" (
     "kind" VARCHAR NOT NULL,
     "order" VARCHAR NOT NULL,
     "remark" VARCHAR,
+    "name_search" TEXT GENERATED ALWAYS AS (make_name_search("name")) STORED,
     CONSTRAINT "fk_set_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
@@ -269,6 +277,7 @@ CREATE TABLE "book" (
     "date" VARCHAR,
     "remark" VARCHAR,
     "scddb_id" INT,
+    "name_search" TEXT GENERATED ALWAYS AS (make_name_search("name")) STORED,
     CONSTRAINT "fk_book_id" FOREIGN KEY ("id") REFERENCES "entry" ("id")
 );
 
