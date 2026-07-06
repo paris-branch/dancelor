@@ -8,6 +8,22 @@ let http_requests_total =
 
 let increment_http_requests_total () = Prometheus.Counter.inc_one http_requests_total
 
+let http_requests_count =
+  let family =
+    Prometheus.Counter.v_labels
+      ~namespace
+      ~help: "Number of HTTP requests"
+      "http_requests_count"
+      ~label_names: ["kind"; "file"]
+  in
+  fun ~kind ~file ->
+    Prometheus.Counter.labels family [kind; file]
+
+let increment_http_requests_count = function
+  | `API -> Prometheus.Counter.inc_one (http_requests_count ~kind: "API" ~file: "")
+  | `Main_file -> Prometheus.Counter.inc_one (http_requests_count ~kind: "Main file" ~file: "")
+  | `Static file -> Prometheus.Counter.inc_one (http_requests_count ~kind: "Static" ~file)
+
 let open_file_descriptors =
   Prometheus.Gauge.v
     ~namespace
