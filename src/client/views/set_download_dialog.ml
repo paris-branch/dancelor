@@ -61,7 +61,7 @@ let open_ (set : Set_view.t) dialog =
           let (set_params, rendering_params) = S.value dialog.parameters_signal in
           return None;
           Version_download_dialog.open_pdf_generation_dialog (
-            Job.status_signal
+            Job.status_signal_non_copyrighted
               (NesSlug.add_suffix (NesSlug.of_string set.name) ".pdf")
               (Madge_client.call_exn Endpoints.Api.(route @@ Set Build_pdf) set.id set_params rendering_params)
           )

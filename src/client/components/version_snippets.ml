@@ -45,6 +45,7 @@ let make_ogg_gen status_signal =
         | Waiting -> [audio ~a: [a_controls (); a_class ["placeholder"]] []]
         | Failed -> [audio ~a: [a_controls (); a_class ["bg-danger"; "opacity-50"]] []]
         | Succeeded src -> [audio ~a: [a_controls ()] ~src []]
+        | Copyrighted -> []
     )
 
 let make_gen
@@ -70,40 +71,39 @@ let make_gen
     );
   ]
 
-let make_gen ?show_logs ?show_audio ?is_protected_promise ~slug registration_response_promise =
+let make_gen ?show_logs ?show_audio ~slug copyright_response_promise =
   let svg_status_signal =
     Job.status_signal (NesSlug.add_suffix slug ".svg") (
-      Endpoints.Job.map_registration_response Endpoints.Version.Snippet_ids.svg_job_id
-      <$> registration_response_promise
+      Endpoints.Version.map_copyright_response
+        (Endpoints.Job.map_registration_response Endpoints.Version.Snippet_ids.svg_job_id)
+      <$> copyright_response_promise
     )
   in
   let ogg_status_signal =
     Job.status_signal (NesSlug.add_suffix slug ".ogg") (
-      Endpoints.Job.map_registration_response Endpoints.Version.Snippet_ids.ogg_job_id
-      <$> registration_response_promise
+      Endpoints.Version.map_copyright_response
+        (Endpoints.Job.map_registration_response Endpoints.Version.Snippet_ids.ogg_job_id)
+      <$> copyright_response_promise
     )
   in
   make_gen
     ?show_logs
     ?show_audio
-    ?is_protected_promise
     svg_status_signal
     ogg_status_signal
 
 let make ?show_logs ?show_audio ?(params = Model.Version_parameters.none) (version : Version_name.t) =
-  let copyright_response_promise =
-    Madge_client.call_exn
-      Endpoints.Api.(route @@ Version Build_snippets)
-      version.id
-      params
-      Rendering_parameters.none
-  in
   make_gen
     ?show_logs
     ?show_audio
-    ~is_protected_promise: (Endpoints.Version.is_protected <$> copyright_response_promise)
     ~slug: (NesSlug.of_string version.name)
-    (Endpoints.Version.copyright_response_payload_exn <$> copyright_response_promise)
+    (
+      Madge_client.call_exn
+        Endpoints.Api.(route @@ Version Build_snippets)
+        version.id
+        params
+        Rendering_parameters.none
+    )
 
 let make_preview ?show_logs ?show_audio ?(params = Model.Version_parameters.none) slug version =
   make_gen
@@ -111,9 +111,12 @@ let make_preview ?show_logs ?show_audio ?(params = Model.Version_parameters.none
     ?show_audio
     ~slug
     (
-      Madge_client.call_exn
-        Endpoints.Api.(route @@ Version Build_snippets')
-        version
-        params
-        Rendering_parameters.none
+      let%lwt payload =
+        Madge_client.call_exn
+          Endpoints.Api.(route @@ Version Build_snippets')
+          version
+          params
+          Rendering_parameters.none
+      in
+      lwt @@ Endpoints.Version.Granted {payload; reason = Non_copyrighted}
     )

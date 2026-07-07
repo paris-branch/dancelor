@@ -44,8 +44,8 @@ let preload_pages_from_context ~page_descr ~versions_in_page ~previous ~next =
             Job.status_stream
               (NesSlug.of_string "dummy")
               (
-                Endpoints.Job.map_registration_response Endpoints.Version.Snippet_ids.svg_job_id %
-                  Endpoints.Version.copyright_response_payload_exn
+                Endpoints.Version.map_copyright_response
+                  (Endpoints.Job.map_registration_response Endpoints.Version.Snippet_ids.svg_job_id)
                 <$> response_promise
               )
         )

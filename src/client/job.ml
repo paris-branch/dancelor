@@ -4,39 +4,51 @@ open Dancelor_common
 open Html
 open Utils
 
-(** Similar to {!Endpoints.Job.Status.t} but with an additional “Registering”
-    and with “Succeeded” carrying the path. *)
+(** Similar to {!Endpoints.Job.Status.t} but with additional [Registering]
+    and [Copyrighted], and with “Succeeded” carrying the path.  *)
 type status =
   | Registering
   | Pending
   | Running of string list
   | Failed of string list
   | Succeeded of Uri.t
+  | Copyrighted
 [@@deriving yojson]
 
 (** Same as {!status_signal} but returns a stream of statuses from all the times that
     we check with the server. The stream closes once the job has succeeded or failed. *)
-let status_stream slug (promise : Job_id.t Endpoints.Job.registration_response Lwt.t) : status Lwt_stream.t =
+let status_stream slug (promise : Job_id.t Endpoints.Job.registration_response Endpoints.Version.copyright_response Lwt.t) : status Lwt_stream.t =
   Lwt_stream.(concat % return_lwt') @@
     match%lwt promise with
-    | Endpoints.Job.Already_succeeded job_id ->
-      lwt @@ Lwt_stream.return (Succeeded (Endpoints.Api.(href @@ Job File) job_id slug))
-    | Endpoints.Job.Registered job_id ->
-      lwt @@
-      Lwt_stream.from_next @@ fun () ->
-      Js_of_ocaml_lwt.Lwt_js.sleep 2.;%lwt
-      let%lwt status = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) job_id in
-      lwt @@
-        match status with
-        | Pending -> Lwt_stream.Next Pending
-        | Running logs -> Lwt_stream.Next (Running logs)
-        | Failed logs -> Lwt_stream.Last (Failed logs)
-        | Succeeded -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) job_id slug))
+    | Protected -> lwt @@ Lwt_stream.return Copyrighted
+    | Granted {payload; _} ->
+      match payload with
+      | Endpoints.Job.Already_succeeded job_id ->
+        lwt @@ Lwt_stream.return (Succeeded (Endpoints.Api.(href @@ Job File) job_id slug))
+      | Endpoints.Job.Registered job_id ->
+        lwt @@
+        Lwt_stream.from_next @@ fun () ->
+        Js_of_ocaml_lwt.Lwt_js.sleep 2.;%lwt
+        let%lwt status = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) job_id in
+        lwt @@
+          match status with
+          | Pending -> Lwt_stream.Next Pending
+          | Running logs -> Lwt_stream.Next (Running logs)
+          | Failed logs -> Lwt_stream.Last (Failed logs)
+          | Succeeded -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) job_id slug))
 
 (** Given a promise to a [Job_id.t Endpoints.Job.registration_response],
     contact the server to check the job's status and return a signal that tracks it. *)
-let status_signal slug (promise : Job_id.t Endpoints.Job.registration_response Lwt.t) : status S.t =
+let status_signal slug (promise : Job_id.t Endpoints.Job.registration_response Endpoints.Version.copyright_response Lwt.t) : status S.t =
   S.from_lwt_stream Registering (status_stream slug promise)
+
+let status_signal_non_copyrighted slug (promise : Job_id.t Endpoints.Job.registration_response Lwt.t) : status S.t =
+  status_signal
+    slug
+    (
+      let%lwt payload = promise in
+      lwt @@ Endpoints.Version.Granted {payload; reason = Non_copyrighted}
+    )
 
 let show_logs logs = pre ~a: [a_style "white-space: pre-wrap;"] [small [txt (String.concat "\n" logs)]]
 
@@ -101,6 +113,12 @@ let show_live_status ~on_succeeded status_signal =
         ];
         div ~a: [a_class ["mt-4"]] [show_logs logs; spinner ()];
       ]
+    | Copyrighted ->
+      [
+        Alert.make ~level: Warning [
+          txt "You cannot see the content of this version because it is protected, for copyright reasons.";
+        ]
+      ]
     | Failed logs ->
       [
         Alert.make ~level: Danger [
@@ -119,11 +137,13 @@ type wait_status =
   | Waiting
   | Failed
   | Succeeded of Uri.t
+  | Copyrighted
 
 let status_to_wait_status : status -> wait_status = function
   | Succeeded href -> Succeeded href
   | Failed _ -> Failed
-  | _ -> Waiting
+  | Copyrighted -> Copyrighted
+  | Registering | Pending | Running _ -> Waiting
 
 (** Variant of {!job_live_status} that only shows a placeholder on all waiting
     statuses. It is meant to be used in places where people should not be
@@ -131,6 +151,7 @@ let status_to_wait_status : status -> wait_status = function
 let show_placeholder ~on_succeeded status_signal =
   S.flip_map (S.map status_to_wait_status status_signal) @@ function
     | Waiting -> [div_placeholder ~min: 12 ~max: 20 ()]
+    | Succeeded href -> on_succeeded href
     | Failed ->
       [
         Alert.make ~level: Danger [
@@ -140,4 +161,9 @@ let show_placeholder ~on_succeeded status_signal =
            issue.";
         ];
       ]
-    | Succeeded href -> on_succeeded href
+    | Copyrighted ->
+      [
+        Alert.make ~level: Warning [
+          txt "You cannot see the content of this version because it is protected, for copyright reasons.";
+        ]
+      ]

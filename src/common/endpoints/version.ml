@@ -8,6 +8,7 @@ type copyright_response_reason =
   | Connected
   | Composer_agrees
   | Publisher_agrees of Source.entry
+  | Non_copyrighted (** useful to make generic utilities working on copyrighted and non-copyrighted values *)
 [@@deriving yojson]
 
 type 'payload copyright_response =
@@ -18,14 +19,6 @@ type 'payload copyright_response =
 let map_copyright_response f = function
   | Protected -> Protected
   | Granted {payload; reason} -> Granted {payload = f payload; reason}
-
-let copyright_response_payload = function
-  | Protected -> None
-  | Granted {payload; _} -> Some payload
-
-let copyright_response_payload_exn = function
-  | Protected -> failwith "copyright_response_payload_exn"
-  | Granted {payload; _} -> payload
 
 module Snippet_ids = struct
   type t = {
