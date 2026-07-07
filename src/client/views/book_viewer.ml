@@ -198,8 +198,10 @@ let subtitles = function
   | Versions [(version, _)] ->
     let%lwt version = Madge_client.call_exn Endpoints.Api.(route @@ Version Get_view) version.Version_row.id in
     lwt @@ Version_viewer.subtitles version.tune
-  | Versions ((_first_version, _) :: _) ->
-    assert false
+  | Versions versions_and_params ->
+    let versions = List.map fst versions_and_params in
+    let%lwt versions = Lwt_list.map_s (fun version -> Madge_client.call_exn Endpoints.Api.(route @@ Version Get_view) version.Version_row.id) versions in
+    lwt @@ List.concat_map (fun version -> Version_viewer.subtitles version.Version_view.tune) versions
   | Set (set, _) ->
     let%lwt set = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_view) set.Set_row.id in
     lwt @@ Set_viewer.subtitles set
