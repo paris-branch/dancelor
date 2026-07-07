@@ -4,58 +4,59 @@ open Nes
 open Model_builder
 open Model_new
 
-(** Context in which a page might exist. TODO: I wonder whether it'd be possible
-    to simply use [page] here, having pages carry a “parent” [page option]. *)
-type context =
-  | In_search of string
-  | In_set of Core.Set.t Entry.Id.t * int
-[@@deriving yojson, variants]
+module In_search = struct
+  include Fresh.Make(String)
+  let of_string = some % inject
+  let to_string = project
+end
 
-(* For serialisation *)
-module Context = struct type t = context [@@deriving yojson] end
+module In_set = struct
+  type t = Set_id.t * int
+  [@@deriving yojson]
+end
 
 (** {2 Endpoints} *)
 
 type (_, _, _) person =
   | Add : ('w, 'w, Void.t) person
   | Edit : (Person_id.t -> 'w, 'w, Void.t) person
-  | View : (Context.t option -> Person_id.t -> 'w, 'w, Void.t) person
+  | View : (In_search.t option -> Person_id.t -> 'w, 'w, Void.t) person
 [@@deriving madge_wrapped_endpoints]
 
 type (_, _, _) dance =
   | Add : ('w, 'w, Void.t) dance
   | Edit : (Dance_id.t -> 'w, 'w, Void.t) dance
-  | View : (Context.t option -> Dance_id.t -> 'w, 'w, Void.t) dance
+  | View : (In_search.t option -> Dance_id.t -> 'w, 'w, Void.t) dance
 [@@deriving madge_wrapped_endpoints]
 
 type (_, _, _) source =
   | Add : ('w, 'w, Void.t) source
   | Edit : (Source_id.t -> 'w, 'w, Void.t) source
-  | View : (Context.t option -> Source_id.t -> 'w, 'w, Void.t) source
+  | View : (In_search.t option -> Source_id.t -> 'w, 'w, Void.t) source
 [@@deriving madge_wrapped_endpoints]
 
 type (_, _, _) tune =
   | Add : ('w, 'w, Void.t) tune
   | Edit : (Tune_id.t -> 'w, 'w, Void.t) tune
-  | View : (Context.t option -> Tune_id.t -> 'w, 'w, Void.t) tune
+  | View : (In_search.t option -> Tune_id.t -> 'w, 'w, Void.t) tune
 [@@deriving madge_wrapped_endpoints]
 
 type (_, _, _) version =
   | Add : (Tune_id.t option -> 'w, 'w, Void.t) version
   | Edit : (Version_id.t -> 'w, 'w, Void.t) version
-  | View : (Context.t option -> Version_id.t -> 'w, 'w, Void.t) version
+  | View : (In_search.t option -> In_set.t option -> Version_id.t -> 'w, 'w, Void.t) version
 [@@deriving madge_wrapped_endpoints]
 
 type (_, _, _) set =
   | Add : ('w, 'w, Void.t) set
   | Edit : (Set_id.t -> 'w, 'w, Void.t) set
-  | View : (Context.t option -> Set_id.t -> 'w, 'w, Void.t) set
+  | View : (In_search.t option -> Set_id.t -> 'w, 'w, Void.t) set
 [@@deriving madge_wrapped_endpoints]
 
 type (_, _, _) book =
   | Add : ('w, 'w, Void.t) book
   | Edit : (Book_id.t -> 'w, 'w, Void.t) book
-  | View : (Context.t option -> Book_id.t -> 'w, 'w, Void.t) book
+  | View : (In_search.t option -> Book_id.t -> 'w, 'w, Void.t) book
   | Preview : (Book_id.t -> int -> 'w, 'w, Void.t) book
 [@@deriving madge_wrapped_endpoints]
 
@@ -87,49 +88,49 @@ open Madge
 let route_person : type a w r. (a, w, r) person -> (a, w, r) route =
   let open Route in
   function
-    | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Person_id) @@ void ()
+    | View -> literal "view" @@ query_str_opt "in-search" (module In_search) @@ variable (module Person_id) @@ void ()
     | Add -> literal "add" @@ void ()
     | Edit -> literal "edit" @@ variable (module Person_id) @@ void ()
 
 let route_dance : type a w r. (a, w, r) dance -> (a, w, r) route =
   let open Route in
   function
-    | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Dance_id) @@ void ()
+    | View -> literal "view" @@ query_str_opt "in-search" (module In_search) @@ variable (module Dance_id) @@ void ()
     | Add -> literal "add" @@ void ()
     | Edit -> literal "edit" @@ variable (module Dance_id) @@ void ()
 
 let route_source : type a w r. (a, w, r) source -> (a, w, r) route =
   let open Route in
   function
-    | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Source_id) @@ void ()
+    | View -> literal "view" @@ query_str_opt "in-search" (module In_search) @@ variable (module Source_id) @@ void ()
     | Add -> literal "add" @@ void ()
     | Edit -> literal "edit" @@ variable (module Source_id) @@ void ()
 
 let route_tune : type a w r. (a, w, r) tune -> (a, w, r) route =
   let open Route in
   function
-    | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Tune_id) @@ void ()
+    | View -> literal "view" @@ query_str_opt "in-search" (module In_search) @@ variable (module Tune_id) @@ void ()
     | Add -> literal "add" @@ void ()
     | Edit -> literal "edit" @@ variable (module Tune_id) @@ void ()
 
 let route_version : type a w r. (a, w, r) version -> (a, w, r) route =
   let open Route in
   function
-    | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Version_id) @@ void ()
+    | View -> literal "view" @@ query_str_opt "in-search" (module In_search) @@ query_json_opt "in-set" (module In_set) @@ variable (module Version_id) @@ void ()
     | Add -> literal "add" @@ query_json_opt "tune" (module Entry.Id.J(Core.Tune)) @@ void ()
     | Edit -> literal "edit" @@ variable (module Version_id) @@ void ()
 
 let route_set : type a w r. (a, w, r) set -> (a, w, r) route =
   let open Route in
   function
-    | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Set_id) @@ void ()
+    | View -> literal "view" @@ query_str_opt "in-search" (module In_search) @@ variable (module Set_id) @@ void ()
     | Add -> literal "add" @@ void ()
     | Edit -> literal "edit" @@ variable (module Set_id) @@ void ()
 
 let route_book : type a w r. (a, w, r) book -> (a, w, r) route =
   let open Route in
   function
-    | View -> literal "view" @@ query_json_opt "context" (module Context) @@ variable (module Book_id) @@ void ()
+    | View -> literal "view" @@ query_str_opt "in-search" (module In_search) @@ variable (module Book_id) @@ void ()
     | Add -> literal "add" @@ void ()
     | Edit -> literal "edit" @@ variable (module Book_id) @@ void ()
     | Preview -> literal "preview" @@ variable (module Book_id) @@ literal "page" @@ variable (module SInt_1) @@ void ()
@@ -162,35 +163,35 @@ let href : type a r. (a, Uri.t, r) t -> a = fun page ->
   assert (Request.meth request = GET);
   Request.uri request
 
-let href_book ?context book = href (Book View) context book
-let href_dance ?context dance = href (Dance View) context dance
-let href_person ?context person = href (Person View) context person
-let href_source ?context source = href (Source View) context source
-let href_set ?context set = href (Set View) context set
-let href_tune ?context tune = href (Tune View) context tune
-let href_version ?context version = href (Version View) context version
+let href_book ?in_search book = href (Book View) in_search book
+let href_dance ?in_search dance = href (Dance View) in_search dance
+let href_person ?in_search person = href (Person View) in_search person
+let href_source ?in_search source = href (Source View) in_search source
+let href_set ?in_search set = href (Set View) in_search set
+let href_tune ?in_search tune = href (Tune View) in_search tune
+let href_version ?in_search ?in_set version = href (Version View) in_search in_set version
 
-let href_any_full ?context any =
+let href_any_full ?in_search any =
   let open Core.Any in
   match any with
-  | Version version -> href_version ?context (Entry.id version)
-  | Set set -> href_set ?context (Entry.id set)
-  | Person person -> href_person ?context (Entry.id person)
-  | Source source -> href_source ?context (Entry.id source)
-  | Dance dance -> href_dance ?context (Entry.id dance)
-  | Book book -> href_book ?context (Entry.id book)
-  | Tune tune -> href_tune ?context (Entry.id tune)
+  | Version version -> href_version ?in_search (Entry.id version)
+  | Set set -> href_set ?in_search (Entry.id set)
+  | Person person -> href_person ?in_search (Entry.id person)
+  | Source source -> href_source ?in_search (Entry.id source)
+  | Dance dance -> href_dance ?in_search (Entry.id dance)
+  | Book book -> href_book ?in_search (Entry.id book)
+  | Tune tune -> href_tune ?in_search (Entry.id tune)
   | User _ -> Uri.of_string "/" (* FIXME: user visualisation page *)
 
-let href_any_full_new ?context (any : Any_id.t) =
+let href_any_full_new ?in_search (any : Any_id.t) =
   match any with
-  | Version version -> href_version ?context version
-  | Set set -> href_set ?context set
-  | Person person -> href_person ?context person
-  | Source source -> href_source ?context source
-  | Dance dance -> href_dance ?context dance
-  | Book book -> href_book ?context book
-  | Tune tune -> href_tune ?context tune
+  | Version version -> href_version ?in_search version
+  | Set set -> href_set ?in_search set
+  | Person person -> href_person ?in_search person
+  | Source source -> href_source ?in_search source
+  | Dance dance -> href_dance ?in_search dance
+  | Book book -> href_book ?in_search book
+  | Tune tune -> href_tune ?in_search tune
   | User _user -> Uri.of_string "/" (* FIXME: user visualisation page *)
 
 (** Function that consumes all endpoints and returns nothing. It is meant to be
@@ -218,7 +219,7 @@ let consume : type a w r. return: w -> (a, w, r) t -> a = fun ~return: value end
   | Tune View -> const2 value
   | Tune Add -> value
   | Tune Edit -> const value
-  | Version View -> const2 value
+  | Version View -> (fun _ _ _ -> value)
   | Version Add -> const value
   | Version Edit -> const value
   | Explore -> const2 value
@@ -231,7 +232,7 @@ module Make_describe (Model : Model_builder.S) = struct
     let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
       | Any -> (fun id -> lwt_some ("any", Entry.Id.to_string id))
       | Version View ->
-        (fun _ id ->
+        (fun _ _ id ->
           let%lwt name = NEString.to_string <$> (Model.Version.one_name' % Option.get =<< Model.Version.get id) in
           lwt_some ("version", name)
         )

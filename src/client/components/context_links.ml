@@ -66,7 +66,7 @@ let make_and_render_gen
     ~(parent_page : Uri.t S.t)
     ~(this_page : Uri.t option)
     ~(index_total_category_name_lwt : _ Lwt.t)
-    ~(page_href : 'page -> Uri.t)
+    ~(page_href : 'page -> Uri.t Lwt.t)
     ~(page_descr : 'page -> string)
     ~(versions_in_page : 'page -> (Version_id.t * Version_parameters.t) list Lwt.t)
     ~(previous_next_lwt : ('page list * 'page list) option Lwt.t)
@@ -141,14 +141,26 @@ let make_and_render_gen
           ~icon: (Action Move_left)
           ~disabled: (S.const @@ List.is_empty previous)
           ~tooltip: "Go to the previous element in the context."
-          ~href: (S.const @@ Option.fold ~some: page_href ~none: Uri.empty @@ List.hd_opt previous)
+          ~href: (
+            S.map (Option.value ~default: Uri.empty) @@
+            S.from_lwt None @@
+            match List.hd_opt previous with
+            | None -> lwt_none
+            | Some page -> some <$> page_href page
+          )
           ();
         Button.make_a
           ~classes: ["btn-secondary"]
           ~icon: (Action Move_right)
           ~disabled: (S.const @@ List.is_empty next)
           ~tooltip: "Go to the next element in the context."
-          ~href: (S.const @@ Option.fold ~some: page_href ~none: Uri.empty @@ List.hd_opt next)
+          ~href: (
+            S.map (Option.value ~default: Uri.empty) @@
+            S.from_lwt None @@
+            match List.hd_opt next with
+            | None -> lwt_none
+            | Some page -> some <$> page_href page
+          )
           ();
       ]
     );
@@ -170,54 +182,24 @@ let make_and_render_gen
       ]
   ]
 
-(** Given an element and a context, find the total number of elements, the
-    previous element, the index of the given element and the next element. *)
-let get_neighbours any = function
-  | Endpoints.Page.In_search query ->
-    (* TODO: Unify with [Explorer.search]. *)
-    let%olwt query = lwt @@ Result.to_option @@ Any_query.parse query in
-    Result.to_option <$> Madge_client.call Endpoints.Api.(route @@ Any Search_context_5_10) query (old_any_to_any_id any)
-  | Endpoints.Page.In_set (set, index) ->
-    let%olwt set = Set.get set in
-    let%olwt context = lwt @@ Set.find_context' ~n_prev: max_int ~n_next: max_int index set in
-    let%olwt element = Model.Version.get context.element in
-    let context = List.map_context (const element) context in
-    assert (any = Any.Version context.element);
-    let List.{index; total; next; previous; element = _} = List.map_context Any.version context in
-    lwt_some {
-      Search_context_result.index;
-      total;
-      next = List.map old_any_to_any_id next;
-      previous = List.map old_any_to_any_id previous;
-    }
-
-(** NOTE: This is about the versions that are **visible** in the any.
-    In particular, we don't return the versions in a book. *)
-let versions_in_any : Any_id.t -> (Version_id.t * Version_parameters.t) list Lwt.t = function
-  | Person _ | Dance _ | Source _ | User _ | Tune _ | Book _ -> lwt_nil
-  | Version version ->
-    lwt [(version, Version_parameters.none)]
-  | Set set ->
-    let%lwt set = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_view) set in
-    lwt @@ List.map (Pair.map_fst Version_row.id) set.content
-
-(** Version specialised for an {!Endpoints.Page.context}. *)
-let make_and_render ?context ~this_page any_lwt =
+let for_search query (any_id : Any_id.t) =
   Option.fold
-    context
+    query
     ~none: (no_context_links ())
-    ~some: (fun context ->
-      let neighbours_lwt = flip get_neighbours context =<< any_lwt in
+    ~some: (fun (query : Endpoints.Page.In_search.t) ->
+      let query = Endpoints.Page.In_search.project query in
+      let neighbours_lwt =
+        let%olwt query = lwt @@ Result.to_option @@ Any_query.parse query in
+        Result.to_option <$> Madge_client.call Endpoints.Api.(route @@ Any Search_context_5_10) query any_id
+      in
       let parent_page =
         let open Endpoints.Page in
-        match context with
-        | In_search query ->
-          S.bind (S.from_lwt None (Lwt.map (Option.map Search_context_result.index) neighbours_lwt)) @@ fun index ->
-          let page = Option.map (fun index -> 1 + index / Search.entries_per_page) index in
-          (* NOTE: sync with search.ml *)
-          S.const @@ href Explore query (Option.value page ~default: 1)
-        | In_set (id, _) -> S.const @@ href_set id
+        S.bind (S.from_lwt None (Lwt.map (Option.map Search_context_result.index) neighbours_lwt)) @@ fun index ->
+        let page = Option.map (fun index -> 1 + index / Search.entries_per_page) index in
+        (* NOTE: sync with search.ml *)
+        S.const @@ href Explore query (Option.value page ~default: 1)
       in
+      let this_page = Some (Endpoints.Page.href_any_full_new any_id) in
       let index_total_category_name_lwt =
         let%lwt (index, total) =
           Lwt.map
@@ -227,39 +209,66 @@ let make_and_render ?context ~this_page any_lwt =
             )
             neighbours_lwt
         in
-        let%lwt (category, name) =
-          match context with
-          | In_search "" -> lwt ("all the entries", None)
-          | In_search query -> lwt ("search for", Some query)
-          | In_set (id, _) ->
-            let%lwt name = Set.name' % Option.get <$> Set.get id in
-            lwt ("set", Some (NEString.to_string name))
+        let (category, name) =
+          if query = "" then ("all the entries", None)
+          else ("search for", Some query)
         in
         lwt (index, total, category, name)
       in
-      let page_href =
-        match context with
-        | Endpoints.Page.In_search query ->
-          (fun (any, _offset) ->
-            Endpoints.Page.href_any_full_new ~context: (Endpoints.Page.In_search query) any
-          )
-        | Endpoints.Page.In_set (id, index) ->
-          (fun (any, offset) ->
-            Endpoints.Page.href_any_full_new ~context: (Endpoints.Page.In_set (id, index + offset)) any
-          )
+      let page_href any = lwt @@ Endpoints.Page.href_any_full_new ~in_search: (Endpoints.Page.In_search.inject query) any in
+      let page_descr _any = "FIXME" in
+      let versions_in_page : Any_id.t -> (Version_id.t * Version_parameters.t) list Lwt.t = function
+        (** NOTE: This is about the versions that are **visible** in the any.
+            In particular, we don't return the versions in a book. *)
+        | Person _ | Dance _ | Source _ | User _ | Tune _ | Book _ -> lwt_nil
+        | Version version ->
+          lwt [(version, Version_parameters.none)]
+        | Set set ->
+          let%lwt set = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_view) set in
+          lwt @@ List.map (Pair.map_fst Version_row.id) set.content
       in
-      let page_descr (_any, offset) = spf "offset %d" offset in
-      let versions_in_page (any, _) = versions_in_any any in
       let previous_next_lwt =
         Lwt.map
-          (
-            Option.map @@ fun {Search_context_result.previous; next; _} ->
-            (
-              List.mapi (fun i any -> (any, -1 - i)) previous,
-              List.mapi (fun i any -> (any, +1 + i)) next
-            )
-          )
+          (Option.map (fun {Search_context_result.previous; next; _} -> (previous, next)))
           neighbours_lwt
+      in
+      make_and_render_gen
+        ~parent_page
+        ~this_page
+        ~index_total_category_name_lwt
+        ~page_href
+        ~page_descr
+        ~versions_in_page
+        ~previous_next_lwt
+    )
+
+let for_set ~this_page in_set =
+  Option.fold
+    in_set
+    ~none: (no_context_links ())
+    ~some: (fun ((id : Set_id.t), index) ->
+      let set_lwt = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_view) id in
+      let parent_page = S.const @@ Endpoints.Page.href_set id in
+      let index_total_category_name_lwt =
+        let%lwt set = set_lwt in
+        lwt (Some index, Some (List.length set.content), "set", Some set.name)
+      in
+      let previous_next_lwt =
+        let%lwt set = set_lwt in
+        let total = List.length set.content in
+        let mk index = if index < 0 || index > total - 1 then None else Some index in
+        let init_indices f = List.filter_map Fun.id (List.init 5 (fun i -> mk (f i))) in
+        lwt_some (init_indices (fun i -> index - 1 - i), init_indices (fun i -> index + 1 + i))
+      in
+      let page_href index =
+        let%lwt set = set_lwt in
+        let (version, _) = List.nth set.content index in
+        lwt @@ Endpoints.Page.(href @@ Version View) None (Some (set.id, index)) version.id
+      in
+      let page_descr i = spf "version %d" i in
+      let versions_in_page index =
+        let%lwt set = set_lwt in
+        lwt [Pair.map_fst Version_row.id @@ List.nth set.content index]
       in
       make_and_render_gen
         ~parent_page
@@ -271,11 +280,17 @@ let make_and_render ?context ~this_page any_lwt =
         ~previous_next_lwt
     )
 
-let make_and_render_new ?context ~this_page (any_id : Any_id.t) =
-  make_and_render ?context ~this_page (any_id_to_old_any any_id)
-
-let make_and_render_book ~this_page (book : Book_view.t) pageno =
+let for_book (book : Book_view.t) pageno =
   let parent_page = S.const @@ Endpoints.Page.href_book book.id in
+  let this_page =
+    match List.nth book.content pageno with
+    | Book_view.Part _ -> None
+    | Dance (_, Dance_set _) -> None (* because it's unclear which it would lead to *)
+    | Dance (dance, _) -> Some (Endpoints.Page.(href @@ Dance View) None dance.id)
+    | Versions [(version, _)] -> Some (Endpoints.Page.(href @@ Version View) None None version.id)
+    | Versions _ -> None
+    | Set (set, _) -> Some (Endpoints.Page.(href @@ Set View) None set.id)
+  in
   let total = List.length book.content in
   let index_total_category_name_lwt =
     lwt (Some pageno, Some total, "book", Some book.name)
@@ -285,8 +300,8 @@ let make_and_render_book ~this_page (book : Book_view.t) pageno =
     let init_pagenos f = List.filter_map Fun.id (List.init 5 (fun i -> mk (f i))) in
     lwt_some (init_pagenos (fun i -> pageno - 1 - i), init_pagenos (fun i -> pageno + 1 + i))
   in
-  let page_href = Endpoints.Page.(href @@ Book Preview) book.id in
-  let page_descr i = spf "page %d" i in
+  let page_href index = lwt @@ Endpoints.Page.(href @@ Book Preview) book.id index in
+  let page_descr index = spf "page %d" index in
   let versions_in_page page =
     match List.nth book.content page with
     | Part _ | Dance (_, Dance_only) -> lwt_nil

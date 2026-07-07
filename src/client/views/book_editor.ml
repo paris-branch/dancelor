@@ -71,7 +71,7 @@ let versions_and_parameters ?(label = "Versions") () =
         (
           Selector.prepare
             ~make_descr: (lwt % Tune_row.name % Version_row.tune)
-            ~make_result: (Any_result_new.make_version_result ?context: None)
+            ~make_result: (Any_result_new.make_version_result ?in_search: None)
             ~make_more_results: (fun version ->
               S.flip_map show_preview @@ function
                 | true -> [tr [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false (Version_row.to_name version)]]]
@@ -99,7 +99,7 @@ let set_and_parameters ?(label = "Set") () =
     (
       Selector.prepare
         ~make_descr: (lwt % Set_row.name)
-        ~make_result: (Any_result_new.make_set_result ?context: None ?params: None)
+        ~make_result: (Any_result_new.make_set_result ?in_search: None ?params: None)
         ~make_more_results: (fun set ->
           S.flip_map show_preview @@ function
             | true -> [tr [td ~a: [a_colspan 9999] (Formatters_new.Set.tunes set)]]
@@ -140,7 +140,7 @@ let dance_and_dance_page =
     (
       Selector.prepare
         ~make_descr: (lwt % Dance_row.name)
-        ~make_result: (Any_result_new.make_dance_result ?context: None)
+        ~make_result: (Any_result_new.make_dance_result ?in_search: None)
         ~label: "Dance"
         ~model_name: "dance"
         ~create_dialog_content: Dance_editor.create_row
@@ -201,7 +201,7 @@ let editor user =
         ~serialise: Person_row.id
         ~unserialise: (madge_call_or_option @@ Person Get_row)
         ~make_descr: (lwt % Person_row.name)
-        ~make_result: (Any_result_new.make_person_result ?context: None)
+        ~make_result: (Any_result_new.make_person_result ?in_search: None)
         ~results_when_no_search: (Option.to_list <$> Environment.person_row)
         ~model_name: "person"
         ~create_dialog_content: Person_editor.create_row
@@ -280,7 +280,7 @@ let editor user =
     (
       Selector.prepare
         ~make_descr: (lwt % Source_row.name)
-        ~make_result: (Any_result_new.make_source_result ?context: None)
+        ~make_result: (Any_result_new.make_source_result ?in_search: None)
         ~label: "Source"
         ~model_name: "source"
         ~create_dialog_content: Source_editor.create_row
@@ -316,7 +316,7 @@ let editor user =
         ~label: "Owner"
         ~model_name: "user"
         ~make_descr: (fun user -> lwt @@ Username.to_string user.username)
-        ~make_result: (Any_result_new.make_user_result ?context: None)
+        ~make_result: (Any_result_new.make_user_result ?in_search: None)
         ~results_when_no_search: (Option.to_list <$> Environment.user_new)
         ~search: (fun slice input ->
           match User_query.parse input with
@@ -357,7 +357,7 @@ let editor user =
                 ~label: "Viewer"
                 ~model_name: "user"
                 ~make_descr: (fun user -> lwt @@ Username.to_string user.username)
-                ~make_result: (Any_result_new.make_user_result ?context: None)
+                ~make_result: (Any_result_new.make_user_result ?in_search: None)
                 ~search: (fun slice input ->
                   match User_query.parse input with
                   | Error msg -> lwt_error msg

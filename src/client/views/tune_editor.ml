@@ -35,7 +35,7 @@ let editor =
         (
           Selector.prepare
             ~make_descr: (lwt % Person_row.name)
-            ~make_result: (Any_result_new.make_person_result ?context: None)
+            ~make_result: (Any_result_new.make_person_result ?in_search: None)
             ~results_when_no_search: (Option.to_list <$> Environment.person_row)
             ~label: "Composer"
             ~model_name: "person"
@@ -88,7 +88,7 @@ let editor =
         ~serialise: Dance_row.id
         ~unserialise: (madge_call_or_option @@ Dance Get_row)
         ~make_descr: (lwt % Dance_row.name)
-        ~make_result: (Any_result_new.make_dance_result ?context: None)
+        ~make_result: (Any_result_new.make_dance_result ?in_search: None)
         ~label: "Dance"
         ~model_name: "dance"
         ~create_dialog_content: Dance_editor.create_row

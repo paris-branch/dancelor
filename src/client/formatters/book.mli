@@ -3,7 +3,7 @@ open Html
 
 val name' :
   ?link: bool ->
-  ?context: Endpoints.Page.context S.t ->
+  ?in_search: Endpoints.Page.In_search.t S.t ->
   Model.Book.entry ->
   [> Html_types.span] elt
 

@@ -5,7 +5,7 @@ val name : Model.Tune.t -> [> Html_types.span] elt
 
 val name' :
   ?link: bool ->
-  ?context: Endpoints.Page.context S.t ->
+  ?in_search: Endpoints.Page.In_search.t S.t ->
   Model.Tune.entry ->
   [> Html_types.span] elt
 

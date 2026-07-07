@@ -20,9 +20,9 @@ let name_gen ?params set_gen =
   span (
     [
     match set_gen with
-    | Right (set, true, context) ->
+    | Right (set, true, in_search) ->
       a
-        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_set ?context @@ Entry.id set) (switch_signal_option context)]
+        ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_set ?in_search @@ Entry.id set) (switch_signal_option in_search)]
         [txt @@ NEString.to_string @@ Model.Set.name' set]
     | Right (set, _, _) -> txt (NEString.to_string @@ Model.Set.name' set)
     | Left set -> txt (NEString.to_string @@ Model.Set.name set)] @
@@ -31,8 +31,8 @@ let name_gen ?params set_gen =
 
 let name = name_gen % Either.left
 
-let name' ?(link = true) ?params ?context set =
-  name_gen ?params @@ Right (set, link, context)
+let name' ?(link = true) ?params ?in_search set =
+  name_gen ?params @@ Right (set, link, in_search)
 
 let tunes ?link set =
   with_span_placeholder @@

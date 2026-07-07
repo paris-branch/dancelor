@@ -21,32 +21,32 @@ let block_details content = p ~a: [a_class ["mb-0"; "opacity-50"; "lh-sm"]] [sma
 let make_part_result ?classes ?onclick ?(prefix = []) ?(suffix = []) title =
   row ?classes ?onclick (prefix @ [td ~a: [a_colspan 3] [txt title]] @ suffix)
 
-let make_source_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (source : Source_row.t) =
+let make_source_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) (source : Source_row.t) =
   row
     ?classes
     ?onclick
     (
       prefix @
-      [td [Formatters_new.Source.name_row ~link: (onclick = None) ?context source];
+      [td [Formatters_new.Source.name_row ~link: (onclick = None) ?in_search source];
       td [txt @@ Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) source.date];
       td (Formatters_new.Person.names ~links: (onclick = None) ~short: true source.editors);
       ] @
       suffix
     )
 
-let make_person_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (person : Person_row.t) =
+let make_person_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) (person : Person_row.t) =
   row
     ?classes
     ?onclick
     (
       prefix @
-      [td ~a: [a_colspan 3] [Formatters_new.Person.name ~link: (onclick = None) ?context person];
+      [td ~a: [a_colspan 3] [Formatters_new.Person.name ~link: (onclick = None) ?in_search person];
       ] @
       suffix
     )
 
-let make_user_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (user : User_row.t) =
-  ignore context;
+let make_user_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) (user : User_row.t) =
+  ignore in_search;
   (* FIXME *)
   row
     ?classes
@@ -58,24 +58,24 @@ let make_user_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (u
       suffix
     )
 
-let make_dance_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (dance : Dance_row.t) =
+let make_dance_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) (dance : Dance_row.t) =
   row
     ?classes
     ?onclick
     (
       prefix @
-      [td (Formatters_new.Dance.name_and_disambiguation ~link: (onclick = None) ?context dance);
+      [td (Formatters_new.Dance.name_and_disambiguation ~link: (onclick = None) ?in_search dance);
       td [txt @@ Kind.Dance.to_string dance.kind];
       td (Formatters_new.Person.names ~links: (onclick = None) ~short: true dance.devisers);
       ] @
       suffix
     )
 
-let make_dance_plus_set_result ?classes ?onclick ?context ?set_params ?(prefix = []) ?(suffix = []) (dance : Dance_row.t) (set : Set_row.t) =
+let make_dance_plus_set_result ?classes ?onclick ?in_search ?set_params ?(prefix = []) ?(suffix = []) (dance : Dance_row.t) (set : Set_row.t) =
   row ?classes ?onclick (
     prefix @
     [td (
-      [Formatters_new.Dance.name_row ?context dance] @
+      [Formatters_new.Dance.name_row ?in_search dance] @
       [block_details [txt "Set: "; Formatters_new.Set.name_row ~link: (onclick = None) set]] @
       Option.fold
         (Option.bind set_params Model_builder.Core.Set_parameters.display_name)
@@ -94,11 +94,11 @@ let make_dance_plus_set_result ?classes ?onclick ?context ?set_params ?(prefix =
     suffix
   )
 
-let make_dance_plus_versions_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (dance : Dance_row.t) versions_and_params =
+let make_dance_plus_versions_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) (dance : Dance_row.t) versions_and_params =
   row ?classes ?onclick (
     prefix @
     [td [
-      Formatters_new.Dance.name_row ?context dance;
+      Formatters_new.Dance.name_row ?in_search dance;
       block_details [
         txt (if List.is_singleton versions_and_params then "Tune: " else "Tunes: ");
         Formatters_new.Version.names_disambiguations_sources_and_params versions_and_params
@@ -109,27 +109,27 @@ let make_dance_plus_versions_result ?classes ?onclick ?context ?(prefix = []) ?(
     suffix
   )
 
-let make_book_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (book : Book_row.t) =
+let make_book_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) (book : Book_row.t) =
   row
     ?classes
     ?onclick
     (
       prefix @
-      [td [Formatters_new.Book.name ~link: (onclick = None) ?context book];
+      [td [Formatters_new.Book.name ~link: (onclick = None) ?in_search book];
       td [txt @@ Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) book.date];
       td (Formatters_new.Person.names ~links: (onclick = None) ~short: true book.authors);
       ] @
       suffix
     )
 
-let make_set_result ?classes ?onclick ?context ?params ?(prefix = []) ?(suffix = []) (set : Set_row.t) =
+let make_set_result ?classes ?onclick ?in_search ?params ?(prefix = []) ?(suffix = []) (set : Set_row.t) =
   row
     ?classes
     ?onclick
     (
       prefix @
       [td (
-        [Formatters_new.Set.name_row ~link: (onclick = None) ?context set] @
+        [Formatters_new.Set.name_row ~link: (onclick = None) ?in_search set] @
         Option.fold
           (Option.bind params Model_builder.Core.Set_parameters.display_name)
           ~none: []
@@ -147,13 +147,13 @@ let make_set_result ?classes ?onclick ?context ?params ?(prefix = []) ?(suffix =
       suffix
     )
 
-let make_tune_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (tune : Tune_row.t) =
+let make_tune_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) (tune : Tune_row.t) =
   row
     ?classes
     ?onclick
     (
       prefix @
-      [td [Formatters_new.Tune.name_row ~link: (onclick = None) ?context tune];
+      [td [Formatters_new.Tune.name_row ~link: (onclick = None) ?in_search tune];
       td [txt @@ Kind.Base.to_long_string ~capitalised: true tune.kind];
       td (Formatters_new.Person.names ~links: (onclick = None) ~short: true tune.composers);
       ] @
@@ -172,13 +172,13 @@ let format_version_kind_and_structure (version : Version_row.t) =
       (Kind.Version.to_string (bars, version.tune.kind))
       (NEString.to_string @@ Model.Version.Structure.to_string structure)
 
-let make_version_result ?classes ?onclick ?context ?(prefix = []) ?(suffix = []) (version : Version_row.t) =
+let make_version_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) (version : Version_row.t) =
   row
     ?classes
     ?onclick
     (
       prefix @
-      [td (Formatters_new.Version.name_disambiguation_and_sources ~links: (onclick = None) ?context version);
+      [td (Formatters_new.Version.name_disambiguation_and_sources ~links: (onclick = None) ?in_search version);
       td [format_version_kind_and_structure version];
       td (Formatters_new.Version.composer_and_arranger ~links: (onclick = None) ~short: true version);
       ] @
@@ -213,7 +213,7 @@ let any_to_icon_and_string any =
   | Book _ -> (Icon.Book, "Book")
   | User _ -> (Icon.User, "User")
 
-let make_result ?classes ?context (any : Any_row.t) =
+let make_result ?classes ?in_search (any : Any_row.t) =
   let prefix =
     let (icon, type_) = any_to_icon_and_string any in
     [
@@ -255,11 +255,11 @@ let make_result ?classes ?context (any : Any_row.t) =
   ]
   in
   match any with
-  | Source source -> make_source_result ?classes ?context ~prefix ~suffix source
-  | Person person -> make_person_result ?classes ?context ~prefix ~suffix person
-  | Dance dance -> make_dance_result ?classes ?context ~prefix ~suffix dance
-  | Book book -> make_book_result ?classes ?context ~prefix ~suffix book
-  | Set set -> make_set_result ?classes ?context ~prefix ~suffix set
-  | Tune tune -> make_tune_result ?classes ?context ~prefix ~suffix tune
-  | Version version -> make_version_result ?classes ?context ~prefix ~suffix version
-  | User user -> make_user_result ?classes ?context ~prefix ~suffix user
+  | Source source -> make_source_result ?classes ?in_search ~prefix ~suffix source
+  | Person person -> make_person_result ?classes ?in_search ~prefix ~suffix person
+  | Dance dance -> make_dance_result ?classes ?in_search ~prefix ~suffix dance
+  | Book book -> make_book_result ?classes ?in_search ~prefix ~suffix book
+  | Set set -> make_set_result ?classes ?in_search ~prefix ~suffix set
+  | Tune tune -> make_tune_result ?classes ?in_search ~prefix ~suffix tune
+  | Version version -> make_version_result ?classes ?in_search ~prefix ~suffix version
+  | User user -> make_user_result ?classes ?in_search ~prefix ~suffix user

@@ -367,15 +367,18 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
   ];
 ]
 
-let view context tune_or_version_id =
+let view in_search in_set tune_or_version_id =
   madge_call_tune_or_version tune_or_version_id @@ fun tune version ->
+  let (any_id, this_page) =
+    match tune_or_version_id with
+    | `Tune _ -> (Any_id.Tune tune.id, Endpoints.Page.href_tune tune.id)
+    | `Version id -> (Any_id.Version id, Endpoints.Page.href_version id)
+  in
   Page.make'
     ~parent_title: "Tune"
     ~before_title: [
-      Components.Context_links.make_and_render_new
-        ?context
-        ~this_page: (match tune_or_version_id with `Tune _ -> Endpoints.Page.href_tune tune.id | `Version id -> Endpoints.Page.href_version id)
-        (match tune_or_version_id with `Tune _ -> Any_id.Tune tune.id | `Version id -> Any_id.Version id)
+      Components.Context_links.for_search in_search any_id;
+      Components.Context_links.for_set ~this_page in_set;
     ]
     ~title: (lwt tune.name)
     ~subtitles: (subtitles tune)
@@ -383,5 +386,5 @@ let view context tune_or_version_id =
     ~actions: (actions tune version)
     (body tune_or_version_id tune version)
 
-let view_version context id = view context (`Version id)
-let view_tune context id = view context (`Tune id)
+let view_version in_search in_set id = view in_search in_set (`Version id)
+let view_tune in_search id = view in_search None (`Tune id)

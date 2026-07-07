@@ -9,12 +9,12 @@ let switch_signal_option = function
 let name_gen book_gen =
   span @@
     match book_gen with
-    | Right (book, true, context) ->
+    | Right (book, true, in_search) ->
       let name = Model.Book.name' book in
       [
         a
           ~a: [
-            R.a_href @@ S.map (fun context -> Endpoints.Page.href_book ?context @@ Entry.id book) (switch_signal_option context)
+            R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_book ?in_search @@ Entry.id book) (switch_signal_option in_search)
           ]
           [txt @@ NEString.to_string name]
       ]
@@ -25,7 +25,7 @@ let name_gen book_gen =
       let name = Model.Book.name book in
         [txt @@ NEString.to_string name]
 
-let name' ?(link = true) ?context book = name_gen @@ Right (book, link, context)
+let name' ?(link = true) ?in_search book = name_gen @@ Right (book, link, in_search)
 
 let editors book =
   with_span_placeholder @@

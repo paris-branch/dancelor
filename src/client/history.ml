@@ -46,7 +46,7 @@ let get_model_ids () : Any_id.t list =
     | Dance View -> (fun _ -> some % Any_id.dance)
     | Source View -> (fun _ -> some % Any_id.source)
     | Tune View -> (fun _ -> some % Any_id.tune)
-    | Version View -> (fun _ -> some % Any_id.version)
+    | Version View -> (fun _ _ -> some % Any_id.version)
     | Set View -> (fun _ -> some % Any_id.set)
     | Book View -> (fun _ -> some % Any_id.book)
     (* FIXME: user once there is a user viewer page endpoint *)

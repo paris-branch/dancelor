@@ -101,7 +101,7 @@ let prepare_gen (type id)(type model)(type model_validated)
           quick_search
           ~return: quick_search_return
           ~dialog_title: (lwt label)
-          ~make_result: (fun ?context: _ result ->
+          ~make_result: (fun ?in_search: _ result ->
             make_result
               ~onclick: (fun () -> lwt @@ quick_search_return (Some result))
               result

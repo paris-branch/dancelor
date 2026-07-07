@@ -6,13 +6,13 @@ val name :
 
 val name' :
   ?link: bool ->
-  ?context: Dancelor_common.Endpoints.Page.context S.t ->
+  ?in_search: Dancelor_common.Endpoints.Page.In_search.t S.t ->
   Model.Dance.entry ->
   [> Html_types.span] elt
 
 val name_and_disambiguation' :
   ?name_link: bool ->
-  ?context: Dancelor_common.Endpoints.Page.context S.t ->
+  ?in_search: Dancelor_common.Endpoints.Page.In_search.t S.t ->
   Model.Dance.entry ->
   [> Html_types.span] elt
 (** Variant of {!name_and_disambiguation} taking an {!Entry.t}. Because this is an entry,

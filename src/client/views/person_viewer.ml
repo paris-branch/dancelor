@@ -5,16 +5,11 @@ open Search_new
 open Html
 open Utils
 
-let view context id =
+let view in_search id =
   Main_page.madge_call_or_404 (Person Get_view) id @@ fun person ->
   Page.make'
     ~parent_title: "Person"
-    ~before_title: [
-      Components.Context_links.make_and_render_new
-        ?context
-        ~this_page: (Endpoints.Page.href_person id)
-        (Any_id.Person id);
-    ]
+    ~before_title: [Components.Context_links.for_search in_search (Any_id.Person id)]
     ~title: (lwt person.name)
     ~share_new: (Person id)
     ~actions: [

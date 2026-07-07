@@ -5,16 +5,11 @@ open Search_new
 open Html
 open Utils
 
-let view context id =
+let view in_search id =
   Main_page.madge_call_or_404 (Source Get_view) id @@ fun source ->
   Page.make'
     ~parent_title: "Source"
-    ~before_title: [
-      Components.Context_links.make_and_render_new
-        ?context
-        ~this_page: (Endpoints.Page.href_source id)
-        (Any_id.Source id);
-    ]
+    ~before_title: [Components.Context_links.for_search in_search (Any_id.Source id)]
     ~title: (lwt source.name)
     ~subtitles: [
       span (Formatters_new.Source.date_and_editors source);

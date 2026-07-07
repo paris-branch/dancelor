@@ -74,15 +74,13 @@ let body_gen (content : (Version_row.t * Version_parameters.t) list) (id : Set_i
     (
       List.mapi
         (fun index (version, params) ->
-          let context = Option.map (fun id -> Endpoints.Page.in_set id index) id in
+          let in_set = Option.map (fun id -> (id, index)) id in
           div
             ~a: [a_class ["mt-4"]]
             [
               div ~a: [a_class ["row"; "justify-content-between"; "mb-2"]] [
                 div ~a: [a_class ["col"; "text-start"]] (
-                  Formatters_new.Version.name_disambiguation_and_sources
-                    ?context: (Option.map S.const context)
-                    version @
+                  Formatters_new.Version.name_disambiguation_and_sources ?in_set version @
                     Formatters_new.Version.parameters (Some params)
                 );
                 div ~a: [a_class ["col"; "text-end"]] (
@@ -112,16 +110,11 @@ let body_gen (content : (Version_row.t * Version_parameters.t) list) (id : Set_i
 let body (set : Set_view.t) =
   body_gen set.content (Some set.id)
 
-let view context id =
+let view in_search id =
   Main_page.madge_call_or_404 (Set Get_view) id @@ fun set ->
   Page.make'
     ~parent_title: "Set"
-    ~before_title: [
-      Components.Context_links.make_and_render_new
-        ?context
-        ~this_page: (Endpoints.Page.href_set id)
-        (Any_id.Set id);
-    ]
+    ~before_title: [Components.Context_links.for_search in_search (Any_id.Set id)]
     ~title: (lwt set.name)
     ~subtitles: (subtitles set)
     ~share_new: (Set id)
