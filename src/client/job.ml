@@ -14,64 +14,29 @@ type status =
   | Succeeded of Uri.t
 [@@deriving yojson]
 
-(** Same as {!job}, but the client code must provide the promise. It is advised
-    to create it with {!Madge_client.call_gen}. Prefer using {!run} if
-    possible. *)
-let run' slug promise =
-  S.from_lwt_stream Registering @@
+(** Same as {!status_signal} but returns a stream of statuses from all the times that
+    we check with the server. The stream closes once the job has succeeded or failed. *)
+let status_stream slug (promise : Job_id.t Endpoints.Job.registration_response Lwt.t) : status Lwt_stream.t =
   Lwt_stream.(concat % return_lwt') @@
-  match%lwt promise with
-  | Error error -> raise (Madge_client.Error error)
-  | Ok Endpoints.Job.Already_succeeded job_id ->
-    lwt @@ Lwt_stream.return (Succeeded (Endpoints.Api.(href @@ Job File) job_id slug))
-  | Ok Endpoints.Job.Registered job_id ->
-    let first_time = ref true in
-    lwt @@
-    Lwt_stream.from_next @@ fun () ->
-    (* the very first time, do not wait *)
-    if !first_time then (first_time := false; lwt_unit) else Js_of_ocaml_lwt.Lwt_js.sleep 3.;%lwt
-    let%lwt status = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) job_id in
-    lwt @@
-      match status with
-      | Pending -> Lwt_stream.Next Pending
-      | Running logs -> Lwt_stream.Next (Running logs)
-      | Failed logs -> Lwt_stream.Next (Failed logs)
-      | Succeeded -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) job_id slug))
+    match%lwt promise with
+    | Endpoints.Job.Already_succeeded job_id ->
+      lwt @@ Lwt_stream.return (Succeeded (Endpoints.Api.(href @@ Job File) job_id slug))
+    | Endpoints.Job.Registered job_id ->
+      lwt @@
+      Lwt_stream.from_next @@ fun () ->
+      Js_of_ocaml_lwt.Lwt_js.sleep 2.;%lwt
+      let%lwt status = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) job_id in
+      lwt @@
+        match status with
+        | Pending -> Lwt_stream.Next Pending
+        | Running logs -> Lwt_stream.Next (Running logs)
+        | Failed logs -> Lwt_stream.Last (Failed logs)
+        | Succeeded -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) job_id slug))
 
-(** Run a job, and return a signal that contains its status. *)
-let run slug route =
-  Madge_client.call_gen route @@ fun promise ->
-  run' slug promise
-
-(* FIXME: duplicate of {!run} *)
-let run3 slug promise =
-  S.from_lwt_stream Registering @@
-  Lwt_stream.(concat % return_lwt') @@
-  match%lwt promise with
-  | None -> assert false
-  | Some Endpoints.Job.Already_succeeded job_id ->
-    lwt @@ Lwt_stream.return (Succeeded (Endpoints.Api.(href @@ Job File) job_id slug))
-  | Some Endpoints.Job.Registered job_id ->
-    let first_time = ref true in
-    lwt @@
-    Lwt_stream.from_next @@ fun () ->
-    (* the very first time, do not wait *)
-    if !first_time then (first_time := false; lwt_unit) else Js_of_ocaml_lwt.Lwt_js.sleep 3.;%lwt
-    let%lwt status = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) job_id in
-    lwt @@
-      match status with
-      | Pending -> Lwt_stream.Next Pending
-      | Running logs -> Lwt_stream.Next (Running logs)
-      | Failed logs -> Lwt_stream.Next (Failed logs)
-      | Succeeded -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) job_id slug))
-
-let copyright_reponse_promise_to_job_registration_promise copyright_response_promise =
-  match%lwt copyright_response_promise with
-  | Error error -> raise (Madge_client.Error error)
-  | Ok Endpoints.Version.Protected -> lwt_none
-  | Ok Endpoints.Version.Granted {payload; _} -> lwt_some payload
-
-let status_signal_from_promise = S.switch % S.from_lwt (S.const Registering)
+(** Given a promise to a [Job_id.t Endpoints.Job.registration_response],
+    contact the server to check the job's status and return a signal that tracks it. *)
+let status_signal slug (promise : Job_id.t Endpoints.Job.registration_response Lwt.t) : status S.t =
+  S.from_lwt_stream Registering (status_stream slug promise)
 
 let show_logs logs = pre ~a: [a_style "white-space: pre-wrap;"] [small [txt (String.concat "\n" logs)]]
 

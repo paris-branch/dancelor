@@ -132,8 +132,7 @@ let open_ (version : Version_name.t) dialog =
                 rendering_params
             in
             let job_registration_promise = copyright_reponse_promise_to_job_registration_promise copyright_response_promise in
-            let slug = NesSlug.add_suffix (NesSlug.of_string version.name) ".pdf" in
-            Job.run3 slug job_registration_promise
+            Job.status_signal (NesSlug.add_suffix (NesSlug.of_string version.name) ".pdf") (Option.get <$> job_registration_promise)
           )
         )
         ();

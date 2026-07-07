@@ -8,6 +8,10 @@ type 'payload registration_response =
   | Registered of 'payload (** the job has been registered (whether it happened right now or already before) *)
 [@@deriving yojson]
 
+let map_registration_response f = function
+  | Already_succeeded x -> Already_succeeded (f x)
+  | Registered x -> Registered (f x)
+
 module Status = struct
   type t =
     | Pending (** the server knows of the job *)

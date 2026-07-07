@@ -13,18 +13,26 @@ type copyright_response_reason =
 type 'payload copyright_response =
   | Protected
   | Granted of {payload: 'payload; reason: copyright_response_reason}
-[@@deriving yojson]
+[@@deriving yojson, variants]
 
 let map_copyright_response f = function
   | Protected -> Protected
   | Granted {payload; reason} -> Granted {payload = f payload; reason}
+
+let copyright_response_payload = function
+  | Protected -> None
+  | Granted {payload; _} -> Some payload
+
+let copyright_response_payload_exn = function
+  | Protected -> failwith "copyright_response_payload_exn"
+  | Granted {payload; _} -> payload
 
 module Snippet_ids = struct
   type t = {
     svg_job_id: Job_id.t;
     ogg_job_id: Job_id.t;
   }
-  [@@deriving yojson]
+  [@@deriving yojson, fields]
 end
 
 module Version_view_fallback = struct
