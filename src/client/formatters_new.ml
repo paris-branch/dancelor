@@ -25,10 +25,10 @@ let several' f versions =
   |> span
 
 module Person = struct
-  let name ?(link = true) ?context (person : Person_name.t) =
+  let name ?(link = true) ?in_search (person : Person_name.t) =
     if link then
       a
-        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_person ?context person.id) (switch_signal_option context)]
+        ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_person ?in_search person.id) (switch_signal_option in_search)]
         [txt person.name]
     else
       txt person.name
@@ -55,21 +55,21 @@ module Person = struct
 end
 
 module Source = struct
-  let name ?(link = true) ?context (source : Source_name.t) =
+  let name ?(link = true) ?in_search (source : Source_name.t) =
     if link then
       a
-        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_source ?context source.id) (switch_signal_option context)]
+        ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_source ?in_search source.id) (switch_signal_option in_search)]
         [txt source.name]
     else
       txt source.name
 
-  let name_row ?link ?context source =
-    name ?link ?context (Source_row.to_name source)
+  let name_row ?link ?in_search source =
+    name ?link ?in_search (Source_row.to_name source)
 
-  let short_name ?(link = true) ?context (source : Source_short_name.t) =
+  let short_name ?(link = true) ?in_search (source : Source_short_name.t) =
     if link then
       a
-        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_source ?context source.id) (switch_signal_option context)]
+        ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_source ?in_search source.id) (switch_signal_option in_search)]
         [txt source.short_name]
     else
       txt source.short_name
@@ -89,23 +89,23 @@ module Source = struct
 end
 
 module Dance = struct
-  let name ?(link = true) ?context (dance : Dance_name.t) =
+  let name ?(link = true) ?in_search (dance : Dance_name.t) =
     if link then
       a
-        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_dance ?context dance.id) (switch_signal_option context)]
+        ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_dance ?in_search dance.id) (switch_signal_option in_search)]
         [txt dance.name]
     else
       txt dance.name
 
-  let name_row ?link ?context dance = name ?link ?context (Dance_row.to_name dance)
+  let name_row ?link ?in_search dance = name ?link ?in_search (Dance_row.to_name dance)
 
-  let name_and_disambiguation ?link ?context (dance : Dance_row.t) =
+  let name_and_disambiguation ?link ?in_search (dance : Dance_row.t) =
     let disambiguation_block =
       match dance.disambiguation with
       | None -> []
       | Some disambiguation -> [span ~a: [a_class ["opacity-50"]] [txtf " (%s)" disambiguation]]
     in
-    name_row ?link ?context dance :: disambiguation_block
+    name_row ?link ?in_search dance :: disambiguation_block
 
   let aka (dance : Dance_view.t) =
     match dance.extra_names with
@@ -120,15 +120,15 @@ module Dance = struct
 end
 
 module Tune = struct
-  let name ?(link = true) ?context (tune : Tune_name.t) =
+  let name ?(link = true) ?in_search (tune : Tune_name.t) =
     if link then
       a
-        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_tune ?context tune.id) (switch_signal_option context)]
+        ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_tune ?in_search tune.id) (switch_signal_option in_search)]
         [txt tune.name]
     else
       txt tune.name
 
-  let name_row ?link ?context (tune : Tune_row.t) = name ?link ?context {id = tune.id; name = tune.name}
+  let name_row ?link ?in_search (tune : Tune_row.t) = name ?link ?in_search {id = tune.id; name = tune.name}
 
   let description (tune : Tune_view.t) =
     let kind = Kind.Base.to_long_string ~capitalised: false tune.kind in
@@ -140,25 +140,25 @@ module Tune = struct
 end
 
 module Version = struct
-  let name ?(link = true) ?context (version : Version_name.t) =
+  let name ?(link = true) ?in_search ?in_set (version : Version_name.t) =
     if link then
       a
-        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_version ?context version.id) (switch_signal_option context)]
+        ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_version ?in_search ?in_set version.id) (switch_signal_option in_search)]
         [txt version.name]
     else
       txt version.name
 
-  let name_row ?(link = true) ?context (version : Version_row.t) =
+  let name_row ?(link = true) ?in_search ?in_set (version : Version_row.t) =
     if link then
       a
-        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_version ?context version.id) (switch_signal_option context)]
+        ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_version ?in_search ?in_set version.id) (switch_signal_option in_search)]
         [txt version.tune.name]
     else
       txt version.tune.name
 
   let names ?link versions = several (name ?link) versions
 
-  let name_disambiguation_and_sources ?links ?context (version : Version_row.t) =
+  let name_disambiguation_and_sources ?links ?in_search ?in_set (version : Version_row.t) =
     let sources_block =
       match version.sources with
       | [] -> []
@@ -179,7 +179,7 @@ module Version = struct
         ~some: (fun disambiguation -> [txt " "; details [txtf "(%s)" disambiguation]])
     in
     [
-      name_row ?link: links ?context version;
+      name_row ?link: links ?in_search ?in_set version;
       details sources_block;
       details disambiguation_block;
     ]
@@ -230,18 +230,18 @@ module Version = struct
 end
 
 module Set = struct
-  let name ?(link = true) ?context (set : Set_name.t) =
+  let name ?(link = true) ?in_search (set : Set_name.t) =
     if link then
       a
-        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_set ?context set.id) (switch_signal_option context)]
+        ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_set ?in_search set.id) (switch_signal_option in_search)]
         [txt set.name]
     else
       txt set.name
 
-  let name_row ?(link = true) ?context (set : Set_row.t) =
+  let name_row ?(link = true) ?in_search (set : Set_row.t) =
     if link then
       a
-        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_set ?context set.id) (switch_signal_option context)]
+        ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_set ?in_search set.id) (switch_signal_option in_search)]
         [txt set.name]
     else
       txt set.name
@@ -254,10 +254,10 @@ module Set = struct
 end
 
 module Book = struct
-  let name ?(link = true) ?context (book : Book_row.t) =
+  let name ?(link = true) ?in_search (book : Book_row.t) =
     if link then
       a
-        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_book ?context book.id) (switch_signal_option context)]
+        ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_book ?in_search book.id) (switch_signal_option in_search)]
         [txt book.name]
     else
       txt book.name

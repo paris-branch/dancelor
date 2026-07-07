@@ -6,7 +6,7 @@ val name :
 
 val name' :
   ?link: bool ->
-  ?context: Dancelor_common.Endpoints.Page.context S.t ->
+  ?in_search: Dancelor_common.Endpoints.Page.In_search.t S.t ->
   Model.Person.entry ->
   [> Html_types.span] elt
 (** Variant of {!name} taking an {!Entry.t}. Because this is an entry, we can

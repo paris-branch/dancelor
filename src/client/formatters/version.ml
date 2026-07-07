@@ -71,11 +71,11 @@ let disambiguation_and_sources' ?parentheses ?link version =
 let name_gen version_gen =
   with_span_placeholder ~min: 1 ~max: 4 @@
     match version_gen with
-    | Right (version, true, context) ->
+    | Right (version, true, in_search) ->
       let%lwt name = Model.Version.one_name' version in
       lwt [
         a
-          ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_version ?context (Entry.id version)) (switch_signal_option context)]
+          ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_version ?in_search (Entry.id version)) (switch_signal_option in_search)]
           [txt @@ NEString.to_string name]
       ]
     | Right (version, _, _) ->
@@ -86,7 +86,7 @@ let name_gen version_gen =
       lwt [txt @@ NEString.to_string name]
 
 let name = name_gen % Either.left
-let name' ?(link = true) ?context version = name_gen @@ Right (version, link, context)
+let name' ?(link = true) ?in_search version = name_gen @@ Right (version, link, in_search)
 
 let name_disambiguation_and_sources_gen ?(params = Model.Version_parameters.none) version_gen =
   let (version, link) = match version_gen with Right (version, link, _) -> (Entry.value version, link) | Left version -> (version, false) in
@@ -115,8 +115,8 @@ let name_disambiguation_and_sources_gen ?(params = Model.Version_parameters.none
     display_name_block @ structure_block @ transposition_block
   )
 
-let name_disambiguation_and_sources' ?(link = true) ?context ?params version =
-  name_disambiguation_and_sources_gen ?params @@ Right (version, link, context)
+let name_disambiguation_and_sources' ?(link = true) ?in_search ?params version =
+  name_disambiguation_and_sources_gen ?params @@ Right (version, link, in_search)
 
 let composer_and_arranger ?(short = false) ?link ?(params = Model.Version_parameters.none) version =
   with_span_placeholder @@

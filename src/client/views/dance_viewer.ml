@@ -67,16 +67,11 @@ let body (dance : Dance_view.t) = [
     ];
 ]
 
-let view context id =
+let view in_search id =
   Main_page.madge_call_or_404 (Dance Get_view) id @@ fun dance ->
   Page.make'
     ~parent_title: "Dance"
-    ~before_title: [
-      Components.Context_links.make_and_render_new
-        ?context
-        ~this_page: (Endpoints.Page.href_dance id)
-        (Any_id.Dance id);
-    ]
+    ~before_title: [Components.Context_links.for_search in_search (Any_id.Dance id)]
     ~title: (lwt dance.name)
     ~subtitles: (subtitles dance)
     ~share_new: (Dance id)

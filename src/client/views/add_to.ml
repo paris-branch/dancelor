@@ -12,16 +12,16 @@ let dialog
     ~source_format
     ~target_format
     ~target_href
-    ~(target_result : ?onclick: 'a -> ?context: 'b -> 'c -> 'd)
+    ~(target_result : ?onclick: 'a -> ?in_search: 'b -> 'c -> 'd)
     ~target_search
     ~target_update
     ~target_history
     ~target_add_source_to_content
     source
   =
-  let make_result ?context ~return target =
+  let make_result ?in_search ~return target =
     target_result
-      ?context
+      ?in_search
       target
       ~onclick: (fun () ->
         let target_value = target_add_source_to_content (Entry.value target) in

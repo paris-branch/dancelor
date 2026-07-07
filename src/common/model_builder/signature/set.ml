@@ -39,8 +39,8 @@ module type S = sig
   val slug : t -> NesSlug.t
   val slug' : entry -> NesSlug.t
 
-  val find_context : int -> t -> Core.Version.t Entry.id List.context option
-  val find_context' : int -> entry -> Core.Version.t Entry.id List.context option
+  val find_context : n_prev: int -> n_next: int -> int -> t -> Core.Version.t Entry.id List.context option
+  val find_context' : n_prev: int -> n_next: int -> int -> entry -> Core.Version.t Entry.id List.context option
   (** Given an indice and a set, find the context around that indice in the
       set. *)
 

@@ -197,11 +197,13 @@ let search env slice query =
   let items = List.map fst @@ Slice.list ~strict: false slice items in
   lwt {Search_result.total; items}
 
-let search_context env query element =
+let search_context_5_10 env query element =
   let%lwt results = Search_result.items <$> search env Slice.everything query in
-  match List.find_context (Any_id.equal element) (List.map Any_row.to_id results) with
-  | None -> Madge_server.shortcut_not_found "Could not find the given element in the search results."
-  | Some List.{total; previous; index; next; _} -> lwt {Search_context_result.index; total; previous_item = previous; next_item = next}
+  match List.find_context ~n_prev: 5 ~n_next: 10 (Any_id.equal element) (List.map Any_row.to_id results) with
+  | None ->
+    Madge_server.shortcut_not_found "Could not find the given element in the search results."
+  | Some List.{index; total; next; previous; element = _} ->
+    lwt {Search_context_result.index; total; next; previous}
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Any.t -> a = fun env endpoint ->
   match endpoint with
@@ -209,4 +211,4 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Any.t -> a =
   | Get_rows -> get_rows env
   | Newest -> newest env
   | Search -> search env
-  | Search_context -> search_context env
+  | Search_context_5_10 -> search_context_5_10 env

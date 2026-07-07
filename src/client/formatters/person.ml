@@ -9,10 +9,10 @@ let switch_signal_option = function
 let name_gen person =
   span [
     match person with
-    | Right (person, true, context) ->
+    | Right (person, true, in_search) ->
       a
         ~a: [
-          R.a_href @@ S.map (fun context -> Endpoints.Page.href_person ?context @@ Entry.id person) (switch_signal_option context)
+          R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_person ?in_search @@ Entry.id person) (switch_signal_option in_search)
         ]
         [txt (NEString.to_string @@ Model.Person.name' person)]
     | Right (person, _, _) -> txt (NEString.to_string @@ Model.Person.name' person)
@@ -21,7 +21,7 @@ let name_gen person =
 
 let name = name_gen % Either.left
 
-let name' ?(link = true) ?context person = name_gen @@ Right (person, link, context)
+let name' ?(link = true) ?in_search person = name_gen @@ Right (person, link, in_search)
 
 let names_with_details_gen ?(short = false) persons_with_details =
   let persons =

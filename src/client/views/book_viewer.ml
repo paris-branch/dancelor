@@ -105,16 +105,11 @@ let table_contents ~this_id content =
 
 open Html
 
-let view context id =
+let view in_search id =
   Main_page.madge_call_or_404 (Book Get_view) id @@ fun book ->
   Page.make'
     ~parent_title: "Book"
-    ~before_title: [
-      Components.Context_links.make_and_render_new
-        ?context
-        ~this_page: (Endpoints.Page.href_book id)
-        (Any_id.Book id);
-    ]
+    ~before_title: [Components.Context_links.for_search in_search (Any_id.Book id)]
     ~title: (lwt book.name)
     ~subtitles: [span (Formatters_new.Book.date_and_editors book)]
     ~share_new: (Book id)
@@ -229,24 +224,15 @@ let body = function
   | Versions versions -> body_versions versions
   | Set (set, _) -> body_set set
 
-let this_page = function
-  | Book_view.Part _ -> None
-  | Dance (_, Dance_set _) -> None (* because it's unclear which it would lead to *)
-  | Dance (dance, _) -> Some (Endpoints.Page.(href @@ Dance View) None dance.id)
-  | Versions [(version, _)] -> Some (Endpoints.Page.(href @@ Version View) None version.id)
-  | Versions _ -> None
-  | Set (set, _) -> Some (Endpoints.Page.(href @@ Set View) None set.id)
-
 let preview id pageno =
   Main_page.madge_call_or_404 (Book Get_view) id @@ fun book ->
   let page = List.nth book.content pageno in
   let (parent_title, title) = parent_title_and_title page in
   let%lwt subtitles = subtitles page in
   let%lwt body = body page in
-  let this_page = this_page page in
   Page.make'
     ~parent_title
-    ~before_title: [Components.Context_links.make_and_render_book ~this_page book pageno]
+    ~before_title: [Components.Context_links.for_book book pageno]
     ~title: (lwt title)
     ~subtitles
     body

@@ -49,7 +49,7 @@ let editor user =
     (
       Selector.prepare
         ~make_descr: (lwt % Person_row.name)
-        ~make_result: (Any_result_new.make_person_result ?context: None)
+        ~make_result: (Any_result_new.make_person_result ?in_search: None)
         ~results_when_no_search: (Option.to_list <$> Environment.person_row)
         ~label: "Conceptor"
         ~model_name: "person"
@@ -72,7 +72,7 @@ let editor user =
         (
           Selector.prepare
             ~make_descr: (lwt % Tune_row.name % Version_row.tune)
-            ~make_result: (Any_result_new.make_version_result ?context: None)
+            ~make_result: (Any_result_new.make_version_result ?in_search: None)
             ~make_more_results: (fun version ->
               S.flip_map show_preview @@ function
                 | true -> [tr [td ~a: [a_colspan 9999] [Version_snippets.make ~show_audio: false (Version_row.to_name version)]]]
@@ -129,7 +129,7 @@ let editor user =
         ~label: "Owner"
         ~model_name: "user"
         ~make_descr: (fun user -> lwt @@ Username.to_string user.username)
-        ~make_result: (Any_result_new.make_user_result ?context: None)
+        ~make_result: (Any_result_new.make_user_result ?in_search: None)
         ~results_when_no_search: (Option.to_list <$> Environment.user_new)
         ~search: (fun slice input ->
           match User_query.parse input with
@@ -170,7 +170,7 @@ let editor user =
                 ~label: "Viewer"
                 ~model_name: "user"
                 ~make_descr: (fun user -> lwt @@ Username.to_string user.username)
-                ~make_result: (Any_result_new.make_user_result ?context: None)
+                ~make_result: (Any_result_new.make_user_result ?in_search: None)
                 ~search: (fun slice input ->
                   match User_query.parse input with
                   | Error msg -> lwt_error msg

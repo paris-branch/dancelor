@@ -33,7 +33,7 @@ let create () =
       ~label: "User"
       ~model_name: "user"
       ~make_descr: (fun user -> lwt @@ Username.to_string user.username)
-      ~make_result: (Any_result_new.make_user_result ?context: None)
+      ~make_result: (Any_result_new.make_user_result ?in_search: None)
       ~results_when_no_search: lwt_nil
       ~search: (fun slice input ->
         match User_query.parse input with

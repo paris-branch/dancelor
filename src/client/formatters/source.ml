@@ -14,7 +14,7 @@ let name ?(short = false) source =
   in
   span [txt @@ NEString.to_string name]
 
-let name' ?(short = false) ?(link = true) ?context source =
+let name' ?(short = false) ?(link = true) ?in_search source =
   let name =
     match short, Model.Source.short_name' source with
     | false, _ | true, None -> Model.Source.name' source
@@ -25,7 +25,7 @@ let name' ?(short = false) ?(link = true) ?context source =
     if link then
       [
         a
-          ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_source ?context @@ Entry.id source) (switch_signal_option context)]
+          ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_source ?in_search @@ Entry.id source) (switch_signal_option in_search)]
           name_text
       ]
     else

@@ -45,6 +45,7 @@ let make_ogg_gen status_signal =
         | Waiting -> [audio ~a: [a_controls (); a_class ["placeholder"]] []]
         | Failed -> [audio ~a: [a_controls (); a_class ["bg-danger"; "opacity-50"]] []]
         | Succeeded src -> [audio ~a: [a_controls ()] ~src []]
+        | Copyrighted -> []
     )
 
 let make_gen
@@ -70,97 +71,52 @@ let make_gen
     );
   ]
 
-let make ?show_logs ?show_audio ?(params = Model.Version_parameters.none) (version : Version_name.t) =
-  let copyright_response_promise =
-    Madge_client.call
-      Endpoints.Api.(route @@ Version Build_snippets)
-      version.id
-      params
-      Rendering_parameters.none
-  in
-  let is_protected_promise =
-    match%lwt copyright_response_promise with
-    | Error error -> raise (Madge_client.Error error)
-    | Ok Endpoints.Version.Protected -> lwt_true
-    | Ok Endpoints.Version.Granted _ -> lwt_false
-  in
+let make_gen ?show_logs ?show_audio ~slug copyright_response_promise =
   let svg_status_signal =
-    Job.status_signal_from_promise @@
-      let slug = NesSlug.of_string version.name in
-      lwt @@
-      Job.run3 (NesSlug.add_suffix slug ".svg") @@
-      Job.copyright_reponse_promise_to_job_registration_promise @@
-      match%lwt copyright_response_promise with
-      | Error err -> lwt_error err
-      | Ok copyright_response ->
-        lwt_ok @@
-          Endpoints.Version.map_copyright_response
-            (function
-              | Endpoints.Job.Already_succeeded snippet_ids -> Endpoints.Job.Already_succeeded snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
-              | Registered snippet_ids -> Registered snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
-            )
-            copyright_response
+    Job.status_signal (NesSlug.add_suffix slug ".svg") (
+      Endpoints.Version.map_copyright_response
+        (Endpoints.Job.map_registration_response Endpoints.Version.Snippet_ids.svg_job_id)
+      <$> copyright_response_promise
+    )
   in
   let ogg_status_signal =
-    Job.status_signal_from_promise @@
-      let slug = NesSlug.of_string version.name in
-      lwt @@
-      Job.run3 (NesSlug.add_suffix slug ".ogg") @@
-      Job.copyright_reponse_promise_to_job_registration_promise @@
-      match%lwt copyright_response_promise with
-      | Error err -> lwt_error err
-      | Ok copyright_response ->
-        lwt_ok @@
-          Endpoints.Version.map_copyright_response
-            (function
-              | Endpoints.Job.Already_succeeded snippet_ids -> Endpoints.Job.Already_succeeded snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
-              | Registered snippet_ids -> Registered snippet_ids.Endpoints.Version.Snippet_ids.ogg_job_id
-            )
-            copyright_response
+    Job.status_signal (NesSlug.add_suffix slug ".ogg") (
+      Endpoints.Version.map_copyright_response
+        (Endpoints.Job.map_registration_response Endpoints.Version.Snippet_ids.ogg_job_id)
+      <$> copyright_response_promise
+    )
   in
   make_gen
     ?show_logs
     ?show_audio
-    ~is_protected_promise
     svg_status_signal
     ogg_status_signal
 
-let make_preview ?show_logs ?show_audio ?(params = Model.Version_parameters.none) version =
-  let copyright_response_promise =
-    Madge_client.call
-      Endpoints.Api.(route @@ Version Build_snippets')
-      version
-      params
-      Rendering_parameters.none
-  in
-  let svg_status_signal =
-    Job.status_signal_from_promise @@
-      let%lwt slug = Model.Version.slug version in
-      lwt @@
-      Job.run3 (NesSlug.add_suffix slug ".svg") @@ (
-        Result.to_option
-        <$>
-          match%lwt copyright_response_promise with
-          | Error err -> lwt_error err
-          | Ok Endpoints.Job.Already_succeeded snippet_ids -> lwt_ok @@ Endpoints.Job.Already_succeeded snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
-          | Ok Registered snippet_ids -> lwt_ok @@ Endpoints.Job.Registered snippet_ids.Endpoints.Version.Snippet_ids.svg_job_id
-      )
-  in
-  let ogg_status_signal =
-    Job.status_signal_from_promise @@
-      let%lwt slug = Model.Version.slug version in
-      lwt @@
-      Job.run3 (NesSlug.add_suffix slug ".ogg") @@ (
-        Result.to_option
-        <$>
-          match%lwt copyright_response_promise with
-          | Error err -> lwt_error err
-          | Ok Endpoints.Job.Already_succeeded snippet_ids -> lwt_ok @@ Endpoints.Job.Already_succeeded snippet_ids.Endpoints.Version.Snippet_ids.ogg_job_id
-          | Ok Registered snippet_ids -> lwt_ok @@ Endpoints.Job.Registered snippet_ids.Endpoints.Version.Snippet_ids.ogg_job_id
-      )
-  in
+let make ?show_logs ?show_audio ?(params = Model.Version_parameters.none) (version : Version_name.t) =
   make_gen
     ?show_logs
     ?show_audio
-    svg_status_signal
-    ogg_status_signal
+    ~slug: (NesSlug.of_string version.name)
+    (
+      Madge_client.call_exn
+        Endpoints.Api.(route @@ Version Build_snippets)
+        version.id
+        params
+        Rendering_parameters.none
+    )
+
+let make_preview ?show_logs ?show_audio ?(params = Model.Version_parameters.none) slug version =
+  make_gen
+    ?show_logs
+    ?show_audio
+    ~slug
+    (
+      let%lwt payload =
+        Madge_client.call_exn
+          Endpoints.Api.(route @@ Version Build_snippets')
+          version
+          params
+          Rendering_parameters.none
+      in
+      lwt @@ Endpoints.Version.Granted {payload; reason = Non_copyrighted}
+    )

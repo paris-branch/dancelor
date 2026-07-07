@@ -31,10 +31,10 @@ let versions ?onclick versions =
     )
     versions
 
-let any ?context anys =
+let any ?in_search anys =
   map_table
     ~header: [""; ""; ""; ""; ""]
-    (Any_result_new.make_result ?context)
+    (Any_result_new.make_result ?in_search)
     anys
 
 let placeholder ?(show_thead = true) ?(show_tfoot = true) ?(rows = 3) () = [

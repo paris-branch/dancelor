@@ -8,12 +8,13 @@ type copyright_response_reason =
   | Connected
   | Composer_agrees
   | Publisher_agrees of Source.entry
+  | Non_copyrighted (** useful to make generic utilities working on copyrighted and non-copyrighted values *)
 [@@deriving yojson]
 
 type 'payload copyright_response =
   | Protected
   | Granted of {payload: 'payload; reason: copyright_response_reason}
-[@@deriving yojson]
+[@@deriving yojson, variants]
 
 let map_copyright_response f = function
   | Protected -> Protected
@@ -24,7 +25,7 @@ module Snippet_ids = struct
     svg_job_id: Job_id.t;
     ogg_job_id: Job_id.t;
   }
-  [@@deriving yojson]
+  [@@deriving yojson, fields]
 end
 
 module Version_view_fallback = struct

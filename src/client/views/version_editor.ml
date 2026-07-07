@@ -188,7 +188,7 @@ let editor =
   let open Editor in
   Selector.prepare
     ~make_descr: (lwt % Tune_row.name)
-    ~make_result: (Any_result_new.make_tune_result ?context: None)
+    ~make_result: (Any_result_new.make_tune_result ?in_search: None)
     ~label: "Tune"
     ~model_name: "tune"
     ~create_dialog_content: Tune_editor.create_row
@@ -218,7 +218,7 @@ let editor =
     (
       Selector.prepare
         ~make_descr: (lwt % Person_row.name)
-        ~make_result: (Any_result_new.make_person_result ?context: None)
+        ~make_result: (Any_result_new.make_person_result ?in_search: None)
         ~results_when_no_search: (Option.to_list <$> Environment.person_row)
         ~label: "Arranger"
         ~model_name: "person"
@@ -249,7 +249,7 @@ let editor =
         (
           Selector.prepare
             ~make_descr: (lwt % Source_row.name)
-            ~make_result: (Any_result_new.make_source_result ?context: None)
+            ~make_result: (Any_result_new.make_source_result ?in_search: None)
             ~label: "Source"
             ~model_name: "source"
             ~create_dialog_content: Source_editor.create_row
@@ -299,11 +299,12 @@ let preview version =
   match Model.Version.content version with
   | No_content -> lwt_true
   | _ ->
+    let%lwt slug = Model.Version.slug version in
     Option.fold ~none: false ~some: (const true)
     <$> Page.open_dialog @@ fun return ->
       Page.make'
         ~title: (lwt "Preview")
-        [Components.Version_snippets.make_preview ~show_logs: true version]
+        [Components.Version_snippets.make_preview ~show_logs: true slug version]
         ~buttons: [
           Button.cancel' ~return ();
           Button.save ~onclick: (fun () -> return (Some ()); lwt_unit) ();

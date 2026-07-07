@@ -144,7 +144,7 @@ let register_snippets_job ?version_params version =
   let%lwt ogg_job = Renderer.make_tune_ogg tune in
   lwt @@
     match (uncurry Job.register_job_and_file svg_job, uncurry Job.register_job_and_file ogg_job) with
-    | Already_succeeded svg_job_id, Already_succeeded ogg_job_id -> Endpoints.Job.Already_succeeded Endpoints.Version.Snippet_ids.{svg_job_id; ogg_job_id}
+    | Already_succeeded svg_job_id, Already_succeeded ogg_job_id -> Endpoints.Job.Already_succeeded {Endpoints.Version.Snippet_ids.svg_job_id; ogg_job_id}
     | Registered svg_job_id, Already_succeeded ogg_job_id -> Registered {svg_job_id; ogg_job_id}
     | Already_succeeded svg_job_id, Registered ogg_job_id -> Registered {svg_job_id; ogg_job_id}
     | Registered svg_job_id, Registered ogg_job_id -> Registered {svg_job_id; ogg_job_id}

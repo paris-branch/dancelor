@@ -9,16 +9,16 @@ let switch_signal_option = function
 let name_gen tune_gen =
   span [
     match tune_gen with
-    | Right (tune, true, context) ->
+    | Right (tune, true, in_search) ->
       a
-        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_tune ?context @@ Entry.id tune) (switch_signal_option context)]
+        ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_tune ?in_search @@ Entry.id tune) (switch_signal_option in_search)]
         [txt @@ NEString.to_string @@ Model.Tune.one_name' tune]
     | Right (tune, _, _) -> txt (NEString.to_string @@ Model.Tune.one_name' tune)
     | Left tune -> txt (NEString.to_string @@ Model.Tune.one_name tune)
   ]
 
 let name = name_gen % Either.left
-let name' ?(link = true) ?context tune = name_gen @@ Right (tune, link, context)
+let name' ?(link = true) ?in_search tune = name_gen @@ Right (tune, link, in_search)
 
 let composers ?short ?links tune =
   with_span_placeholder ~min: 1 ~max: 2 @@ (

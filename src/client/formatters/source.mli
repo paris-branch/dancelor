@@ -8,7 +8,7 @@ val name :
 val name' :
   ?short: bool ->
   ?link: bool ->
-  ?context: Dancelor_common.Endpoints.Page.context S.t ->
+  ?in_search: Dancelor_common.Endpoints.Page.In_search.t S.t ->
   Model.Source.entry ->
   [> Html_types.span] elt
 (** Variant of {!name} taking an {!Entry.t}. Because this is an entry, we can

@@ -9,9 +9,9 @@ let switch_signal_option = function
 let name_gen dance_gen =
   span [
     match dance_gen with
-    | Right (dance, true, context) ->
+    | Right (dance, true, in_search) ->
       a
-        ~a: [R.a_href @@ S.map (fun context -> Endpoints.Page.href_dance ?context @@ Entry.id dance) (switch_signal_option context)]
+        ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_dance ?in_search @@ Entry.id dance) (switch_signal_option in_search)]
         [txt @@ NEString.to_string @@ Model.Dance.one_name' dance]
     | Right (dance, _, _) -> txt (NEString.to_string @@ Model.Dance.one_name' dance)
     | Left dance -> txt (NEString.to_string @@ Model.Dance.one_name dance)
@@ -19,7 +19,7 @@ let name_gen dance_gen =
 
 let name = name_gen % Either.left
 
-let name' ?(link = true) ?context person = name_gen @@ Right (person, link, context)
+let name' ?(link = true) ?in_search person = name_gen @@ Right (person, link, in_search)
 
 let name_and_disambiguation_gen dance =
   let disambiguation_block =
@@ -29,8 +29,8 @@ let name_and_disambiguation_gen dance =
   in
   span (name_gen dance :: disambiguation_block)
 
-let name_and_disambiguation' ?(name_link = true) ?context dance =
-  name_and_disambiguation_gen @@ Right (dance, name_link, context)
+let name_and_disambiguation' ?(name_link = true) ?in_search dance =
+  name_and_disambiguation_gen @@ Right (dance, name_link, in_search)
 
 let aka dance =
   span @@

@@ -69,37 +69,37 @@ let sort_count cmp l =
   | [] -> []
   | h :: t -> count_duplicates [] (h, 1) t
 
-(******************************************************************************)
-(* Lwt-Aware Sorting functions                                                *)
-(*                                                                            *)
-(* The tests for these functions can be found in test/nesListTest.ml. They    *)
-(* not inline because that would require lwt.unix which clashes with          *)
-(* js_of_ocaml.                                                               *)
-
 type 'a context = {
   element: 'a;
   index: int;
-  previous: 'a option;
-  next: 'a option;
   total: int;
+  previous: 'a list;
+  next: 'a list;
 }
 
-let findi_context p l =
+let findi_context ~n_prev ~n_next p l =
   let rec findi_context previous index = function
     | [] -> None
-    | element :: l when p index element ->
-      Some {element; previous; index; next = hd_opt l; total = 1 + index + length l}
-    | x :: l -> findi_context (Some x) (index + 1) l
+    | element :: next when p index element ->
+      Some {
+        element;
+        index;
+        total = 1 + index + length l;
+        next = take n_next next;
+        previous = take n_prev previous;
+      }
+    | x :: l ->
+      findi_context (x :: previous) (index + 1) l
   in
-  findi_context None 0 l
+  findi_context [] 0 l
 
-let find_context p = findi_context (Fun.const p)
+let find_context ~n_prev ~n_next p = findi_context ~n_prev ~n_next (Fun.const p)
 
 let map_context f c = {
   element = f c.element;
   index = c.index;
-  previous = Option.map f c.previous;
-  next = Option.map f c.next;
+  previous = List.map f c.previous;
+  next = List.map f c.next;
   total = c.total;
 }
 
