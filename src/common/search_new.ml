@@ -24,11 +24,13 @@ module Make_search_result (X : Type) = struct
 end
 
 module Search_context_result = struct
+  (** Invariant: if [next] (resp. [previous]) is empty, then the
+      element is the last (resp. first) of the search results. *)
   type 'a t = {
-    total: int;
-    previous_item: 'a option; [@default None]
     index: int;
-    next_item: 'a option; [@default None]
+    total: int;
+    next: 'a list; [@default []]
+    previous: 'a list; [@default []]
   }
   [@@deriving yojson, fields]
 end

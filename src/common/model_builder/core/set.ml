@@ -32,10 +32,12 @@ let slug' = slug % Entry.value_private_
 
 let set_contents contents set = {set with contents}
 
-let find_context index set =
+let find_context ~n_prev ~n_next index set =
   let versions = List.map fst @@ contents set in
-  List.findi_context (fun i _ -> i = index) versions
-let find_context' index = find_context index % Entry.value_private_
+  List.findi_context ~n_prev ~n_next (fun i _ -> i = index) versions
+
+let find_context' ~n_prev ~n_next index entry =
+  find_context ~n_prev ~n_next index @@ Entry.value_private_ entry
 
 type warning =
   | Empty

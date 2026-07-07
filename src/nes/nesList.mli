@@ -34,16 +34,18 @@ val swap : int -> int -> 'a list -> 'a list
 type 'a context = {
   element: 'a;
   index: int;
-  previous: 'a option;
-  next: 'a option;
   total: int;
+  previous: 'a list;
+  next: 'a list;
 }
 (** The context of an element *)
 
-val find_context : ('a -> bool) -> 'a t -> 'a context option
-(** Finds the given element and return it and its context. *)
+val find_context : n_prev: int -> n_next: int -> ('a -> bool) -> 'a t -> 'a context option
+(** Finds the given element and return it and its context. The context
+    will contain up to [~n_prev] previous elements and [~n_next] next
+    elements. *)
 
-val findi_context : (int -> 'a -> bool) -> 'a t -> 'a context option
+val findi_context : n_prev: int -> n_next: int -> (int -> 'a -> bool) -> 'a t -> 'a context option
 (** Same as {!find_context} but also provides the index in the test. *)
 
 val map_context : ('a -> 'b) -> 'a context -> 'b context
