@@ -16,7 +16,9 @@ let view context id =
         (Any_id.Source id);
     ]
     ~title: (lwt source.name)
-    ~subtitles: (Formatters_new.Source.date_and_editors source)
+    ~subtitles: [
+      span (Formatters_new.Source.date_and_editors source);
+    ]
     ~share_new: (Source id)
     ~actions: [
       (
