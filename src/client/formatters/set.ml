@@ -19,13 +19,14 @@ let display_conceptor ?(params = Model.Set_parameters.none) () =
 let name_gen ?params set_gen =
   span (
     [
-    match set_gen with
-    | Right (set, true, in_search) ->
-      a
-        ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_set ?in_search @@ Entry.id set) (switch_signal_option in_search)]
-        [txt @@ NEString.to_string @@ Model.Set.name' set]
-    | Right (set, _, _) -> txt (NEString.to_string @@ Model.Set.name' set)
-    | Left set -> txt (NEString.to_string @@ Model.Set.name set)] @
+      match set_gen with
+      | Right (set, true, in_search) ->
+        a
+          ~a: [R.a_href @@ S.map (fun in_search -> Endpoints.Page.href_set ?in_search @@ Entry.id set) (switch_signal_option in_search)]
+          [txt @@ NEString.to_string @@ Model.Set.name' set]
+      | Right (set, _, _) -> txt (NEString.to_string @@ Model.Set.name' set)
+      | Left set -> txt (NEString.to_string @@ Model.Set.name set)
+    ] @
       display_name ?params ()
   )
 
@@ -49,8 +50,10 @@ let tunes' ?link set = tunes ?link @@ Entry.value set
 
 let conceptors ?link ?short ?params tune =
   span (
-    [with_span_placeholder
-      (List.singleton <$> (Person.names' ?links: link ?short <$> Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Set.conceptors tune)))] @
+    [
+      with_span_placeholder
+        (List.singleton <$> (Person.names' ?links: link ?short <$> Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Set.conceptors tune)))
+    ] @
       display_conceptor ?params ()
   )
 

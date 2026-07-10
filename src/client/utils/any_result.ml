@@ -26,9 +26,10 @@ let make_source_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []
     ?onclick
     (
       prefix @
-      [L.td (Lwt.pause ();%lwt lwt [Formatters.Source.name' ~link: (onclick = None) ?in_search source]);
-      L.td (Lwt.pause ();%lwt lwt [txt (Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) (Source.date' source))]);
-      L.td (Lwt.pause ();%lwt List.singleton <$> (Formatters.Person.names' ~links: (onclick = None) ~short: true <$> Lwt_list.map_p (Option.get <%> Person.get) (Source.editors' source)));
+      [
+        L.td (Lwt.pause ();%lwt lwt [Formatters.Source.name' ~link: (onclick = None) ?in_search source]);
+        L.td (Lwt.pause ();%lwt lwt [txt (Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) (Source.date' source))]);
+        L.td (Lwt.pause ();%lwt List.singleton <$> (Formatters.Person.names' ~links: (onclick = None) ~short: true <$> Lwt_list.map_p (Option.get <%> Person.get) (Source.editors' source)));
       ] @
       suffix
     )
@@ -39,7 +40,8 @@ let make_person_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []
     ?onclick
     (
       prefix @
-      [L.td ~a: [a_colspan 3] (Lwt.pause ();%lwt lwt [Formatters.Person.name' ~link: (onclick = None) ?in_search person]);
+      [
+        L.td ~a: [a_colspan 3] (Lwt.pause ();%lwt lwt [Formatters.Person.name' ~link: (onclick = None) ?in_search person]);
       ] @
       suffix
     )
@@ -50,9 +52,10 @@ let make_dance_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = [])
     ?onclick
     (
       prefix @
-      [L.td (Lwt.pause ();%lwt lwt [Formatters.Dance.name_and_disambiguation' ~name_link: (onclick = None) ?in_search dance]);
-      L.td (Lwt.pause ();%lwt lwt [txt (Kind.Dance.to_string @@ Dance.kind' dance)]);
-      L.td (Lwt.pause ();%lwt List.singleton <$> (Formatters.Person.names' ~links: (onclick = None) ~short: true <$> Lwt_list.map_p (Option.get <%> Person.get) (Dance.devisers' dance)));
+      [
+        L.td (Lwt.pause ();%lwt lwt [Formatters.Dance.name_and_disambiguation' ~name_link: (onclick = None) ?in_search dance]);
+        L.td (Lwt.pause ();%lwt lwt [txt (Kind.Dance.to_string @@ Dance.kind' dance)]);
+        L.td (Lwt.pause ();%lwt List.singleton <$> (Formatters.Person.names' ~links: (onclick = None) ~short: true <$> Lwt_list.map_p (Option.get <%> Person.get) (Dance.devisers' dance)));
       ] @
       suffix
     )
@@ -60,13 +63,14 @@ let make_dance_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = [])
 let make_dance_plus_set_result ?classes ?onclick ?in_search ?set_params ?(prefix = []) ?(suffix = []) dance set =
   row ?classes ?onclick (
     prefix @
-    [td [
-      Formatters.Dance.name' ?in_search dance;
-      details [txt "Set: "; Formatters.Set.name' ~link: (onclick = None) ?params: set_params set];
-      details [Formatters.Set.tunes' ~link: (onclick = None) set];
-    ];
-    td [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
-    td [Formatters.Set.conceptors' ~short: true ?params: set_params set];
+    [
+      td [
+        Formatters.Dance.name' ?in_search dance;
+        details [txt "Set: "; Formatters.Set.name' ~link: (onclick = None) ?params: set_params set];
+        details [Formatters.Set.tunes' ~link: (onclick = None) set];
+      ];
+      td [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
+      td [Formatters.Set.conceptors' ~short: true ?params: set_params set];
     ] @
     suffix
   )
@@ -74,15 +78,17 @@ let make_dance_plus_set_result ?classes ?onclick ?in_search ?set_params ?(prefix
 let make_dance_plus_versions_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) dance versions_and_params =
   row ?classes ?onclick (
     prefix @
-    [td [
-      Formatters.Dance.name' ?in_search dance;
-      details [
-        txt (if NEList.is_singleton versions_and_params then "Tune: " else "Tunes: ");
-        Formatters.Version.names_disambiguations_and_sources' versions_and_params
+    [
+      td [
+        Formatters.Dance.name' ?in_search dance;
+        details [
+          txt (if NEList.is_singleton versions_and_params then "Tune: " else "Tunes: ");
+          Formatters.Version.names_disambiguations_and_sources' versions_and_params
+        ];
       ];
-    ];
-    td [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
-    td [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]] @
+      td [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
+      td [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]
+    ] @
     suffix
   )
 
@@ -92,9 +98,10 @@ let make_book_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) 
     ?onclick
     (
       prefix @
-      [L.td (Lwt.pause ();%lwt lwt [Formatters.Book.name' ~link: (onclick = None) ?in_search book]);
-      L.td (Lwt.pause ();%lwt lwt [txt (Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) (Book.date' book))]);
-      L.td (Lwt.pause ();%lwt lwt [Formatters.Book.editors' book]);
+      [
+        L.td (Lwt.pause ();%lwt lwt [Formatters.Book.name' ~link: (onclick = None) ?in_search book]);
+        L.td (Lwt.pause ();%lwt lwt [txt (Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) (Book.date' book))]);
+        L.td (Lwt.pause ();%lwt lwt [Formatters.Book.editors' book]);
       ] @
       suffix
     )
@@ -105,15 +112,16 @@ let make_set_result ?classes ?onclick ?in_search ?params ?(prefix = []) ?(suffix
     ?onclick
     (
       prefix @
-      [L.td (
-        Lwt.pause ();%lwt
-        lwt [
-          Formatters.Set.name' ~link: (onclick = None) ?in_search ?params set;
-          details [Formatters.Set.tunes' ~link: (onclick = None) set];
-        ]
-      );
-      L.td (Lwt.pause ();%lwt lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set]);
-      L.td (Lwt.pause ();%lwt lwt [Formatters.Set.conceptors' ~link: (onclick = None) ~short: true ?params set]);
+      [
+        L.td (
+          Lwt.pause ();%lwt
+          lwt [
+            Formatters.Set.name' ~link: (onclick = None) ?in_search ?params set;
+            details [Formatters.Set.tunes' ~link: (onclick = None) set];
+          ]
+        );
+        L.td (Lwt.pause ();%lwt lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set]);
+        L.td (Lwt.pause ();%lwt lwt [Formatters.Set.conceptors' ~link: (onclick = None) ~short: true ?params set]);
       ] @
       suffix
     )
@@ -124,9 +132,10 @@ let make_tune_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) 
     ?onclick
     (
       prefix @
-      [L.td (Lwt.pause ();%lwt lwt [Formatters.Tune.name' ~link: (onclick = None) ?in_search tune]);
-      L.td (Lwt.pause ();%lwt lwt [txt @@ Kind.Base.to_long_string ~capitalised: true @@ Tune.kind' tune]);
-      L.td (Lwt.pause ();%lwt lwt [Formatters.Tune.composers' ~links: (onclick = None) tune]);
+      [
+        L.td (Lwt.pause ();%lwt lwt [Formatters.Tune.name' ~link: (onclick = None) ?in_search tune]);
+        L.td (Lwt.pause ();%lwt lwt [txt @@ Kind.Base.to_long_string ~capitalised: true @@ Tune.kind' tune]);
+        L.td (Lwt.pause ();%lwt lwt [Formatters.Tune.composers' ~links: (onclick = None) tune]);
       ] @
       suffix
     )
@@ -137,9 +146,10 @@ let make_version_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = [
     ?onclick
     (
       prefix @
-      [L.td (Lwt.pause ();%lwt lwt [Formatters.Version.name_disambiguation_and_sources' ~link: (onclick = None) ?in_search version]);
-      L.td (Lwt.pause ();%lwt lwt [Formatters.Version.kind_and_structure' version]);
-      L.td (Lwt.pause ();%lwt lwt [Formatters.Version.composer_and_arranger' ~link: (onclick = None) ~short: true version]);
+      [
+        L.td (Lwt.pause ();%lwt lwt [Formatters.Version.name_disambiguation_and_sources' ~link: (onclick = None) ?in_search version]);
+        L.td (Lwt.pause ();%lwt lwt [Formatters.Version.kind_and_structure' version]);
+        L.td (Lwt.pause ();%lwt lwt [Formatters.Version.composer_and_arranger' ~link: (onclick = None) ~short: true version]);
       ] @
       suffix
     )
@@ -147,23 +157,25 @@ let make_version_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = [
 let make_versions_result ?classes ?onclick ?(prefix = []) ?(suffix = []) versions_and_params =
   row ?classes ?onclick (
     prefix @
-    [td [Formatters.Version.names_disambiguations_and_sources' versions_and_params];
-    (
-      L.td (
-        let%lwt all_kinds =
-          List.sort_uniq Kind.Base.compare %
-            NEList.to_list
-          <$> NEList.map_lwt_p (Version.kind' % fst) versions_and_params
-        in
-        lwt [
-          txt @@
-            match all_kinds with
-            | [kind] -> Kind.Base.to_short_string kind ^ (if NEList.is_singleton versions_and_params then "" else "s")
-            | _ -> "Medley"
-        ]
-      )
-    );
-    td [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]] @
+    [
+      td [Formatters.Version.names_disambiguations_and_sources' versions_and_params];
+      (
+        L.td (
+          let%lwt all_kinds =
+            List.sort_uniq Kind.Base.compare %
+              NEList.to_list
+            <$> NEList.map_lwt_p (Version.kind' % fst) versions_and_params
+          in
+          lwt [
+            txt @@
+              match all_kinds with
+              | [kind] -> Kind.Base.to_short_string kind ^ (if NEList.is_singleton versions_and_params then "" else "s")
+              | _ -> "Medley"
+          ]
+        )
+      );
+      td [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]
+    ] @
     suffix
   )
 
@@ -174,7 +186,8 @@ let make_user_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) 
     ?onclick
     (
       prefix @
-      [L.td ~a: [a_colspan 3] (Lwt.pause ();%lwt lwt [txt @@ Username.to_string @@ User.username' user]);
+      [
+        L.td ~a: [a_colspan 3] (Lwt.pause ();%lwt lwt [txt @@ Username.to_string @@ User.username' user]);
       ] @
       suffix
     )

@@ -79,8 +79,9 @@ module Search = struct
           div
             ~a: [a_class ["input-group"; "mb-3"]]
             (
-              [Icon.html ~classes: ["input-group-text"] (Action Search);
-              Search_bar.html t.search_bar;
+              [
+                Icon.html ~classes: ["input-group-text"] (Action Search);
+                Search_bar.html t.search_bar;
               ] @
                 attached_buttons
             )
@@ -156,9 +157,10 @@ module Search = struct
             ]
             (
               [
-              match t.pagination with
-              | Pagination _ -> Pagination.placeholder ~is_below: false ()
-              | Fixed_slice _ -> div []] @
+                match t.pagination with
+                | Pagination _ -> Pagination.placeholder ~is_below: false ()
+                | Fixed_slice _ -> div []
+              ] @
               Tables.placeholder ~show_thead: show_table_headers ~show_tfoot: show_table_headers () @ [
                 match t.pagination with
                 | Pagination _ -> Pagination.placeholder ~is_below: true ()

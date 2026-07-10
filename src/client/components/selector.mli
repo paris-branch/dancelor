@@ -13,16 +13,18 @@ val make :
   serialise: ('model -> 'id) ->
   unserialise: ('id -> 'model option Lwt.t) ->
   make_descr: ('model -> string Lwt.t) ->
-  make_result:
-  (?classes: string list ->
-  ?onclick: (unit -> unit Lwt.t) ->
-  ?prefix: Html_types.td Html.elt list ->
-  ?suffix: Html_types.td Html.elt list ->
-  'model ->
-  Html_types.tr Html.elt) ->
-  ?make_more_results:
-  ('model ->
-  Html_types.tr Html.elt list S.t) ->
+  make_result: (
+    ?classes: string list ->
+    ?onclick: (unit -> unit Lwt.t) ->
+    ?prefix: Html_types.td Html.elt list ->
+    ?suffix: Html_types.td Html.elt list ->
+    'model ->
+    Html_types.tr Html.elt
+  ) ->
+  ?make_more_results: (
+    'model ->
+    Html_types.tr Html.elt list S.t
+  ) ->
   ?results_when_no_search: 'model list Lwt.t ->
   model_name: string ->
   ?create_dialog_content: (('model, 'any) Editor.mode -> Page.t Lwt.t) ->
@@ -41,16 +43,18 @@ val prepare :
   serialise: ('model -> 'id) ->
   unserialise: ('id -> 'model option Lwt.t) ->
   make_descr: ('model -> string Lwt.t) ->
-  make_result:
-  (?classes: string list ->
-  ?onclick: (unit -> unit Lwt.t) ->
-  ?prefix: Html_types.td Html.elt list ->
-  ?suffix: Html_types.td Html.elt list ->
-  'model ->
-  Html_types.tr Html.elt) ->
-  ?make_more_results:
-  ('model ->
-  Html_types.tr Html.elt list S.t) ->
+  make_result: (
+    ?classes: string list ->
+    ?onclick: (unit -> unit Lwt.t) ->
+    ?prefix: Html_types.td Html.elt list ->
+    ?suffix: Html_types.td Html.elt list ->
+    'model ->
+    Html_types.tr Html.elt
+  ) ->
+  ?make_more_results: (
+    'model ->
+    Html_types.tr Html.elt list S.t
+  ) ->
   ?results_when_no_search: 'model list Lwt.t ->
   model_name: string ->
   ?create_dialog_content: (('model, 'any) Editor.mode -> Page.t Lwt.t) ->

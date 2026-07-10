@@ -3,7 +3,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
     flake-parts.url = "github:hercules-ci/flake-parts";
-    topiary.url = "github:tweag/topiary";
+    topiary.url = "github:tweag/topiary/niols/ocaml-fixes";
 
     camelotte = {
       ## NOTE: This is `github:lesboloss-es/camelotte`, but the `github:` scheme

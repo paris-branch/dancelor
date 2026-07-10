@@ -231,15 +231,16 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1783084272,
-        "narHash": "sha256-I7rx2CryKWItJRk5QAkwMBZllNHqmrJSZyWj28fQ3yc=",
+        "lastModified": 1783701229,
+        "narHash": "sha256-KVBzzC1UK4ru//arpJReKjXaU5gXtdtHQaCS+4mhm3s=",
         "owner": "tweag",
         "repo": "topiary",
-        "rev": "47e94b7f7fbafaf3d81be8a34654cbccd9a64166",
+        "rev": "da75a873a526af5423031bbf703f08acce9c8062",
         "type": "github"
       },
       "original": {
         "owner": "tweag",
+        "ref": "niols/ocaml-fixes",
         "repo": "topiary",
         "type": "github"
       }

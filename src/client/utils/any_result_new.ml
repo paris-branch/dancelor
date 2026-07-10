@@ -27,9 +27,10 @@ let make_source_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []
     ?onclick
     (
       prefix @
-      [td [Formatters_new.Source.name_row ~link: (onclick = None) ?in_search source];
-      td [txt @@ Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) source.date];
-      td (Formatters_new.Person.names ~links: (onclick = None) ~short: true source.editors);
+      [
+        td [Formatters_new.Source.name_row ~link: (onclick = None) ?in_search source];
+        td [txt @@ Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) source.date];
+        td (Formatters_new.Person.names ~links: (onclick = None) ~short: true source.editors);
       ] @
       suffix
     )
@@ -40,7 +41,8 @@ let make_person_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []
     ?onclick
     (
       prefix @
-      [td ~a: [a_colspan 3] [Formatters_new.Person.name ~link: (onclick = None) ?in_search person];
+      [
+        td ~a: [a_colspan 3] [Formatters_new.Person.name ~link: (onclick = None) ?in_search person];
       ] @
       suffix
     )
@@ -53,7 +55,8 @@ let make_user_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) 
     ?onclick
     (
       prefix @
-      [td ~a: [a_colspan 3] [txt @@ Username.to_string user.username];
+      [
+        td ~a: [a_colspan 3] [txt @@ Username.to_string user.username];
       ] @
       suffix
     )
@@ -64,9 +67,10 @@ let make_dance_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = [])
     ?onclick
     (
       prefix @
-      [td (Formatters_new.Dance.name_and_disambiguation ~link: (onclick = None) ?in_search dance);
-      td [txt @@ Kind.Dance.to_string dance.kind];
-      td (Formatters_new.Person.names ~links: (onclick = None) ~short: true dance.devisers);
+      [
+        td (Formatters_new.Dance.name_and_disambiguation ~link: (onclick = None) ?in_search dance);
+        td [txt @@ Kind.Dance.to_string dance.kind];
+        td (Formatters_new.Person.names ~links: (onclick = None) ~short: true dance.devisers);
       ] @
       suffix
     )
@@ -74,38 +78,42 @@ let make_dance_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = [])
 let make_dance_plus_set_result ?classes ?onclick ?in_search ?set_params ?(prefix = []) ?(suffix = []) (dance : Dance_row.t) (set : Set_row.t) =
   row ?classes ?onclick (
     prefix @
-    [td (
-      [Formatters_new.Dance.name_row ?in_search dance] @
-      [block_details [txt "Set: "; Formatters_new.Set.name_row ~link: (onclick = None) set]] @
-      Option.fold
-        (Option.bind set_params Model_builder.Core.Set_parameters.display_name)
-        ~none: []
-        ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]]) @
-        [block_details (Formatters_new.Set.tunes ~links: (onclick = None) set)]
-    );
-    td [txt @@ Kind.Dance.to_string dance.kind];
-    td (
-      Formatters_new.Person.names ~links: (onclick = None) ~short: true set.conceptors @
+    [
+      td (
+        [Formatters_new.Dance.name_row ?in_search dance] @
+        [block_details [txt "Set: "; Formatters_new.Set.name_row ~link: (onclick = None) set]] @
         Option.fold
-          (Option.bind set_params Model_builder.Core.Set_parameters.display_conceptor)
+          (Option.bind set_params Model_builder.Core.Set_parameters.display_name)
           ~none: []
-          ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]])
-    )] @
+          ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]]) @
+          [block_details (Formatters_new.Set.tunes ~links: (onclick = None) set)]
+      );
+      td [txt @@ Kind.Dance.to_string dance.kind];
+      td (
+        Formatters_new.Person.names ~links: (onclick = None) ~short: true set.conceptors @
+          Option.fold
+            (Option.bind set_params Model_builder.Core.Set_parameters.display_conceptor)
+            ~none: []
+            ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]])
+      )
+    ] @
     suffix
   )
 
 let make_dance_plus_versions_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) (dance : Dance_row.t) versions_and_params =
   row ?classes ?onclick (
     prefix @
-    [td [
-      Formatters_new.Dance.name_row ?in_search dance;
-      block_details [
-        txt (if List.is_singleton versions_and_params then "Tune: " else "Tunes: ");
-        Formatters_new.Version.names_disambiguations_sources_and_params versions_and_params
+    [
+      td [
+        Formatters_new.Dance.name_row ?in_search dance;
+        block_details [
+          txt (if List.is_singleton versions_and_params then "Tune: " else "Tunes: ");
+          Formatters_new.Version.names_disambiguations_sources_and_params versions_and_params
+        ];
       ];
-    ];
-    td [txt @@ Kind.Dance.to_string dance.kind];
-    td [Formatters_new.Version.composers_arrangers_and_params ~short: true versions_and_params]] @
+      td [txt @@ Kind.Dance.to_string dance.kind];
+      td [Formatters_new.Version.composers_arrangers_and_params ~short: true versions_and_params]
+    ] @
     suffix
   )
 
@@ -115,9 +123,10 @@ let make_book_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) 
     ?onclick
     (
       prefix @
-      [td [Formatters_new.Book.name ~link: (onclick = None) ?in_search book];
-      td [txt @@ Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) book.date];
-      td (Formatters_new.Person.names ~links: (onclick = None) ~short: true book.authors);
+      [
+        td [Formatters_new.Book.name ~link: (onclick = None) ?in_search book];
+        td [txt @@ Option.fold ~none: "" ~some: (PartialDate.to_pretty_string ~short: true) book.date];
+        td (Formatters_new.Person.names ~links: (onclick = None) ~short: true book.authors);
       ] @
       suffix
     )
@@ -128,22 +137,24 @@ let make_set_result ?classes ?onclick ?in_search ?params ?(prefix = []) ?(suffix
     ?onclick
     (
       prefix @
-      [td (
-        [Formatters_new.Set.name_row ~link: (onclick = None) ?in_search set] @
-        Option.fold
-          (Option.bind params Model_builder.Core.Set_parameters.display_name)
-          ~none: []
-          ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]]) @
-          [block_details (Formatters_new.Set.tunes ~links: (onclick = None) set)]
-      );
-      td [txt @@ Kind.Dance.to_string set.kind];
-      td (
-        Formatters_new.Person.names ~links: (onclick = None) ~short: true set.conceptors @
+      [
+        td (
+          [Formatters_new.Set.name_row ~link: (onclick = None) ?in_search set] @
           Option.fold
-            (Option.bind params Model_builder.Core.Set_parameters.display_conceptor)
+            (Option.bind params Model_builder.Core.Set_parameters.display_name)
             ~none: []
-            ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]])
-      )] @
+            ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]]) @
+            [block_details (Formatters_new.Set.tunes ~links: (onclick = None) set)]
+        );
+        td [txt @@ Kind.Dance.to_string set.kind];
+        td (
+          Formatters_new.Person.names ~links: (onclick = None) ~short: true set.conceptors @
+            Option.fold
+              (Option.bind params Model_builder.Core.Set_parameters.display_conceptor)
+              ~none: []
+              ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]])
+        )
+      ] @
       suffix
     )
 
@@ -153,9 +164,10 @@ let make_tune_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) 
     ?onclick
     (
       prefix @
-      [td [Formatters_new.Tune.name_row ~link: (onclick = None) ?in_search tune];
-      td [txt @@ Kind.Base.to_long_string ~capitalised: true tune.kind];
-      td (Formatters_new.Person.names ~links: (onclick = None) ~short: true tune.composers);
+      [
+        td [Formatters_new.Tune.name_row ~link: (onclick = None) ?in_search tune];
+        td [txt @@ Kind.Base.to_long_string ~capitalised: true tune.kind];
+        td (Formatters_new.Person.names ~links: (onclick = None) ~short: true tune.composers);
       ] @
       suffix
     )
@@ -178,9 +190,10 @@ let make_version_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = [
     ?onclick
     (
       prefix @
-      [td (Formatters_new.Version.name_disambiguation_and_sources ~links: (onclick = None) ?in_search version);
-      td [format_version_kind_and_structure version];
-      td (Formatters_new.Version.composer_and_arranger ~links: (onclick = None) ~short: true version);
+      [
+        td (Formatters_new.Version.name_disambiguation_and_sources ~links: (onclick = None) ?in_search version);
+        td [format_version_kind_and_structure version];
+        td (Formatters_new.Version.composer_and_arranger ~links: (onclick = None) ~short: true version);
       ] @
       suffix
     )
@@ -188,17 +201,19 @@ let make_version_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = [
 let make_versions_result ?classes ?onclick ?(prefix = []) ?(suffix = []) versions_and_params =
   row ?classes ?onclick (
     prefix @
-    [td [Formatters_new.Version.names_disambiguations_sources_and_params versions_and_params];
-    td (
-      let all_kinds = List.sort_uniq Kind.Base.compare (List.map (fun (version, _) -> version.Version_row.tune.kind) versions_and_params) in
-      [
-        txt @@
-          match all_kinds with
-          | [kind] -> Kind.Base.to_long_string ~capitalised: true kind ^ (if List.is_singleton versions_and_params then "" else "s")
-          | _ -> "Medley"
-      ]
-    );
-    td [Formatters_new.Version.composers_arrangers_and_params ~short: true versions_and_params]] @
+    [
+      td [Formatters_new.Version.names_disambiguations_sources_and_params versions_and_params];
+      td (
+        let all_kinds = List.sort_uniq Kind.Base.compare (List.map (fun (version, _) -> version.Version_row.tune.kind) versions_and_params) in
+        [
+          txt @@
+            match all_kinds with
+            | [kind] -> Kind.Base.to_long_string ~capitalised: true kind ^ (if List.is_singleton versions_and_params then "" else "s")
+            | _ -> "Medley"
+        ]
+      );
+      td [Formatters_new.Version.composers_arrangers_and_params ~short: true versions_and_params]
+    ] @
     suffix
   )
 

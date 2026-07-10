@@ -59,8 +59,9 @@ let nav_item_explore =
       ul
         ~a: [a_class ["dropdown-menu"]]
         (
-          [li [Button.make_a ~label: "All" ~href: (S.const @@ Endpoints.Page.(href Explore) "" 1) ~dropdown: true ()];
-          li [hr ~a: [a_class ["dropdown-divider"]] ()];
+          [
+            li [Button.make_a ~label: "All" ~href: (S.const @@ Endpoints.Page.(href Explore) "" 1) ~dropdown: true ()];
+            li [hr ~a: [a_class ["dropdown-divider"]] ()];
           ] @
             List.map
               (fun (icon, key, label) ->
