@@ -142,4 +142,11 @@ let best_fold_for structure =
   | "ABCDEEFG" -> some [a; b; c; d; repeat 2 [e]; f; g]
   | "ABCDEFGG" -> some [a; b; c; d; e; f; repeat 2 [g]]
   | "ABCDEFGH" -> some [a; b; c; d; e; f; g; h]
+  | "ABBCCDD" -> some [a; repeat 2 [b]; repeat 2 [c]; repeat 2 [d]]
+  | "ABBCCDDE" -> some [a; repeat 2 [b]; repeat 2 [c]; repeat 2 [d]; e]
+  | "ABBCCDDEE" -> some [a; repeat 2 [b]; repeat 2 [c]; repeat 2 [d]; repeat 2 [e]]
+  | "ABBCCDDEEF" -> some [a; repeat 2 [b]; repeat 2 [c]; repeat 2 [d]; repeat 2 [e]; f]
+  | "ABBCCDDEEFF" -> some [a; repeat 2 [b]; repeat 2 [c]; repeat 2 [d]; repeat 2 [e]; repeat 2 [f]]
+  | "ABBCCDDEEFFG" -> some [a; repeat 2 [b]; repeat 2 [c]; repeat 2 [d]; repeat 2 [e]; repeat 2 [f]; g]
+  | "ABBCCDDEEFFGG" -> some [a; repeat 2 [b]; repeat 2 [c]; repeat 2 [d]; repeat 2 [e]; repeat 2 [f]; repeat 2 [g]]
   | _ -> None
