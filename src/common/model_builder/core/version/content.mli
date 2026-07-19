@@ -12,7 +12,7 @@ type t =
   | Monolithic of {lilypond: string; bars: int; structure: Structure.t} (** A tune as a full LilyPond, including clef, key, etc. *)
 [@@deriving eq, ord, yojson, show, variants]
 
-val lilypond : ?structure: Structure.t -> kind: Kind.Base.t -> key: Music.Key.t -> t -> string
+val lilypond : ?structure: Structure.t -> kind: Kind.Base.t -> key: Music.Key.t -> t -> string option
 (** Produce a LilyPond string from a content and some additional information.
     The [?structure] optional argument is ignored in case of monolithic content,
     but tries to produce a LilyPond for the given structure if possible. *)

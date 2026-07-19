@@ -22,7 +22,7 @@ let show_lilypond_dialog (version : Version_view.t) =
       ~title: (lwt "LilyPond")
       [with_div_placeholder (
         let%lwt content = content_promise in
-        lwt [pre [txt content]]
+        lwt [pre [txt (Option.get content)]]
       )]
       ~buttons: [
         Button.close' ~return ();
@@ -32,7 +32,7 @@ let show_lilypond_dialog (version : Version_view.t) =
           ~classes: ["btn-primary"]
           ~onclick: (fun _ ->
             let%lwt content = content_promise in
-            write_to_clipboard content;
+            write_to_clipboard (Option.get content);
             Toast.open_ ~title: "Copied to clipboard" [txt "The LilyPond content was copied to your clipboard."];
             return (some ());
             lwt_unit

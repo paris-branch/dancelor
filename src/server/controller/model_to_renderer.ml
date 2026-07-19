@@ -26,39 +26,41 @@ let version_to_lilypond_content ~version_params version =
       | Monolithic {structure; _} -> Some structure
       | Destructured {default_structure; _} -> Some default_structure
   in
-  let%lwt content = Model.Version.content_lilypond ?structure version in
-  let instructions =
-    (* if the version is destructured, and the user asked for a structure, but
-       we could not find a fold for this structure, then at least we produce the
-       instruction to play that structure as we generate a destructured output *)
-    match Model.Version.content version with
-    | No_content -> None
-    | Monolithic _ -> None
-    | Destructured _ ->
-      match structure with
-      | None -> None
-      | Some structure ->
-        match Model.Version.Structure.best_fold_for structure with
-        | Some _ -> None
-        | None -> Some ("Play " ^ NEString.to_string (Model.Version.Structure.to_string structure))
-  in
-  (* update the clef *)
-  let content =
-    match Model.Version_parameters.clef version_params with
-    | None -> content
-    | Some clef_parameter ->
-      let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
-      Str.global_replace clef_regex ("\\clef " ^ Music.Clef.to_string clef_parameter) content
-  in
-  (* add transposition *)
-  let content =
-    let source = Music.Key.pitch @@ Model.Version.key version in
-    let target = Transposition.target_pitch ~source @@ Option.value ~default: Transposition.identity @@ Model.Version_parameters.transposition version_params in
-    let (source, target) = Pair.map_both Music.Pitch.to_lilypond_string (source, target) in
-    spf "\\transpose %s %s { %s }" source target content
-  in
-  (* done *)
-  lwt (content, instructions)
+  match%lwt Model.Version.content_lilypond ?structure version with
+  | None -> lwt_none
+  | Some content ->
+    let instructions =
+      (* if the version is destructured, and the user asked for a structure, but
+         we could not find a fold for this structure, then at least we produce the
+         instruction to play that structure as we generate a destructured output *)
+      match Model.Version.content version with
+      | No_content -> None
+      | Monolithic _ -> None
+      | Destructured _ ->
+        match structure with
+        | None -> None
+        | Some structure ->
+          match Model.Version.Structure.best_fold_for structure with
+          | Some _ -> None
+          | None -> Some ("Play " ^ NEString.to_string (Model.Version.Structure.to_string structure))
+    in
+    (* update the clef *)
+    let content =
+      match Model.Version_parameters.clef version_params with
+      | None -> content
+      | Some clef_parameter ->
+        let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
+        Str.global_replace clef_regex ("\\clef " ^ Music.Clef.to_string clef_parameter) content
+    in
+    (* add transposition *)
+    let content =
+      let source = Music.Key.pitch @@ Model.Version.key version in
+      let target = Transposition.target_pitch ~source @@ Option.value ~default: Transposition.identity @@ Model.Version_parameters.transposition version_params in
+      let (source, target) = Pair.map_both Music.Pitch.to_lilypond_string (source, target) in
+      spf "\\transpose %s %s { %s }" source target content
+    in
+    (* done *)
+    lwt_some (content, instructions)
 
 let version_to_renderer_tune ?(version_params = Model.Version_parameters.none) version =
   let%lwt slug = NesSlug.to_string <$> Model.Version.slug version in
@@ -84,8 +86,11 @@ let version_to_renderer_tune ?(version_params = Model.Version_parameters.none) v
         ~some: NEString.to_string
         (Model.Version_parameters.display_composer version_params)
   in
-  let%lwt (content, instructions) = version_to_lilypond_content ~version_params version in
-  let instructions = Option.value instructions ~default: "" in
+  let%lwt (content, instructions) =
+    match%lwt version_to_lilypond_content ~version_params version with
+    | Some (content, instructions) -> lwt (content, Option.value instructions ~default: "")
+    | None -> lwt ("", "")
+  in
   let first_bar = Model.Version_parameters.first_bar' version_params in
   let%lwt tune = Model.Version.tune version in
   let kind = Model.Tune.kind' tune in

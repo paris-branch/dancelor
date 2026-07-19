@@ -136,6 +136,6 @@ let lilypond ?structure ~kind ~key parts transitions =
     chords
 
 let lilypond ?structure ~kind ~key = function
-  | No_content -> "" (* FIXME: LilyPond that indicates that there is no content? *)
-  | Monolithic {lilypond; _} -> lilypond
-  | Destructured {parts; transitions; _} -> lilypond ?structure ~kind ~key parts transitions
+  | No_content -> None
+  | Monolithic {lilypond; _} -> Some lilypond
+  | Destructured {parts; transitions; _} -> Some (lilypond ?structure ~kind ~key parts transitions)
