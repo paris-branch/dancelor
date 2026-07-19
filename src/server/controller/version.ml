@@ -103,34 +103,11 @@ let build_pdf env id version_params rendering_params =
   get env id >>= fun version ->
   with_copyright_check env version @@ fun () ->
   (* never show the headers for a simple version *)
-  let rendering_params =
-    Rendering_parameters.update
-      ~show_headers: (const (some false))
-      rendering_params
-  in
-  let%lwt pdf_metadata =
-    let%lwt tune = Model.Version.tune' version in
-    let title =
-      NEString.to_string @@
-        Option.value
-          (Model.Version_parameters.display_name version_params)
-          ~default: (Model.Tune.one_name' tune)
-    in
-    let%lwt authors =
-      Model_to_renderer.format_persons_list
-      <$> (
-          Lwt_list.map_p
-            (Option.get <%> Model.Person.get % Model.Tune.composer_composer)
-            (Model.Tune.composers' tune)
-        )
-    in
-    let subjects = [Kind.Base.to_long_string ~capitalised: true @@ Model.Tune.kind' tune] in
-    lwt Renderer.{title; authors; subjects}
-  in
+  let rendering_params = Rendering_parameters.update ~show_headers: (const (some false)) rendering_params in
   let set_params = Model.Set_parameters.make ?display_name: (Model.Version_parameters.display_name version_params) () in
   let version_params = Model.Version_parameters.set_display_name (NEString.of_string_exn " ") version_params in
   let%lwt set = Model_to_renderer.versions_to_renderer_set' (NEList.singleton (Entry.id version, version_params)) set_params in
-  let set_pdf_arg = Model_to_renderer.renderer_set_to_renderer_set_pdf_arg set rendering_params pdf_metadata in
+  let set_pdf_arg = Model_to_renderer.renderer_set_to_renderer_set_pdf_arg set rendering_params in
   uncurry Job.register_job_and_file <$> Renderer.make_set_pdf set_pdf_arg
 
 (** For use in {!Routine}. *)

@@ -169,13 +169,8 @@ let delete env id =
 
 let build_pdf env id book_params rendering_params =
   get env id >>= fun book ->
-  let%lwt pdf_metadata =
-    let title = NEString.to_string @@ Model.Book.name' book in
-    let%lwt authors = Model_to_renderer.format_persons_list <$> Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Book.authors' book) in
-    lwt Renderer.{title; authors; subjects = []}
-  in
   let%lwt book = Model_to_renderer.book_to_renderer_book' book book_params in
-  let book_pdf_arg = Model_to_renderer.renderer_book_to_renderer_book_pdf_arg book rendering_params pdf_metadata in
+  let book_pdf_arg = Model_to_renderer.renderer_book_to_renderer_book_pdf_arg book rendering_params in
   uncurry Job.register_job_and_file <$> Renderer.make_book_pdf book_pdf_arg
 
 (* Dispatch *)

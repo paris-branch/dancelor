@@ -35,21 +35,8 @@ let delete env id =
 
 let build_pdf env id set_params rendering_params =
   get env id >>= fun set ->
-  let%lwt pdf_metadata =
-    let title =
-      NEString.to_string @@
-        Option.value (Model.Set_parameters.display_name set_params) ~default: (Model.Set.name' set)
-    in
-    let%lwt authors = Model_to_renderer.format_persons_list <$> Lwt_list.map_p (Option.get <%> Model.Person.get) (Model.Set.conceptors' set) in
-    let subjects =
-      match Kind.Dance.to_simple @@ Model.Set.kind' set with
-      | None -> ["Medley"]
-      | Some (n, bars, base) -> [Kind.Base.to_long_string ~capitalised: true base; spf "%dx%d" n bars]
-    in
-    lwt Renderer.{title; authors; subjects}
-  in
   let%lwt set = Model_to_renderer.set_to_renderer_set' (Entry.id set) set_params in
-  let set_pdf_arg = Model_to_renderer.renderer_set_to_renderer_set_pdf_arg set rendering_params pdf_metadata in
+  let set_pdf_arg = Model_to_renderer.renderer_set_to_renderer_set_pdf_arg set rendering_params in
   uncurry Job.register_job_and_file <$> Renderer.make_set_pdf set_pdf_arg
 
 (* Dispatch *)
