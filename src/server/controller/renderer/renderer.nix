@@ -40,6 +40,7 @@ let
     })
     makeBookPdf
     makeSetPdf
+    makeSetsZip
     ;
 
 in
@@ -48,5 +49,6 @@ in
     makeTuneSnippets
     makeBookPdf
     makeSetPdf
+    makeSetsZip
     ;
 }

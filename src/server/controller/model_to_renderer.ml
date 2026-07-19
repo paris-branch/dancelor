@@ -286,3 +286,7 @@ let renderer_book_to_renderer_book_pdf_arg ((book : Renderer.book), pdf_metadata
 let renderer_set_to_renderer_set_pdf_arg ((set : Renderer.set), pdf_metadata) rendering_params =
   let (specificity, headers) = grab_renderer_book_pdf_args rendering_params in
     ({set; specificity; headers; pdf_metadata}: Renderer.set_pdf_arg)
+
+let renderer_sets_to_renderer_sets_zip_arg (sets : Renderer.sets_zip_arg_set NEList.t) rendering_params =
+  let (specificity, headers) = grab_renderer_book_pdf_args rendering_params in
+    ({sets; specificity; headers}: Renderer.sets_zip_arg)

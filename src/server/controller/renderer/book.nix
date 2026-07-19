@@ -14,6 +14,7 @@ let
     ;
 
   inherit (builtins)
+    elemAt
     replaceStrings
     toJSON
     ;
@@ -259,10 +260,66 @@ let
     }
   );
 
+  setsZipArgType = types.submodule {
+    options = {
+      ## FIXME: guarantee non-emtpy list?
+      sets = mkOption {
+        type = types.listOf (
+          types.submodule {
+            options = {
+              set = mkOption { type = setType; };
+              pdf_metadata = mkOption { type = pdfMetadataType; };
+            };
+          }
+        );
+      };
+      specificity = mkOption {
+        description = "Specificity of these particular sets, eg. Bb instruments or bass clef.";
+        type = types.str;
+      };
+      headers = mkOption {
+        description = "Whether the sets should contain headers and footers.";
+        type = types.bool;
+      };
+    };
+  };
+
+  makeSetsZip = withArgumentType "makeSetsZip" setsZipArgType (
+    sets@{ ... }:
+    runCommand "sets-${(elemAt sets.sets 0).set.slug}"
+      {
+        preferLocalBuild = true;
+        allowSubstitutes = false;
+        buildInputs = [ pkgs.zip ];
+      }
+      ''
+        ${forConcat sets.sets (
+          { set, pdf_metadata }:
+          let
+            pdf = makeSetPdf {
+              inherit set pdf_metadata;
+              inherit (sets) specificity headers;
+            };
+          in
+          ''
+            offset=1
+            target () {
+              if [ "$offset" -eq 1 ]; then echo "${set.slug}.pdf"; else echo "${set.slug}-$offset.pdf"; fi
+            }
+            while [ -e "$(target)" ]; do offset=$((offset + 1)); done
+            cp ${pdf}/set.pdf "$(target)"
+            zip sets.zip "$(target)"
+          ''
+        )}
+        mkdir $out && mv sets.zip $out
+      ''
+  );
+
 in
 {
   inherit
     makeBookPdf
     makeSetPdf
+    makeSetsZip
     ;
 }
