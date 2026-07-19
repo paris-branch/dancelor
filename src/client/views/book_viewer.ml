@@ -116,7 +116,7 @@ let view in_search id =
     ~actions: [
       lwt [
         Button.make
-          ~label: "Download PDF"
+          ~label: "Download PDF/ZIP"
           ~icon: (Other File_pdf)
           ~onclick: (fun _ -> ignore <$> Book_download_dialog.create_and_open book)
           ~dropdown: true

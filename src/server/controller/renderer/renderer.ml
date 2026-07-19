@@ -111,6 +111,17 @@ type pdf_metadata = {
 }
 [@@deriving yojson]
 
+type set_pdf_arg = {
+  set: set;
+  specificity: string;
+  headers: bool;
+  pdf_metadata: pdf_metadata;
+}
+[@@deriving yojson]
+
+let make_set_pdf arg =
+  Pair.snoc "set.pdf" <$> call_nix "makeSetPdf" (set_pdf_arg_to_yojson arg)
+
 type book_pdf_arg = {
   book: book;
   specificity: string;
@@ -121,3 +132,19 @@ type book_pdf_arg = {
 
 let make_book_pdf arg =
   Pair.snoc "book.pdf" <$> call_nix "makeBookPdf" (book_pdf_arg_to_yojson arg)
+
+type sets_zip_arg_set = {
+  set: set;
+  pdf_metadata: pdf_metadata;
+}
+[@@deriving yojson]
+
+type sets_zip_arg = {
+  sets: sets_zip_arg_set NEList.t;
+  specificity: string;
+  headers: bool;
+}
+[@@deriving yojson]
+
+let make_sets_zip arg =
+  Pair.snoc "sets.zip" <$> call_nix "makeSetsZip" (sets_zip_arg_to_yojson arg)

@@ -14,6 +14,7 @@ let
     ;
 
   inherit (builtins)
+    elemAt
     replaceStrings
     toJSON
     ;
@@ -110,6 +111,14 @@ let
     };
   };
 
+  pdfMetadataType = types.submodule {
+    options = {
+      title = mkOption { type = types.str; };
+      authors = mkOption { type = types.listOf types.str; };
+      subjects = mkOption { type = types.listOf types.str; };
+    };
+  };
+
   bookPdfArgType = types.submodule {
     options = {
       book = mkOption { type = bookType; };
@@ -123,13 +132,7 @@ let
       };
       pdf_metadata = mkOption {
         description = "PDF metadata";
-        type = types.submodule {
-          options = {
-            title = mkOption { type = types.str; };
-            authors = mkOption { type = types.listOf types.str; };
-            subjects = mkOption { type = types.listOf types.str; };
-          };
-        };
+        type = pdfMetadataType;
       };
     };
   };
@@ -179,46 +182,136 @@ let
       \end{document}
     '';
 
-  makeBookPdf = withArgumentType "makeBookPdf" bookPdfArgType (
-    book@{ ... }:
-    runCommand "book-${book.book.slug}"
+  makeBookPdfGen =
+    type:
+    withArgumentType "makeBookPdf" bookPdfArgType (
+      book@{ ... }:
+      runCommand "${type}-${book.book.slug}"
+        {
+          preferLocalBuild = true;
+          allowSubstitutes = false;
+          buildInputs = [
+            (pkgs.texlive.combine {
+              inherit (pkgs.texlive)
+                scheme-minimal
+                latexmk
+                xetex
+                etoolbox
+                extsizes
+                fancyhdr
+                fontspec
+                geometry
+                graphics
+                greek-fontenc # dependency of hyperref
+                hyperref
+                realscripts # for \newif
+                texfot
+                xltxtra
+                xunicode
+                ;
+            })
+          ];
+          FONTCONFIG_FILE =
+            with pkgs;
+            makeFontsConf {
+              fontDirectories = [ source-sans-pro ];
+            };
+        }
+        ''
+          ${setupFontconfigCache}
+          cp ${./book}/*.tex .
+          cp ${makeBookTex book} ${type}.tex
+          texfot latexmk -pdfxe ${type}
+          mkdir $out
+          mv ${type}.pdf $out
+        ''
+    );
+
+  makeBookPdf = makeBookPdfGen "book";
+
+  setPdfArgType = types.submodule {
+    options = {
+      set = mkOption { type = setType; };
+      specificity = mkOption {
+        description = "Specificity of this particular set, eg. Bb instruments or bass clef.";
+        type = types.str;
+      };
+      headers = mkOption {
+        description = "Whether the set should contain headers and footers.";
+        type = types.bool;
+      };
+      pdf_metadata = mkOption {
+        description = "PDF metadata";
+        type = pdfMetadataType;
+      };
+    };
+  };
+
+  makeSetPdf = withArgumentType "makeSetPdf" setPdfArgType (
+    set@{ ... }:
+    makeBookPdfGen "set" {
+      book = {
+        inherit (set.set) slug name;
+        contents = [ { set = set.set; } ];
+        editor = "";
+        simple = true;
+      };
+      inherit (set) specificity headers pdf_metadata;
+    }
+  );
+
+  setsZipArgType = types.submodule {
+    options = {
+      ## FIXME: guarantee non-emtpy list?
+      sets = mkOption {
+        type = types.listOf (
+          types.submodule {
+            options = {
+              set = mkOption { type = setType; };
+              pdf_metadata = mkOption { type = pdfMetadataType; };
+            };
+          }
+        );
+      };
+      specificity = mkOption {
+        description = "Specificity of these particular sets, eg. Bb instruments or bass clef.";
+        type = types.str;
+      };
+      headers = mkOption {
+        description = "Whether the sets should contain headers and footers.";
+        type = types.bool;
+      };
+    };
+  };
+
+  makeSetsZip = withArgumentType "makeSetsZip" setsZipArgType (
+    sets@{ ... }:
+    runCommand "sets-${(elemAt sets.sets 0).set.slug}"
       {
         preferLocalBuild = true;
         allowSubstitutes = false;
-        buildInputs = [
-          (pkgs.texlive.combine {
-            inherit (pkgs.texlive)
-              scheme-minimal
-              latexmk
-              xetex
-              etoolbox
-              extsizes
-              fancyhdr
-              fontspec
-              geometry
-              graphics
-              greek-fontenc # dependency of hyperref
-              hyperref
-              realscripts # for \newif
-              texfot
-              xltxtra
-              xunicode
-              ;
-          })
-        ];
-        FONTCONFIG_FILE =
-          with pkgs;
-          makeFontsConf {
-            fontDirectories = [ source-sans-pro ];
-          };
+        buildInputs = [ pkgs.zip ];
       }
       ''
-        ${setupFontconfigCache}
-        cp ${./book}/*.tex .
-        cp ${makeBookTex book} book.tex
-        texfot latexmk -pdfxe book
-        mkdir $out
-        mv book.pdf $out
+        ${forConcat sets.sets (
+          { set, pdf_metadata }:
+          let
+            pdf = makeSetPdf {
+              inherit set pdf_metadata;
+              inherit (sets) specificity headers;
+            };
+          in
+          ''
+            offset=1
+            target () {
+              if [ "$offset" -eq 1 ]; then echo "${set.slug}.pdf"; else echo "${set.slug}-$offset.pdf"; fi
+            }
+            while [ -e "$(target)" ]; do offset=$((offset + 1)); done
+            cp ${pdf}/set.pdf "$(target)"
+            zip sets.zip "$(target)"
+          ''
+        )}
+        mkdir $out && mv sets.zip $out
       ''
   );
 
@@ -226,5 +319,7 @@ in
 {
   inherit
     makeBookPdf
+    makeSetPdf
+    makeSetsZip
     ;
 }

@@ -41,7 +41,11 @@ let
         type = types.str;
       };
       content = mkOption {
-        description = "LilyPond code corresponding to the content of the tune.";
+        description = ''
+          LilyPond code corresponding to the content of the tune.
+
+          If empty, a box explaining that there is no content will be shown.
+        '';
         type = types.str;
       };
       first_bar = mkOption {
@@ -155,24 +159,39 @@ let
           ''
       }
       ${readFile ./tune/lilypond/scottish_chords.ly}
-      \score {
-        \layout {
-          \context {
-            \Score
-            currentBarNumber = #${toString first_bar}
-          }
-        }
-        { ${content} }
-      }
-      \markup\null
-      #(set! make-music the-make-music)
-      \score {
-        \midi {
-          \tempo ${tempo_unit} = ${toString tempo_value}
-        }
-        \${chords_kind}Chords \unfoldRepeats {
-          ${content}
-        }
+      ${
+        if content != "" then
+          ''
+            \score {
+              \layout {
+                \context {
+                  \Score
+                  currentBarNumber = #${toString first_bar}
+                }
+              }
+              { ${content} }
+            }
+            \markup\null
+            #(set! make-music the-make-music)
+            \score {
+              \midi {
+                \tempo ${tempo_unit} = ${toString tempo_value}
+              }
+              \${chords_kind}Chords \unfoldRepeats {
+                ${content}
+              }
+            }
+          ''
+        else
+          ''
+            \markup {
+              \hspace #2
+              \box
+                \pad-markup #0.5
+                \wordwrap-string
+                "This version does not have any content. This is usually because it has not been added yet. If you have access to the source of this precise version, consider sending it to an administrator."
+            }
+          ''
       }
     '';
 
@@ -209,7 +228,8 @@ let
           --output-mode=v \
           snippet.midi
 
-        mkdir $out && mv snippet.{pdf,svg,ogg} $out/
+        mkdir $out && mv snippet.{pdf,svg} $out/
+        ${if tune.content != "" then "mv snippet.ogg $out/" else ""}
       ''
   );
 

@@ -62,8 +62,8 @@ module type S = sig
   val content' : entry -> Content.t
   (** Raises {!Failure} on the client side. *)
 
-  val content_lilypond : ?structure: Structure.t -> ?content: Content.t -> t -> string Lwt.t
-  val content_lilypond' : ?structure: Structure.t -> ?content: Content.t -> entry -> string Lwt.t
+  val content_lilypond : ?structure: Structure.t -> ?content: Content.t -> t -> string option Lwt.t
+  val content_lilypond' : ?structure: Structure.t -> ?content: Content.t -> entry -> string option Lwt.t
   (** Convenient wrapper around {!Content.lilypond} that grabs the right
       information from {!tune}. If the optional [?content] argument is not
       provided, the content is taken from the version with {!content} which

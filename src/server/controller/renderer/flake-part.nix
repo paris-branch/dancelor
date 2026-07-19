@@ -30,6 +30,29 @@ let
     show_time_signatures = true;
   };
 
+  testSetPdfArg = {
+    set = {
+      slug = "test-slug";
+      name = "Test Name";
+      conceptor = "Test Conceptor";
+      kind = "Test Kind";
+      contents = [ ];
+    };
+    specificity = "none";
+    headers = true;
+    pdf_metadata = {
+      title = "Test PDF Title";
+      authors = [
+        "Test PDF Author 1"
+        "Test PDF Author 2"
+      ];
+      subjects = [
+        "Test PDF Subject 1"
+        "Test PDF Subject 2"
+      ];
+    };
+  };
+
   testBookPdfArg = {
     book = {
       slug = "test-slug";
@@ -53,6 +76,33 @@ let
     };
   };
 
+  testSetsZipArg = {
+    sets = [
+      {
+        set = {
+          slug = "test-slug";
+          name = "Test Name";
+          conceptor = "Test Conceptor";
+          kind = "Test Kind";
+          contents = [ ];
+        };
+        pdf_metadata = {
+          title = "Test PDF Title";
+          authors = [
+            "Test PDF Author 1"
+            "Test PDF Author 2"
+          ];
+          subjects = [
+            "Test PDF Subject 1"
+            "Test PDF Subject 2"
+          ];
+        };
+      }
+    ];
+    specificity = "none";
+    headers = true;
+  };
+
 in
 {
   perSystem =
@@ -65,17 +115,27 @@ in
         })
         makeTuneSnippets
         makeBookPdf
+        makeSetPdf
+        makeSetsZip
         ;
       testTuneSnippets = makeTuneSnippets testTune;
       testBookPdf = makeBookPdf testBookPdfArg;
+      testSetPdf = makeSetPdf testSetPdfArg;
+      testSetsZip = makeSetsZip testSetsZipArg;
     in
     {
       packages.rendererRuntime = pkgs.symlinkJoin {
         name = "renderer-runtime";
-        paths = testTuneSnippets.buildInputs ++ testBookPdf.buildInputs;
+        paths =
+          testTuneSnippets.buildInputs
+          ++ testBookPdf.buildInputs
+          ++ testSetPdf.buildInputs
+          ++ testSetsZip.buildInputs;
       };
 
       checks.renderer-tune-snippets = testTuneSnippets;
       checks.renderer-book-pdf = testBookPdf;
+      checks.renderer-set-pdf = testSetPdf;
+      checks.renderer-sets-zip = testSetsZip;
     };
 }

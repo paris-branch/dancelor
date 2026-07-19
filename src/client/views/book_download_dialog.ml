@@ -10,6 +10,7 @@ open Components
    factorisation here. *)
 type t = {
   choice_rows: Html_types.div elt list;
+  download_type: [`Book_pdf | `Sets_zip] React.signal;
   parameters_signal: (Book_parameters.t * Rendering_parameters.t) React.signal;
 }
 
@@ -23,8 +24,9 @@ let create () =
       make_radios
         ~label: "Mode"
         [
-          choice' [txt "Normal"] ~checked: true;
-          choice' [txt "Simple"] ~value: (Book_parameters.make ~simple: true ());
+          choice [txt "Normal"] ~checked: true ~value: (`Book_pdf Book_parameters.none);
+          choice [txt "Simple"] ~value: (`Book_pdf (Book_parameters.make ~simple: true ()));
+          choice [txt "Separate (ZIP)"] ~value: `Sets_zip;
         ]
     )
   in
@@ -34,13 +36,25 @@ let create () =
         Component.html booklet_choices;
       ]
     );
+    download_type =
+    S.map
+      (function
+        | Ok`Book_pdf _ | Error _ -> `Book_pdf
+        | Ok `Sets_zip -> `Sets_zip
+      )
+      (Component.signal booklet_choices);
     parameters_signal =
     S.merge
       (Pair.map2 Book_parameters.compose Rendering_parameters.compose)
       (Book_parameters.none, Rendering_parameters.none)
       [
         S.map (Pair.map_fst lift_set_parameters) set_dialog.parameters_signal;
-        S.map (Pair.snoc Rendering_parameters.none % Option.value ~default: Book_parameters.none % Option.join % Result.to_option) (Component.signal booklet_choices);
+        S.map
+          (function
+            | Ok`Book_pdf params -> (params, Rendering_parameters.none)
+            | Ok `Sets_zip | Error _ -> (Book_parameters.none, Rendering_parameters.none)
+          )
+          (Component.signal booklet_choices);
       ]
   }
 
@@ -56,11 +70,16 @@ let open_ (book : Book_view.t) dialog =
       Button.download
         ~onclick: (fun () ->
           let (book_params, rendering_params) = S.value dialog.parameters_signal in
+          let (endpoint, extension) =
+            match S.value dialog.download_type with
+            | `Book_pdf -> Endpoints.Api.(route @@ Book Build_pdf), ".pdf"
+            | `Sets_zip -> Endpoints.Api.(route @@ Book Build_zip), ".zip"
+          in
           return None;
           Version_download_dialog.open_pdf_generation_dialog (
             Job.status_signal_non_copyrighted
-              (NesSlug.add_suffix (NesSlug.of_string book.name) ".pdf")
-              (Madge_client.call_exn Endpoints.Api.(route @@ Book Build_pdf) book.id book_params rendering_params)
+              (NesSlug.add_suffix (NesSlug.of_string book.name) extension)
+              (Madge_client.call_exn endpoint book.id book_params rendering_params)
           )
         )
         ();

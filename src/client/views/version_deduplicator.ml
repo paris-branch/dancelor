@@ -6,40 +6,6 @@ open Search_new
 open Html
 open Utils
 
-let show_lilypond_dialog version =
-  let content_promise =
-    let%lwt content = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) (Entry.id version) in
-    let content =
-      match content with
-      | Endpoints.Version.Protected -> assert false
-      | Endpoints.Version.Granted {payload; _} -> payload
-    in
-    Model.Version.content_lilypond' ~content version
-  in
-  ignore
-  <$> Page.open_dialog @@ fun return ->
-    Page.make'
-      ~title: (lwt "LilyPond")
-      [with_div_placeholder (
-        let%lwt content = content_promise in
-        lwt [pre [txt content]]
-      )]
-      ~buttons: [
-        Button.close' ~return ();
-        Button.make
-          ~label: "Copy to clipboard"
-          ~icon: (Other Clipboard)
-          ~classes: ["btn-primary"]
-          ~onclick: (fun _ ->
-            let%lwt content = content_promise in
-            write_to_clipboard content;
-            Toast.open_ ~title: "Copied to clipboard" [txt "The LilyPond content was copied to your clipboard."];
-            return (some ());
-            lwt_unit
-          )
-          ()
-      ]
-
 (* helpers to record all the changes that will be performed and spit them back
    to the user afterwards *)
 let make_change_trackers () =
