@@ -111,6 +111,17 @@ type pdf_metadata = {
 }
 [@@deriving yojson]
 
+type set_pdf_arg = {
+  set: set;
+  specificity: string;
+  headers: bool;
+  pdf_metadata: pdf_metadata;
+}
+[@@deriving yojson]
+
+let make_set_pdf arg =
+  Pair.snoc "set.pdf" <$> call_nix "makeSetPdf" (set_pdf_arg_to_yojson arg)
+
 type book_pdf_arg = {
   book: book;
   specificity: string;

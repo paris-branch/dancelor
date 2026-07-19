@@ -39,6 +39,7 @@ let
         ;
     })
     makeBookPdf
+    makeSetPdf
     ;
 
 in
@@ -46,5 +47,6 @@ in
   inherit
     makeTuneSnippets
     makeBookPdf
+    makeSetPdf
     ;
 }

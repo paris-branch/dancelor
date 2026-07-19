@@ -263,11 +263,8 @@ let grab_renderer_book_pdf_args rendering_params =
 
 let renderer_book_to_renderer_book_pdf_arg (book : Renderer.book) rendering_params pdf_metadata =
   let (specificity, headers) = grab_renderer_book_pdf_args rendering_params in
-  lwt Renderer.{book; specificity; headers; pdf_metadata}
+    ({book; specificity; headers; pdf_metadata}: Renderer.book_pdf_arg)
 
-let renderer_set_to_renderer_book_pdf_arg (set : Renderer.set) rendering_params pdf_metadata =
-  let slug = set.Renderer.slug in
-  let name = set.Renderer.name in
-  let book = {Renderer.slug; name; editor = ""; contents = [Renderer.Set set]; simple = true} in
+let renderer_set_to_renderer_set_pdf_arg (set : Renderer.set) rendering_params pdf_metadata =
   let (specificity, headers) = grab_renderer_book_pdf_args rendering_params in
-  lwt Renderer.{book; specificity; headers; pdf_metadata}
+    ({set; specificity; headers; pdf_metadata}: Renderer.set_pdf_arg)

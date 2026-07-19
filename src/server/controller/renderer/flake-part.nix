@@ -30,6 +30,29 @@ let
     show_time_signatures = true;
   };
 
+  testSetPdfArg = {
+    set = {
+      slug = "test-slug";
+      name = "Test Name";
+      conceptor = "Test Conceptor";
+      kind = "Test Kind";
+      contents = [ ];
+    };
+    specificity = "none";
+    headers = true;
+    pdf_metadata = {
+      title = "Test PDF Title";
+      authors = [
+        "Test PDF Author 1"
+        "Test PDF Author 2"
+      ];
+      subjects = [
+        "Test PDF Subject 1"
+        "Test PDF Subject 2"
+      ];
+    };
+  };
+
   testBookPdfArg = {
     book = {
       slug = "test-slug";
@@ -65,17 +88,20 @@ in
         })
         makeTuneSnippets
         makeBookPdf
+        makeSetPdf
         ;
       testTuneSnippets = makeTuneSnippets testTune;
       testBookPdf = makeBookPdf testBookPdfArg;
+      testSetPdf = makeSetPdf testSetPdfArg;
     in
     {
       packages.rendererRuntime = pkgs.symlinkJoin {
         name = "renderer-runtime";
-        paths = testTuneSnippets.buildInputs ++ testBookPdf.buildInputs;
+        paths = testTuneSnippets.buildInputs ++ testBookPdf.buildInputs ++ testSetPdf.buildInputs;
       };
 
       checks.renderer-tune-snippets = testTuneSnippets;
       checks.renderer-book-pdf = testBookPdf;
+      checks.renderer-set-pdf = testSetPdf;
     };
 }

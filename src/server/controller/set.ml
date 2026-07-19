@@ -49,8 +49,8 @@ let build_pdf env id set_params rendering_params =
     lwt Renderer.{title; authors; subjects}
   in
   let%lwt set = Model_to_renderer.set_to_renderer_set' (Entry.id set) set_params in
-  let%lwt book_pdf_arg = Model_to_renderer.renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata in
-  uncurry Job.register_job_and_file <$> Renderer.make_book_pdf book_pdf_arg
+  let set_pdf_arg = Model_to_renderer.renderer_set_to_renderer_set_pdf_arg set rendering_params pdf_metadata in
+  uncurry Job.register_job_and_file <$> Renderer.make_set_pdf set_pdf_arg
 
 (* Dispatch *)
 

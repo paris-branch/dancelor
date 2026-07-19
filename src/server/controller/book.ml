@@ -175,7 +175,7 @@ let build_pdf env id book_params rendering_params =
     lwt Renderer.{title; authors; subjects = []}
   in
   let%lwt book = Model_to_renderer.book_to_renderer_book' book book_params in
-  let%lwt book_pdf_arg = Model_to_renderer.renderer_book_to_renderer_book_pdf_arg book rendering_params pdf_metadata in
+  let book_pdf_arg = Model_to_renderer.renderer_book_to_renderer_book_pdf_arg book rendering_params pdf_metadata in
   uncurry Job.register_job_and_file <$> Renderer.make_book_pdf book_pdf_arg
 
 (* Dispatch *)
