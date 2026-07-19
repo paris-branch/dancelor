@@ -148,9 +148,9 @@ let
       \headers${if headers then "true" else "false"}
       \input{preamble}
       \usepackage[
-        pdftitle={${escapeLatexString pdf_metadata.title}}
-        pdfauthor={${concatMapStringsSep "; " escapeLatexString pdf_metadata.authors}}
-        pdfsubject={${concatMapStringsSep "; " escapeLatexString pdf_metadata.subjects}}
+        pdftitle={${escapeLatexString pdf_metadata.title}},
+        pdfauthor={${concatMapStringsSep "; " escapeLatexString pdf_metadata.authors}},
+        pdfsubject={${concatMapStringsSep "; " escapeLatexString pdf_metadata.subjects}},
         pdfcreator={Dancelor},
       ]{hyperref}
       \begin{document}
