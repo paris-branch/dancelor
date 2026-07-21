@@ -1,5 +1,7 @@
 (** {1 Renderer} *)
 
+module Log = (val Logs.src_log @@ Logs.Src.create "server.controller.renderer": Logs.LOG)
+
 open NesUnix
 
 (** {2 Models for the rendering} *)
@@ -88,15 +90,16 @@ let call_nix fun_ json =
     Lwt_io.write ochan (Yojson.Safe.to_string json);%lwt
     Lwt_process.pread ("", [|"nix"; "--extra-experimental-features"; "nix-command"; "store"; "add"; "--name"; "renderer-input.json"; "--mode"; "flat"; fname|])
   in
-  lwt @@
-    Job.Expr (
-      spf
-        "(import %s/renderer/renderer.nix { %s}).%s (builtins.fromJSON (builtins.readFile %s))"
-        (if ((Config.get ()).share).[0] = '/' then (Config.get ()).share else "./" ^ (Config.get ()).share)
-        (if (Config.get ()).nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes (Config.get ()).nixpkgs ^ "; ")
-        fun_
-        store_path
-    )
+  let expr =
+    spf
+      "(import %s/renderer/renderer.nix { %s}).%s (builtins.fromJSON (builtins.readFile %s))"
+      (if ((Config.get ()).share).[0] = '/' then (Config.get ()).share else "./" ^ (Config.get ()).share)
+      (if (Config.get ()).nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes (Config.get ()).nixpkgs ^ "; ")
+      fun_
+      store_path
+  in
+  Log.debug (fun m -> m "call_nix: %s" expr);
+  lwt @@ Job.Expr expr
 
 (** {2 API} *)
 
