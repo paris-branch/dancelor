@@ -127,6 +127,7 @@ let best_fold_for structure =
   | "ABBAAB" -> some [a; repeat 2 [b]; repeat 2 [a]; b]
   | "AABCAA" -> some [repeat 2 [a]; b; c; repeat 2 [a]]
   | "AABBCCDD" -> some [repeat 2 [a]; repeat 2 [b]; repeat 2 [c]; repeat 2 [d]]
+  | "AABBAACC" -> some [repeat 2 [a]; repeat 2 [b]; repeat 2 [a]; repeat 2 [c]]
   | "AABBCCDE" -> some [repeat 2 [a]; repeat 2 [b]; repeat 2 [c]; d; e]
   | "AABBCDEE" -> some [repeat 2 [a]; repeat 2 [b]; c; d; repeat 2 [e]]
   | "AABBCDEF" -> some [repeat 2 [a]; repeat 2 [b]; c; d; e; f]
