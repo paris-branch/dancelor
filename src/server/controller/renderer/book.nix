@@ -191,25 +191,28 @@ let
           preferLocalBuild = true;
           allowSubstitutes = false;
           buildInputs = [
-            (pkgs.texlive.combine {
-              inherit (pkgs.texlive)
-                scheme-minimal
-                latexmk
-                xetex
-                etoolbox
-                extsizes
-                fancyhdr
-                fontspec
-                geometry
-                graphics
-                greek-fontenc # dependency of hyperref
-                hyperref
-                realscripts # for \newif
-                texfot
-                xltxtra
-                xunicode
-                ;
-            })
+            pkgs.texliveFull
+            ## FIXME: minimise, but the old minimisation doesn't work for lualatex anymore:
+            # (pkgs.texlive.combine {
+            #   inherit (pkgs.texlive)
+            #     scheme-minimal
+            #     latexmk
+            #     luatex
+            #     xetex
+            #     etoolbox
+            #     extsizes
+            #     fancyhdr
+            #     fontspec
+            #     geometry
+            #     graphics
+            #     greek-fontenc # dependency of hyperref
+            #     hyperref
+            #     realscripts # for \newif
+            #     texfot
+            #     xltxtra
+            #     xunicode
+            #     ;
+            # })
           ];
           FONTCONFIG_FILE =
             with pkgs;
@@ -219,9 +222,9 @@ let
         }
         ''
           ${setupFontconfigCache}
-          cp ${./book}/*.tex .
+          cp ${./book}/*.tex ${./book}/*.lua .
           cp ${makeBookTex book} ${type}.tex
-          texfot latexmk -pdfxe ${type}
+          texfot latexmk -pdflua ${type}
           mkdir $out
           mv ${type}.pdf $out
         ''
