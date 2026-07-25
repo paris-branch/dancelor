@@ -43,6 +43,27 @@
   \clearpage%
 }
 
+%% Blank pages will get a message to explain why they are blank. This macro does
+%% nothing when the book is simple, and creates the “blank” page in question otherwise.
+\newcommand\blankpage{%
+  \ifsimple%
+  \else%
+    \clearpage%
+    \thispagestyle{norightmarknospecificity}%
+    \null\vfill%
+    \centering%
+    \fbox{
+      \begin{tabular}{@{}c@{}}
+        This page is left blank\\
+        for better alignment\\
+        of the next multi-pages set.
+      \end{tabular}%
+    }%
+    \vfill\vfill\null%
+    \clearpage%
+  \fi%
+}
+
 \newcommand\renderSetHeader[3]{%
   \vbox{
     {\linespread{0.8}\selectfont\centering\huge #1\par}
@@ -85,11 +106,19 @@
       eltHeights[i] = tex.box[eltBoxNo].height
     end
 
-    %% Compute the number of pages that this set will span and the optimal
-    %% distribution of this set's elements, then render the elements,
-    %% forcing new pages when the distribution calls for it.
-
+    %% Compute the number of pages that this set will span. Add blank page if
+    %% the current page is odd, unless the set to come spans only one page in
+    %% which case it is allowed to stay anywhere.
+    %%
     local numberOfPages = minimalNumberOfPages(eltHeights, interEltSpace, tex.dimen.textheight)
+
+    if numberOfPages > 1 and (math.fmod(\thepage, 2) == 0) then
+      tex.print("\\blankpage{}")
+    end
+
+    %% Compute the optimal distribution of this set's elements, then render the
+    %% elements, forcing new pages when the distribution calls for it.
+
     local eltsDistrib = balancedPages(eltHeights, interEltSpace, numberOfPages)
 
     local pageNo = 1
@@ -120,11 +149,9 @@
   \thispagestyle{norightmark}%
   \markright{#1}%
   \addsettotoc{#1}{#3}%
-  \recordsetstartpage{}%
   \setResetElements%
   \setStoreElement{\renderSetHeader{#1}{#2}{#3}}%
 }{
-  \recordsetendpage{}%
   \setOutputElements%
   \clearpage%
 }
