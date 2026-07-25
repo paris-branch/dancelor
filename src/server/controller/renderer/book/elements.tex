@@ -51,15 +51,81 @@
   }%
 }
 
+%% Space between elements of a set. This is 14mm by default but can compress
+%% to down to 4mm if this allows reducing the total numbre of pages.
+\newcommand\renderSetInterElementsSpace{\vspace{14mm minus 10mm}}
+\def\minimalSetInterElementsSpace{4mm}
+
+%% A global array of elements in a set; reset at the beginning of each set.
+\newcommand\setResetElements{%
+  \directlua{setElements = {}}%
+}
+
+%% A counter to generate unique box names for set elements.
+\newcount\setElementsCounter
+
+%% Storing an element: increase the counter, make a %% box setElement<N>,
+%% store the element in it, and add the box register number (\the\setElement<N>)
+%% to the array of set elements.
+\newcommand\setStoreElement[1]{%
+  \global\advance\setElementsCounter by 1
+  \expandafter\newbox\csname setElement\the\setElementsCounter\endcsname
+  \expandafter\setbox\csname setElement\the\setElementsCounter\endcsname=#1%
+  \directlua{table.insert(setElements, \expandafter\the\csname setElement\the\setElementsCounter\endcsname)}%
+}
+
+%% Import functions for solving bin packing.
+\directlua{dofile("bin-packing.lua")}
+
+\newcommand\setOutputElements{%
+  \directlua{
+    local interEltSpace = tex.sp("\minimalSetInterElementsSpace")
+    eltHeights = {}
+    for i, eltBoxNo in pairs(setElements) do
+      eltHeights[i] = tex.box[eltBoxNo].height
+    end
+
+    %% Compute the number of pages that this set will span and the optimal
+    %% distribution of this set's elements, then render the elements,
+    %% forcing new pages when the distribution calls for it.
+
+    local numberOfPages = minimalNumberOfPages(eltHeights, interEltSpace, tex.dimen.textheight)
+    local eltsDistrib = balancedPages(eltHeights, interEltSpace, numberOfPages)
+
+    local pageNo = 1
+    local firstOnPage = true
+
+    for _, eltBoxNo in ipairs(setElements) do
+      if eltsDistrib[pageNo] <= 0 then
+        %% we used all the elements allowed on this page, move on to the next
+        tex.print("\\clearpage")
+        pageNo = pageNo + 1
+        firstOnPage = true
+      end
+
+      if firstOnPage then
+        firstOnPage = false
+      else
+        tex.print("\\renderSetInterElementsSpace")
+      end
+
+      eltsDistrib[pageNo] = eltsDistrib[pageNo] - 1
+      tex.print("\\copy" .. eltBoxNo)
+    end
+  }
+}
+
 \newenvironment{set}[3]{%
   \clearpage%
   \thispagestyle{norightmark}%
   \markright{#1}%
   \addsettotoc{#1}{#3}%
   \recordsetstartpage{}%
-  \renderSetHeader{#1}{#2}{#3}%
+  \setResetElements%
+  \setStoreElement{\renderSetHeader{#1}{#2}{#3}}%
 }{
   \recordsetendpage{}%
+  \setOutputElements%
   \clearpage%
 }
 
@@ -75,7 +141,6 @@
 }
 
 \newcommand\tune[4]{%
-  \vspace{14mm minus 10mm}%
   \addtunetotoc{#1}{#3}%
-  \renderTune{#1}{#2}{#3}{#4}%
+  \setStoreElement{\renderTune{#1}{#2}{#3}{#4}}%
 }
