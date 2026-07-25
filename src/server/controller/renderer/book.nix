@@ -200,7 +200,7 @@ let
           ${setupLuaotfloadCache}
           cp ${./book}/*.tex ${./book}/*.lua .
           cp ${makeBookTex book} ${type}.tex
-          texfot latexmk -pdflua ${type}
+          texfot ${if book.book.simple then "lualatex" else "latexmk -pdflua"} ${type}
           mkdir $out
           mv ${type}.pdf $out
         ''
