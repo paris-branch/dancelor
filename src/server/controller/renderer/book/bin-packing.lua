@@ -19,38 +19,57 @@ function minimalNumberOfPages(eltHeights, interEltSpace, pageHeight)
   return numberOfPages
 end
 
+function balancedPagesAuxGetCache(numberOfPages, startEltIdx, endEltIdx, cache)
+  return cache[(numberOfPages .. "-" .. startEltIdx .. "-" .. endEltIdx)]
+end
+function balancedPagesAuxSetCache(numberOfPages, startEltIdx, endEltIdx, cache, value)
+  cache[(numberOfPages .. "-" .. startEltIdx .. "-" .. endEltIdx)] = value
+end
+
 -- Auxiliary function to `balancedPages`. Given an array of element heights, a space
 -- to add between each elements, a number of pages, and a first and last element to
--- consider in the list, compute the most balanced distribution of elements.
+-- consider in the list, compute the most balanced distribution of elements; returns a
+-- cost value and an array of number of elements per page. The array is to be understood
+-- relative to the considered slice. The function additionally takes a cache to avoid
+-- recomputing the same slices over and over again.
 --
-function balancedPagesAux(eltHeights, interEltSpace, numberOfPages, startEltIdx, endEltIdx)
-  if endEltIdx < startEltIdx then
-    return math.huge
+function balancedPagesAux(eltHeights, interEltSpace, numberOfPages, startEltIdx, endEltIdx, cache)
+  local cachedValue = balancedPagesAuxGetCache(numberOfPages, startEltIdx, endEltIdx, cache)
 
-  elseif numberOfPages <= 0 then
-    return {cost = math.huge, elts = {}}
-
-  elseif numberOfPages == 1 then
-    local cost = 0
-    for eltIdx = startEltIdx, endEltIdx do
-      cost = cost + ((eltIdx == startEltIdx) and 0 or interEltSpace) + eltHeights[eltIdx]
-    end
-    return {cost = cost ^ 2, elts = {endEltIdx - startEltIdx + 1}}
+  if cachedValue ~= nil then
+    return cachedValue
 
   else
-    local bestCost = math.huge
-    local bestElts = {}
-    for cutEltIdx = startEltIdx, (endEltIdx - (numberOfPages - 1)) do
-      local before = balancedPagesAux(eltHeights, interEltSpace, 1, startEltIdx, cutEltIdx)
-      local after = balancedPagesAux(eltHeights, interEltSpace, numberOfPages - 1, cutEltIdx + 1, endEltIdx)
+    local result = nil
 
-      local thisCost = before.cost + after.cost
-      if thisCost < bestCost then
-        bestCost = thisCost
-	bestElts = {table.unpack(before.elts), table.unpack(after.elts)}
+    if endEltIdx < startEltIdx or numberOfPages <= 0 then
+      result = {cost = math.huge, elts = {}}
+
+    elseif numberOfPages == 1 then
+      local cost = 0
+      for eltIdx = startEltIdx, endEltIdx do
+	cost = cost + ((eltIdx == startEltIdx) and 0 or interEltSpace) + eltHeights[eltIdx]
       end
+      result = {cost = cost ^ 2, elts = {endEltIdx - startEltIdx + 1}}
+
+    else
+      local bestCost = math.huge
+      local bestElts = {}
+      for cutEltIdx = startEltIdx, (endEltIdx - (numberOfPages - 1)) do
+	local before = balancedPagesAux(eltHeights, interEltSpace, 1, startEltIdx, cutEltIdx, cache)
+	local after = balancedPagesAux(eltHeights, interEltSpace, numberOfPages - 1, cutEltIdx + 1, endEltIdx, cache)
+
+	local thisCost = before.cost + after.cost
+	if thisCost < bestCost then
+	  bestCost = thisCost
+	  bestElts = {table.unpack(before.elts), table.unpack(after.elts)}
+	end
+      end
+      result = {cost = bestCost, elts = bestElts}
     end
-    return {cost = bestCost, elts = bestElts}
+
+    balancedPagesAuxSetCache(numberOfPages, startEltIdx, endEltIdx, cache, result)
+    return result
   end
 end
 
@@ -58,6 +77,6 @@ end
 -- between elements, and the number of pages to span.
 --
 function balancedPages(eltHeights, interEltSpace, numberOfPages)
-  local result = balancedPagesAux(eltHeights, interEltSpace, numberOfPages, 1, #eltHeights)
+  local result = balancedPagesAux(eltHeights, interEltSpace, numberOfPages, 1, #eltHeights, {})
   return result.elts
 end
