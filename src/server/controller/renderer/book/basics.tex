@@ -37,25 +37,43 @@
 \ifheaders%
   \fancypagestyle{default}{%
     \fancyhf{}
-    \fancyhead[LE]{\leftmark}
-    \fancyhead[RO]{\rightmark}
-    \fancyfoot[LE,RO]{\thepage}
-    \fancyfoot[LO,RE]{\@specificity}
+    \ifsimple%
+      \fancyhead[L]{\leftmark}
+      \fancyhead[R]{\rightmark}
+      \fancyfoot[L]{\@specificity}
+      \fancyfoot[R]{\thepage}
+    \else%
+      \fancyhead[LE]{\leftmark}
+      \fancyhead[RO]{\rightmark}
+      \fancyfoot[RE,LO]{\@specificity}
+      \fancyfoot[LE,RO]{\thepage}
+    \fi%
     \renewcommand{\headrulewidth}{0pt}
     \renewcommand{\footrulewidth}{0pt}
   }
   \fancypagestyle{norightmark}{%
     \fancyhf{}
-    \fancyhead[LE]{\leftmark}
-    \fancyfoot[LE,RO]{\thepage}
-    \fancyfoot[LO,RE]{\@specificity}
+    \ifsimple%
+      \fancyhead[L]{\leftmark}
+      \fancyfoot[L]{\@specificity}
+      \fancyfoot[R]{\thepage}
+    \else%
+      \fancyhead[LE]{\leftmark}
+      \fancyfoot[RE,LO]{\@specificity}
+      \fancyfoot[LE,RO]{\thepage}
+    \fi%
     \renewcommand{\headrulewidth}{0pt}
     \renewcommand{\footrulewidth}{0pt}
   }
   \fancypagestyle{norightmarknospecificity}{%
     \fancyhf{}
-    \fancyhead[LE]{\leftmark}
-    \fancyfoot[LE,RO]{\thepage}
+    \ifsimple%
+      \fancyhead[L]{\leftmark}
+      \fancyfoot[R]{\thepage}
+    \else%
+      \fancyhead[LE]{\leftmark}
+      \fancyfoot[LE,RO]{\thepage}
+    \fi%
     \renewcommand{\headrulewidth}{0pt}
     \renewcommand{\footrulewidth}{0pt}
   }

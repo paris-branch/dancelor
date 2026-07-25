@@ -231,7 +231,8 @@ let
     set@{ ... }:
     makeBookPdfGen "set" {
       book = {
-        inherit (set.set) slug name;
+        inherit (set.set) slug;
+        name = "";
         contents = [ { set = set.set; } ];
         editor = "";
         simple = true;
