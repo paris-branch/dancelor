@@ -4,7 +4,9 @@
   makeTuneSnippets,
   withArgumentType,
   setupFontconfigCache,
-  ...
+  setupLuaotfloadCache,
+  myTexlive,
+  myFontconfigFile,
 }:
 
 let
@@ -137,14 +139,15 @@ let
     };
   };
 
-  makeBookTex =
+  makeBookTexGen =
+    type:
     {
       book,
       specificity,
       headers,
       pdf_metadata,
     }:
-    writeText "book-${book.slug}.tex" ''
+    writeText "${type}-${book.slug}.tex" ''
       \newif\ifsimple
       \simple${if book.simple then "true" else "false"}
       \newif\ifheaders
@@ -190,38 +193,16 @@ let
         {
           preferLocalBuild = true;
           allowSubstitutes = false;
-          buildInputs = [
-            (pkgs.texlive.combine {
-              inherit (pkgs.texlive)
-                scheme-minimal
-                latexmk
-                xetex
-                etoolbox
-                extsizes
-                fancyhdr
-                fontspec
-                geometry
-                graphics
-                greek-fontenc # dependency of hyperref
-                hyperref
-                realscripts # for \newif
-                texfot
-                xltxtra
-                xunicode
-                ;
-            })
-          ];
-          FONTCONFIG_FILE =
-            with pkgs;
-            makeFontsConf {
-              fontDirectories = [ source-sans-pro ];
-            };
+          buildInputs = [ myTexlive ];
+          FONTCONFIG_FILE = myFontconfigFile;
         }
         ''
           ${setupFontconfigCache}
-          cp ${./book}/*.tex .
-          cp ${makeBookTex book} ${type}.tex
-          texfot latexmk -pdfxe ${type}
+          ${setupLuaotfloadCache}
+          cp ${./book}/*.tex ${./book}/*.lua .
+          cp ${makeBookTexGen type book} ${type}.tex
+          export max_print_line=1000000000 # prevent TeX from hard wrapping its output
+          texfot ${if book.book.simple then "lualatex" else "latexmk -pdflua"} ${type}
           mkdir $out
           mv ${type}.pdf $out
         ''
@@ -251,7 +232,8 @@ let
     set@{ ... }:
     makeBookPdfGen "set" {
       book = {
-        inherit (set.set) slug name;
+        inherit (set.set) slug;
+        name = "";
         contents = [ { set = set.set; } ];
         editor = "";
         simple = true;

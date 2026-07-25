@@ -11,9 +11,12 @@ let
     })
   ];
 
-  inherit (import ./utils.nix { })
+  inherit (import ./utils.nix { inherit pkgs; })
     withArgumentType
     setupFontconfigCache
+    setupLuaotfloadCache
+    myTexlive
+    myFontconfigFile
     ;
 
   inherit
@@ -22,6 +25,7 @@ let
         pkgs
         withArgumentType
         setupFontconfigCache
+        myFontconfigFile
         ;
     })
     tuneType
@@ -36,6 +40,9 @@ let
         makeTuneSnippets
         withArgumentType
         setupFontconfigCache
+        setupLuaotfloadCache
+        myTexlive
+        myFontconfigFile
         ;
     })
     makeBookPdf

@@ -2,7 +2,7 @@
   pkgs,
   withArgumentType,
   setupFontconfigCache,
-  ...
+  myFontconfigFile,
 }:
 
 let
@@ -205,11 +205,7 @@ let
           lilypond-unstable # for Cairo support as of 27 Nov 2025; can go back to stable in a while
           timidity
         ];
-        FONTCONFIG_FILE =
-          with pkgs;
-          makeFontsConf {
-            fontDirectories = [ source-sans-pro ];
-          };
+        FONTCONFIG_FILE = myFontconfigFile;
       }
       ''
         ${setupFontconfigCache}
