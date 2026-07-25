@@ -139,14 +139,15 @@ let
     };
   };
 
-  makeBookTex =
+  makeBookTexGen =
+    type:
     {
       book,
       specificity,
       headers,
       pdf_metadata,
     }:
-    writeText "book-${book.slug}.tex" ''
+    writeText "${type}-${book.slug}.tex" ''
       \newif\ifsimple
       \simple${if book.simple then "true" else "false"}
       \newif\ifheaders
@@ -199,7 +200,7 @@ let
           ${setupFontconfigCache}
           ${setupLuaotfloadCache}
           cp ${./book}/*.tex ${./book}/*.lua .
-          cp ${makeBookTex book} ${type}.tex
+          cp ${makeBookTexGen type book} ${type}.tex
           export max_print_line=1000000000 # prevent TeX from hard wrapping its output
           texfot ${if book.book.simple then "lualatex" else "latexmk -pdflua"} ${type}
           mkdir $out
