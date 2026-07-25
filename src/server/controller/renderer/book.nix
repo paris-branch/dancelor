@@ -4,7 +4,9 @@
   makeTuneSnippets,
   withArgumentType,
   setupFontconfigCache,
-  ...
+  setupLuaotfloadCache,
+  myTexlive,
+  myFontconfigFile,
 }:
 
 let
@@ -190,38 +192,12 @@ let
         {
           preferLocalBuild = true;
           allowSubstitutes = false;
-          buildInputs = [
-            pkgs.texliveFull
-            ## FIXME: minimise, but the old minimisation doesn't work for lualatex anymore:
-            # (pkgs.texlive.combine {
-            #   inherit (pkgs.texlive)
-            #     scheme-minimal
-            #     latexmk
-            #     luatex
-            #     xetex
-            #     etoolbox
-            #     extsizes
-            #     fancyhdr
-            #     fontspec
-            #     geometry
-            #     graphics
-            #     greek-fontenc # dependency of hyperref
-            #     hyperref
-            #     realscripts # for \newif
-            #     texfot
-            #     xltxtra
-            #     xunicode
-            #     ;
-            # })
-          ];
-          FONTCONFIG_FILE =
-            with pkgs;
-            makeFontsConf {
-              fontDirectories = [ source-sans-pro ];
-            };
+          buildInputs = [ myTexlive ];
+          FONTCONFIG_FILE = myFontconfigFile;
         }
         ''
           ${setupFontconfigCache}
+          ${setupLuaotfloadCache}
           cp ${./book}/*.tex ${./book}/*.lua .
           cp ${makeBookTex book} ${type}.tex
           texfot latexmk -pdflua ${type}
