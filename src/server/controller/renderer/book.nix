@@ -200,6 +200,7 @@ let
           ${setupLuaotfloadCache}
           cp ${./book}/*.tex ${./book}/*.lua .
           cp ${makeBookTex book} ${type}.tex
+          export max_print_line=1000000000 # prevent TeX from hard wrapping its output
           texfot ${if book.book.simple then "lualatex" else "latexmk -pdflua"} ${type}
           mkdir $out
           mv ${type}.pdf $out
