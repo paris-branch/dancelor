@@ -45,6 +45,7 @@ let row_to_user
     ~username
     ~role
     ~omniscience
+    ~github_handle
     ~created_at
     ~modified_at
   =
@@ -56,6 +57,7 @@ let row_to_user
       Entry.User.make
         ~username: (Username.of_string_exn username)
         ~role: (role_to_common omniscience role)
+        ~github_handle
         ()
     )
 
@@ -93,7 +95,7 @@ let get_password_reset_token_from_username username =
       )
     )
 
-let create ~username ~role ~password_reset_token_hash ~password_reset_token_max_date =
+let create ~username ~role ~github_handle ~password_reset_token_hash ~password_reset_token_max_date =
   let (role, omniscience) = role_of_common role in
   Connection.with_ @@ fun db ->
   let%lwt id = Entry_new.make_public db `User in
@@ -104,6 +106,7 @@ let create ~username ~role ~password_reset_token_hash ~password_reset_token_max_
       ~username: (Username.to_string username)
       ~role
       ~omniscience
+      ~github_handle
       ~password_reset_token_hash: (some @@ HashedSecret.unsafe_to_string @@ Password_reset_token_hashed.project password_reset_token_hash)
       ~password_reset_token_max_date: (Some password_reset_token_max_date)
   in

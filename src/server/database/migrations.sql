@@ -1543,3 +1543,6 @@ ALTER TABLE "tune_extra_names"
 
 -- @m071_2026_07_move_pg_trgm_to_public
 -- @m072_2026_07_gin_indices
+
+-- @m073_2026_08_user_github_handle
+ALTER TABLE "user" ADD COLUMN "github_handle" VARCHAR(64);

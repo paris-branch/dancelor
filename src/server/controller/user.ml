@@ -73,6 +73,7 @@ let create env user =
     Database.User.create
       ~username: (Model.User.username user)
       ~role: (Model.User.role user)
+      ~github_handle: (Model.User.github_handle user)
       ~password_reset_token_hash
       ~password_reset_token_max_date
   in

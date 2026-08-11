@@ -14,12 +14,14 @@ module type S = sig
   val make :
     username: Username.t ->
     ?role: User.role ->
+    ?github_handle: string option ->
     unit ->
     t
 
   val update :
     ?username: (Username.t -> Username.t) ->
     ?role: (User.role -> User.role) ->
+    ?github_handle: (string option -> string option) ->
     t ->
     t Lwt.t
 
@@ -30,6 +32,9 @@ module type S = sig
 
   val role : t -> User.role
   val role' : entry -> User.role
+
+  val github_handle : t -> string option
+  val github_handle' : entry -> string option
 
   (** Whether the user is a database maintainer. *)
   val is_maintainer : t -> bool
