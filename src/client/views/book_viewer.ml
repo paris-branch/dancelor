@@ -93,7 +93,7 @@ let table_contents ~this_id content =
                   ~suffix
                   versions_and_params
               | Book_view.Set (set, params) ->
-                Any_result_new.make_set_result
+                Any_result_new.make_set_or_forbidden_result
                   ~prefix: [td [txt "Set"]]
                   ~suffix
                   ~params
@@ -171,7 +171,8 @@ let parent_title_and_title = function
   | Versions [] -> assert false
   | Versions [(version, _)] -> ("Version", version.tune.name)
   | Versions ((first_version, _) :: _) -> ("Versions", spf "%s etc." first_version.tune.name)
-  | Set (set, _) -> ("Set", set.name)
+  | Set (Allowed set, _) -> ("Set", set.name)
+  | Set (Forbidden, _) -> ("Set", "<forbidden>")
 
 let subtitles = function
   | Book_view.Part _ -> lwt_nil
@@ -184,9 +185,10 @@ let subtitles = function
         let%lwt version = Madge_client.call_exn Endpoints.Api.(route @@ Version Get_view) version.Version_row.id in
         lwt @@ Version_viewer.subtitles version.tune
       | Dance_versions _ -> lwt_nil
-      | Dance_set (set, _params) ->
+      | Dance_set (Allowed set, _params) ->
         let%lwt set = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_view) set.Set_row.id in
         lwt @@ Set_viewer.subtitles set
+      | Dance_set (Forbidden, _) -> lwt_nil
     in
     lwt @@ Dance_viewer.subtitles dance @ more_subtitles
   | Versions [] -> assert false
@@ -197,9 +199,11 @@ let subtitles = function
     let versions = List.map fst versions_and_params in
     let%lwt versions = Lwt_list.map_s (fun version -> Madge_client.call_exn Endpoints.Api.(route @@ Version Get_view) version.Version_row.id) versions in
     lwt @@ List.concat_map (fun version -> Version_viewer.subtitles version.Version_view.tune) versions
-  | Set (set, _) ->
+  | Set (Allowed set, _) ->
     let%lwt set = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_view) set.Set_row.id in
     lwt @@ Set_viewer.subtitles set
+  | Set (Forbidden, _) ->
+    lwt_nil
 
 let body_dance (dance : Dance_row.t) =
   let%lwt dance = Madge_client.call_exn Endpoints.Api.(route @@ Dance Get_view) dance.id in
@@ -220,9 +224,11 @@ let body = function
   | Book_view.Part _ -> lwt [txt "This is a part; nothing to see here."]
   | Dance (dance, Dance_only) -> body_dance dance
   | Dance (_dance, Dance_versions versions) -> body_versions versions
-  | Dance (_dance, Dance_set (set, _params)) -> body_set set
+  | Dance (_dance, Dance_set (Allowed set, _params)) -> body_set set
+  | Dance (_dance, Dance_set (Forbidden, _params)) -> lwt [txt "You do not have access to this set; nothing to see here."]
   | Versions versions -> body_versions versions
-  | Set (set, _) -> body_set set
+  | Set (Allowed set, _) -> body_set set
+  | Set (Forbidden, _params) -> lwt [txt "You do not have access to this set; nothing to see here."]
 
 let preview id pageno =
   Main_page.madge_call_or_404 (Book Get_view) id @@ fun book ->

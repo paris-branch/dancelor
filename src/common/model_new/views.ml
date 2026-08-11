@@ -3,6 +3,11 @@ open Ids
 open Names
 open Rows
 
+type 'a or_forbidden =
+  | Forbidden
+  | Allowed of 'a
+[@@deriving yojson]
+
 module Person_view = struct
   type t = {
     id: Person_id.t;
@@ -149,14 +154,14 @@ module Book_view = struct
   type dance_page =
     | Dance_only
     | Dance_versions of (Version_row.t * Model_builder.Core.Version_parameters.t) list
-    | Dance_set of Set_row.t * Model_builder.Core.Set_parameters.t
+    | Dance_set of Set_row.t or_forbidden * Model_builder.Core.Set_parameters.t
   [@@deriving yojson]
 
   type page =
     | Part of string
     | Dance of Dance_row.t * dance_page
     | Versions of (Version_row.t * Model_builder.Core.Version_parameters.t) list
-    | Set of Set_row.t * Model_builder.Core.Set_parameters.t
+    | Set of Set_row.t or_forbidden * Model_builder.Core.Set_parameters.t
   [@@deriving yojson]
 
   type t = {

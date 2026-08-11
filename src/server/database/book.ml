@@ -152,14 +152,19 @@ let get_content_for ~user_id db book_ids =
       let set =
         Option.map
           (fun set_id ->
-            set_sql_to_row
-              ~id: set_id
-              ~name: (Option.get set_name)
-              ~kind: (Option.get set_kind)
-              ~permission: (Option.get set_permission)
-              ~conceptors: (set_conceptors_for set_id)
-              ~tunes: (tunes_for set_id)
-              ~k: Fun.id
+            match set_permission with
+            | None -> Forbidden
+            | Some set_permission ->
+              Allowed (
+                set_sql_to_row
+                  ~id: set_id
+                  ~name: (Option.get set_name)
+                  ~kind: (Option.get set_kind)
+                  ~permission: set_permission
+                  ~conceptors: (set_conceptors_for set_id)
+                  ~tunes: (tunes_for set_id)
+                  ~k: Fun.id
+              )
           )
           set_id
       in

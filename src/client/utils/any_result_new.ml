@@ -18,6 +18,11 @@ let row ?(classes = []) ?onclick cells =
 let inline_details = Formatters_new.details
 let block_details content = p ~a: [a_class ["mb-0"; "opacity-50"; "lh-sm"]] [small content]
 
+(* FIXME: add a tooltip explaining what a forbidden value is *)
+let format_forbidden f = function
+  | Allowed set -> f set
+  | Forbidden -> span ~a: [a_class ["badge"; "text-bg-secondary"; "pe-none"]] [Icon.html (Other Forbidden); txt " Private"]
+
 let make_part_result ?classes ?onclick ?(prefix = []) ?(suffix = []) title =
   row ?classes ?onclick (prefix @ [td ~a: [a_colspan 3] [txt title]] @ suffix)
 
@@ -71,21 +76,28 @@ let make_dance_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = [])
       suffix
     )
 
-let make_dance_plus_set_result ?classes ?onclick ?in_search ?set_params ?(prefix = []) ?(suffix = []) (dance : Dance_row.t) (set : Set_row.t) =
+let make_dance_plus_set_result ?classes ?onclick ?in_search ?set_params ?(prefix = []) ?(suffix = []) (dance : Dance_row.t) (set : Set_row.t or_forbidden) =
   row ?classes ?onclick (
     prefix @
     [td (
       [Formatters_new.Dance.name_row ?in_search dance] @
-      [block_details [txt "Set: "; Formatters_new.Set.name_row ~link: (onclick = None) set]] @
+      [block_details [txt "Set: "; format_forbidden (Formatters_new.Set.name_row ~link: (onclick = None)) set]] @
       Option.fold
         (Option.bind set_params Model_builder.Core.Set_parameters.display_name)
         ~none: []
-        ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]]) @
-        [block_details (Formatters_new.Set.tunes ~links: (onclick = None) set)]
+        ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]]) @ (
+        match set with
+        | Forbidden -> []
+        | Allowed set -> [block_details (Formatters_new.Set.tunes ~links: (onclick = None) set)]
+      )
     );
     td [txt @@ Kind.Dance.to_string dance.kind];
     td (
-      Formatters_new.Person.names ~links: (onclick = None) ~short: true set.conceptors @
+      (
+        match set with
+        | Forbidden -> []
+        | Allowed set -> Formatters_new.Person.names ~links: (onclick = None) ~short: true set.conceptors
+      ) @
         Option.fold
           (Option.bind set_params Model_builder.Core.Set_parameters.display_conceptor)
           ~none: []
@@ -122,23 +134,30 @@ let make_book_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) 
       suffix
     )
 
-let make_set_result ?classes ?onclick ?in_search ?params ?(prefix = []) ?(suffix = []) (set : Set_row.t) =
+let make_set_or_forbidden_result ?classes ?onclick ?in_search ?params ?(prefix = []) ?(suffix = []) (set : Set_row.t or_forbidden) =
   row
     ?classes
     ?onclick
     (
       prefix @
       [td (
-        [Formatters_new.Set.name_row ~link: (onclick = None) ?in_search set] @
+        [format_forbidden (Formatters_new.Set.name_row ~link: (onclick = None) ?in_search) set] @
         Option.fold
           (Option.bind params Model_builder.Core.Set_parameters.display_name)
           ~none: []
-          ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]]) @
-          [block_details (Formatters_new.Set.tunes ~links: (onclick = None) set)]
+          ~some: (fun display_name -> [inline_details [txtf " [as “%s”]" @@ NEString.to_string display_name]]) @ (
+          match set with
+          | Forbidden -> []
+          | Allowed set -> [block_details (Formatters_new.Set.tunes ~links: (onclick = None) set)]
+        )
       );
-      td [txt @@ Kind.Dance.to_string set.kind];
+      td [txt (match set with Forbidden -> "" | Allowed set -> Kind.Dance.to_string set.kind)];
       td (
-        Formatters_new.Person.names ~links: (onclick = None) ~short: true set.conceptors @
+        (
+          match set with
+          | Forbidden -> []
+          | Allowed set -> Formatters_new.Person.names ~links: (onclick = None) ~short: true set.conceptors
+        ) @
           Option.fold
             (Option.bind params Model_builder.Core.Set_parameters.display_conceptor)
             ~none: []
@@ -146,6 +165,9 @@ let make_set_result ?classes ?onclick ?in_search ?params ?(prefix = []) ?(suffix
       )] @
       suffix
     )
+
+let make_set_result ?classes ?onclick ?in_search ?params ?prefix ?suffix (set : Set_row.t) =
+  make_set_or_forbidden_result ?classes ?onclick ?in_search ?params ?prefix ?suffix (Allowed set)
 
 let make_tune_result ?classes ?onclick ?in_search ?(prefix = []) ?(suffix = []) (tune : Tune_row.t) =
   row

@@ -289,7 +289,8 @@ let for_book (book : Book_view.t) pageno =
     | Dance (dance, _) -> Some (Endpoints.Page.(href @@ Dance View) None dance.id)
     | Versions [(version, _)] -> Some (Endpoints.Page.(href @@ Version View) None None version.id)
     | Versions _ -> None
-    | Set (set, _) -> Some (Endpoints.Page.(href @@ Set View) None set.id)
+    | Set (Allowed set, _) -> Some (Endpoints.Page.(href @@ Set View) None set.id)
+    | Set (Forbidden, _) -> None
   in
   let total = List.length book.content in
   let index_total_category_name_lwt =
@@ -306,8 +307,13 @@ let for_book (book : Book_view.t) pageno =
     match List.nth book.content page with
     | Part _ | Dance (_, Dance_only) -> lwt_nil
     | Set (set, _) | Dance (_, Dance_set (set, _)) ->
-      let%lwt set = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_view) set.id in
-      lwt @@ List.map (Pair.map_fst Version_row.id) set.content
+      (
+        match set with
+        | Allowed set ->
+          let%lwt set = Madge_client.call_exn Endpoints.Api.(route @@ Set Get_view) set.id in
+          lwt @@ List.map (Pair.map_fst Version_row.id) set.content
+        | Forbidden -> lwt_nil
+      )
     | Versions versions | Dance (_, Dance_versions versions) ->
       lwt @@ List.map (Pair.map_fst Version_row.id) versions
   in
