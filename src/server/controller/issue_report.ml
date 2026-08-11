@@ -9,7 +9,7 @@ include Endpoints.Page.Make_describe(Model)
 (* used at the end of the {!report} function below *)
 let id_regexp = Str.regexp ".*/issues/\\(.*\\)"
 
-let report _env issue =
+let report env issue =
   let%lwt (repo, title) =
     if issue.source_is_dancelor then
       lwt ((Config.get ()).github_repository, issue.title)
@@ -24,7 +24,14 @@ let report _env issue =
       "**Reporter**: %s\n\n**Page**: %s\n%s"
       (
         match issue.reporter with
-        | Left user -> Username.to_string @@ Model.User.username' user (* FIXME: when there is a profile page for users, link to it *)
+        | Left `Connected ->
+          (
+            match Environment.user env with
+            | Some user ->
+              (* FIXME: when there is a profile page for users, link to it *)
+              Username.to_string @@ Model.User.username' user
+            | None -> "(claiming to be connected but is not)"
+          )
         | Right string -> string ^ " (not connected)"
       )
       (Uri.to_string issue.page)
