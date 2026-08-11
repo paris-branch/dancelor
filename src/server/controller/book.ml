@@ -34,14 +34,8 @@ module Warnings = struct
     let set_rows : Set_row.t list =
       List.filter_map
         (function
-          | Book_view.Part _
-          | Dance (_, Dance_only)
-          | Dance (_, Dance_versions _)
-          | Versions _ ->
-            None
-          | Dance (_, Dance_set (set, _))
-          | Set (set, _) ->
-            Some set
+          | Book_view.Dance (_, Dance_set (Allowed set, _)) | Set (Allowed set, _) -> Some set
+          | Part _ | Dance (_, Dance_only) | Dance (_, Dance_versions _) | Dance (_, Dance_set (Forbidden, _)) | Versions _ | Set (Forbidden, _) -> None
         )
         book.content
     in
@@ -115,7 +109,7 @@ module Warnings = struct
   let set_dance_kind_mismatch (book : Book_view.t) =
     List.filter_map
       (function
-        | Book_view.Dance (dance, Dance_set (set, _)) ->
+        | Book_view.Dance (dance, Dance_set (Allowed set, _)) ->
           if dance.kind <> set.kind then
             Some (Book_view.Set_dance_kind_mismatch (Set_row.to_name set, Dance_row.to_name dance))
           else

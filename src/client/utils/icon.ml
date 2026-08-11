@@ -121,6 +121,7 @@ type other =
   | Reload
   | File_lilypond
   | File_pdf
+  | Forbidden
 
 let other_to_string = function
   | Actions -> "three-dots-vertical"
@@ -135,6 +136,7 @@ let other_to_string = function
   | Sign_in -> "box-arrow-in-right"
   | Sign_out -> "box-arrow-right"
   | Reload -> "arrow-clockwise"
+  | Forbidden -> "lock"
 
 type t =
   | Access of access
