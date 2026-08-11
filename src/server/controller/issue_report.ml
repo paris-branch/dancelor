@@ -25,7 +25,7 @@ let report _env issue =
       (
         match issue.reporter with
         | Left user -> Username.to_string @@ Model.User.username' user (* FIXME: when there is a profile page for users, link to it *)
-        | Right string -> string
+        | Right string -> string ^ " (not connected)"
       )
       (Uri.to_string issue.page)
       (
