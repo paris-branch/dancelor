@@ -29,7 +29,8 @@ let report env issue =
             match Environment.user env with
             | Some user ->
               (* FIXME: when there is a profile page for users, link to it *)
-              Username.to_string @@ Model.User.username' user
+              (Username.to_string @@ Model.User.username' user) ^
+                (match Model.User.github_handle' user with None -> "" | Some handle -> spf " (@%s)" handle)
             | None -> "(claiming to be connected but is not)"
           )
         | Right string -> string ^ " (not connected)"

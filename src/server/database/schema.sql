@@ -36,6 +36,7 @@ CREATE TABLE "user" (
     "person_id" VARCHAR(14) NULL,
     "role" "role" NOT NULL,
     "username_search" TEXT GENERATED ALWAYS AS (make_name_search("username")) STORED,
+    "github_handle" VARCHAR(64),
     CONSTRAINT "fk_user_id" FOREIGN KEY ("id") REFERENCES "entry" ("id"),
     CONSTRAINT "fk_user_person_id" FOREIGN KEY ("person_id") REFERENCES "person" ("id")
 );

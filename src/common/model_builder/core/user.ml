@@ -10,6 +10,7 @@ type entry = t Entry.public
 
 let username' = username % Entry.value_public
 let role' = role % Entry.value_public
+let github_handle' = github_handle % Entry.value_public
 
 let is_maintainer user = is_maintainer (role user)
 let is_maintainer' = is_maintainer % Entry.value_public

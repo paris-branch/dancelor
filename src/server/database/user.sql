@@ -3,6 +3,7 @@ SELECT
     "username",
     "role",
     "omniscience",
+    "github_handle",
     "created_at",
     "modified_at"
 FROM "user"
@@ -16,6 +17,7 @@ SELECT
     "username",
     "role",
     "omniscience",
+    "github_handle",
     "created_at",
     "modified_at"
 FROM "user"
@@ -26,6 +28,7 @@ SELECT
     "user"."id",
     "role",
     "omniscience",
+    "github_handle",
     "created_at",
     "modified_at"
 FROM "user"
@@ -53,6 +56,7 @@ INSERT INTO "user" (
     "password_reset_token_hash",
     "password_reset_token_max_date",
     "role",
+    "github_handle",
     "omniscience"
 )
 VALUES (
@@ -61,6 +65,7 @@ VALUES (
     @password_reset_token_hash,
     @password_reset_token_max_date,
     @role,
+    @github_handle,
     @omniscience
 );
 

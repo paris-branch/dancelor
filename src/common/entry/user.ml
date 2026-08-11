@@ -16,11 +16,13 @@ type role =
 type t = {
   username: Username.t;
   role: role; [@default Normal_user]
+  github_handle: string option; [@default None]
 }
 [@@deriving eq, ord, make, yojson, fields, show {with_path = false}]
 
-let update ?username ?role user =
+let update ?username ?role ?github_handle user =
   lwt {
     username = Option.value username ~default: Fun.id user.username;
     role = Option.value role ~default: Fun.id user.role;
+    github_handle = Option.value github_handle ~default: Fun.id user.github_handle;
   }

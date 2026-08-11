@@ -1038,6 +1038,7 @@ let migrations : migration list = [
     bypass {| CREATE INDEX "idx_tune_extra_names_extra_name" ON "tune_extra_names" USING GIN ("extra_name" "public"."gin_trgm_ops") |};
     bypass {| CREATE INDEX "idx_tune_extra_names_extra_name_search" ON "tune_extra_names" USING GIN ("extra_name_search" "public"."gin_trgm_ops") |};
   ];
+  make_ddl "m073_2026_08_user_github_handle" Migrations_sql.m073_2026_08_user_github_handle;
 ]
 
 exception Migration_failed of string * exn
