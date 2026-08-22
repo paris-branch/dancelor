@@ -19,8 +19,8 @@ in
         enable = true;
         listeningPort = 8080;
         githubTokenFile = "${pkgs.writeText "github-token" "dummy github token"}";
-        githubRepository = "github.com/paris-branch/dancelor";
-        githubDatabaseRepository = "github.com/paris-branch/dancelor-database";
+        githubRepository = "github.com/niols/dancelor";
+        githubDatabaseRepository = "github.com/niols/dancelor-database";
         testMode = true;
       };
 

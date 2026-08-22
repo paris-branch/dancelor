@@ -196,12 +196,12 @@ let footer =
           a
             ~a: [
               a_class ["icon-link"; "text-light"; "my-1"];
-              a_href (Uri.of_string "https://github.com/paris-branch/dancelor");
+              a_href (Uri.of_string "https://github.com/niols/dancelor");
               a_target "_blank";
             ]
             [
               Icon.html (Other GitHub);
-              txt "paris-branch/dancelor";
+              txt "niols/dancelor";
             ];
           Button.make
             ~label: "Report an issue"
