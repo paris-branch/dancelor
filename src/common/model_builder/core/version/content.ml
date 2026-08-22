@@ -117,7 +117,7 @@ let lilypond ?structure ~kind ~key parts transitions =
   in
   let time =
     match kind with
-    | Kind.Base.Reel -> "4/4" (* technically 2/2 but https://github.com/paris-branch/dancelor/issues/744 *)
+    | Kind.Base.Reel -> "4/4" (* technically 2/2 but https://github.com/niols/dancelor/issues/744 *)
     | Jig -> "6/8"
     | Strathspey -> "4/4"
     | Waltz -> "3/4"

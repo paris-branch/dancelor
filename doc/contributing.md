@@ -1,6 +1,6 @@
 # Contributing
 
-[API documentation](https://paris-branch.github.io/dancelor/dancelor)
+[API documentation](https://niols.github.io/dancelor/dancelor)
 
 ## Setting up a development environment
 

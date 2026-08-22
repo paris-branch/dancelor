@@ -4,4 +4,4 @@ A chancelor for Scottish country dance musicians. See:
 
 - the [website](https://dancelor.org/)
 - the [documentation](./doc)
-- the [API documentation](https://paris-branch.github.io/dancelor/dancelor)
+- the [API documentation](https://niols.github.io/dancelor/dancelor)

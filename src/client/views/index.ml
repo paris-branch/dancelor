@@ -106,7 +106,7 @@ let create () =
             txt "Yes! Dancelor is not only free to use, it is also ";
             a ~a: [a_href @@ Uri.of_string "https://www.gnu.org/philosophy/free-sw.html"] [txt "free as in freedom"];
             txt ": the source code is open and available on ";
-            a ~a: [a_href @@ Uri.of_string "https://github.com/paris-branch/dancelor"] [txt "GitHub"];
+            a ~a: [a_href @@ Uri.of_string "https://github.com/niols/dancelor"] [txt "GitHub"];
             txt ". The database of tunes, however, is not publicly downloadable, ";
             txt "mostly to protect copyrighted content."
           ]
@@ -149,7 +149,7 @@ let create () =
           p [
             txt "Please let us know! You can use the \"Report an issue\" button ";
             txt "at the bottom of each page or ";
-            a ~a: [a_href @@ Uri.of_string "https://github.com/paris-branch/dancelor/issues"] [txt "open an issue on GitHub"];
+            a ~a: [a_href @@ Uri.of_string "https://github.com/niols/dancelor/issues"] [txt "open an issue on GitHub"];
             txt ". Whether it is a wrong note, a missing tune, or incorrect metadata, ";
             txt "we appreciate every report."
           ]

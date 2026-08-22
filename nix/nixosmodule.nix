@@ -38,7 +38,7 @@
 
             This is used by the issue report mechanism. It must contain the host, owner, and repository.
           '';
-          example = "github.com/paris-branch/dancelor";
+          example = "github.com/niols/dancelor";
         };
 
         githubDatabaseRepository = lib.mkOption {
@@ -48,7 +48,7 @@
 
             This is used by the issue report mechanism. It must contain the host, owner, and repository.
           '';
-          example = "github.com/paris-branch/dancelor-database";
+          example = "github.com/niols/dancelor-database";
         };
 
         routineThreads = lib.mkOption {
