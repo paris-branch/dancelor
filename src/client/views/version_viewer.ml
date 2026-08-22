@@ -225,11 +225,6 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
     Option.flip_map version @@ fun version ->
     [div ~a: [a_class ["row"; "justify-content-between"]] [
       div ~a: [a_class ["col-auto"; "text-start"]] (
-        let selected_by_dancelor =
-          match tune_or_version_id with
-          | `Version _ -> txt "."
-          | `Tune _ -> txt ", selected by Dancelor."
-        in
         match version.content with
         | No_content -> []
         | Monolithic {bars; structure} ->
@@ -239,7 +234,6 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
               bars
               (NEString.to_string @@ Model.Version.Structure.to_string structure)
               (Music.Key.to_pretty_string version.key);
-            selected_by_dancelor;
           ]
         | Destructured {default_structure} ->
           [
@@ -249,7 +243,6 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
               " in %s, shown here as %s"
               (Music.Key.to_pretty_string version.key)
               (NEString.to_string @@ Version.Structure.to_string default_structure);
-            selected_by_dancelor
           ]
       );
       div ~a: [a_class ["col-auto"; "text-end"]] (
@@ -263,12 +256,17 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
       match version.content with
       | No_content -> div [Alert.make ~level: Info [txt "This version does not have any content. This is usually because it has not been added yet. If you have access to the source of this precise version, consider sending it to an administrator."]]
       | Monolithic _ | Destructured _ -> Components.Version_snippets.make (Version_view.to_name version)
-    )];
+    );
+    (
+      match tune_or_version_id with
+      | `Version _ -> div []
+      | `Tune _ -> div ~a: [a_class ["my-3"]] [Alert.make ~level: Info [txtf "This is the page of the tune “%s”; this specific version was selected by Dancelor." tune.name]]
+    );
+    ];
   );
   div (
     match tune.extra_names with
     | [] -> []
-    | [extra_name] -> [section ~a: [a_class ["mt-2"]] [txtf "Also known as %s." extra_name]]
     | extra_names ->
       [
         section ~a: [a_class ["mt-2"]] [
@@ -304,7 +302,6 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
         in
         match List.group ~by: (fun (s1 : Version_view.source) (s2 : Version_view.source) -> Entry.Id.equal' s1.id s2.id) version.Version_view.sources with
         | [] -> []
-        | [source_group] -> [section ~a: [a_class ["mt-2"]] [txt "This specific version appears in "; show_source_group source_group]]
         | source_groups ->
           [
             section ~a: [a_class ["mt-2"]] [
@@ -333,7 +330,7 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
     in
     let versions = List.map (Tune_view.version_row_without_tune_to_version_row tune) versions in
     [
-      h3 [txtf "%s of this tune" title];
+      h3 ~a: [a_class ["mt-3"]] [txtf "%s of this tune" title];
       (
         match versions with
         | [] ->
@@ -356,7 +353,7 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
     ]
   );
   div [
-    h3 [txt "Dances that recommend this tune"];
+    h3 ~a: [a_class ["mt-3"]] [txt "Dances that recommend this tune"];
     (
       let dances = tune.dances in
       if dances = [] then
