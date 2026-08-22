@@ -333,7 +333,7 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
     in
     let versions = List.map (Tune_view.version_row_without_tune_to_version_row tune) versions in
     [
-      h3 [txtf "%s of this tune" title];
+      h3 ~a: [a_class ["mt-3"]] [txtf "%s of this tune" title];
       (
         match versions with
         | [] ->
@@ -356,7 +356,7 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
     ]
   );
   div [
-    h3 [txt "Dances that recommend this tune"];
+    h3 ~a: [a_class ["mt-3"]] [txt "Dances that recommend this tune"];
     (
       let dances = tune.dances in
       if dances = [] then
