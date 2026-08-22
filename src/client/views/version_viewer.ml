@@ -268,7 +268,6 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
   div (
     match tune.extra_names with
     | [] -> []
-    | [extra_name] -> [section ~a: [a_class ["mt-2"]] [txtf "Also known as %s." extra_name]]
     | extra_names ->
       [
         section ~a: [a_class ["mt-2"]] [
@@ -304,7 +303,6 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
         in
         match List.group ~by: (fun (s1 : Version_view.source) (s2 : Version_view.source) -> Entry.Id.equal' s1.id s2.id) version.Version_view.sources with
         | [] -> []
-        | [source_group] -> [section ~a: [a_class ["mt-2"]] [txt "This specific version appears in "; show_source_group source_group]]
         | source_groups ->
           [
             section ~a: [a_class ["mt-2"]] [
