@@ -225,11 +225,6 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
     Option.flip_map version @@ fun version ->
     [div ~a: [a_class ["row"; "justify-content-between"]] [
       div ~a: [a_class ["col-auto"; "text-start"]] (
-        let selected_by_dancelor =
-          match tune_or_version_id with
-          | `Version _ -> txt "."
-          | `Tune _ -> txt ", selected by Dancelor."
-        in
         match version.content with
         | No_content -> []
         | Monolithic {bars; structure} ->
@@ -239,7 +234,6 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
               bars
               (NEString.to_string @@ Model.Version.Structure.to_string structure)
               (Music.Key.to_pretty_string version.key);
-            selected_by_dancelor;
           ]
         | Destructured {default_structure} ->
           [
@@ -249,7 +243,6 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
               " in %s, shown here as %s"
               (Music.Key.to_pretty_string version.key)
               (NEString.to_string @@ Version.Structure.to_string default_structure);
-            selected_by_dancelor
           ]
       );
       div ~a: [a_class ["col-auto"; "text-end"]] (
@@ -263,7 +256,13 @@ let body tune_or_version_id (tune : Tune_view.t) (version : Version_view.t optio
       match version.content with
       | No_content -> div [Alert.make ~level: Info [txt "This version does not have any content. This is usually because it has not been added yet. If you have access to the source of this precise version, consider sending it to an administrator."]]
       | Monolithic _ | Destructured _ -> Components.Version_snippets.make (Version_view.to_name version)
-    )];
+    );
+    (
+      match tune_or_version_id with
+      | `Version _ -> div []
+      | `Tune _ -> div ~a: [a_class ["my-3"]] [Alert.make ~level: Info [txtf "This is the page of the tune “%s”; this specific version was selected by Dancelor." tune.name]]
+    );
+    ];
   );
   div (
     match tune.extra_names with
